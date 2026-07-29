@@ -18,7 +18,7 @@ describe("1.6.1 Comment API routes", () => {
     expect(src).toContain("export async function POST");
     expect(src).toContain("getSession");
     expect(src).toContain("prisma.comment");
-    expect(src).toContain("created_at");
+    expect(src).toContain("createdAt");
   });
 
   it("DELETE /api/tasks/[taskId]/comments/[commentId]/route.ts exists", () => {

@@ -1,9 +1,10 @@
 "use client";
 
-import { X, Calendar, CalendarDays, User, MessageSquare } from "lucide-react";
+import { X, Calendar, CalendarDays, User } from "lucide-react";
 import { PRIORITY_COLORS } from "@/lib/constants";
 import { AreaBadge } from "@/components/areas/area-badge";
 import { Button } from "@/components/ui/button";
+import { CommentList } from "@/components/comments/comment-list";
 import type { BoardTask } from "@/hooks/use-kanban";
 
 export function TaskDetailPanel({
@@ -75,14 +76,7 @@ export function TaskDetailPanel({
           )}
         </div>
 
-        {task._count.comments > 0 && (
-          <div className="space-y-3">
-            <h3 className="text-label font-semibold text-text-primary flex items-center gap-1">
-              <MessageSquare size={14} />
-              Comments ({task._count.comments})
-            </h3>
-          </div>
-        )}
+        <CommentList taskId={task.id} />
       </div>
     </div>
   );

@@ -21,9 +21,9 @@ describe("1.5.1 Task API routes", () => {
     expect(src).toContain("position");
   });
 
-  it("PATCH/DELETE /api/tasks/[id]/route.ts exists", () => {
-    expect(exists("src/app/api/tasks/[id]/route.ts")).toBe(true);
-    const src = read("src/app/api/tasks/[id]/route.ts");
+  it("PATCH/DELETE /api/tasks/[taskId]/route.ts exists", () => {
+    expect(exists("src/app/api/tasks/[taskId]/route.ts")).toBe(true);
+    const src = read("src/app/api/tasks/[taskId]/route.ts");
     expect(src).toContain("export async function PATCH");
     expect(src).toContain("export async function DELETE");
     expect(src).toContain("params.id");
