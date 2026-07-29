@@ -1,9 +1,9 @@
 # Conductor Log
 
 ## State
-- wave: 5
+- wave: 6
 - status: running
-- task_index: 9
+- task_index: 0
 - loop_count: 0
 - decisions: []
 
