@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
@@ -24,15 +23,23 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { data: areas } = useAreas();
-  const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
+
+  const selectedAreas = searchParams.get("areas")?.split(",").filter(Boolean) || [];
 
   const handleToggleArea = (areaId: string) => {
-    setSelectedAreas((prev) =>
-      prev.includes(areaId)
-        ? prev.filter((id) => id !== areaId)
-        : [...prev, areaId]
-    );
+    const next = selectedAreas.includes(areaId)
+      ? selectedAreas.filter((id) => id !== areaId)
+      : [...selectedAreas, areaId];
+    const params = new URLSearchParams(searchParams.toString());
+    if (next.length > 0) {
+      params.set("areas", next.join(","));
+    } else {
+      params.delete("areas");
+    }
+    router.replace(`${pathname}?${params.toString()}`);
   };
 
   return (

@@ -21,12 +21,13 @@ describe("1.4.1 Projects API routes", () => {
     expect(src).toContain("createDefaultColumns");
   });
 
-  it("PATCH/DELETE /api/projects/[id]/route.ts exists", () => {
-    expect(exists("src/app/api/projects/[id]/route.ts")).toBe(true);
-    const src = read("src/app/api/projects/[id]/route.ts");
+  it("PATCH/DELETE /api/projects/[projectId]/route.ts exists (consistent with column routes)", () => {
+    expect(exists("src/app/api/projects/[id]/route.ts")).toBe(false);
+    expect(exists("src/app/api/projects/[projectId]/route.ts")).toBe(true);
+    const src = read("src/app/api/projects/[projectId]/route.ts");
     expect(src).toContain("export async function PATCH");
     expect(src).toContain("export async function DELETE");
-    expect(src).toContain("params.id");
+    expect(src).toContain("params.projectId");
     expect(src).toContain("archived");
   });
 });
