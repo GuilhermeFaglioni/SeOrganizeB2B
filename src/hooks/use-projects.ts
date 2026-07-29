@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toastError } from "@/lib/toast";
 
 const API = "/api/projects";
 
@@ -39,6 +40,7 @@ export function useCreateProject() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
+    onError: () => toastError("Failed to create project"),
   });
 }
 
@@ -55,6 +57,7 @@ export function useUpdateProject() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
+    onError: () => toastError("Failed to update project"),
   });
 }
 

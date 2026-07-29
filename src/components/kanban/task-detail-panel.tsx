@@ -41,6 +41,7 @@ export function TaskDetailPanel({
       <div className="flex-1 px-4 py-4 space-y-6 overflow-y-auto">
         <div>
           <h2 className="text-heading-1 font-semibold text-text-primary mb-2">{task.title}</h2>
+          <span className="sr-only">Task detail panel</span>
           {task.description && (
             <p className="text-body-small text-text-secondary whitespace-pre-wrap">{task.description}</p>
           )}

@@ -35,8 +35,11 @@ export function KanbanCard({
       ref={setNodeRef}
       style={style}
       data-testid={`task-card-${task.id}`}
+      role="button"
+      tabIndex={0}
+      aria-label={`Task: ${task.title}`}
       className={cn(
-        "bg-white border rounded-lg shadow-sm p-[10px] cursor-pointer hover:shadow-md transition-shadow",
+        "bg-white border rounded-lg shadow-sm p-[10px] cursor-pointer hover:shadow-md motion-safe:transition-shadow",
         isOverdue && "border-danger",
         isSelected && "border-[2px] border-accent",
         isDragging && "opacity-50"

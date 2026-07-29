@@ -3,7 +3,7 @@
 ## State
 - wave: 5
 - status: running
-- task_index: 8
+- task_index: 9
 - loop_count: 0
 - decisions: []
 

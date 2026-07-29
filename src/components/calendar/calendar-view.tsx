@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCalendarEvents } from "@/hooks/use-calendar";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { CalendarEvent } from "./calendar-event";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -35,8 +36,9 @@ function getEventPosition(event: { startTime: string }, dayStart: Date): { day: 
 }
 
 export function CalendarView({ onEventClick }: { onEventClick?: (id: string) => void }) {
+  const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<"week" | "day">("week");
+  const [viewMode, setViewMode] = useState<"week" | "day">(isMobile ? "day" : "week");
 
   const weekRange = useMemo(() => getWeekRange(currentDate), [currentDate]);
   const startDate = viewMode === "day" ? currentDate : weekRange.start;
@@ -72,7 +74,7 @@ export function CalendarView({ onEventClick }: { onEventClick?: (id: string) => 
 
   return (
     <div data-testid="calendar-view" className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <button onClick={() => navigate(-1)} className="p-1 hover:bg-bg-secondary rounded">
             <ChevronLeft size={18} />

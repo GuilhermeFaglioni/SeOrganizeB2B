@@ -30,7 +30,9 @@ export function KanbanColumn({
   return (
     <div
       data-testid={`kanban-column-${column.name}`}
-      className="flex-shrink-0 w-[280px] flex flex-col gap-4"
+      className="flex-shrink-0 w-[280px] min-w-[260px] flex flex-col gap-4 snap-start"
+      role="region"
+      aria-label={`Column: ${column.name}`}
     >
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">

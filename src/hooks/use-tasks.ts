@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toastError } from "@/lib/toast";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -56,6 +57,7 @@ export function useCreateTask(projectId: string) {
       queryClient.invalidateQueries({ queryKey: ["board", projectId] });
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
     },
+    onError: () => toastError("Failed to create task"),
   });
 }
 
@@ -73,6 +75,7 @@ export function useUpdateTask(projectId: string) {
       queryClient.invalidateQueries({ queryKey: ["board", projectId] });
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
     },
+    onError: () => toastError("Failed to update task"),
   });
 }
 
@@ -86,5 +89,6 @@ export function useDeleteTask(projectId: string) {
       queryClient.invalidateQueries({ queryKey: ["board", projectId] });
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
     },
+    onError: () => toastError("Failed to delete task"),
   });
 }

@@ -109,9 +109,9 @@ export function DocumentEditor({
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {(viewMode === "edit" || viewMode === "split") && (
-          <div className={`${viewMode === "split" ? "w-1/2" : "w-full"} overflow-auto border-r border-border`}>
+          <div className={`${viewMode === "split" ? "md:w-1/2 w-full h-1/2 md:h-full" : "w-full"} overflow-auto border-r border-border`}>
             <MDEditor
               value={content}
               onChange={handleContentChange}
@@ -122,7 +122,7 @@ export function DocumentEditor({
           </div>
         )}
         {(viewMode === "preview" || viewMode === "split") && (
-          <div className={`${viewMode === "split" ? "w-1/2" : "w-full"} overflow-auto`}>
+          <div className={`${viewMode === "split" ? "md:w-1/2 w-full h-1/2 md:h-full" : "w-full"} overflow-auto`}>
             <MarkdownPreview content={content} />
           </div>
         )}

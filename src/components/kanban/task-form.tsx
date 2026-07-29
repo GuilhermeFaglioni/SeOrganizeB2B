@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateTask, useUpdateTask } from "@/hooks/use-tasks";
+import { toastError } from "@/lib/toast";
 import { useAreas } from "@/hooks/use-areas";
 import { DEFAULT_PRIORITIES } from "@/lib/constants";
 
@@ -101,6 +102,7 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
       onOpenChange(false);
     } catch {
       setError("Failed to save task");
+      toastError("Failed to save task");
     }
   }
 

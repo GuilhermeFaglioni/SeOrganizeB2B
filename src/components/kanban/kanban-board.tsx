@@ -94,7 +94,9 @@ export function KanbanBoard({
     >
       <div
         data-testid="kanban-board"
-        className="flex gap-4 overflow-x-auto pb-4 h-full"
+        className="flex gap-4 overflow-x-auto pb-4 h-full snap-x snap-mandatory"
+        role="list"
+        aria-label="Kanban board"
       >
         {columns.map((column) => (
           <KanbanColumn
