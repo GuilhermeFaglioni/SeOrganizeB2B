@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { APP_NAME } from "@/lib/constants";
 import { useAreas } from "@/hooks/use-areas";
 import { AreaFilter } from "@/components/areas/area-filter";
+import { ProjectSelector } from "@/components/projects/project-selector";
 
 const navItems = [
   { href: "/board", label: "Board", icon: LayoutDashboard, testId: "nav-board" },
@@ -50,6 +51,8 @@ export function Sidebar() {
           {APP_NAME}
         </span>
       </div>
+
+      <ProjectSelector />
 
       <nav className="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Main navigation">
         {navItems.map((item) => {
