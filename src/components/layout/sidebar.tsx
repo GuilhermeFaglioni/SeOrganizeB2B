@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,6 +11,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_NAME } from "@/lib/constants";
+import { useAreas } from "@/hooks/use-areas";
+import { AreaFilter } from "@/components/areas/area-filter";
 
 const navItems = [
   { href: "/board", label: "Board", icon: LayoutDashboard, testId: "nav-board" },
@@ -20,6 +23,16 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: areas } = useAreas();
+  const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
+
+  const handleToggleArea = (areaId: string) => {
+    setSelectedAreas((prev) =>
+      prev.includes(areaId)
+        ? prev.filter((id) => id !== areaId)
+        : [...prev, areaId]
+    );
+  };
 
   return (
     <aside
@@ -60,6 +73,14 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {areas && areas.length > 0 && (
+        <AreaFilter
+          areas={areas}
+          selected={selectedAreas}
+          onToggle={handleToggleArea}
+        />
+      )}
     </aside>
   );
 }

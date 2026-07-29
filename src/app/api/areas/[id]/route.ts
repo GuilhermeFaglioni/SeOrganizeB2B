@@ -1,0 +1,50 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "../../../../../prisma/client";
+import { getSession } from "@/lib/supabase/server";
+
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { name, color } = body;
+
+  const area = await prisma.teamArea.findUnique({ where: { id: params.id } });
+  if (!area) {
+    return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Area not found" } }, { status: 404 });
+  }
+
+  if (name && name !== area.name) {
+    const existing = await prisma.teamArea.findUnique({ where: { name } });
+    if (existing) {
+      return NextResponse.json({ data: null, error: { code: "CONFLICT", message: "Area name already exists" } }, { status: 409 });
+    }
+  }
+
+  const updated = await prisma.teamArea.update({
+    where: { id: params.id },
+    data: { ...(name && { name }), ...(color && { color }) },
+  });
+
+  return NextResponse.json({ data: updated, error: null });
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
+  }
+
+  const area = await prisma.teamArea.findUnique({ where: { id: params.id } });
+  if (!area) {
+    return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Area not found" } }, { status: 404 });
+  }
+
+  await prisma.task.updateMany({ where: { areaId: params.id }, data: { areaId: null } });
+  await prisma.project.updateMany({ where: { areaId: params.id }, data: { areaId: null } });
+  await prisma.teamArea.delete({ where: { id: params.id } });
+
+  return NextResponse.json({ data: { id: params.id }, error: null });
+}

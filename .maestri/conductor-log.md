@@ -3,8 +3,8 @@
 ## State
 - wave: 5
 - status: running
-- task_index: 2
-- loop_count: 0
+- task_index: 3
+- loop_count: 1
 - decisions: []
 
 ## Handoff Chain
