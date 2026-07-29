@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  email     String
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  teamMemberAreas        TeamMemberArea[]
+  createdTeamAreas       TeamArea[]       @relation("TeamAreaCreator")
+  createdProjects        Project[]        @relation("ProjectCreator")
+  assignedTasks          Task[]           @relation("TaskAssignee")
+  createdTasks           Task[]           @relation("TaskCreator")
+  comments               Comment[]
+  createdDocuments       Document[]
+  calendarAuth           CalendarAuth?
+  calendarEvents         CalendarEvent[]
+
+  @@map("profiles")
+}
+
+model TeamArea {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  color     String   @default("#3b82f6")
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  creator      Profile          @relation("TeamAreaCreator", fields: [createdBy], references: [id])
+  memberAreas  TeamMemberArea[]
+  projects     Project[]
+  tasks        Task[]
+
+  @@map("team_areas")
+}
+
+model TeamMemberArea {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  areaId String @map("area_id")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  area TeamArea @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, areaId])
+  @@map("team_member_areas")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  areaId      String?  @map("area_id")
+  createdBy   String   @map("created_by")
+  archived    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  area    TeamArea?       @relation(fields: [areaId], references: [id])
+  creator Profile         @relation("ProjectCreator", fields: [createdBy], references: [id])
+  columns ProjectColumn[]
+  tasks   Task[]
+  documents Document[]
+
+  @@index([areaId])
+  @@map("projects")
+}
+
+model ProjectColumn {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  name      String
+  position  Int
+  color     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   Task[]
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@map("project_columns")
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  columnId    String   @map("column_id")
+  title       String
+  description String?
+  assigneeId  String?  @map("assignee_id")
+  areaId      String?  @map("area_id")
+  priority    String   @default("medium")
+    dueDate     DateTime? @map("due_date")
+  position    Float    @default(0)
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project  Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  column   ProjectColumn @relation(fields: [columnId], references: [id], onDelete: Restrict)
+  assignee Profile?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  area     TeamArea?     @relation(fields: [areaId], references: [id])
+  creator  Profile       @relation("TaskCreator", fields: [createdBy], references: [id])
+  comments Comment[]
+  calendarEvents CalendarEvent[]
+
+  @@index([projectId])
+  @@index([columnId])
+  @@index([assigneeId])
+  @@index([areaId])
+  @@index([dueDate])
+  @@index([projectId, columnId, position])
+  @@map("tasks")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  taskId    String   @map("task_id")
+  authorId  String   @map("author_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  task   Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author Profile @relation(fields: [authorId], references: [id])
+
+  @@index([taskId])
+  @@map("comments")
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @default("")
+  projectId String?  @map("project_id")
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  project Project? @relation(fields: [projectId], references: [id])
+  creator Profile  @relation(fields: [createdBy], references: [id])
+
+  @@index([projectId])
+  @@index([createdBy])
+  @@map("documents")
+}
+
+model CalendarAuth {
+  id           String   @id @default(uuid())
+  userId       String   @unique @map("user_id")
+  accessToken  String   @map("access_token")
+  refreshToken String   @map("refresh_token")
+  expiresAt    DateTime @map("expires_at")
+  googleEmail  String?  @map("google_email")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("calendar_auth")
+}
+
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  taskId      String?  @map("task_id")
+  googleId    String?  @map("google_id")
+  title       String
+  description String?
+  startTime   DateTime @map("start_time")
+  endTime     DateTime @map("end_time")
+  color       String?
+  source      String   @default("google")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task?    @relation(fields: [taskId], references: [id])
+
+  @@index([userId, startTime])
+  @@index([taskId])
+  @@map("calendar_events")
+}
