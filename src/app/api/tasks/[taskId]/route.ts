@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
 import { getSession } from "@/lib/supabase/server";
 
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
+  }
+
+  const task = await prisma.task.findUnique({
+    where: { id: params.id },
+    include: {
+      assignee: { select: { id: true, name: true, avatarUrl: true } },
+      area: { select: { id: true, name: true, color: true } },
+      column: { select: { id: true, name: true } },
+      _count: { select: { comments: true } },
+    },
+  });
+
+  if (!task) {
+    return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Task not found" } }, { status: 404 });
+  }
+
+  return NextResponse.json({ data: task, error: null });
+}
+
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
   if (!session) {

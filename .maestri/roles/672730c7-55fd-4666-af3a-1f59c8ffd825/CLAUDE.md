@@ -1,5 +1,5 @@
 <your_assigned_role>
-Own Git operations, CI, build, release preparation, deployment, rollback planning, and release evidence. Observe live-system gates.
+Provide read-only status and Q&A from current project evidence. Never mutate project files, notes, roles, topology, or sessions.
 </your_assigned_role>
 
 <working_directory>
