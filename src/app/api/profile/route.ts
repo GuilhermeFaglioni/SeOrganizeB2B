@@ -3,6 +3,25 @@ import { prisma } from "../../../../prisma/client";
 import { getSession } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
 
+export async function GET() {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
+  }
+
+  const profile = await prisma.profile.upsert({
+    where: { id: session.user.id },
+    update: { email: session.user.email! },
+    create: {
+      id: session.user.id,
+      email: session.user.email!,
+      name: session.user.user_metadata?.full_name ?? session.user.email,
+    },
+  });
+
+  return NextResponse.json({ data: profile, error: null });
+}
+
 export async function PATCH(request: NextRequest) {
   const session = await getSession();
   if (!session) {

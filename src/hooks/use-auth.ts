@@ -32,12 +32,13 @@ export function useAuth() {
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await client.auth.signUp({
+    const { error, data } = await client.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) throw error;
+    return data;
   };
 
   const signOut = async () => {

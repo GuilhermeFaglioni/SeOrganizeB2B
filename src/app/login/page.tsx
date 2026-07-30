@@ -3,17 +3,20 @@
 export const dynamic = "force-dynamic";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME } from "@/lib/constants";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const { signInWithGoogle, signInWithMagicLink, signInWithPassword, signUp } = useAuth();
 
@@ -21,8 +24,10 @@ export default function LoginPage() {
     if (!email) return;
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
       await signInWithMagicLink(email);
+      setSuccess("Check your email for the magic link!");
     } catch {
       setError("Failed to send magic link");
     } finally {
@@ -33,8 +38,11 @@ export default function LoginPage() {
   const handlePasswordSignIn = async () => {
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
       await signInWithPassword(email, password);
+      await fetch("/api/profile");
+      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid email or password");
     } finally {
@@ -49,8 +57,16 @@ export default function LoginPage() {
     }
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
-      await signUp(email, password);
+      const data = await signUp(email, password);
+      if (data.user?.identities?.length === 0) {
+        setError("An account with this email already exists.");
+      } else if (!data.session) {
+        setSuccess("Account created! Check your email to confirm your account.");
+      } else {
+        router.push("/");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create account");
     } finally {
@@ -132,6 +148,11 @@ export default function LoginPage() {
           {error && (
             <p data-testid="auth-error" className="text-sm text-red-500">
               {error}
+            </p>
+          )}
+          {success && (
+            <p className="text-sm text-green-600 text-center">
+              {success}
             </p>
           )}
 
