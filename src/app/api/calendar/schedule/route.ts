@@ -140,6 +140,7 @@ export async function POST(request: NextRequest) {
     select: { id: true },
   });
   let googleId: string | null = null;
+  let googleEtag: string | null = null;
 
   if (calendarAuth) {
     try {
@@ -163,6 +164,7 @@ export async function POST(request: NextRequest) {
         attendees: attendeeEmails.map((email) => ({ email })),
       });
       googleId = result.id;
+      googleEtag = result.etag;
     } catch (error) {
       console.error("Google Calendar create failed:", error);
       const code =
@@ -204,7 +206,9 @@ export async function POST(request: NextRequest) {
       allDay,
       timeZone: body.timeZone || null,
       color: body.color || null,
+      etag: googleEtag,
       source: googleId ? "google" : "local",
+      syncedAt: googleId ? new Date() : null,
       attendees: {
         create: attendeeEmails.map((email) => {
           const profile = profileByEmail.get(email);

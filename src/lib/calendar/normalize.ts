@@ -17,6 +17,7 @@ export function normalizeGoogleEvent(
   return {
     id: event.id,
     googleId: event.id,
+    etag: event.etag ?? null,
     title: event.summary?.trim() || "Untitled event",
     description: event.description?.trim() || null,
     startTime,
