@@ -28,6 +28,15 @@ export class GoogleCalendarError extends Error {
   }
 }
 
+interface CreateResult {
+  id: string;
+  etag: string | null;
+}
+
+interface UpdateResult {
+  etag: string | null;
+}
+
 export class GoogleCalendarClient {
   private accessToken: string;
 
@@ -75,8 +84,8 @@ export class GoogleCalendarClient {
     return (data?.items ?? []).map(normalizeGoogleEvent);
   }
 
-  async createEvent(input: CalendarEventInput): Promise<{ id: string }> {
-    const data = await this.request<{ id: string }>(
+  async createEvent(input: CalendarEventInput): Promise<CreateResult> {
+    const data = await this.request<{ id: string; etag?: string }>(
       "/calendars/primary/events?sendUpdates=all",
       {
         method: "POST",
@@ -91,7 +100,22 @@ export class GoogleCalendarClient {
       );
     }
 
-    return { id: data.id };
+    return { id: data.id, etag: data.etag ?? null };
+  }
+
+  async updateEvent(
+    googleId: string,
+    input: CalendarEventInput,
+  ): Promise<UpdateResult> {
+    const data = await this.request<{ etag?: string }>(
+      `/calendars/primary/events/${encodeURIComponent(googleId)}?sendUpdates=all`,
+      {
+        method: "PUT",
+        body: JSON.stringify(input),
+      },
+    );
+
+    return { etag: data?.etag ?? null };
   }
 
   async deleteEvent(googleId: string): Promise<void> {

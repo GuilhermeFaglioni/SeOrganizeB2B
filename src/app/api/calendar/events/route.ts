@@ -120,6 +120,11 @@ export async function GET(request: NextRequest) {
       accessToken,
     ).fetchEvents(timeMin, timeMax);
 
+    await prisma.calendarAuth.updateMany({
+      where: { userId: user.id },
+      data: { lastSyncAt: new Date() },
+    });
+
     return NextResponse.json({
       data: {
         events: dedupeCalendarEvents([...googleEvents, ...normalizedLocal]),

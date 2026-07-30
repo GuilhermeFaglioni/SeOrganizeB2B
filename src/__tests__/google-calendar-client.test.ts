@@ -71,7 +71,7 @@ describe("GoogleCalendarClient", () => {
       attendees: [{ email: "person@example.com" }],
     });
 
-    expect(result).toEqual({ id: "google-event-id" });
+    expect(result).toEqual({ id: "google-event-id", etag: null });
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/events?sendUpdates=all"),
       expect.objectContaining({

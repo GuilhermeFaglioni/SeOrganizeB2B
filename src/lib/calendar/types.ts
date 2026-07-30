@@ -16,6 +16,7 @@ export interface CalendarAttendee {
 export interface CalendarEventData {
   id: string;
   googleId: string | null;
+  etag?: string | null;
   title: string;
   description: string | null;
   startTime: string;
@@ -35,6 +36,7 @@ export interface CalendarEventData {
 
 export interface GoogleCalendarEvent {
   id: string;
+  etag?: string;
   summary?: string;
   description?: string;
   start: { dateTime?: string; date?: string; timeZone?: string };
