@@ -2,6 +2,7 @@
 
 import { Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { splitMentionContent } from "@/lib/mentions";
 
 interface CommentAuthor {
   id: string;
@@ -61,7 +62,18 @@ export function CommentItem({
           )}
         </div>
         <p className="text-[14px] text-text-primary mt-0.5 whitespace-pre-wrap break-words">
-          {comment.content}
+          {splitMentionContent(comment.content).map((part, index) =>
+            part.type === "mention" ? (
+              <span
+                key={`${part.profileId}-${index}`}
+                className="rounded bg-accent/10 px-1 font-medium text-accent"
+              >
+                {part.value}
+              </span>
+            ) : (
+              <span key={index}>{part.value}</span>
+            )
+          )}
         </p>
       </div>
     </div>

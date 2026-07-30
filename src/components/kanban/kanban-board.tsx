@@ -15,7 +15,18 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { KanbanColumn } from "./kanban-column";
 import { KanbanCard } from "./kanban-card";
-import { useMoveTask, type BoardColumn, type BoardTask } from "@/hooks/use-kanban";
+import { useMoveTask, useColumns, type BoardColumn, type BoardTask } from "@/hooks/use-kanban";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus } from "lucide-react";
+import type { BoardGroupBy } from "@/lib/board/task-transforms";
 
 export function KanbanBoard({
   columns,
@@ -24,6 +35,11 @@ export function KanbanBoard({
   onTaskClick,
   onAddClick,
   areaFilter,
+  taskFilter,
+  mode = "full",
+  projectName,
+  allowColumnManagement = true,
+  groupBy = "workflow",
 }: {
   columns: BoardColumn[];
   projectId: string;
@@ -31,9 +47,50 @@ export function KanbanBoard({
   onTaskClick?: (taskId: string) => void;
   onAddClick?: (columnId: string) => void;
   areaFilter?: string | null;
+  taskFilter?: (task: BoardTask) => boolean;
+  mode?: "full" | "compact";
+  projectName?: string;
+  allowColumnManagement?: boolean;
+  groupBy?: BoardGroupBy;
 }) {
   const [activeTask, setActiveTask] = useState<BoardTask | null>(null);
   const moveTask = useMoveTask(projectId);
+  const { addColumn, renameColumn, deleteColumn } = useColumns(projectId);
+
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameColumnId, setRenameColumnId] = useState<string | null>(null);
+  const [renameName, setRenameName] = useState("");
+
+  const [addColumnOpen, setAddColumnOpen] = useState(false);
+  const [addColumnName, setAddColumnName] = useState("");
+
+  const handleRenameClick = (columnId: string, currentName: string) => {
+    setRenameColumnId(columnId);
+    setRenameName(currentName);
+    setRenameOpen(true);
+  };
+
+  const handleRenameSubmit = () => {
+    if (renameColumnId && renameName.trim()) {
+      renameColumn.mutate({ columnId: renameColumnId, name: renameName.trim() });
+    }
+    setRenameOpen(false);
+    setRenameColumnId(null);
+  };
+
+  const handleDeleteColumn = (columnId: string) => {
+    if (confirm("Delete this column and all its tasks?")) {
+      deleteColumn.mutate(columnId);
+    }
+  };
+
+  const handleAddColumn = () => {
+    if (addColumnName.trim()) {
+      addColumn.mutate({ name: addColumnName.trim() });
+    }
+    setAddColumnOpen(false);
+    setAddColumnName("");
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -73,9 +130,21 @@ export function KanbanBoard({
       ? targetColumn.tasks.filter((t) => t.area?.id && areaIds.includes(t.area.id))
       : targetColumn.tasks;
 
-    const overIndex = filteredTasks.findIndex((t) => t.id === over.id);
-    const beforePosition = overIndex > 0 ? filteredTasks[overIndex - 1].position : null;
-    const afterPosition = overIndex < filteredTasks.length ? filteredTasks[overIndex].position : null;
+    let beforePosition: number | null = null;
+    let afterPosition: number | null = null;
+
+    if (overIsColumn) {
+      if (filteredTasks.length > 0) {
+        beforePosition = filteredTasks[filteredTasks.length - 1].position;
+      }
+      afterPosition = null;
+    } else {
+      const overIndex = filteredTasks.findIndex((t) => t.id === over.id);
+      if (overIndex >= 0) {
+        beforePosition = overIndex > 0 ? filteredTasks[overIndex - 1].position : null;
+        afterPosition = overIndex < filteredTasks.length ? filteredTasks[overIndex].position : null;
+      }
+    }
 
     moveTask.mutate({
       taskId: active.id as string,
@@ -92,28 +161,88 @@ export function KanbanBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div
-        data-testid="kanban-board"
-        className="flex gap-4 overflow-x-auto pb-4 h-full snap-x snap-mandatory"
-        role="list"
-        aria-label="Kanban board"
-      >
-        {columns.map((column) => (
-          <KanbanColumn
-            key={column.id}
-            column={column}
-            selectedTaskId={selectedTaskId}
-            onTaskClick={onTaskClick}
-            onAddClick={() => onAddClick?.(column.id)}
-            areaFilter={areaFilter}
-          />
-        ))}
-      </div>
-      <DragOverlay>
-        {activeTask ? (
-          <KanbanCard task={activeTask} />
-        ) : null}
-      </DragOverlay>
+      <>
+        <div
+          data-testid="kanban-board"
+          className="flex gap-4 overflow-x-auto pb-4 h-full snap-x snap-mandatory"
+          role="list"
+          aria-label="Kanban board"
+        >
+          {columns.map((column) => (
+            <KanbanColumn
+              key={column.id}
+              column={column}
+              selectedTaskId={selectedTaskId}
+              onTaskClick={onTaskClick}
+              onAddClick={() => onAddClick?.(column.id)}
+              areaFilter={areaFilter}
+              onRenameColumn={handleRenameClick}
+              onDeleteColumn={handleDeleteColumn}
+              taskFilter={taskFilter}
+              compact={mode === "compact"}
+              projectName={projectName}
+              allowColumnManagement={allowColumnManagement}
+              groupBy={groupBy}
+            />
+          ))}
+          {allowColumnManagement && (
+          <div className="flex-shrink-0 w-[280px] min-w-[260px] flex items-start pt-2">
+            <button
+              onClick={() => setAddColumnOpen(true)}
+              className="w-full flex items-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-border text-text-secondary hover:text-text-primary hover:border-accent transition-colors text-sm"
+            >
+              <Plus size={16} />
+              Add Column
+            </button>
+          </div>
+          )}
+        </div>
+        <DragOverlay>
+          {activeTask ? (
+            <KanbanCard task={activeTask} projectName={projectName} />
+          ) : null}
+        </DragOverlay>
+
+        <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Rename Column</DialogTitle>
+            </DialogHeader>
+            <div className="py-2">
+              <Input
+                value={renameName}
+                onChange={(e) => setRenameName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleRenameSubmit()}
+                placeholder="Column name"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRenameOpen(false)}>Cancel</Button>
+              <Button onClick={handleRenameSubmit} disabled={!renameName.trim()}>Rename</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={addColumnOpen} onOpenChange={setAddColumnOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Column</DialogTitle>
+            </DialogHeader>
+            <div className="py-2">
+              <Input
+                value={addColumnName}
+                onChange={(e) => setAddColumnName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddColumn()}
+                placeholder="Column name"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAddColumnOpen(false)}>Cancel</Button>
+              <Button onClick={handleAddColumn} disabled={!addColumnName.trim()}>Add</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     </DndContext>
   );
 }

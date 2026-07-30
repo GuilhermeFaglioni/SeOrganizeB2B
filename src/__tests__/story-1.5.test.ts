@@ -26,7 +26,7 @@ describe("1.5.1 Task API routes", () => {
     const src = read("src/app/api/tasks/[taskId]/route.ts");
     expect(src).toContain("export async function PATCH");
     expect(src).toContain("export async function DELETE");
-    expect(src).toContain("params.id");
+    expect(src).toContain("params.taskId");
   });
 
   it("PUT /api/tasks/reorder route does NOT conflict with [id] (moved to /api/reorder/tasks)", () => {
@@ -185,11 +185,13 @@ describe("1.5.12 Board page", () => {
 });
 
 describe("Sidebar areaFilter wiring", () => {
-  it("sidebar.tsx reads/writes area filter via URL searchParams", () => {
+  it("moves URL-backed area filtering into Board controls", () => {
     const src = read("src/components/layout/sidebar.tsx");
-    expect(src).toContain("useSearchParams");
-    expect(src).toContain("useRouter");
-    expect(src).toContain("areas");
+    expect(src).not.toContain("useSearchParams");
+    expect(src).not.toContain("AreaFilter");
+    const board = read("src/app/(authenticated)/board/page.tsx");
+    expect(board).toContain('searchParams.get("areas")');
+    expect(board).toContain("BoardControls");
   });
 });
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import MDEditor from "@uiw/react-md-editor";
 import { MarkdownPreview } from "./markdown-preview";
 import { useAutoSave } from "@/hooks/use-documents";
 import { useProjects } from "@/hooks/use-projects";
@@ -55,8 +54,8 @@ export function DocumentEditor({
   }
 
   return (
-    <div className="flex flex-col h-full" data-testid="document-editor">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-white">
+    <div className="flex h-full min-h-0 flex-col" data-testid="document-editor">
+      <div className="flex shrink-0 items-center justify-between px-4 py-2 border-b border-border bg-white">
         <input
           type="text"
           value={title}
@@ -109,20 +108,21 @@ export function DocumentEditor({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         {(viewMode === "edit" || viewMode === "split") && (
-          <div className={`${viewMode === "split" ? "md:w-1/2 w-full h-1/2 md:h-full" : "w-full"} overflow-auto border-r border-border`}>
-            <MDEditor
-              value={content}
-              onChange={handleContentChange}
-              height="100%"
-              preview="edit"
-              hideToolbar
-            />
+          <div className={`${viewMode === "split" ? "md:w-1/2 w-full h-1/2 md:h-full" : "w-full"} flex min-h-0 flex-col border-r border-border`}>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <textarea
+                value={content}
+                onChange={(e) => handleContentChange(e.target.value)}
+                className="h-full min-h-0 w-full resize-none border-none bg-white p-4 font-mono text-sm outline-none"
+                placeholder="Start writing markdown..."
+              />
+            </div>
           </div>
         )}
         {(viewMode === "preview" || viewMode === "split") && (
-          <div className={`${viewMode === "split" ? "md:w-1/2 w-full h-1/2 md:h-full" : "w-full"} overflow-auto`}>
+          <div className={`${viewMode === "split" ? "md:w-1/2 w-full h-1/2 md:h-full" : "w-full"} min-h-0 overflow-auto`}>
             <MarkdownPreview content={content} />
           </div>
         )}

@@ -2,7 +2,7 @@
 
 ## State
 - wave: 7
-- status: running
+- status: done
 - task_index: 0
 - loop_count: 0
 - decisions: []
@@ -23,3 +23,14 @@
 | 9 | 3 | Blueprint | Architecture doc (handoff-arch.md) | done |
 | 10 | 3 | User | Approved architecture (Vercel confirmed) | done |
 | 11 | 4 | Scribe | Sprint plan (handoff-plan.md) + decisions log | done |
+| 12 | 5 | Forge + Eagle | Story 1.1 — Scaffold + Infrastructure | done |
+| 13 | 5 | Forge + Eagle | Story 1.2 — Auth + Layout | done |
+| 14 | 5 | Forge + Eagle | Story 1.3 — Team Areas CRUD | done |
+| 15 | 5 | Forge + Eagle | Story 1.4 — Projects CRUD | done |
+| 16 | 5 | Forge + Eagle | Story 1.5 — Kanban Board + Task CRUD | done |
+| 17 | 5 | Forge + Eagle | Story 1.6 — Comments | done |
+| 18 | 5 | Forge + Eagle | Story 2.1 — Google Calendar Integration | done |
+| 19 | 5 | Forge + Eagle | Story 2.2 — Documents CRUD + Editor | done |
+| 20 | 5 | Forge + Eagle | Story 2.3 — Polish, Edge Cases, Responsive | done |
+| 21 | 6 | Rigger | Deploy branch created (no remote) | done |
+| 22 | 7 | Sentinel | Validation report | done |

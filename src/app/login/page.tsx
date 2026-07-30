@@ -7,11 +7,67 @@ import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME } from "@/lib/constants";
 
 export default function LoginPage() {
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
-  const { signInWithGoogle, signInWithMagicLink } = useAuth();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { signInWithGoogle, signInWithMagicLink, signInWithPassword, signUp } = useAuth();
 
   const handleMagicLink = async () => {
-    if (email) await signInWithMagicLink(email);
+    if (!email) return;
+    setLoading(true);
+    setError("");
+    try {
+      await signInWithMagicLink(email);
+    } catch {
+      setError("Failed to send magic link");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordSignIn = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await signInWithPassword(email, password);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUp = async () => {
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      await signUp(email, password);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create account");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mode === "login") {
+      handlePasswordSignIn();
+    } else {
+      handleSignUp();
+    }
+  };
+
+  const toggleMode = () => {
+    setMode(mode === "login" ? "register" : "login");
+    setError("");
   };
 
   return (
@@ -30,7 +86,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-label text-text-secondary">Email</label>
             <Input
@@ -39,16 +95,64 @@ export default function LoginPage() {
               placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-label text-text-secondary">Password</label>
+            <Input
+              data-testid="password-input"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </div>
+
+          {mode === "register" && (
+            <div className="space-y-2">
+              <label className="text-label text-text-secondary">Confirm Password</label>
+              <Input
+                data-testid="confirm-password-input"
+                type="password"
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+          )}
+
+          {error && (
+            <p data-testid="auth-error" className="text-sm text-red-500">
+              {error}
+            </p>
+          )}
+
           <Button
+            data-testid={mode === "login" ? "sign-in-button" : "create-account-button"}
             className="w-full"
-            onClick={handleMagicLink}
-            disabled={!email}
+            type="submit"
+            disabled={loading || !email || !password || (mode === "register" && password !== confirmPassword)}
           >
-            Continue with Email
+            {loading ? (mode === "login" ? "Signing in..." : "Creating account...") : mode === "login" ? "Sign In" : "Create Account"}
           </Button>
+
+          {mode === "login" && (
+            <Button
+              type="button"
+              variant="link"
+              className="w-full text-sm"
+              onClick={handleMagicLink}
+              disabled={loading || !email}
+            >
+              Send magic link instead
+            </Button>
+          )}
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -64,20 +168,36 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             onClick={signInWithGoogle}
+            disabled={loading}
           >
             Sign in with Google
           </Button>
-        </div>
+        </form>
 
         <p className="text-center text-body-small text-text-muted">
-          No account?{" "}
-          <button
-            type="button"
-            className="text-accent hover:underline"
-            onClick={signInWithGoogle}
-          >
-            Create one
-          </button>
+          {mode === "login" ? (
+            <>
+              No account?{" "}
+              <button
+                type="button"
+                className="text-accent hover:underline"
+                onClick={toggleMode}
+              >
+                Create one
+              </button>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <button
+                type="button"
+                className="text-accent hover:underline"
+                onClick={toggleMode}
+              >
+                Sign in
+              </button>
+            </>
+          )}
         </p>
       </div>
     </div>

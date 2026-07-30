@@ -66,8 +66,9 @@ export function useUpdateDocument() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
+      queryClient.invalidateQueries({ queryKey: ["document", variables.id] });
     },
   });
 }

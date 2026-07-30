@@ -3,12 +3,25 @@ import { prisma } from "../../../prisma/client";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 
+export class GoogleAuthError extends Error {
+  readonly code: "GOOGLE_AUTH_REQUIRED" | "GOOGLE_AUTH_EXPIRED";
+
+  constructor(
+    code: "GOOGLE_AUTH_REQUIRED" | "GOOGLE_AUTH_EXPIRED",
+    message: string,
+  ) {
+    super(message);
+    this.name = "GoogleAuthError";
+    this.code = code;
+  }
+}
+
 export function getAuthUrl(redirectUri: string): string {
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: "https://www.googleapis.com/auth/calendar email",
+    scope: "openid email https://www.googleapis.com/auth/calendar",
     access_type: "offline",
     prompt: "consent",
   });
@@ -48,7 +61,10 @@ export async function refreshAccessToken(refreshToken: string) {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to refresh access token");
+    throw new GoogleAuthError(
+      "GOOGLE_AUTH_EXPIRED",
+      "Google authorization expired. Reconnect your calendar.",
+    );
   }
 
   return res.json();
@@ -56,7 +72,12 @@ export async function refreshAccessToken(refreshToken: string) {
 
 export async function getValidAccessToken(userId: string): Promise<string> {
   const auth = await prisma.calendarAuth.findUnique({ where: { userId } });
-  if (!auth) throw new Error("Google Calendar not connected");
+  if (!auth) {
+    throw new GoogleAuthError(
+      "GOOGLE_AUTH_REQUIRED",
+      "Google Calendar is not connected",
+    );
+  }
 
   if (auth.expiresAt > new Date()) {
     return auth.accessToken;

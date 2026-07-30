@@ -43,10 +43,12 @@ export function useCreateTask(projectId: string) {
       title: string;
       description?: string;
       columnId: string;
-      assigneeId?: string;
+      assigneeIds?: string[];
       areaId?: string;
       priority?: string;
       dueDate?: string;
+      recurrenceType?: "daily" | "weekly" | "monthly" | null;
+      recurrenceInterval?: number | null;
     }) =>
       fetchJson(`/api/projects/${projectId}/tasks`, {
         method: "POST",
@@ -65,7 +67,7 @@ export function useUpdateTask(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; title?: string; description?: string; columnId?: string; assigneeId?: string; areaId?: string; priority?: string; dueDate?: string }) =>
+    mutationFn: ({ id, ...data }: { id: string; title?: string; description?: string; columnId?: string; assigneeIds?: string[]; areaId?: string; priority?: string; dueDate?: string; archived?: boolean; recurrenceType?: "daily" | "weekly" | "monthly" | null; recurrenceInterval?: number | null }) =>
       fetchJson(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -74,6 +76,9 @@ export function useUpdateTask(projectId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["board", projectId] });
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["today-tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["activity"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
     onError: () => toastError("Failed to update task"),
   });

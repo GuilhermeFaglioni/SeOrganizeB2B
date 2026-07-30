@@ -111,9 +111,12 @@ describe("1.3.6 Settings areas page", () => {
 });
 
 describe("1.3.7 Sidebar area filter", () => {
-  it("sidebar includes TeamAreaFilter section", () => {
+  it("keeps TeamArea filtering out of the global sidebar", () => {
     const src = read("src/components/layout/sidebar.tsx");
-    expect(src).toContain("AreaFilter");
-    expect(src).toContain("useAreas");
+    expect(src).not.toContain("AreaFilter");
+    expect(src).not.toContain("useAreas");
+    expect(read("src/components/board/board-controls.tsx")).toContain(
+      "Team area"
+    );
   });
 });

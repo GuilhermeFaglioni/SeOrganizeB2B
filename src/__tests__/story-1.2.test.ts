@@ -101,10 +101,12 @@ describe("1.2.8 Authenticated route group", () => {
   });
 });
 
-describe("1.2.9 Root page redirect", () => {
-  it("(authenticated)/page.tsx redirects based on projects", () => {
+describe("1.2.9 Authenticated root", () => {
+  it("(authenticated)/page.tsx renders the Hoje cockpit", () => {
     const src = read("src/app/(authenticated)/page.tsx");
-    expect(src).toContain("redirect");
-    expect(src).toContain("/projects");
+    expect(src).toContain('data-testid="today-page"');
+    expect(src).toContain("TodayTasks");
+    expect(src).toContain("TodayAgenda");
+    expect(src).toContain("TodayActivity");
   });
 });

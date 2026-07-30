@@ -22,10 +22,14 @@ import { Plus } from "lucide-react";
 
 export default function SettingsAreasPage() {
   const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteArea, setDeleteArea] = useState<{ id: string; name: string } | null>(null);
+  const [editArea, setEditArea] = useState<{ id: string; name: string; color: string | null } | null>(null);
+  const [editName, setEditName] = useState("");
   const [newName, setNewName] = useState("");
   const [error, setError] = useState("");
+  const [editError, setEditError] = useState("");
 
   const updateArea = useUpdateArea();
   const createArea = useCreateArea();
@@ -41,6 +45,18 @@ export default function SettingsAreasPage() {
       setAddOpen(false);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to create area");
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!editArea || !editName.trim()) return;
+    setEditError("");
+    try {
+      await updateArea.mutateAsync({ id: editArea.id, name: editName.trim(), color: editArea.color ?? undefined });
+      setEditOpen(false);
+      setEditArea(null);
+    } catch (e: unknown) {
+      setEditError(e instanceof Error ? e.message : "Failed to update area");
     }
   };
 
@@ -68,16 +84,39 @@ export default function SettingsAreasPage() {
 
       <AreaList
         onEdit={(area) => {
-          const name = prompt("Edit area name:", area.name);
-          if (name && name !== area.name) {
-            updateArea.mutate({ id: area.id, name, color: area.color ?? undefined });
-          }
+          setEditArea(area);
+          setEditName(area.name);
+          setEditOpen(true);
         }}
         onDelete={(area) => {
           setDeleteArea(area);
           setDeleteOpen(true);
         }}
       />
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent data-testid="edit-area-modal">
+          <DialogHeader>
+            <DialogTitle>Edit Area</DialogTitle>
+            <DialogDescription>Rename this team area.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label className="text-label text-text-secondary">Area Name</label>
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleEdit()}
+              />
+            </div>
+            {editError && <p className="text-body-small text-danger">{editError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button onClick={handleEdit} disabled={!editName.trim()}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent data-testid="add-area-modal">

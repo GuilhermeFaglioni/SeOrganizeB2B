@@ -1,30 +1,31 @@
-const GOOGLE_CALENDAR_API = "https://www.googleapis.com/calendar/v3";
+import { normalizeGoogleEvent } from "../calendar/normalize";
+import type {
+  CalendarEventData,
+  GoogleCalendarEvent,
+} from "../calendar/types";
 
-interface GoogleEvent {
-  id: string;
-  summary: string;
-  description?: string;
-  start: { dateTime: string; timeZone?: string };
-  end: { dateTime: string; timeZone?: string };
-  colorId?: string;
-}
+const GOOGLE_CALENDAR_API = "https://www.googleapis.com/calendar/v3";
 
 interface CalendarEventInput {
   summary: string;
   description?: string;
-  start: { dateTime: string; timeZone?: string };
-  end: { dateTime: string; timeZone?: string };
+  start: { dateTime?: string; date?: string; timeZone?: string };
+  end: { dateTime?: string; date?: string; timeZone?: string };
+  attendees?: Array<{ email: string }>;
 }
 
-interface TransformedEvent {
-  id: string;
-  googleId: string;
-  title: string;
-  description: string | null;
-  startTime: string;
-  endTime: string;
-  color: string | null;
-  source: "google";
+interface GoogleErrorPayload {
+  error?: { message?: string };
+}
+
+export class GoogleCalendarError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "GoogleCalendarError";
+    this.status = status;
+  }
 }
 
 export class GoogleCalendarClient {
@@ -34,8 +35,8 @@ export class GoogleCalendarClient {
     this.accessToken = accessToken;
   }
 
-  private async request(path: string, init?: RequestInit) {
-    const res = await fetch(`${GOOGLE_CALENDAR_API}${path}`, {
+  private async request<T>(path: string, init?: RequestInit): Promise<T | null> {
+    const response = await fetch(`${GOOGLE_CALENDAR_API}${path}`, {
       ...init,
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
@@ -43,48 +44,60 @@ export class GoogleCalendarClient {
         ...init?.headers,
       },
     });
+    const body = await response.text();
 
-    if (!res.ok) {
-      throw new Error(`Google Calendar API error: ${res.status}`);
+    if (!response.ok) {
+      let message = `Google Calendar API error: ${response.status}`;
+
+      if (body) {
+        try {
+          const payload = JSON.parse(body) as GoogleErrorPayload;
+          message = payload.error?.message || message;
+        } catch {
+          message = body;
+        }
+      }
+
+      throw new GoogleCalendarError(message, response.status);
     }
 
-    return res.json();
+    return body ? (JSON.parse(body) as T) : null;
   }
 
-  async fetchEvents(timeMin: string, timeMax: string): Promise<TransformedEvent[]> {
-    const data = await this.request(
-      `/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime`
+  async fetchEvents(
+    timeMin: string,
+    timeMax: string,
+  ): Promise<CalendarEventData[]> {
+    const data = await this.request<{ items?: GoogleCalendarEvent[] }>(
+      `/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime`,
     );
 
-    return (data.items || []).map((event: GoogleEvent) => ({
-      id: event.id,
-      googleId: event.id,
-      title: event.summary,
-      description: event.description || null,
-      startTime: event.start.dateTime || event.start.dateTime,
-      endTime: event.end.dateTime || event.end.dateTime,
-      color: event.colorId || null,
-      source: "google" as const,
-    }));
+    return (data?.items ?? []).map(normalizeGoogleEvent);
   }
 
   async createEvent(input: CalendarEventInput): Promise<{ id: string }> {
-    const data = await this.request("/calendars/primary/events", {
-      method: "POST",
-      body: JSON.stringify({
-        summary: input.summary,
-        description: input.description,
-        start: input.start,
-        end: input.end,
-      }),
-    });
+    const data = await this.request<{ id: string }>(
+      "/calendars/primary/events?sendUpdates=all",
+      {
+        method: "POST",
+        body: JSON.stringify(input),
+      },
+    );
+
+    if (!data?.id) {
+      throw new GoogleCalendarError(
+        "Google Calendar returned an invalid event",
+        502,
+      );
+    }
 
     return { id: data.id };
   }
 
   async deleteEvent(googleId: string): Promise<void> {
-    await this.request(`/calendars/primary/events/${googleId}`, {
-      method: "DELETE",
-    });
+    await this.request(
+      `/calendars/primary/events/${encodeURIComponent(googleId)}?sendUpdates=all`,
+      { method: "DELETE" },
+    );
   }
 }

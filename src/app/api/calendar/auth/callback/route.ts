@@ -46,8 +46,13 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(new URL("/calendar", request.url));
-  } catch {
-    return NextResponse.redirect(new URL("/calendar?error=auth_failed", request.url));
+    return NextResponse.redirect(
+      new URL("/calendar?calendarAuth=connected", request.url),
+    );
+  } catch (error) {
+    console.error("Google Calendar authorization failed:", error);
+    return NextResponse.redirect(
+      new URL("/calendar?calendarAuth=failed", request.url),
+    );
   }
 }

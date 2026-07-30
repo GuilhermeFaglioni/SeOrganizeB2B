@@ -1,20 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
+const geist = localFont({
+  src: "./fonts/GeistVF.woff",
   variable: "--font-sans",
+  display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
   variable: "--font-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "SeOrganizeB2B",
-  description: "Internal Company Organizer",
+  title: {
+    default: "SeOrganize+",
+    template: "%s | SeOrganize+",
+  },
+  description: "Organização colaborativa para equipes que executam.",
 };
 
 export default function RootLayout({
@@ -23,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="pt-BR" className={`${geist.variable} ${geistMono.variable}`}>
       <body>{children}</body>
     </html>
   );

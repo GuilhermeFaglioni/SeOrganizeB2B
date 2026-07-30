@@ -17,9 +17,16 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
     include: includeTasks
       ? {
           tasks: {
+            where: { archived: false },
             orderBy: { position: "asc" },
             include: {
-              assignee: { select: { id: true, name: true, avatarUrl: true } },
+              assignees: {
+                include: {
+                  profile: {
+                    select: { id: true, name: true, email: true, avatarUrl: true },
+                  },
+                },
+              },
               area: { select: { id: true, name: true, color: true } },
               _count: { select: { comments: true } },
             },

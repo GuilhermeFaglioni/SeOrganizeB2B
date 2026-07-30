@@ -14,7 +14,7 @@ export default function DocumentEditorPage() {
   if (isLoading) return <LoadingState />;
 
   return (
-    <div data-testid="document-editor-page" className="flex flex-col h-full">
+    <div data-testid="document-editor-page" className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-white">
         <button
           onClick={() => router.push("/documents")}
@@ -24,7 +24,7 @@ export default function DocumentEditorPage() {
           Back
         </button>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <DocumentEditor
           documentId={params.documentId}
           initialTitle={doc?.title}

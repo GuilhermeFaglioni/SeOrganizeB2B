@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useRef, useCallback, type KeyboardEvent } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  type KeyboardEvent,
+  type ChangeEvent,
+} from "react";
 import { Send } from "lucide-react";
+import { useProfiles } from "@/hooks/use-profiles";
 
 export function CommentInput({
   onSubmit,
@@ -11,7 +18,9 @@ export function CommentInput({
   isPending?: boolean;
 }) {
   const [content, setContent] = useState("");
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { data: profiles = [] } = useProfiles();
 
   const isEmpty = !content.trim();
 
@@ -33,25 +42,97 @@ export function CommentInput({
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (mentionQuery !== null && e.key === "Escape") {
+      setMentionQuery(null);
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
   }
 
+  function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    const value = e.target.value;
+    const beforeCaret = value.slice(0, e.target.selectionStart);
+    const match = beforeCaret.match(/@([\w.-]*)$/);
+    setContent(value);
+    setMentionQuery(match?.[1] ?? null);
+    adjustHeight();
+  }
+
+  function insertMention(profile: {
+    id: string;
+    name: string | null;
+    email: string;
+  }) {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const caret = textarea.selectionStart;
+    const beforeCaret = content.slice(0, caret);
+    const queryMatch = beforeCaret.match(/@([\w.-]*)$/);
+    if (!queryMatch) return;
+    const start = caret - queryMatch[0].length;
+    const label = profile.name || profile.email;
+    const token = `@[${label}](${profile.id}) `;
+    const next = `${content.slice(0, start)}${token}${content.slice(caret)}`;
+    setContent(next);
+    setMentionQuery(null);
+    requestAnimationFrame(() => {
+      const nextCaret = start + token.length;
+      textarea.focus();
+      textarea.setSelectionRange(nextCaret, nextCaret);
+      adjustHeight();
+    });
+  }
+
+  const mentionOptions =
+    mentionQuery === null
+      ? []
+      : profiles
+          .filter((profile) => {
+            const search = mentionQuery.toLowerCase();
+            return (
+              (profile.name || "").toLowerCase().includes(search) ||
+              profile.email.toLowerCase().includes(search)
+            );
+          })
+          .slice(0, 6);
+
   return (
-    <div data-testid="comment-input" className="flex gap-2 items-end">
-      <textarea
-        ref={textareaRef}
-        value={content}
-        onChange={(e) => {
-          setContent(e.target.value);
-          adjustHeight();
-        }}
-        onKeyDown={handleKeyDown}
-        placeholder="Write a comment..."
-        className="flex-1 min-h-[80px] resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-      />
+    <div data-testid="comment-input" className="relative flex gap-2 items-end">
+      <div className="relative flex-1">
+        {mentionQuery !== null && mentionOptions.length > 0 && (
+          <div
+            className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-white p-1 shadow-lg"
+            role="listbox"
+            aria-label="Mention a teammate"
+          >
+            {mentionOptions.map((profile) => (
+              <button
+                key={profile.id}
+                type="button"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-bg-secondary"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => insertMention(profile)}
+              >
+                <span className="font-medium">{profile.name || profile.email}</span>
+                <span className="truncate text-xs text-text-secondary">
+                  {profile.email}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+        <textarea
+          ref={textareaRef}
+          value={content}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Write a comment... Use @ to mention"
+          className="w-full min-h-[80px] resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+      </div>
       <button
         onClick={handleSubmit}
         disabled={isEmpty || isPending}

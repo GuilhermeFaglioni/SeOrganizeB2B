@@ -76,7 +76,8 @@ describe("2.2.5 MarkdownPreview component", () => {
 describe("2.2.6 DocumentEditor component", () => {
   it("renders split pane with editor, preview, toolbar, save", () => {
     const src = read("src/components/documents/document-editor.tsx");
-    expect(src).toContain("MDEditor");
+    expect(src).toContain("<textarea");
+    expect(src).toContain("handleContentChange");
     expect(src).toContain("MarkdownPreview");
     expect(src).toContain("Save");
     expect(src).toContain("scheduleSave");

@@ -17,16 +17,26 @@ export interface BoardTask {
   position: number;
   columnId?: string;
   areaId?: string | null;
-  assigneeId?: string | null;
   createdBy?: string;
+  recurrenceType?: "daily" | "weekly" | "monthly" | null;
+  recurrenceInterval?: number | null;
   area: { id: string; name: string; color: string } | null;
-  assignee: { id: string; name: string | null; avatarUrl: string | null } | null;
+  assignees: Array<{
+    profileId: string;
+    profile: {
+      id: string;
+      name: string | null;
+      email: string;
+      avatarUrl: string | null;
+    };
+  }>;
   _count: { comments: number };
 }
 
 export interface BoardColumn {
   id: string;
   name: string;
+  completesTasks?: boolean;
   tasks: BoardTask[];
 }
 
@@ -35,6 +45,7 @@ export function useBoard(projectId: string) {
     queryKey: ["board", projectId],
     queryFn: () =>
       fetchJson<BoardColumn[]>(`/api/projects/${projectId}/columns?includeTasks=true`),
+    enabled: Boolean(projectId && projectId !== "_"),
   });
 }
 
@@ -139,6 +150,9 @@ export function useMoveTask(projectId: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["board", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["today-tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["activity"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }

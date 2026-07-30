@@ -64,6 +64,8 @@ export function useCreateComment(taskId: string) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", taskId] });
       queryClient.invalidateQueries({ queryKey: ["board"] });
+      queryClient.invalidateQueries({ queryKey: ["activity", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }

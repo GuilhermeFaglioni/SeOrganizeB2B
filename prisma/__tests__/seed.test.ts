@@ -25,7 +25,7 @@ describe("prisma seed", () => {
     const createdByMatches = seedSource.matchAll(
       /createdBy:\s*(\w+)/g
     );
-    const refs = [...createdByMatches].map((m) => m[1]);
+    const refs = Array.from(createdByMatches, (match) => match[1]);
 
     expect(refs.length).toBeGreaterThan(0);
     for (const ref of refs) {

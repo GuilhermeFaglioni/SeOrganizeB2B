@@ -66,16 +66,6 @@ describe("1.4.4 ProjectGrid component", () => {
   });
 });
 
-describe("1.4.5 ProjectSelector component", () => {
-  it("renders dropdown with project list in sidebar", () => {
-    const src = read("src/components/projects/project-selector.tsx");
-    expect(src).toContain('data-testid="project-selector"');
-    expect(src).toContain("useProjects");
-    expect(src).toContain("Select");
-    expect(src).toContain("/board/");
-  });
-});
-
 describe("1.4.6 ProjectForm modal", () => {
   it("renders modal with name, description, area dropdown", () => {
     const src = read("src/components/projects/project-form.tsx");
@@ -98,9 +88,11 @@ describe("1.4.7 Projects list page", () => {
   });
 });
 
-describe("Sidebar includes ProjectSelector", () => {
-  it("sidebar.tsx imports and renders ProjectSelector", () => {
+describe("Sidebar exposes the Projects workspace without a project selector", () => {
+  it("links to the Projects page and does not mount the global ProjectSelector", () => {
     const src = read("src/components/layout/sidebar.tsx");
-    expect(src).toContain("ProjectSelector");
+    expect(src).toContain('href: "/projects"');
+    expect(src).toContain('testId: "nav-projects"');
+    expect(src).not.toContain("ProjectSelector");
   });
 });

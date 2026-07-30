@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useProjects, type ProjectData } from "@/hooks/use-projects";
 import { ProjectGrid } from "@/components/projects/project-grid";
 import { ProjectForm } from "@/components/projects/project-form";
@@ -10,9 +10,19 @@ import { Plus } from "lucide-react";
 
 export default function ProjectsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: projects } = useProjects();
   const list = (projects ?? []) as ProjectData[];
   const [formOpen, setFormOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("newProject") === "true") {
+      setFormOpen(true);
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("newProject");
+      router.replace(`/projects?${params.toString()}`);
+    }
+  }, [searchParams, router]);
 
   return (
     <div data-testid="projects-page" className="p-6 max-w-5xl space-y-6">
@@ -26,7 +36,7 @@ export default function ProjectsPage() {
 
       <ProjectGrid
         projects={list}
-        onSelect={(id) => router.push(`/board/${id}`)}
+        onSelect={(id) => router.push(`/projects/${id}`)}
       />
 
       <ProjectForm open={formOpen} onOpenChange={setFormOpen} />

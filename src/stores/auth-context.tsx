@@ -10,6 +10,7 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   signOut: () => Promise<void>;
+  updateUserName: (name: string) => void;
   isLoading: boolean;
 }
 
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
   signOut: async () => {},
+  updateUserName: () => {},
   isLoading: true,
 });
 
@@ -49,8 +51,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
   };
 
+  const updateUserName = (name: string) => {
+    setUser((current) =>
+      current
+        ? {
+            ...current,
+            user_metadata: {
+              ...current.user_metadata,
+              full_name: name,
+            },
+          }
+        : current,
+    );
+    setSession((current) =>
+      current
+        ? {
+            ...current,
+            user: {
+              ...current.user,
+              user_metadata: {
+                ...current.user.user_metadata,
+                full_name: name,
+              },
+            },
+          }
+        : current,
+    );
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, signOut, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, session, signOut, updateUserName, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText } from "lucide-react";
+import { FileText, Trash2 } from "lucide-react";
 
 interface DocumentRowDoc {
   id: string;
@@ -12,9 +12,11 @@ interface DocumentRowDoc {
 export function DocumentRow({
   doc,
   onClick,
+  onDelete,
 }: {
   doc: DocumentRowDoc;
   onClick?: () => void;
+  onDelete?: (e: React.MouseEvent) => void;
 }) {
   const updated = new Date(doc.updatedAt).toLocaleDateString(undefined, {
     month: "short",
@@ -41,6 +43,15 @@ export function DocumentRow({
           )}
         </div>
       </div>
+      {onDelete && (
+        <button
+          onClick={onDelete}
+          className="text-text-secondary hover:text-danger transition-colors p-1"
+          aria-label="Delete document"
+        >
+          <Trash2 size={16} />
+        </button>
+      )}
     </div>
   );
 }

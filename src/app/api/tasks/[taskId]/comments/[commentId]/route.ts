@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../../prisma/client";
 import { getSession } from "@/lib/supabase/server";
+import { recordActivity } from "@/lib/activity/record";
 
 export async function DELETE(request: NextRequest, { params }: { params: { taskId: string; commentId: string } }) {
   const session = await getSession();
@@ -17,7 +18,17 @@ export async function DELETE(request: NextRequest, { params }: { params: { taskI
     return NextResponse.json({ data: null, error: { code: "FORBIDDEN", message: "Can only delete own comments" } }, { status: 403 });
   }
 
-  await prisma.comment.delete({ where: { id: params.commentId } });
+  await prisma.$transaction(async (tx) => {
+    await tx.comment.delete({ where: { id: params.commentId } });
+    await recordActivity(tx, {
+      actorId: session.user.id,
+      taskId: params.taskId,
+      type: "comment.deleted",
+      entityType: "comment",
+      entityId: params.commentId,
+      summary: "Removeu um comentário da tarefa",
+    });
+  });
 
   return NextResponse.json({ data: { id: params.commentId }, error: null });
 }

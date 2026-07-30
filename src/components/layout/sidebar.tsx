@@ -2,52 +2,44 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  FolderKanban,
+  SunMedium,
   Calendar,
   FileText,
   Settings,
   Menu,
   X,
+  LogOut,
+  User as UserIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_NAME } from "@/lib/constants";
-import { useAreas } from "@/hooks/use-areas";
-import { AreaFilter } from "@/components/areas/area-filter";
-import { ProjectSelector } from "@/components/projects/project-selector";
 import { useIsTablet, useIsMobile } from "@/hooks/use-media-query";
+import { useAuth } from "@/stores/auth-context";
+import { motion } from "motion/react";
 
 const navItems = [
+  { href: "/", label: "Hoje", icon: SunMedium, testId: "nav-today" },
   { href: "/board", label: "Board", icon: LayoutDashboard, testId: "nav-board" },
+  { href: "/projects", label: "Projetos", icon: FolderKanban, testId: "nav-projects" },
   { href: "/calendar", label: "Calendar", icon: Calendar, testId: "nav-calendar" },
   { href: "/documents", label: "Documents", icon: FileText, testId: "nav-documents" },
   { href: "/settings", label: "Settings", icon: Settings, testId: "nav-settings" },
 ];
 
+function isRouteActive(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+}
+
 export function Sidebar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const { data: areas } = useAreas();
   const isTablet = useIsTablet();
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const selectedAreas = searchParams.get("areas")?.split(",").filter(Boolean) || [];
-
-  const handleToggleArea = (areaId: string) => {
-    const next = selectedAreas.includes(areaId)
-      ? selectedAreas.filter((id) => id !== areaId)
-      : [...selectedAreas, areaId];
-    const params = new URLSearchParams(searchParams.toString());
-    if (next.length > 0) {
-      params.set("areas", next.join(","));
-    } else {
-      params.delete("areas");
-    }
-    router.replace(`${pathname}?${params.toString()}`);
-  };
+  const { signOut, user } = useAuth();
 
   if (isMobile) {
     return (
@@ -68,8 +60,8 @@ export function Sidebar() {
             >
               <div data-testid="sidebar-logo" className="h-14 flex items-center justify-between px-4 border-b border-sidebar-divider">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">S</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-sidebar shadow-sm">
+                    <span className="text-sm font-bold">S+</span>
                   </div>
                   <span className="text-sidebar-text text-sm font-semibold">{APP_NAME}</span>
                 </div>
@@ -77,11 +69,10 @@ export function Sidebar() {
                   <X size={20} />
                 </button>
               </div>
-              <ProjectSelector />
               <nav className="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Main navigation">
                 {navItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = pathname.startsWith(item.href);
+                  const isActive = isRouteActive(pathname, item.href);
                   return (
                     <Link
                       key={item.href}
@@ -89,17 +80,47 @@ export function Sidebar() {
                       data-testid={item.testId}
                       onClick={() => setMobileOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors min-h-[44px]",
-                        isActive ? "bg-sidebar-active text-sidebar-text" : "text-sidebar-text-muted hover:bg-sidebar-hover"
+                        "relative isolate flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        isActive ? "text-sidebar-text" : "text-sidebar-text-muted hover:bg-sidebar-hover"
                       )}
                     >
-                      <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-                      <span>{item.label}</span>
+                      {isActive && (
+                        <motion.span
+                          layoutId="sidebar-active-route"
+                          className="absolute inset-0 -z-10 rounded-md bg-sidebar-active shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07)]"
+                          transition={{
+                            type: "spring",
+                            stiffness: 420,
+                            damping: 38,
+                          }}
+                        />
+                      )}
+                      <Icon className="relative z-10 w-4 h-4 shrink-0" aria-hidden="true" />
+                      <span className="relative z-10">{item.label}</span>
                     </Link>
                   );
                 })}
               </nav>
-              {areas && areas.length > 0 && <AreaFilter areas={areas} selected={selectedAreas} onToggle={handleToggleArea} />}
+              <div className="border-t border-sidebar-divider p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+                      <UserIcon size={14} className="text-sidebar-text" />
+                    </div>
+                    <span className="text-sm text-sidebar-text truncate">
+                      {user?.user_metadata?.full_name || user?.email || "User"}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => signOut()}
+                    className="text-sidebar-text-muted hover:text-sidebar-text transition-colors p-1"
+                    title="Sign out"
+                    aria-label="Sign out"
+                  >
+                    <LogOut size={16} />
+                  </button>
+                </div>
+              </div>
             </aside>
           </>
         )}
@@ -116,20 +137,18 @@ export function Sidebar() {
       )}
     >
       <div data-testid="sidebar-logo" className={cn("h-14 flex items-center border-b border-sidebar-divider", isTablet ? "justify-center px-2" : "gap-3 px-4")}>
-        <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shrink-0">
-          <span className="text-white text-sm font-bold">S</span>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-sidebar shadow-sm">
+          <span className="text-sm font-bold">S+</span>
         </div>
         {!isTablet && (
           <span className="text-sidebar-text text-sm font-semibold">{APP_NAME}</span>
         )}
       </div>
 
-      {!isTablet && <ProjectSelector />}
-
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Main navigation">
+      <nav className="overflow-y-auto p-3 pb-1 space-y-1" aria-label="Main navigation">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname.startsWith(item.href);
+          const isActive = isRouteActive(pathname, item.href);
           return (
             <Link
               key={item.href}
@@ -137,21 +156,62 @@ export function Sidebar() {
               data-testid={item.testId}
               title={isTablet ? item.label : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-md text-sm font-medium transition-colors",
+                "relative isolate flex items-center gap-3 rounded-md text-sm font-medium transition-colors",
                 isTablet ? "justify-center px-2 py-2" : "px-3 py-2",
-                isActive ? "bg-sidebar-active text-sidebar-text" : "text-sidebar-text-muted hover:bg-sidebar-hover"
+                isActive ? "text-sidebar-text" : "text-sidebar-text-muted hover:bg-sidebar-hover"
               )}
             >
-              <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-              {!isTablet && <span>{item.label}</span>}
+              {isActive && (
+                <motion.span
+                  layoutId="sidebar-active-route"
+                  className="absolute inset-0 -z-10 rounded-md bg-sidebar-active shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07)]"
+                  transition={{
+                    type: "spring",
+                    stiffness: 420,
+                    damping: 38,
+                  }}
+                />
+              )}
+              <Icon className="relative z-10 w-4 h-4 shrink-0" aria-hidden="true" />
+              {!isTablet && <span className="relative z-10">{item.label}</span>}
             </Link>
           );
         })}
       </nav>
 
-      {!isTablet && areas && areas.length > 0 && (
-        <AreaFilter areas={areas} selected={selectedAreas} onToggle={handleToggleArea} />
-      )}
+      <div className="flex-1" />
+
+      <div className={cn("border-t border-sidebar-divider p-3", isTablet && "flex justify-center")}>
+        {isTablet ? (
+          <button
+            onClick={() => signOut()}
+            className="text-sidebar-text-muted hover:text-sidebar-text transition-colors"
+            title="Sign out"
+            aria-label="Sign out"
+          >
+            <LogOut size={18} />
+          </button>
+        ) : (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+                <UserIcon size={14} className="text-sidebar-text" />
+              </div>
+              <span className="text-sm text-sidebar-text truncate">
+                {user?.user_metadata?.full_name || user?.email || "User"}
+              </span>
+            </div>
+            <button
+              onClick={() => signOut()}
+              className="text-sidebar-text-muted hover:text-sidebar-text transition-colors p-1"
+              title="Sign out"
+              aria-label="Sign out"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        )}
+      </div>
     </aside>
   );
 }

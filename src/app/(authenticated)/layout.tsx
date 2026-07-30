@@ -5,6 +5,9 @@ import { useState } from "react";
 import { AuthProvider } from "@/stores/auth-context";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { AppLayout } from "@/components/layout/app-layout";
+import { Toaster } from "@/components/ui/toaster";
+import { ScheduleEventProvider } from "@/stores/schedule-event-context";
+import { QuickCaptureProvider } from "@/stores/quick-capture-context";
 
 export default function AuthenticatedLayout({
   children,
@@ -24,7 +27,12 @@ export default function AuthenticatedLayout({
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AuthGate>
-          <AppLayout>{children}</AppLayout>
+          <ScheduleEventProvider>
+            <QuickCaptureProvider>
+              <AppLayout>{children}</AppLayout>
+            </QuickCaptureProvider>
+          </ScheduleEventProvider>
+          <Toaster />
         </AuthGate>
       </AuthProvider>
     </QueryClientProvider>

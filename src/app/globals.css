@@ -4,7 +4,78 @@
 
 @layer base {
   body {
-    @apply antialiased;
+    @apply bg-page font-sans text-text-primary antialiased;
+    font-feature-settings: "ss01" 1, "cv02" 1, "cv03" 1;
+  }
+
+  ::selection {
+    @apply bg-brand-200 text-brand-900;
+  }
+}
+
+@layer components {
+  .executive-surface {
+    @apply rounded-xl border border-border bg-white shadow-card;
+  }
+
+  .executive-calendar {
+    --fc-border-color: #dce4ef;
+    --fc-button-bg-color: #ffffff;
+    --fc-button-border-color: #dce4ef;
+    --fc-button-text-color: #132238;
+    --fc-button-hover-bg-color: #f0f5ff;
+    --fc-button-hover-border-color: #bed2ff;
+    --fc-button-active-bg-color: #2f6fed;
+    --fc-button-active-border-color: #2f6fed;
+    --fc-today-bg-color: rgba(47, 111, 237, 0.045);
+    --fc-now-indicator-color: #c93c48;
+    --fc-page-bg-color: #ffffff;
+    --fc-neutral-bg-color: #f8fafd;
+  }
+
+  .executive-calendar .fc {
+    @apply font-sans text-text-primary;
+  }
+
+  .executive-calendar .fc-toolbar-title {
+    @apply text-lg font-semibold tracking-tight;
+  }
+
+  .executive-calendar .fc-button {
+    @apply rounded-md px-3 py-2 text-xs font-semibold shadow-none transition-colors;
+    text-transform: none;
+  }
+
+  .executive-calendar .fc-col-header-cell-cushion,
+  .executive-calendar .fc-timegrid-axis-cushion {
+    @apply py-2 text-xs font-semibold text-text-secondary;
+  }
+
+  .executive-calendar .fc-timegrid-slot-label-cushion {
+    @apply font-mono text-[10px] text-text-muted;
+  }
+
+  .executive-calendar .fc-event {
+    @apply overflow-hidden rounded-md border shadow-card;
+  }
+
+  .executive-calendar .fc-daygrid-day-number {
+    @apply p-2 text-xs font-medium;
+  }
+
+  .executive-calendar .fc-scrollgrid {
+    @apply overflow-hidden rounded-xl border-border;
+  }
+}
+
+@media (max-width: 640px) {
+  .executive-calendar .fc-button {
+    min-height: 44px;
+  }
+
+  .executive-calendar .fc-toolbar {
+    align-items: flex-start;
+    gap: 8px;
   }
 }
 
