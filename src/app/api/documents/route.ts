@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get("project_id");
 
-  const where: Record<string, unknown> = { createdBy: user.id };
+  const where: Record<string, unknown> = {};
   if (projectId) where.projectId = projectId;
 
   const documents = await prisma.document.findMany({

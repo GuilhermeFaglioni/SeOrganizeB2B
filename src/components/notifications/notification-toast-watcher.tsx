@@ -5,7 +5,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { toastInfo } from "@/lib/toast";
 
 export function NotificationToastWatcher() {
-  const { data } = useNotifications();
+  const { data, dataUpdatedAt } = useNotifications();
   const seenIdsRef = useRef<Set<string>>(new Set());
   const isInitialLoad = useRef(true);
 
@@ -20,13 +20,11 @@ export function NotificationToastWatcher() {
       return;
     }
 
-    const newUnread: Array<{ id: string; summary: string; actorName: string }> =
-      [];
+    const newUnread: Array<{ summary: string; actorName: string }> = [];
 
     for (const item of data.items) {
       if (!item.readAt && !seenIdsRef.current.has(item.id)) {
         newUnread.push({
-          id: item.id,
           summary: item.activity.summary,
           actorName: item.activity.actor?.name || "Sistema",
         });
@@ -39,7 +37,7 @@ export function NotificationToastWatcher() {
     } else if (newUnread.length > 1) {
       toastInfo(`${newUnread.length} novas notificações`);
     }
-  }, [data]);
+  }, [data, dataUpdatedAt]);
 
   return null;
 }
