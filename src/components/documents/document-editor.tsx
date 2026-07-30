@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { MarkdownPreview } from "./markdown-preview";
 import { useAutoSave } from "@/hooks/use-documents";
 import { useProjects } from "@/hooks/use-projects";
@@ -25,11 +25,15 @@ export function DocumentEditor({
   const [viewMode, setViewMode] = useState<ViewMode>("split");
   const { scheduleSave, updateDoc } = useAutoSave();
   const { data: projects } = useProjects();
+  const synced = useRef(false);
 
   useEffect(() => {
+    if (synced.current) return;
+    if (!initialTitle && !initialContent && !initialProjectId) return;
     setTitle(initialTitle || "");
     setContent(initialContent || "");
     setProjectId(initialProjectId || "");
+    synced.current = true;
   }, [initialTitle, initialContent, initialProjectId, documentId]);
 
   const handleContentChange = useCallback(
