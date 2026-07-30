@@ -1,26 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json(
       { data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } },
       { status: 401 }
     );
   }
   const views = await prisma.savedView.findMany({
-    where: { userId: session.user.id, scope: "board" },
+    where: { userId: user.id, scope: "board" },
     orderBy: { name: "asc" },
   });
   return NextResponse.json({ data: views, error: null });
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json(
       { data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } },
       { status: 401 }
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   try {
     const view = await prisma.savedView.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         name,
         scope: "board",
         filters: body.filters,

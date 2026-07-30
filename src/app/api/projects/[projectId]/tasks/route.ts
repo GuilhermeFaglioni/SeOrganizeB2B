@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { recordActivity } from "@/lib/activity/record";
 
 export async function GET(request: NextRequest, { params }: { params: { projectId: string } }) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
@@ -41,8 +41,8 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
 }
 
 export async function POST(request: NextRequest, { params }: { params: { projectId: string } }) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
@@ -144,14 +144,14 @@ export async function POST(request: NextRequest, { params }: { params: { project
         priority: priority || "medium",
         dueDate: dueDate ? new Date(dueDate) : null,
         position,
-        createdBy: session.user.id,
+        createdBy: user.id,
         recurrenceType: recurrenceType || null,
         recurrenceInterval: normalizedInterval,
         recurrenceSeriesId: recurrenceType ? crypto.randomUUID() : null,
         assignees: {
           create: assigneeIds.map((profileId) => ({
             profileId,
-            assignedBy: session.user.id,
+            assignedBy: user.id,
           })),
         },
       },
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest, { params }: { params: { project
       },
     });
     await recordActivity(tx, {
-      actorId: session.user.id,
+      actorId: user.id,
       taskId: created.id,
       type: "task.created",
       entityType: "task",

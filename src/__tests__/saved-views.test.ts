@@ -9,8 +9,8 @@ describe("personal saved views", () => {
   it("scopes list, create, and delete to the session user", () => {
     const list = read("src/app/api/saved-views/route.ts");
     const item = read("src/app/api/saved-views/[id]/route.ts");
-    expect(list.match(/userId: session\.user\.id/g)?.length).toBeGreaterThan(1);
-    expect(item).toContain("userId: session.user.id");
+    expect(list.match(/userId: user\.id/g)?.length).toBeGreaterThan(1);
+    expect(item).toContain("userId: user.id");
   });
 
   it("stores and applies board filter state", () => {

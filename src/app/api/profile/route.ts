@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
   const profile = await prisma.profile.upsert({
-    where: { id: session.user.id },
-    update: { email: session.user.email! },
+    where: { id: user.id },
+    update: { email: user.email! },
     create: {
-      id: session.user.id,
-      email: session.user.email!,
-      name: session.user.user_metadata?.full_name ?? session.user.email,
+      id: user.id,
+      email: user.email!,
+      name: user.user_metadata?.full_name ?? user.email,
     },
   });
 
@@ -23,8 +23,8 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
@@ -54,7 +54,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   const updated = await prisma.profile.update({
-    where: { id: session.user.id },
+    where: { id: user.id },
     data: { name: normalizedName },
   });
 

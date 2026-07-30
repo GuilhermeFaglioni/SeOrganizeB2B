@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
   const profile = await prisma.profile.findUnique({
-    where: { id: session.user.id },
+    where: { id: user.id },
     include: {
       teamMemberAreas: {
         include: { area: { select: { id: true, name: true, color: true } } },
@@ -25,27 +25,27 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
   const body = await request.json();
   const { areaIds } = body as { areaIds: string[] };
 
-  await prisma.teamMemberArea.deleteMany({ where: { userId: session.user.id } });
+  await prisma.teamMemberArea.deleteMany({ where: { userId: user.id } });
 
   if (areaIds.length > 0) {
     await prisma.teamMemberArea.createMany({
       data: areaIds.map((areaId) => ({
-        userId: session.user.id,
+        userId: user.id,
         areaId,
       })),
     });
   }
 
   const memberships = await prisma.teamMemberArea.findMany({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     include: { area: { select: { id: true, name: true, color: true } } },
   });
 

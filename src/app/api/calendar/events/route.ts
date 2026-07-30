@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import {
   getValidAccessToken,
   GoogleAuthError,
@@ -17,8 +17,8 @@ import type {
 import { POST as createScheduledEvent } from "../schedule/route";
 
 export async function GET(request: NextRequest) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json(
       {
         data: null,
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
   const [localEvents, calendarAuth] = await Promise.all([
     prisma.calendarEvent.findMany({
       where: {
-        userId: session.user.id,
+        userId: user.id,
         startTime: { lt: rangeEnd },
         endTime: { gt: rangeStart },
       },
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       },
     }),
     prisma.calendarAuth.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       select: { id: true, googleEmail: true },
     }),
   ]);
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const accessToken = await getValidAccessToken(session.user.id);
+    const accessToken = await getValidAccessToken(user.id);
     const googleEvents = await new GoogleCalendarClient(
       accessToken,
     ).fetchEvents(timeMin, timeMax);

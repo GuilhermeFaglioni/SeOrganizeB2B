@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json(
       { data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } },
       { status: 401 }
@@ -36,11 +36,11 @@ export async function GET(request: NextRequest) {
       ? { taskId }
       : {
           OR: [
-            { actorId: session.user.id },
-            { task: { assignees: { some: { profileId: session.user.id } } } },
+            { actorId: user.id },
+            { task: { assignees: { some: { profileId: user.id } } } },
             {
               notifications: {
-                some: { recipientId: session.user.id },
+                some: { recipientId: user.id },
               },
             },
           ],

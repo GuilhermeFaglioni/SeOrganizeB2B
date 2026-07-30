@@ -8,7 +8,7 @@ const read = (file: string) =>
 describe("Hoje cockpit", () => {
   it("loads assigned due work excluding complete columns", () => {
     const route = read("src/app/api/today/tasks/route.ts");
-    expect(route).toContain("profileId: session.user.id");
+    expect(route).toContain("profileId: user.id");
     expect(route).toContain("dueDate: { lte: endOfToday }");
     expect(route).toContain("completesTasks: false");
   });

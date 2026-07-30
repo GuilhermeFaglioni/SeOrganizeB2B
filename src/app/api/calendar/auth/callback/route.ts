@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { exchangeCode } from "@/lib/google/oauth";
 
 export async function GET(request: NextRequest) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -30,15 +30,15 @@ export async function GET(request: NextRequest) {
     }
 
     await prisma.calendarAuth.upsert({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       update: {
         accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token || (await prisma.calendarAuth.findUnique({ where: { userId: session.user.id } }))?.refreshToken,
+        refreshToken: tokenData.refresh_token || (await prisma.calendarAuth.findUnique({ where: { userId: user.id } }))?.refreshToken,
         expiresAt: new Date(Date.now() + tokenData.expires_in * 1000),
         googleEmail: email,
       },
       create: {
-        userId: session.user.id,
+        userId: user.id,
         accessToken: tokenData.access_token,
         refreshToken: tokenData.refresh_token,
         expiresAt: new Date(Date.now() + tokenData.expires_in * 1000),

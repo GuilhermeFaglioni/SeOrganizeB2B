@@ -16,7 +16,7 @@ describe("1.6.1 Comment API routes", () => {
     const src = read("src/app/api/tasks/[taskId]/comments/route.ts");
     expect(src).toContain("export async function GET");
     expect(src).toContain("export async function POST");
-    expect(src).toContain("getSession");
+    expect(src).toContain("getUser");
     expect(src).toContain("prisma.comment");
     expect(src).toContain("createdAt");
   });

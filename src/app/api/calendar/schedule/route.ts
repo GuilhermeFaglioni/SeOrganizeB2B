@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import {
   getValidAccessToken,
   GoogleAuthError,
@@ -31,8 +31,8 @@ function parseEventDate(value: string, allDay: boolean): Date {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json(
       {
         data: null,
@@ -136,14 +136,14 @@ export async function POST(request: NextRequest) {
   }
 
   const calendarAuth = await prisma.calendarAuth.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     select: { id: true },
   });
   let googleId: string | null = null;
 
   if (calendarAuth) {
     try {
-      const accessToken = await getValidAccessToken(session.user.id);
+      const accessToken = await getValidAccessToken(user.id);
       const client = new GoogleCalendarClient(accessToken);
       const result = await client.createEvent({
         summary: title,
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
   const event = await prisma.$transaction(async (tx) => {
     const created = await tx.calendarEvent.create({
       data: {
-      userId: session.user.id,
+      userId: user.id,
       taskId: body.taskId || null,
       areaId: body.areaId || null,
       googleId,
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
       },
     });
     await recordActivity(tx, {
-      actorId: session.user.id,
+      actorId: user.id,
       taskId: body.taskId || null,
       type: "calendar.scheduled",
       entityType: "calendar_event",

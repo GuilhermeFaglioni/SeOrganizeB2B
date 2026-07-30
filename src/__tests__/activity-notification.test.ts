@@ -21,7 +21,7 @@ describe("activity and notifications", () => {
 
   it("scopes notification mutations to the current recipient", () => {
     expect(read("src/app/api/notifications/[id]/route.ts")).toContain(
-      "recipientId: session.user.id"
+      "recipientId: user.id"
     );
     expect(read("src/app/api/notifications/route.ts")).toContain(
       "readAt: null"

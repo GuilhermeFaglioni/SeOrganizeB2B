@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { recordActivity } from "@/lib/activity/record";
 import { completeRecurringTask } from "@/lib/tasks/complete-recurring-task";
 
 export async function GET(request: NextRequest, { params }: { params: { taskId: string } }) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
@@ -35,8 +35,8 @@ export async function GET(request: NextRequest, { params }: { params: { taskId: 
 
 export async function PATCH(request: NextRequest, { params }: { params: { taskId: string } }) {
   try {
-    const session = await getSession();
-    if (!session) {
+    const user = await getUser();
+    if (!user) {
       return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
     }
 
@@ -99,7 +99,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
         deleteMany: {},
         create: assigneeIds.map((profileId) => ({
           profileId,
-          assignedBy: session.user.id,
+          assignedBy: user.id,
         })),
       };
     }
@@ -198,7 +198,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
             ? "task.assigned"
             : "task.updated";
       await recordActivity(tx, {
-        actorId: session.user.id,
+        actorId: user.id,
         taskId: result.id,
         type: activityType,
         entityType: "task",
@@ -221,7 +221,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
         task.column.completesTasks === false &&
         targetColumn?.completesTasks === true
       ) {
-        await completeRecurringTask(tx, result, session.user.id);
+        await completeRecurringTask(tx, result, user.id);
       }
       return result;
     });
@@ -234,8 +234,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { taskId: string } }) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
@@ -246,7 +246,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { taskI
 
   await prisma.$transaction(async (tx) => {
     await recordActivity(tx, {
-      actorId: session.user.id,
+      actorId: user.id,
       taskId: task.id,
       type: "task.deleted",
       entityType: "task",

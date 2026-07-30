@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { extractMentionProfileIds } from "@/lib/mentions";
 import { recordActivity } from "@/lib/activity/record";
 
 export async function GET(request: NextRequest, { params }: { params: { taskId: string } }) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
@@ -29,8 +29,8 @@ export async function GET(request: NextRequest, { params }: { params: { taskId: 
 }
 
 export async function POST(request: NextRequest, { params }: { params: { taskId: string } }) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest, { params }: { params: { taskId:
     const created = await tx.comment.create({
       data: {
         taskId: params.taskId,
-        authorId: session.user.id,
+        authorId: user.id,
         content: normalizedContent,
         mentions: {
           create: mentionProfileIds.map((profileId) => ({ profileId })),
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest, { params }: { params: { taskId:
       },
     });
     await recordActivity(tx, {
-      actorId: session.user.id,
+      actorId: user.id,
       taskId: params.taskId,
       type: mentionProfileIds.length ? "comment.mentioned" : "comment.created",
       entityType: "comment",
