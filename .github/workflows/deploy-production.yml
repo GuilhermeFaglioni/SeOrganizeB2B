@@ -38,7 +38,7 @@ jobs:
         run: npm ci
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
-          DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          DIRECT_URL: ${{ secrets.SUPABASE_SESSION_URL }}
 
       - name: Run tests
         run: npm test
@@ -64,8 +64,8 @@ jobs:
       - name: Apply Prisma migrations
         run: npx prisma migrate deploy
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
-          DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_SESSION_URL }}
+          DIRECT_URL: ${{ secrets.SUPABASE_SESSION_URL }}
 
       - name: Deploy production artifact
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
