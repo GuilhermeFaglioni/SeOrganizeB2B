@@ -16,7 +16,7 @@ describe("1.4.1 Projects API routes", () => {
     const src = read("src/app/api/projects/route.ts");
     expect(src).toContain("export async function GET");
     expect(src).toContain("export async function POST");
-    expect(src).toContain("getSession");
+    expect(src).toContain("getUser");
     expect(src).toContain("prisma.project");
     expect(src).toContain("createDefaultColumns");
   });

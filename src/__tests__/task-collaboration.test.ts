@@ -33,7 +33,7 @@ describe("task collaboration contracts", () => {
     const upcomingRoute = read("src/app/api/tasks/upcoming/route.ts");
 
     expect(upcomingRoute).toContain("assignees:");
-    expect(upcomingRoute).toContain("profileId: session.user.id");
+    expect(upcomingRoute).toContain("profileId: user.id");
     expect(upcomingRoute).toContain("archived: false");
     expect(upcomingRoute).toContain("dueDate:");
   });

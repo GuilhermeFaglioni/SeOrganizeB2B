@@ -16,7 +16,7 @@ describe("1.3.1 Areas API routes", () => {
     const src = read("src/app/api/areas/route.ts");
     expect(src).toContain("export async function GET");
     expect(src).toContain("export async function POST");
-    expect(src).toContain("getSession");
+    expect(src).toContain("getUser");
     expect(src).toContain("prisma.teamArea");
   });
 
