@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { getValidAccessToken } from "@/lib/google/oauth";
 import { GoogleCalendarClient } from "@/lib/google/calendar";
 import { dedupeCalendarEvents } from "@/lib/calendar/normalize";
@@ -8,8 +8,8 @@ import { eventsOverlap } from "@/lib/calendar/conflicts";
 import type { CalendarEventData } from "@/lib/calendar/types";
 
 export async function POST(request: NextRequest) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json(
       { data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } },
       { status: 401 }
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
   const local = await prisma.calendarEvent.findMany({
     where: {
-      userId: session.user.id,
+      userId: user.id,
       startTime: { lt: end },
       endTime: { gt: start },
     },
@@ -81,13 +81,13 @@ export async function POST(request: NextRequest) {
     "not_connected";
   let googleEvents: CalendarEventData[] = [];
   const auth = await prisma.calendarAuth.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     select: { id: true },
   });
   if (auth) {
     try {
       googleEvents = await new GoogleCalendarClient(
-        await getValidAccessToken(session.user.id)
+        await getValidAccessToken(user.id)
       ).fetchEvents(start.toISOString(), end.toISOString());
       googleStatus = "connected";
     } catch (error) {

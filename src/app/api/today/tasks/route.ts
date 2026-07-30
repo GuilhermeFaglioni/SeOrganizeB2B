@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json(
       { data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } },
       { status: 401 }
@@ -16,7 +16,7 @@ export async function GET() {
     where: {
       archived: false,
       dueDate: { lte: endOfToday },
-      assignees: { some: { profileId: session.user.id } },
+      assignees: { some: { profileId: user.id } },
       column: { completesTasks: false },
     },
     orderBy: [{ dueDate: "asc" }, { priority: "asc" }],

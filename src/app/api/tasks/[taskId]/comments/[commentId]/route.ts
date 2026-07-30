@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { recordActivity } from "@/lib/activity/record";
 
 export async function DELETE(request: NextRequest, { params }: { params: { taskId: string; commentId: string } }) {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
@@ -14,14 +14,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { taskI
     return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Comment not found" } }, { status: 404 });
   }
 
-  if (comment.authorId !== session.user.id) {
+  if (comment.authorId !== user.id) {
     return NextResponse.json({ data: null, error: { code: "FORBIDDEN", message: "Can only delete own comments" } }, { status: 403 });
   }
 
   await prisma.$transaction(async (tx) => {
     await tx.comment.delete({ where: { id: params.commentId } });
     await recordActivity(tx, {
-      actorId: session.user.id,
+      actorId: user.id,
       taskId: params.taskId,
       type: "comment.deleted",
       entityType: "comment",

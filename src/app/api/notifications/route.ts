@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../prisma/client";
-import { getSession } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json(
       { data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } },
       { status: 401 }
@@ -12,7 +12,7 @@ export async function GET() {
   }
 
   const notifications = await prisma.notification.findMany({
-    where: { recipientId: session.user.id },
+    where: { recipientId: user.id },
     orderBy: { createdAt: "desc" },
     take: 50,
     include: {
@@ -34,8 +34,8 @@ export async function GET() {
 }
 
 export async function PATCH() {
-  const session = await getSession();
-  if (!session) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json(
       { data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } },
       { status: 401 }
@@ -43,7 +43,7 @@ export async function PATCH() {
   }
 
   const result = await prisma.notification.updateMany({
-    where: { recipientId: session.user.id, readAt: null },
+    where: { recipientId: user.id, readAt: null },
     data: { readAt: new Date() },
   });
   return NextResponse.json({ data: { count: result.count }, error: null });
