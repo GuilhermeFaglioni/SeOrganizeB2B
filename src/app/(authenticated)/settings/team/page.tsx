@@ -126,7 +126,7 @@ export default function TeamPage() {
                         />
                         <span
                           className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: area.color }}
+                          style={{ backgroundColor: area?.color }}
                         />
                         <span className="text-sm text-text-primary">{area.name}</span>
                       </label>

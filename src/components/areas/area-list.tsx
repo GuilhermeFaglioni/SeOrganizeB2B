@@ -25,7 +25,7 @@ function AreaRow({
   return (
     <div className="flex items-center justify-between py-3 px-4 border-b border-border last:border-0">
       <div className="flex items-center gap-3">
-        <AreaBadge name={area.name} color={area.color} />
+        <AreaBadge name={area.name} color={area?.color} />
         <span className="text-sm text-text-primary font-medium">{area.name}</span>
       </div>
 
