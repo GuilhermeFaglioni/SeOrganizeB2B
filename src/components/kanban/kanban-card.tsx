@@ -37,12 +37,14 @@ export function KanbanCard({
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       data-testid={`task-card-${task.id}`}
       role="button"
       tabIndex={0}
       aria-label={`Task: ${task.title}`}
       className={cn(
-        "cursor-pointer rounded-lg border bg-white p-[10px] shadow-card transition-[transform,box-shadow,border-color] hover:shadow-elevated motion-safe:hover:-translate-y-0.5",
+        "touch-none cursor-grab rounded-lg border bg-white p-[10px] shadow-card transition-[transform,box-shadow,border-color] hover:shadow-elevated motion-safe:hover:-translate-y-0.5 active:cursor-grabbing",
         isOverdue && "border-danger",
         isSelected && "border-[2px] border-accent",
         isDragging && "opacity-50"
@@ -51,9 +53,7 @@ export function KanbanCard({
     >
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-1">
-          <button {...attributes} {...listeners} className="touch-none text-text-secondary hover:text-text-primary cursor-grab active:cursor-grabbing">
-            <GripVertical size={14} />
-          </button>
+          <GripVertical size={14} className="text-text-secondary" />
           <span
             className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
             style={{ color: priorityColor.text, backgroundColor: priorityColor.bg }}
