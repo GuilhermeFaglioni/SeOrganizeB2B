@@ -65,6 +65,7 @@ export default function LoginPage() {
       } else if (!data.session) {
         setSuccess("Account created! Check your email to confirm your account.");
       } else {
+        await fetch("/api/profile");
         router.push("/");
       }
     } catch (err) {
