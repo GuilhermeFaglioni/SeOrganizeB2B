@@ -1,29 +1,38 @@
 import { createClient } from "@/lib/supabase/client";
 
-const supabase = createClient();
+let supabase: ReturnType<typeof createClient> | undefined;
+
+function getClient() {
+  if (!supabase) {
+    supabase = createClient();
+  }
+  return supabase;
+}
 
 export function useAuth() {
+  const client = getClient();
+
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
+    await client.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
   };
 
   const signInWithMagicLink = async (email: string) => {
-    await supabase.auth.signInWithOtp({
+    await client.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
   };
 
   const signInWithPassword = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await client.auth.signInWithPassword({ email, password });
     if (error) throw error;
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { error } = await client.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
@@ -32,8 +41,8 @@ export function useAuth() {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await client.auth.signOut();
   };
 
-  return { supabase, signInWithGoogle, signInWithMagicLink, signInWithPassword, signUp, signOut };
+  return { supabase: client, signInWithGoogle, signInWithMagicLink, signInWithPassword, signUp, signOut };
 }
