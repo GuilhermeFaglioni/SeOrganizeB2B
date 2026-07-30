@@ -29,7 +29,7 @@ import {
 import { useProjects } from "@/hooks/use-projects";
 import { useAreas } from "@/hooks/use-areas";
 import { useQuery } from "@tanstack/react-query";
-import { useUpdateCalendarEvent } from "@/hooks/use-calendar";
+import { useUpdateCalendarEvent, useDeleteCalendarEvent } from "@/hooks/use-calendar";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 const NONE = "__none__";
@@ -54,6 +54,8 @@ export function EventDetailModal({
   const [taskId, setTaskId] = useState(NONE);
   const [areaId, setAreaId] = useState(NONE);
   const updateEvent = useUpdateCalendarEvent();
+  const deleteEvent = useDeleteCalendarEvent();
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const isReadOnly = Boolean(event?.googleId && event.id === event.googleId);
   const { data: tasks = [] } = useQuery<TaskOption[]>({
     queryKey: ["calendar-link-tasks", projectId],
@@ -246,13 +248,54 @@ export function EventDetailModal({
         </div>
 
         {!isReadOnly && (
-          <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={saveLinks} disabled={updateEvent.isPending}>
-              {updateEvent.isPending ? "Salvando…" : "Salvar vínculos"}
-            </Button>
+          <DialogFooter className="gap-2">
+            {confirmDelete ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmDelete(false)}
+                >
+                  Manter
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    try {
+                      await deleteEvent.mutateAsync(event!.id);
+                      toastSuccess("Evento excluído");
+                      setConfirmDelete(false);
+                      onOpenChange(false);
+                    } catch (error) {
+                      toastError(
+                        "Falha ao excluir evento",
+                        error instanceof Error ? error.message : undefined,
+                      );
+                    }
+                  }}
+                  disabled={deleteEvent.isPending}
+                >
+                  {deleteEvent.isPending
+                    ? "Excluindo…"
+                    : "Confirmar exclusão"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  className="text-danger hover:text-danger"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  Excluir
+                </Button>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={saveLinks} disabled={updateEvent.isPending}>
+                  {updateEvent.isPending ? "Salvando…" : "Salvar vínculos"}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         )}
       </DialogContent>
