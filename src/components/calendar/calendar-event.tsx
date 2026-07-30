@@ -25,17 +25,18 @@ export function CalendarEvent({
   timeText,
   compact = false,
 }: {
-  event: CalendarEventData;
+  event: CalendarEventData | null | undefined;
   onClick?: () => void;
   timeText?: string;
   compact?: boolean;
 }) {
+  const reduceMotion = useReducedMotion();
+  if (!event) return null;
   const borderColor = event.color
     ? AREA_COLORS[event.color] || event.color
     : "#3b82f6";
   const startTime = new Date(event.startTime);
   const endTime = new Date(event.endTime);
-  const reduceMotion = useReducedMotion();
 
   return (
     <motion.div

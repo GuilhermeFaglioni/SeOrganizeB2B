@@ -62,7 +62,7 @@ export function CalendarView({
   );
   const calendarEvents = useMemo(
     () =>
-      events.map((event) => {
+      events.filter(Boolean).map((event) => {
         const eventColor = event.color
           ? GOOGLE_EVENT_COLORS[event.color] || event.color
           : "#2F6FED";

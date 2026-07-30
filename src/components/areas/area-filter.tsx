@@ -35,7 +35,7 @@ export function AreaFilter({ areas, selected, onToggle }: AreaFilterProps) {
             />
             <span
               className="w-2 h-2 rounded-full shrink-0"
-              style={{ backgroundColor: area.color || "#3b82f6" }}
+              style={{ backgroundColor: area?.color || "#3b82f6" }}
             />
             <span className="text-sm text-sidebar-text-muted group-hover:text-sidebar-text transition-colors">
               {area.name}
