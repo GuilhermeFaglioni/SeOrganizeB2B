@@ -1,10 +1,15 @@
 import type { Prisma } from "@prisma/client";
 import type { RecordActivityInput } from "./types";
 
+interface RecordActivityResult {
+  activityId: string;
+  notifiedProfileIds: string[];
+}
+
 export async function recordActivity(
   tx: Prisma.TransactionClient,
   input: RecordActivityInput
-) {
+): Promise<RecordActivityResult> {
   const activity = await tx.activity.create({
     data: {
       actorId: input.actorId ?? null,
@@ -33,5 +38,9 @@ export async function recordActivity(
       skipDuplicates: true,
     });
   }
-  return activity;
+
+  return {
+    activityId: activity.id,
+    notifiedProfileIds: recipients,
+  };
 }
