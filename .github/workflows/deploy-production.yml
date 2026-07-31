@@ -78,32 +78,24 @@ jobs:
 
     steps:
       - name: Send deploy result to Telegram
-        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+        if: env.TELEGRAM_BOT_TOKEN != ''
         run: |
           if [ "${{ needs.deploy.result }}" = "success" ]; then
-            STATUS="✅ Deploy concluído"
-            ICON="🚀"
+            STATUS="🚀 Deploy concluído"
             MSG="Produção atualizada com sucesso!"
           else
             STATUS="❌ Deploy falhou"
-            ICON="❌"
             MSG="Verifique os logs do GitHub Actions."
           fi
 
           COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
 
+          TEXT="${STATUS}%0A%0ARepo: ${{ github.repository }}%0ABranch: ${{ github.ref_name }}%0ACommit: ${{ github.sha }}%0AMessage: ${COMMIT_MSG}%0AAuthor: ${{ github.actor }}%0A%0A${MSG}%0A%0AVer workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
             -d parse_mode="Markdown" \
-            -d text="${ICON} *${STATUS}*
-
-*Repo:* ${{ github.repository }}
-*Branch:* ${{ github.ref_name }}
-*Commit:* \`${{ github.sha }}\`
-*Message:* _${COMMIT_MSG}_
-*Author:* ${{ github.actor }}
-
-🔗 [Ver workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            -d text="${TEXT}"
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
