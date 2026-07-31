@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { SwRegister } from "@/components/sw-register";
+import { ThemeWatcher } from "@/components/theme-watcher";
 import "./globals.css";
 
 const geist = localFont({
@@ -66,6 +67,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
+        <ThemeWatcher />
         <SwRegister />
         {children}
       </body>

@@ -69,3 +69,41 @@ jobs:
 
       - name: Deploy production artifact
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  notify:
+    name: Send Telegram notification
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Send deploy result to Telegram
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+        run: |
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
+            STATUS="✅ Deploy concluído"
+            COLOR="🚀"
+            MSG="Produção atualizada com sucesso!"
+          else
+            STATUS="❌ Deploy falhou"
+            COLOR="❌"
+            MSG="Verifique os logs do GitHub Actions."
+          fi
+
+          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d parse_mode="Markdown" \
+            -d text="${COLOR} *${STATUS}*
+
+*Repo:* ${{ github.repository }}
+*Branch:* ${{ github.ref_name }}
+*Commit:* \`${{ github.sha }}\`
+*Message:* _${COMMIT_MSG}_
+*Author:* ${{ github.actor }}
+
+🔗 [Ver workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
