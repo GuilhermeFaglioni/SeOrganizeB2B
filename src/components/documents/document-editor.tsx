@@ -59,19 +59,19 @@ export function DocumentEditor({
 
   return (
     <div className="flex h-full min-h-0 flex-col" data-testid="document-editor">
-      <div className="flex shrink-0 items-center justify-between px-4 py-2 border-b border-border bg-white">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-white px-4 py-2">
         <input
           type="text"
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
-          className="text-[18px] font-semibold bg-transparent border-none outline-none flex-1 text-text-primary"
+          className="min-w-0 flex-1 basis-full bg-transparent text-[18px] font-semibold text-text-primary outline-none sm:basis-auto"
           placeholder="Untitled Document"
         />
-        <div className="flex items-center gap-2">
+        <div className="flex w-full min-w-0 items-center justify-end gap-2 sm:w-auto">
           <select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            className="text-sm border border-input rounded-md px-2 py-1 bg-white"
+            className="min-w-0 flex-1 rounded-md border border-input bg-white px-2 py-1 text-sm sm:flex-none"
           >
             <option value="">No project</option>
             {projects?.map((p: { id: string; name: string }) => (
@@ -104,10 +104,15 @@ export function DocumentEditor({
           <button
             onClick={handleSave}
             disabled={updateDoc.isPending}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-accent text-white hover:bg-accent/90 disabled:opacity-50"
+            className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent/90 disabled:opacity-50 sm:min-h-0 sm:min-w-0"
+            aria-label="Save document"
+            title="Save document"
           >
-            <Save size={16} />
-            Save
+            <Save className="h-4 w-4 sm:hidden" aria-hidden="true" />
+            <span className="hidden items-center gap-1 sm:inline-flex">
+              <Save className="h-4 w-4" aria-hidden="true" />
+              Save
+            </span>
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { useRouter, usePathname } from "next/navigation";
@@ -19,6 +20,11 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const createDoc = useCreateDocument();
   const { openScheduleEvent } = useScheduleEventDialog();
   const { openQuickCapture } = useQuickCapture();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const pageMeta = pathname === "/"
     ? { title: "Hoje", action: "Capturar" }
@@ -52,13 +58,17 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
+    <div className="flex h-[100dvh] min-h-[100dvh] overflow-hidden">
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        onMobileOpenChange={setMobileMenuOpen}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
           title={title ?? pageMeta.title}
           actionLabel={pageMeta.action ?? undefined}
           onNewClick={pageMeta.action ? handleNewClick : undefined}
+          onMenuClick={() => setMobileMenuOpen(true)}
         />
         <main className="min-h-0 flex-1 overflow-hidden bg-page">
           <AnimatedPage pageKey={pathname}>{children}</AnimatedPage>

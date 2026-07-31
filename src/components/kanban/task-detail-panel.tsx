@@ -29,7 +29,7 @@ export function TaskDetailPanel({
   return (
     <div
       data-testid="task-detail-panel"
-      className="w-[400px] bg-white border-l border-border overflow-y-auto flex flex-col h-full"
+      className="fixed inset-x-0 top-14 bottom-0 z-40 flex h-auto w-full flex-col overflow-hidden border-0 bg-white shadow-modal sm:static sm:z-auto sm:h-full sm:w-[400px] sm:shrink-0 sm:overflow-y-auto sm:border-l sm:shadow-none"
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
@@ -41,12 +41,12 @@ export function TaskDetailPanel({
           </span>
           <span className="text-caption text-text-secondary">#{task.id.slice(0, 8)}</span>
         </div>
-        <button onClick={onClose} className="text-text-secondary hover:text-text-primary">
+        <button onClick={onClose} className="flex min-h-[44px] min-w-[44px] items-center justify-center text-text-secondary hover:text-text-primary" aria-label="Close task details">
           <X size={18} />
         </button>
       </div>
 
-      <div className="flex-1 px-4 py-4 space-y-6 overflow-y-auto">
+      <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4">
         <div>
           <h2 className="text-heading-1 font-semibold text-text-primary mb-2">{task.title}</h2>
           <span className="sr-only">Task detail panel</span>
@@ -75,10 +75,10 @@ export function TaskDetailPanel({
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
-            className="flex items-center gap-1"
+            className="min-w-0 flex-1 items-center gap-1 sm:flex-none"
             onClick={() =>
               openScheduleEvent({
                 taskId: task.id,

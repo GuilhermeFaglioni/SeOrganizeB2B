@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,7 +9,6 @@ import {
   Calendar,
   FileText,
   Settings,
-  Menu,
   X,
   LogOut,
   User as UserIcon,
@@ -34,29 +32,32 @@ function isRouteActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
+}
+
+export function Sidebar({
+  mobileOpen = false,
+  onMobileOpenChange,
+}: SidebarProps) {
   const pathname = usePathname();
   const isTablet = useIsTablet();
   const isMobile = useIsMobile();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const { signOut, user } = useAuth();
 
   if (isMobile) {
     return (
       <>
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="fixed top-3 left-3 z-50 p-2 bg-sidebar rounded-lg text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
-          aria-label="Open menu"
-        >
-          <Menu size={20} />
-        </button>
         {mobileOpen && (
           <>
-            <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setMobileOpen(false)} />
+            <div
+              className="fixed inset-0 z-40 bg-black/50"
+              onClick={() => onMobileOpenChange?.(false)}
+            />
             <aside
               data-testid="sidebar"
-              className="fixed top-0 left-0 w-[240px] h-screen bg-sidebar flex flex-col shrink-0 z-50"
+              className="fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[240px] shrink-0 flex-col bg-sidebar"
             >
               <div data-testid="sidebar-logo" className="h-14 flex items-center justify-between px-4 border-b border-sidebar-divider">
                 <div className="flex items-center gap-3">
@@ -65,7 +66,7 @@ export function Sidebar() {
                   </div>
                   <span className="text-sidebar-text text-sm font-semibold">{APP_NAME}</span>
                 </div>
-                <button onClick={() => setMobileOpen(false)} className="text-white min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Close menu">
+                <button onClick={() => onMobileOpenChange?.(false)} className="flex min-h-[44px] min-w-[44px] items-center justify-center text-white" aria-label="Close menu">
                   <X size={20} />
                 </button>
               </div>
@@ -78,7 +79,7 @@ export function Sidebar() {
                       key={item.href}
                       href={item.href}
                       data-testid={item.testId}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={() => onMobileOpenChange?.(false)}
                       className={cn(
                         "relative isolate flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                         isActive ? "text-sidebar-text" : "text-sidebar-text-muted hover:bg-sidebar-hover"
@@ -101,7 +102,7 @@ export function Sidebar() {
                   );
                 })}
               </nav>
-              <div className="border-t border-sidebar-divider p-3">
+              <div className="border-t border-sidebar-divider px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
@@ -132,7 +133,7 @@ export function Sidebar() {
     <aside
       data-testid="sidebar"
       className={cn(
-        "h-screen bg-sidebar flex flex-col shrink-0 transition-all duration-200",
+        "h-full bg-sidebar flex flex-col shrink-0 transition-all duration-200",
         isTablet ? "w-16" : "w-[240px]"
       )}
     >
