@@ -65,31 +65,22 @@ jobs:
 
     steps:
       - name: Send CI result to Telegram
-        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+        if: env.TELEGRAM_BOT_TOKEN != ''
         run: |
           if [ "${{ needs.validate.result }}" = "success" ]; then
             STATUS="✅ CI Passed"
-            ICON="✅"
             MSG="Tudo OK! Auto-merge habilitado."
           else
             STATUS="❌ CI Failed"
-            ICON="❌"
             MSG="Verifique os logs do GitHub Actions."
           fi
+
+          TEXT="${STATUS}%0A%0ARepo: ${{ github.repository }}%0ABranch: ${{ github.head_ref }}%0ACommit: ${{ github.event.pull_request.head.sha }}%0AAuthor: ${{ github.actor }}%0A%0A${MSG}%0A%0AVer PR: ${{ github.event.pull_request.html_url }}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
             -d parse_mode="Markdown" \
-            -d text="${ICON} *${STATUS}*
-
-*Repo:* ${{ github.repository }}
-*Branch:* ${{ github.head_ref }}
-*Commit:* \`${{ github.event.pull_request.head.sha }}\`
-*Author:* ${{ github.actor }}
-
-${MSG}
-
-🔗 [Ver PR](${{ github.event.pull_request.html_url }})"
+            -d text="${TEXT}"
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
