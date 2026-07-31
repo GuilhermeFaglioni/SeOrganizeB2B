@@ -112,7 +112,7 @@ export default function ProjectDetailPage() {
   return (
     <div className="h-full overflow-hidden p-3 sm:p-4 lg:p-5">
       <div className="mx-auto flex h-full max-w-7xl flex-col gap-3 overflow-y-auto lg:gap-4 lg:overflow-hidden">
-        <header className="flex shrink-0 flex-col gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-card lg:flex-row lg:items-center lg:justify-between">
+        <header className="flex shrink-0 flex-col gap-3 rounded-xl border border-border bg-page-alt px-4 py-3 shadow-card lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-start gap-3">
             <button
               onClick={() => router.push("/projects")}
@@ -185,7 +185,7 @@ export default function ProjectDetailPage() {
         </section>
 
         <div className="grid min-h-0 gap-3 lg:flex-1 lg:grid-cols-[minmax(260px,0.72fr)_minmax(0,1.5fr)] lg:gap-4">
-          <section className="flex min-h-0 flex-col rounded-xl border border-border bg-white p-4 shadow-card">
+          <section className="flex min-h-0 flex-col rounded-xl border border-border bg-page-alt p-4 shadow-card">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-sm font-semibold text-text-primary">
@@ -212,7 +212,7 @@ export default function ProjectDetailPage() {
             </div>
           </section>
 
-          <section className="min-h-0 rounded-xl border border-border bg-white p-4 shadow-card">
+          <section className="min-h-0 rounded-xl border border-border bg-page-alt p-4 shadow-card">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-text-primary">
@@ -235,7 +235,7 @@ export default function ProjectDetailPage() {
                   <span className="truncate text-sm font-medium text-text-primary">
                     {col.name}
                   </span>
-                  <span className="ml-3 flex h-6 min-w-6 shrink-0 items-center justify-center rounded-md bg-white px-1.5 text-xs font-semibold text-text-secondary shadow-sm">
+                  <span className="ml-3 flex h-6 min-w-6 shrink-0 items-center justify-center rounded-md bg-page-alt px-1.5 text-xs font-semibold text-text-secondary shadow-sm">
                     {col._count.tasks}
                   </span>
                 </div>
@@ -301,7 +301,7 @@ export default function ProjectDetailPage() {
 
 function MetricCard({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number }) {
   return (
-    <div className="flex min-w-0 items-center gap-2.5 rounded-xl border border-border bg-white p-3 shadow-card">
+    <div className="flex min-w-0 items-center gap-2.5 rounded-xl border border-border bg-page-alt p-3 shadow-card">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10">
         <Icon className="h-4.5 w-4.5 text-accent" />
       </div>

@@ -2,6 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Light theme (default) ===== */
+:root {
+  --color-sidebar: #10233F;
+  --color-sidebar-hover: rgba(255,255,255,0.08);
+  --color-sidebar-active: rgba(255,255,255,0.13);
+  --color-sidebar-text: #ffffff;
+  --color-sidebar-text-muted: rgba(255,255,255,0.4);
+  --color-sidebar-divider: rgba(255,255,255,0.1);
+  --color-page: #F4F7FB;
+  --color-page-alt: #F8FAFD;
+  --color-bg-secondary: #F4F7FB;
+  --color-bg-tertiary: #EAF0F7;
+  --color-accent: #2F6FED;
+  --color-accent-hover: #245FD1;
+  --color-text-primary: #132238;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+  --color-text-inverse: #ffffff;
+  --color-border: #DCE4EF;
+  --color-border-dark: #C8D4E3;
+  --color-success: #16845B;
+  --color-success-bg: #f0fdf4;
+  --color-warning: #B66A12;
+  --color-warning-bg: #fffbeb;
+  --color-danger: #C93C48;
+  --color-danger-bg: #fef2f2;
+  --color-info: #0284c7;
+  --color-info-bg: #f0f9ff;
+  --color-brand-50: #F0F5FF;
+  --color-brand-100: #DFE9FF;
+  --color-brand-200: #BED2FF;
+  --color-brand-300: #91B3FF;
+  --color-brand-400: #6392F7;
+  --color-brand-500: #2F6FED;
+  --color-brand-600: #245FD1;
+  --color-brand-700: #1D4EA8;
+  --color-brand-800: #193F84;
+  --color-brand-900: #17376D;
+  --shadow-card: 0 1px 2px rgba(16,35,63,0.04), 0 8px 24px rgba(16,35,63,0.04);
+  --shadow-elevated: 0 12px 32px rgba(16,35,63,0.10);
+  --shadow-modal: 0 24px 64px rgba(16,35,63,0.18);
+  --shadow-toast: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.04);
+  color-scheme: light;
+}
+
+/* ===== Dark theme ===== */
+.dark {
+  --color-sidebar: #0c1524;
+  --color-sidebar-hover: rgba(255,255,255,0.06);
+  --color-sidebar-active: rgba(255,255,255,0.10);
+  --color-sidebar-text: #e2e8f0;
+  --color-sidebar-text-muted: rgba(255,255,255,0.35);
+  --color-sidebar-divider: rgba(255,255,255,0.08);
+  --color-page: #0f172a;
+  --color-page-alt: #1e293b;
+  --color-bg-secondary: #0f172a;
+  --color-bg-tertiary: #1e293b;
+  --color-accent: #60a5fa;
+  --color-accent-hover: #93bbfd;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-text-inverse: #0f172a;
+  --color-border: #334155;
+  --color-border-dark: #475569;
+  --color-success: #34d399;
+  --color-success-bg: rgba(52,211,153,0.1);
+  --color-warning: #fbbf24;
+  --color-warning-bg: rgba(251,191,36,0.1);
+  --color-danger: #f87171;
+  --color-danger-bg: rgba(248,113,113,0.1);
+  --color-info: #38bdf8;
+  --color-info-bg: rgba(56,189,248,0.1);
+  --color-brand-50: rgba(47,111,237,0.1);
+  --color-brand-100: rgba(47,111,237,0.15);
+  --color-brand-200: rgba(47,111,237,0.2);
+  --color-brand-300: rgba(96,165,250,0.4);
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #60a5fa;
+  --color-brand-600: #93bbfd;
+  --color-brand-700: #bfdbfe;
+  --color-brand-800: #dbeafe;
+  --color-brand-900: #eff6ff;
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.2);
+  --shadow-elevated: 0 12px 32px rgba(0,0,0,0.3);
+  --shadow-modal: 0 24px 64px rgba(0,0,0,0.4);
+  --shadow-toast: 0 20px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.15);
+  color-scheme: dark;
+}
+
 @layer base {
   body {
     @apply bg-page font-sans text-text-primary antialiased;
@@ -11,6 +101,10 @@
   ::selection {
     @apply bg-brand-200 text-brand-900;
   }
+
+  .dark ::selection {
+    @apply bg-brand-700 text-brand-50;
+  }
 }
 
 @layer components {
@@ -18,19 +112,23 @@
     @apply rounded-xl border border-border bg-white shadow-card;
   }
 
+  .dark .executive-surface {
+    @apply bg-page-alt;
+  }
+
   .executive-calendar {
-    --fc-border-color: #dce4ef;
-    --fc-button-bg-color: #ffffff;
-    --fc-button-border-color: #dce4ef;
-    --fc-button-text-color: #132238;
-    --fc-button-hover-bg-color: #f0f5ff;
-    --fc-button-hover-border-color: #bed2ff;
-    --fc-button-active-bg-color: #2f6fed;
-    --fc-button-active-border-color: #2f6fed;
-    --fc-today-bg-color: rgba(47, 111, 237, 0.045);
-    --fc-now-indicator-color: #c93c48;
-    --fc-page-bg-color: #ffffff;
-    --fc-neutral-bg-color: #f8fafd;
+    --fc-border-color: var(--color-border);
+    --fc-button-bg-color: var(--color-page-alt);
+    --fc-button-border-color: var(--color-border);
+    --fc-button-text-color: var(--color-text-primary);
+    --fc-button-hover-bg-color: var(--color-brand-50);
+    --fc-button-hover-border-color: var(--color-brand-300);
+    --fc-button-active-bg-color: var(--color-accent);
+    --fc-button-active-border-color: var(--color-accent);
+    --fc-today-bg-color: var(--color-brand-50);
+    --fc-now-indicator-color: var(--color-danger);
+    --fc-page-bg-color: var(--color-page);
+    --fc-neutral-bg-color: var(--color-page-alt);
   }
 
   .executive-calendar .fc {

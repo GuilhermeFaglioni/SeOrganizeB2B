@@ -29,7 +29,7 @@ export function TaskDetailPanel({
   return (
     <div
       data-testid="task-detail-panel"
-      className="fixed inset-x-0 top-14 bottom-0 z-40 flex h-auto w-full flex-col overflow-hidden border-0 bg-white shadow-modal sm:static sm:z-auto sm:h-full sm:w-[400px] sm:shrink-0 sm:overflow-y-auto sm:border-l sm:shadow-none"
+      className="fixed inset-x-0 top-14 bottom-0 z-40 flex h-auto w-full flex-col overflow-hidden border-0 bg-page-alt shadow-modal sm:static sm:z-auto sm:h-full sm:w-[400px] sm:shrink-0 sm:overflow-y-auto sm:border-l sm:shadow-none"
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">

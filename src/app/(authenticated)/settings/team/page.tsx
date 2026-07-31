@@ -88,7 +88,7 @@ export default function TeamPage() {
         {profiles.map((profile) => (
           <div
             key={profile.id}
-            className="bg-white border border-border rounded-xl overflow-hidden"
+            className="bg-page-alt border border-border rounded-xl overflow-hidden"
           >
             <button
               onClick={() => setExpandedId(expandedId === profile.id ? null : profile.id)}

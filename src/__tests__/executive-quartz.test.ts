@@ -17,10 +17,10 @@ describe("Executive Quartz contracts", () => {
   });
 
   it("defines the approved color foundations", () => {
-    const tailwind = read("tailwind.config.ts");
-    expect(tailwind).toContain("#F4F7FB");
-    expect(tailwind).toContain("#10233F");
-    expect(tailwind).toContain("#2F6FED");
+    const globals = read("src/app/globals.css");
+    expect(globals).toContain("--color-page: #F4F7FB");
+    expect(globals).toContain("--color-sidebar: #10233F");
+    expect(globals).toContain("--color-accent: #2F6FED");
   });
 
   it("uses reduced-motion-aware Motion transitions", () => {

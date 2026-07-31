@@ -25,7 +25,7 @@ export default function AuthenticatedHome() {
             <h2 className="text-display capitalize text-text-primary">{today}</h2>
           </div>
           <div
-            className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium text-text-secondary shadow-card"
+            className="rounded-full border border-border bg-page-alt px-3 py-1.5 text-xs font-medium text-text-secondary shadow-card"
             aria-live="polite"
           >
             {notifications?.unreadCount ?? 0} notificações não lidas

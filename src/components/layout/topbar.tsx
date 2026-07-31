@@ -21,7 +21,7 @@ export function Topbar({
   return (
     <header
       data-testid="topbar"
-      className="h-14 shrink-0 border-b border-border bg-white/95 px-3 backdrop-blur sm:px-5"
+      className="h-14 shrink-0 border-b border-border bg-page-alt/95 px-3 backdrop-blur sm:px-5"
     >
       <div className="flex h-full min-w-0 items-center gap-2">
         {onMenuClick && (

@@ -226,7 +226,7 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
                       className={`rounded-full border px-3 py-1 text-sm ${
                         priority === p
                           ? "border-accent bg-accent text-white"
-                          : "border-border bg-white text-text-secondary hover:border-accent"
+                          : "border-border bg-page-alt text-text-secondary hover:border-accent"
                       }`}
                     >
                       {p}

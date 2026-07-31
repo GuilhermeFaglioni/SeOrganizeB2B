@@ -94,7 +94,7 @@ export default function LoginPage() {
       data-testid="login-page"
       className="min-h-screen bg-page flex items-center justify-center p-4"
     >
-      <div className="w-full max-w-[400px] bg-white rounded-xl shadow-lg p-8 space-y-6">
+      <div className="w-full max-w-[400px] bg-page-alt rounded-xl shadow-lg p-8 space-y-6">
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center">
             <span className="text-white text-heading-1 font-bold">S</span>
@@ -183,7 +183,7 @@ export default function LoginPage() {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-text-muted">or</span>
+              <span className="bg-page-alt px-2 text-text-muted">or</span>
             </div>
           </div>
 

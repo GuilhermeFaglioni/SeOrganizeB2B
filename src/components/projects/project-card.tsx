@@ -6,7 +6,7 @@ export function ProjectCard({ project }: { project: ProjectData }) {
   return (
     <div
       data-testid="project-card"
-      className="cursor-pointer rounded-xl border border-border bg-white p-5 shadow-card transition-[transform,box-shadow,border-color] hover:border-brand-400 hover:shadow-elevated motion-safe:hover:-translate-y-0.5"
+      className="cursor-pointer rounded-xl border border-border bg-page-alt p-5 shadow-card transition-[transform,box-shadow,border-color] hover:border-brand-400 hover:shadow-elevated motion-safe:hover:-translate-y-0.5"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">

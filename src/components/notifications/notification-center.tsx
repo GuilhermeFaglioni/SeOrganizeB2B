@@ -75,7 +75,7 @@ export function NotificationCenter() {
                 openNotification(item.id, item.activity.entityType)
               }
               className={`block w-full border-b border-border px-4 py-3 text-left hover:bg-page ${
-                item.readAt ? "bg-white" : "bg-brand-50/60"
+                item.readAt ? "bg-page-alt" : "bg-brand-50/60"
               }`}
             >
               <p className="text-sm text-text-primary">

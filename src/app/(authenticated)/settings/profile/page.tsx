@@ -78,7 +78,7 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      <div className="bg-white border border-border rounded-xl p-6 space-y-4">
+      <div className="bg-page-alt border border-border rounded-xl p-6 space-y-4">
         <div className="space-y-2">
           <label className="text-label text-text-secondary">Email</label>
           <Input value={user?.email || ""} disabled />
@@ -119,7 +119,7 @@ export default function ProfilePage() {
 
       </div>
 
-      <div className="bg-white border border-border rounded-xl p-6 space-y-4">
+      <div className="bg-page-alt border border-border rounded-xl p-6 space-y-4">
         <h2 className="text-base font-semibold text-text-primary">Team Areas</h2>
         <p className="text-sm text-text-secondary">
           Select the team areas you belong to. This determines which areas you can filter by and assign tasks to.

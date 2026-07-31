@@ -19,7 +19,7 @@ export function TodayAgenda() {
     range.end
   );
   return (
-    <section className="rounded-2xl border border-border bg-white p-5 shadow-card">
+    <section className="rounded-2xl border border-border bg-page-alt p-5 shadow-card">
       <div className="mb-4 flex items-center gap-2">
         <CalendarDays className="h-4 w-4 text-accent" />
         <h3 className="text-heading-1 text-text-primary">Agenda</h3>

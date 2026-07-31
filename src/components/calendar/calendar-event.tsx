@@ -50,7 +50,7 @@ export function CalendarEvent({
       className={
         compact
           ? "flex h-full min-w-0 items-start gap-1 overflow-hidden rounded px-1.5 py-0.5"
-          : "flex cursor-pointer items-start gap-3 rounded border-l-[3px] bg-white px-3 py-2 transition-shadow hover:shadow-sm"
+          : "flex cursor-pointer items-start gap-3 rounded border-l-[3px] bg-page-alt px-3 py-2 transition-shadow hover:shadow-sm"
       }
       style={{ borderLeftColor: borderColor }}
     >

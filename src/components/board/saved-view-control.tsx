@@ -81,7 +81,7 @@ export function SavedViewControl({
     <>
       <div className="ml-auto flex items-center gap-1">
       <Select value={selectedId} onValueChange={select}>
-        <SelectTrigger className="w-[180px] bg-white">
+        <SelectTrigger className="w-[180px] bg-page-alt">
           <SelectValue placeholder="Minhas views" />
         </SelectTrigger>
         <SelectContent>

@@ -44,7 +44,7 @@ export function KanbanCard({
       tabIndex={0}
       aria-label={`Task: ${task.title}`}
       className={cn(
-        "touch-none cursor-grab rounded-lg border bg-white p-[10px] shadow-card transition-[transform,box-shadow,border-color] hover:shadow-elevated motion-safe:hover:-translate-y-0.5 active:cursor-grabbing",
+        "touch-none cursor-grab rounded-lg border bg-page-alt p-[10px] shadow-card transition-[transform,box-shadow,border-color] hover:shadow-elevated motion-safe:hover:-translate-y-0.5 active:cursor-grabbing",
         isOverdue && "border-danger",
         isSelected && "border-[2px] border-accent",
         isDragging && "opacity-50"
