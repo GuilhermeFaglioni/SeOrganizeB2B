@@ -152,12 +152,12 @@ export function CalendarView({
             : "timeGridWeek,timeGridDay,dayGridMonth",
         }}
         buttonText={{
-          today: "Hoje",
-          month: "Mês",
-          week: "Semana",
-          day: "Dia",
+          today: "Today",
+          month: "Month",
+          week: "Week",
+          day: "Day",
         }}
-        allDayText="Dia inteiro"
+        allDayText="All day"
         firstDay={1}
         nowIndicator
         selectable
