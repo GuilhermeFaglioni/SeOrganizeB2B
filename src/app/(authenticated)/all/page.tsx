@@ -42,7 +42,7 @@ function ProjectSection({ projectId, projectName }: { projectId: string; project
   if (taskCount === 0) return null;
 
   return (
-    <div className="bg-white border border-border rounded-xl p-5">
+    <div className="bg-page-alt border border-border rounded-xl p-5">
       <button
         onClick={() => router.push(`/board/${projectId}`)}
         className="flex items-center gap-2 text-base font-semibold text-text-primary hover:text-accent mb-4"

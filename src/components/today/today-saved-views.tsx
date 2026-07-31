@@ -37,7 +37,7 @@ export function TodaySavedViews() {
           <button
             key={view.id}
             onClick={() => router.push(`/board?${params.toString()}`)}
-            className="shrink-0 rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium text-text-primary shadow-card hover:border-accent hover:text-accent"
+            className="shrink-0 rounded-full border border-border bg-page-alt px-3 py-1.5 text-xs font-medium text-text-primary shadow-card hover:border-accent hover:text-accent"
           >
             {view.name}
           </button>

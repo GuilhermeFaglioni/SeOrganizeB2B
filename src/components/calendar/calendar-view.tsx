@@ -117,7 +117,7 @@ export function CalendarView({
       className="executive-calendar relative h-full min-h-0"
     >
       {isLoading && (
-        <div className="pointer-events-none absolute right-4 top-3 z-10 rounded-full border border-border bg-white/90 px-3 py-1 text-xs text-text-secondary shadow-card">
+        <div className="pointer-events-none absolute right-4 top-3 z-10 rounded-full border border-border bg-page-alt/90 px-3 py-1 text-xs text-text-secondary shadow-card">
           Sincronizando…
         </div>
       )}

@@ -61,7 +61,7 @@ export function Sidebar({
             >
               <div data-testid="sidebar-logo" className="h-14 flex items-center justify-between px-4 border-b border-sidebar-divider">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-sidebar shadow-sm">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-page-alt text-sidebar shadow-sm">
                     <span className="text-sm font-bold">S+</span>
                   </div>
                   <span className="text-sidebar-text text-sm font-semibold">{APP_NAME}</span>
@@ -138,7 +138,7 @@ export function Sidebar({
       )}
     >
       <div data-testid="sidebar-logo" className={cn("h-14 flex items-center border-b border-sidebar-divider", isTablet ? "justify-center px-2" : "gap-3 px-4")}>
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-sidebar shadow-sm">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-page-alt text-sidebar shadow-sm">
           <span className="text-sm font-bold">S+</span>
         </div>
         {!isTablet && (

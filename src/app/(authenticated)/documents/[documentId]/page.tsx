@@ -15,7 +15,7 @@ export default function DocumentEditorPage() {
 
   return (
     <div data-testid="document-editor-page" className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-white">
+      <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-page-alt">
         <button
           onClick={() => router.push("/documents")}
           className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"

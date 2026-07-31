@@ -104,7 +104,7 @@ export function CommentInput({
       <div className="relative flex-1">
         {mentionQuery !== null && mentionOptions.length > 0 && (
           <div
-            className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-white p-1 shadow-lg"
+            className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-page-alt p-1 shadow-lg"
             role="listbox"
             aria-label="Mention a teammate"
           >

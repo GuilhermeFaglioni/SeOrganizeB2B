@@ -86,7 +86,7 @@ export function KanbanColumn({
             {menuOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                <div className="absolute right-0 top-full mt-1 z-20 w-36 bg-white border border-border rounded-lg shadow-lg py-1">
+                <div className="absolute right-0 top-full mt-1 z-20 w-36 bg-page-alt border border-border rounded-lg shadow-lg py-1">
                   <button
                     onClick={() => {
                       setMenuOpen(false);

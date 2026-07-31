@@ -59,7 +59,7 @@ export function DocumentEditor({
 
   return (
     <div className="flex h-full min-h-0 flex-col" data-testid="document-editor">
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-white px-4 py-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-page-alt px-4 py-2">
         <input
           type="text"
           value={title}
@@ -71,7 +71,7 @@ export function DocumentEditor({
           <select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            className="min-w-0 flex-1 rounded-md border border-input bg-white px-2 py-1 text-sm sm:flex-none"
+            className="min-w-0 flex-1 rounded-md border border-input bg-page-alt px-2 py-1 text-sm sm:flex-none"
           >
             <option value="">No project</option>
             {projects?.map((p: { id: string; name: string }) => (
@@ -124,7 +124,7 @@ export function DocumentEditor({
               <textarea
                 value={content}
                 onChange={(e) => handleContentChange(e.target.value)}
-                className="h-full min-h-0 w-full resize-none border-none bg-white p-4 font-mono text-sm outline-none"
+                className="h-full min-h-0 w-full resize-none border-none bg-page-alt p-4 font-mono text-sm outline-none"
                 placeholder="Start writing markdown..."
               />
             </div>

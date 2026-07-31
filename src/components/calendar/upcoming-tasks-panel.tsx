@@ -39,7 +39,7 @@ export function UpcomingTasksPanel({
           {[0, 1, 2].map((item) => (
             <div
               key={item}
-              className="h-20 animate-pulse rounded-xl border border-border bg-white"
+              className="h-20 animate-pulse rounded-xl border border-border bg-page-alt"
             />
           ))}
         </div>
@@ -68,7 +68,7 @@ export function UpcomingTasksPanel({
             <div
               key={task.id}
               className={cn(
-                "flex items-start gap-3 bg-white rounded-lg p-3 border-l-[3px]",
+                "flex items-start gap-3 bg-page-alt rounded-lg p-3 border-l-[3px]",
                 "group border border-border/70 shadow-card"
               )}
               style={{ borderLeftColor: borderColor }}

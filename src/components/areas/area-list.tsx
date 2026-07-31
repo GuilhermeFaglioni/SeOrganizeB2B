@@ -66,7 +66,7 @@ export function AreaList({ onEdit, onDelete }: AreaListProps) {
   }
 
   return (
-    <div data-testid="area-list" className="border border-border rounded-lg bg-white">
+    <div data-testid="area-list" className="border border-border rounded-lg bg-page-alt">
       {areas.map((area) => (
         <AreaRow key={area.id} area={area} onEdit={onEdit} onDelete={onDelete} />
       ))}
