@@ -27,18 +27,18 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   }, [pathname]);
 
   const pageMeta = pathname === "/"
-    ? { title: "Hoje", action: "Capturar" }
+    ? { title: "Today", action: "Capture" }
     : pathname.startsWith("/documents")
-    ? { title: "Documentos", action: "Novo documento" }
+    ? { title: "Documents", action: "New document" }
     : pathname.startsWith("/calendar")
-      ? { title: "Calendário", action: "Novo evento" }
+      ? { title: "Calendar", action: "New event" }
       : pathname.startsWith("/projects")
-        ? { title: "Projetos", action: "Novo projeto" }
+        ? { title: "Projects", action: "New project" }
         : pathname.startsWith("/settings")
-          ? { title: "Configurações", action: null }
+          ? { title: "Settings", action: null }
           : pathname.startsWith("/all")
-            ? { title: "Todas as tarefas", action: "Nova tarefa" }
-            : { title: "Board", action: "Nova tarefa" };
+            ? { title: "All tasks", action: "New task" }
+            : { title: "Board", action: "New task" };
 
   const handleNewClick = async () => {
     if (pathname === "/" || pathname.startsWith("/board")) {
