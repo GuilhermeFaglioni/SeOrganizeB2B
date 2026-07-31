@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     default: "SeOrganize+",
     template: "%s | SeOrganize+",
   },
-  description: "Organização colaborativa para equipes que executam.",
+  description: "Collaborative organization for teams that execute.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

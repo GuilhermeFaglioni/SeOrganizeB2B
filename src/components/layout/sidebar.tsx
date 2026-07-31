@@ -22,7 +22,7 @@ import { motion } from "motion/react";
 const navItems = [
   { href: "/", label: "Hoje", icon: SunMedium, testId: "nav-today" },
   { href: "/board", label: "Board", icon: LayoutDashboard, testId: "nav-board" },
-  { href: "/projects", label: "Projetos", icon: FolderKanban, testId: "nav-projects" },
+  { href: "/projects", label: "Projects", icon: FolderKanban, testId: "nav-projects" },
   { href: "/calendar", label: "Calendar", icon: Calendar, testId: "nav-calendar" },
   { href: "/documents", label: "Documents", icon: FileText, testId: "nav-documents" },
   { href: "/settings", label: "Settings", icon: Settings, testId: "nav-settings" },
