@@ -5,7 +5,7 @@ import { resolve } from "path";
 const read = (file: string) =>
   readFileSync(resolve(__dirname, "../..", file), "utf8");
 
-describe("Hoje cockpit", () => {
+describe("Today cockpit", () => {
   it("loads assigned due work excluding complete columns", () => {
     const route = read("src/app/api/today/tasks/route.ts");
     expect(route).toContain("profileId: user.id");
@@ -21,9 +21,9 @@ describe("Hoje cockpit", () => {
     expect(page).toContain("unreadCount");
   });
 
-  it("mounts Hoje first in sidebar", () => {
+  it("mounts Today first in sidebar", () => {
     expect(read("src/components/layout/sidebar.tsx")).toContain(
-      '{ href: "/", label: "Hoje"'
+      '{ href: "/", label: "Today"'
     );
   });
 });
