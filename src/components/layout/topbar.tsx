@@ -1,41 +1,61 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Menu, Plus } from "lucide-react";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 
 interface TopbarProps {
   title?: string;
   onNewClick?: () => void;
   actionLabel?: string;
+  onMenuClick?: () => void;
 }
 
 export function Topbar({
   title = "Dashboard",
   onNewClick,
   actionLabel = "Novo",
+  onMenuClick,
 }: TopbarProps) {
   return (
     <header
       data-testid="topbar"
-      className="h-14 shrink-0 border-b border-border bg-white/95 px-5 backdrop-blur"
+      className="h-14 shrink-0 border-b border-border bg-white/95 px-3 backdrop-blur sm:px-5"
     >
-      <div className="flex h-full items-center justify-between">
-        <div>
+      <div className="flex h-full min-w-0 items-center gap-2">
+        {onMenuClick && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onMenuClick}
+            className="shrink-0 bg-sidebar text-white hover:bg-sidebar-hover hover:text-white sm:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          </Button>
+        )}
+
+        <div className="min-w-0 flex-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">
             SeOrganize+
           </p>
-          <h1 className="text-heading-1 text-text-primary">{title}</h1>
+          <h1 className="truncate text-heading-1 text-text-primary">{title}</h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <NotificationCenter />
-        {onNewClick && (
-          <Button size="sm" onClick={onNewClick}>
-            <Plus className="w-4 h-4" aria-hidden="true" />
-            {actionLabel}
-          </Button>
-        )}
+          {onNewClick && (
+            <Button
+              size="sm"
+              onClick={onNewClick}
+              className="shrink-0"
+              aria-label={actionLabel}
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{actionLabel}</span>
+            </Button>
+          )}
         </div>
       </div>
     </header>

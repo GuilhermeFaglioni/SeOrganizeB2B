@@ -30,10 +30,12 @@ describe("2.3.4 Responsive sidebar", () => {
 
   it("sidebar has responsive collapse logic", () => {
     const src = read("src/components/layout/sidebar.tsx");
+    const topbar = read("src/components/layout/topbar.tsx");
     expect(src).toContain("isTablet");
     expect(src).toContain("isMobile");
-    expect(src).toContain("Menu");
     expect(src).toContain("aria-label");
+    expect(topbar).toContain("Menu");
+    expect(topbar).toContain('aria-label="Open menu"');
   });
 });
 
