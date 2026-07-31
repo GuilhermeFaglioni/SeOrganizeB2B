@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, Plus } from "lucide-react";
 import { NotificationCenter } from "@/components/notifications/notification-center";
+import { PushNotificationToggle } from "@/components/notifications/push-notification-toggle";
 
 interface TopbarProps {
   title?: string;
@@ -44,6 +45,7 @@ export function Topbar({
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <PushNotificationToggle />
           <NotificationCenter />
           {onNewClick && (
             <Button

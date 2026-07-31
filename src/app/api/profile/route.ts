@@ -11,11 +11,11 @@ export async function GET() {
 
   const profile = await prisma.profile.upsert({
     where: { id: user.id },
-    update: { email: user.email! },
+    update: { email: user.email || "Sistema" },
     create: {
       id: user.id,
-      email: user.email!,
-      name: user.user_metadata?.full_name ?? user.email,
+      email: user.email || "Sistema",
+      name: user.user_metadata?.full_name || user.email || "Sistema",
     },
   });
 

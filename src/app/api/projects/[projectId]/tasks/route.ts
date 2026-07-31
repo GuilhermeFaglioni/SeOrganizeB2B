@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { recordActivity } from "@/lib/activity/record";
+import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 
 export async function GET(request: NextRequest, { params }: { params: { projectId: string } }) {
   const user = await getUser();
@@ -167,17 +168,31 @@ export async function POST(request: NextRequest, { params }: { params: { project
         _count: { select: { comments: true } },
       },
     });
-    await recordActivity(tx, {
+    const activity = await recordActivity(tx, {
       actorId: user.id,
       taskId: created.id,
       type: "task.created",
       entityType: "task",
       entityId: created.id,
-      summary: `Criou a tarefa “${created.title}”`,
+      summary: `Criou a tarefa "${created.title}"`,
       notifyProfileIds: assigneeIds,
     });
-    return created;
+    return { created, activity };
   });
 
-  return NextResponse.json({ data: task, error: null }, { status: 201 });
+  // Send push notifications after transaction commits
+  if (task.activity.notifiedProfileIds.length > 0) {
+    const pushPayload = buildPushPayload({
+      activityType: "task.created",
+      summary: `Criou a tarefa "${task.created.title}"`,
+      actorName: user.email || "Sistema",
+      entityType: "task",
+      entityId: task.created.id,
+    });
+    if (pushPayload) {
+      await sendPushToUsers(task.activity.notifiedProfileIds, pushPayload);
+    }
+  }
+
+  return NextResponse.json({ data: task.created, error: null }, { status: 201 });
 }

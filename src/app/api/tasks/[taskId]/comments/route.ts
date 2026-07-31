@@ -3,6 +3,7 @@ import { prisma } from "../../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { extractMentionProfileIds } from "@/lib/mentions";
 import { recordActivity } from "@/lib/activity/record";
+import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 
 export async function GET(request: NextRequest, { params }: { params: { taskId: string } }) {
   const user = await getUser();
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest, { params }: { params: { taskId:
         },
       },
     });
-    await recordActivity(tx, {
+    const activity = await recordActivity(tx, {
       actorId: user.id,
       taskId: params.taskId,
       type: mentionProfileIds.length ? "comment.mentioned" : "comment.created",
@@ -91,8 +92,22 @@ export async function POST(request: NextRequest, { params }: { params: { taskId:
         : "Adicionou comentário na tarefa",
       notifyProfileIds: mentionProfileIds,
     });
-    return created;
+    return { created, activity };
   });
 
-  return NextResponse.json({ data: comment, error: null }, { status: 201 });
+  // Send push notifications for mentions after transaction commits
+  if (comment.activity.notifiedProfileIds.length > 0) {
+    const pushPayload = buildPushPayload({
+      activityType: "comment.mentioned",
+      summary: "Comentou e mencionou pessoas na tarefa",
+      actorName: user.email || "Sistema",
+      entityType: "comment",
+      entityId: comment.created.id,
+    });
+    if (pushPayload) {
+      await sendPushToUsers(comment.activity.notifiedProfileIds, pushPayload);
+    }
+  }
+
+  return NextResponse.json({ data: comment.created, error: null }, { status: 201 });
 }

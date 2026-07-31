@@ -31,6 +31,7 @@ model Profile {
   notifications          Notification[]
   commentMentions        CommentMention[]
   savedViews             SavedView[]
+  pushSubscriptions      PushSubscription[]
 
   @@map("profiles")
 }
@@ -215,6 +216,21 @@ model CommentMention {
   @@id([commentId, profileId])
   @@index([profileId])
   @@map("comment_mentions")
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  profileId String   @map("profile_id")
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([endpoint])
+  @@index([profileId])
+  @@map("push_subscriptions")
 }
 
 model SavedView {

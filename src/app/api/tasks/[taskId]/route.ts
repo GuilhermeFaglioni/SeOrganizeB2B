@@ -3,6 +3,7 @@ import { prisma } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { recordActivity } from "@/lib/activity/record";
 import { completeRecurringTask } from "@/lib/tasks/complete-recurring-task";
+import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 
 export async function GET(request: NextRequest, { params }: { params: { taskId: string } }) {
   const user = await getUser();
@@ -167,7 +168,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
       );
     }
 
-    const updated = await prisma.$transaction(async (tx) => {
+    let activityResult: { activityId: string; notifiedProfileIds: string[] } | null = null;
+    let activityType = "";
+    const transactionResult = await prisma.$transaction(async (tx) => {
       const result = await tx.task.update({
         where: { id: params.taskId },
         data,
@@ -190,14 +193,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
         .map(({ profileId }) => profileId)
         .filter((profileId) => !previousAssignees.has(profileId));
       const moved = Boolean(columnId && columnId !== task.columnId);
-      const activityType = moved
+      activityType = moved
         ? "task.moved"
         : archived === true
           ? "task.archived"
           : rawAssigneeIds !== undefined
             ? "task.assigned"
             : "task.updated";
-      await recordActivity(tx, {
+      activityResult = await recordActivity(tx, {
         actorId: user.id,
         taskId: result.id,
         type: activityType,
@@ -205,12 +208,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
         entityId: result.id,
         summary:
           activityType === "task.moved"
-            ? `Moveu a tarefa “${result.title}”`
+            ? `Moveu a tarefa "${result.title}"`
             : activityType === "task.archived"
-              ? `Arquivou a tarefa “${result.title}”`
+              ? `Arquivou a tarefa "${result.title}"`
               : activityType === "task.assigned"
-                ? `Atualizou responsáveis de “${result.title}”`
-                : `Atualizou a tarefa “${result.title}”`,
+                ? `Atualizou responsáveis de "${result.title}"`
+                : `Atualizou a tarefa "${result.title}"`,
         metadata: moved
           ? { fromColumnId: task.columnId, toColumnId: result.columnId }
           : { fields: Object.keys(data) },
@@ -223,8 +226,24 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
       ) {
         await completeRecurringTask(tx, result, user.id);
       }
-      return result;
+      return { result, activityResult, activityType };
     });
+
+    const { result: updated, activityResult: transactionActivityResult, activityType: finalActivityType } = transactionResult;
+
+    // Send push notifications after transaction commits
+    if (transactionActivityResult && transactionActivityResult.notifiedProfileIds.length > 0) {
+      const pushPayload = buildPushPayload({
+        activityType: finalActivityType,
+        summary: transactionActivityResult.notifiedProfileIds.length > 0 ? `Atualizou responsáveis de "${updated.title}"` : `Atualizou a tarefa "${updated.title}"`,
+        actorName: user.email || "Sistema",
+        entityType: "task",
+        entityId: updated.id,
+      });
+      if (pushPayload) {
+        await sendPushToUsers(transactionActivityResult.notifiedProfileIds, pushPayload);
+      }
+    }
 
     return NextResponse.json({ data: updated, error: null });
   } catch (error) {

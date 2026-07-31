@@ -11,6 +11,7 @@ import {
 } from "@/lib/google/calendar";
 import { normalizeAttendeeEmails } from "@/lib/calendar/validation";
 import { recordActivity } from "@/lib/activity/record";
+import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 
 interface ScheduleEventBody {
   title?: string;
@@ -192,7 +193,7 @@ export async function POST(request: NextRequest) {
   const profileByEmail = new Map(
     profiles.map((profile) => [profile.email.toLowerCase(), profile]),
   );
-  const event = await prisma.$transaction(async (tx) => {
+  const transactionResult = await prisma.$transaction(async (tx) => {
     const created = await tx.calendarEvent.create({
       data: {
       userId: user.id,
@@ -232,17 +233,33 @@ export async function POST(request: NextRequest) {
         attendees: true,
       },
     });
-    await recordActivity(tx, {
+    const activityResult = await recordActivity(tx, {
       actorId: user.id,
       taskId: body.taskId || null,
       type: "calendar.scheduled",
       entityType: "calendar_event",
       entityId: created.id,
-      summary: `Agendou “${created.title}”`,
+      summary: `Agendou "${created.title}"`,
       notifyProfileIds: profileIds,
     });
-    return created;
+    return { created, activityResult };
   });
+
+  const { created: event, activityResult } = transactionResult;
+
+  // Send push notifications after transaction commits
+  if (activityResult && activityResult.notifiedProfileIds.length > 0) {
+    const pushPayload = buildPushPayload({
+      activityType: "calendar.scheduled",
+      summary: `Agendou "${event.title}"`,
+      actorName: user.email || "Sistema",
+      entityType: "calendar_event",
+      entityId: event.id,
+    });
+    if (pushPayload) {
+      await sendPushToUsers(activityResult.notifiedProfileIds, pushPayload);
+    }
+  }
 
   return NextResponse.json({ data: event, error: null }, { status: 201 });
 }
