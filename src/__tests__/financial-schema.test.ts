@@ -131,4 +131,15 @@ describe("financial module schema", () => {
       expect(tableBody(table)).toBeTruthy();
     }
   });
+
+  it("retains the client via onDelete Restrict on the contract relation", () => {
+    const contract = modelBody("Contract");
+    expect(fieldOf(contract, "client")).toContain("onDelete: Restrict");
+
+    const fkeyBlock = migration.match(
+      /contracts_client_id_fkey[\s\S]*?ON DELETE (\w+)/
+    );
+    expect(fkeyBlock).toBeTruthy();
+    expect(fkeyBlock![1]).toBe("RESTRICT");
+  });
 });
