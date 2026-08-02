@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, Search } from "lucide-react";
 import { useClients } from "@/hooks/use-clients";
 import { FinancialEmptyState } from "@/components/financial/shared/empty-state";
@@ -12,13 +13,10 @@ import { cn } from "@/lib/utils";
 
 type StatusFilter = "all" | "active" | "inactive";
 
-const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-];
+const STATUS_FILTERS: StatusFilter[] = ["all", "active", "inactive"];
 
 export function ClientList() {
+  const t = useTranslations("financial.clients.list");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
@@ -34,11 +32,17 @@ export function ClientList() {
     active: apiActive,
   });
 
+  const statusLabels: Record<StatusFilter, string> = {
+    all: t("filterAll"),
+    active: t("filterActive"),
+    inactive: t("filterInactive"),
+  };
+
   if (isLoading) return <LoadingState />;
   if (isError || !data) {
     return (
       <FinancialErrorState
-        message="Failed to load clients"
+        message={t("loadFailed")}
         onRetry={() => refetch()}
       />
     );
@@ -47,9 +51,9 @@ export function ClientList() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2" role="search" aria-label="Client search and filters">
+        <div className="flex flex-wrap items-center gap-2" role="search" aria-label={t("searchFiltersLabel")}>
           <label htmlFor="client-search" className="sr-only">
-            Search clients
+            {t("searchLabel")}
           </label>
           <input
             id="client-search"
@@ -62,7 +66,7 @@ export function ClientList() {
                 setPage(1);
               }
             }}
-            placeholder="Search by name, email or CPF/CNPJ"
+            placeholder={t("searchPlaceholder")}
             className="w-64 rounded-md border border-border bg-page-alt px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           />
           <button
@@ -72,29 +76,29 @@ export function ClientList() {
               setPage(1);
             }}
             className="flex min-h-[44px] items-center gap-1 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-            aria-label="Search clients"
+            aria-label={t("searchLabel")}
           >
             <Search size={16} aria-hidden="true" />
           </button>
-          <div role="radiogroup" aria-label="Filter by status" className="flex items-center gap-1">
-            {STATUS_OPTIONS.map((option) => (
+          <div role="radiogroup" aria-label={t("filterStatusLabel")} className="flex items-center gap-1">
+            {STATUS_FILTERS.map((value) => (
               <button
-                key={option.value}
+                key={value}
                 type="button"
                 role="radio"
-                aria-checked={statusFilter === option.value}
+                aria-checked={statusFilter === value}
                 onClick={() => {
-                  setStatusFilter(option.value);
+                  setStatusFilter(value);
                   setPage(1);
                 }}
                 className={cn(
                   "flex min-h-[44px] items-center rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
-                  statusFilter === option.value
+                  statusFilter === value
                     ? "bg-accent text-white"
                     : "text-text-secondary hover:bg-bg-secondary"
                 )}
               >
-                {option.label}
+                {statusLabels[value]}
               </button>
             ))}
           </div>
@@ -103,7 +107,7 @@ export function ClientList() {
           href="/financial/clients/new"
           className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
-          <Plus size={16} aria-hidden="true" /> New client
+          <Plus size={16} aria-hidden="true" /> {t("newClient")}
         </Link>
       </div>
 
@@ -111,34 +115,34 @@ export function ClientList() {
         <FinancialEmptyState
           title={
             statusFilter === "inactive"
-              ? "No inactive clients"
-              : "No clients match your search"
+              ? t("noInactiveClients")
+              : t("noSearchMatches")
           }
         />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border bg-page-alt" aria-live="polite">
-          <table className="w-full min-w-[640px] text-left text-sm" aria-label="Clients">
-            <caption className="sr-only">Clients</caption>
+          <table className="w-full min-w-[640px] text-left text-sm" aria-label={t("tableLabel")}>
+            <caption className="sr-only">{t("tableLabel")}</caption>
             <thead className="border-b border-border text-xs uppercase text-text-muted">
               <tr>
                 <th scope="col" className="px-3 py-2 font-medium">
-                  Name
+                  {t("name")}
                 </th>
                 <th scope="col" className="px-3 py-2 font-medium">
-                  CPF/CNPJ
+                  {t("cpfCnpj")}
                 </th>
                 <th scope="col" className="px-3 py-2 font-medium">
-                  Email
+                  {t("email")}
                 </th>
                 <th scope="col" className="px-3 py-2 font-medium">
-                  Phone
+                  {t("phone")}
                 </th>
                 <th scope="col" className="px-3 py-2 font-medium">
-                  Contracts
+                  {t("contracts")}
                 </th>
                 {statusFilter === "all" && (
                   <th scope="col" className="px-3 py-2 font-medium">
-                    Status
+                    {t("status")}
                   </th>
                 )}
               </tr>
@@ -151,7 +155,7 @@ export function ClientList() {
                     "hover:bg-bg-secondary",
                     !client.active && "opacity-60"
                   )}
-                  aria-label={!client.active ? `${client.name} (inactive)` : undefined}
+                  aria-label={!client.active ? t("inactiveRow", { name: client.name }) : undefined}
                 >
                   <td className="px-3 py-2">
                     <Link
@@ -162,7 +166,7 @@ export function ClientList() {
                     </Link>
                     {!client.active && (
                       <span className="ml-2 inline-flex items-center rounded-full bg-bg-secondary px-2 py-0.5 text-xs font-medium text-text-muted">
-                        Inactive
+                        {t("inactive")}
                       </span>
                     )}
                   </td>
@@ -188,7 +192,7 @@ export function ClientList() {
                             : "bg-bg-secondary text-text-muted"
                         )}
                       >
-                        {client.active ? "Active" : "Inactive"}
+                        {client.active ? t("active") : t("inactive")}
                       </span>
                     </td>
                   )}

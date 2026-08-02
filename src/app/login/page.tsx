@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
@@ -11,6 +12,7 @@ import { APP_NAME } from "@/lib/constants";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("auth.login");
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,9 +29,9 @@ export default function LoginPage() {
     setSuccess("");
     try {
       await signInWithMagicLink(email);
-      setSuccess("Check your email for the magic link!");
+      setSuccess(t("magicLinkSent"));
     } catch {
-      setError("Failed to send magic link");
+      setError(t("magicLinkFailed"));
     } finally {
       setLoading(false);
     }
@@ -44,7 +46,7 @@ export default function LoginPage() {
       await fetch("/api/profile");
       router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid email or password");
+      setError(err instanceof Error ? err.message : t("invalidCredentials"));
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,7 @@ export default function LoginPage() {
 
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("passwordsDontMatch"));
       return;
     }
     setLoading(true);
@@ -61,15 +63,15 @@ export default function LoginPage() {
     try {
       const data = await signUp(email, password);
       if (data.user?.identities?.length === 0) {
-        setError("An account with this email already exists.");
+        setError(t("accountExists"));
       } else if (!data.session) {
-        setSuccess("Account created! Check your email to confirm your account.");
+        setSuccess(t("accountCreated"));
       } else {
         await fetch("/api/profile");
         router.push("/");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create account");
+      setError(err instanceof Error ? err.message : t("createAccountFailed"));
     } finally {
       setLoading(false);
     }
@@ -101,17 +103,17 @@ export default function LoginPage() {
           </div>
           <h1 className="text-display text-text-primary">{APP_NAME}</h1>
           <p className="text-body-small text-text-secondary">
-            Internal Company Organizer
+            {t("subtitle")}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-label text-text-secondary">Email</label>
+            <label className="text-label text-text-secondary">{t("email")}</label>
             <Input
               data-testid="email-input"
               type="email"
-              placeholder="you@company.com"
+              placeholder={t("emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -119,11 +121,11 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-label text-text-secondary">Password</label>
+            <label className="text-label text-text-secondary">{t("password")}</label>
             <Input
               data-testid="password-input"
               type="password"
-              placeholder="Enter your password"
+              placeholder={t("passwordPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -133,11 +135,11 @@ export default function LoginPage() {
 
           {mode === "register" && (
             <div className="space-y-2">
-              <label className="text-label text-text-secondary">Confirm Password</label>
+              <label className="text-label text-text-secondary">{t("confirmPassword")}</label>
               <Input
                 data-testid="confirm-password-input"
                 type="password"
-                placeholder="Confirm your password"
+                placeholder={t("confirmPasswordPlaceholder")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -163,7 +165,13 @@ export default function LoginPage() {
             type="submit"
             disabled={loading || !email || !password || (mode === "register" && password !== confirmPassword)}
           >
-            {loading ? (mode === "login" ? "Signing in..." : "Creating account...") : mode === "login" ? "Sign In" : "Create Account"}
+            {loading
+              ? mode === "login"
+                ? t("signingIn")
+                : t("creatingAccount")
+              : mode === "login"
+                ? t("signIn")
+                : t("createAccount")}
           </Button>
 
           {mode === "login" && (
@@ -174,7 +182,7 @@ export default function LoginPage() {
               onClick={handleMagicLink}
               disabled={loading || !email}
             >
-              Send magic link instead
+              {t("sendMagicLink")}
             </Button>
           )}
 
@@ -183,7 +191,7 @@ export default function LoginPage() {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-page-alt px-2 text-text-muted">or</span>
+              <span className="bg-page-alt px-2 text-text-muted">{t("or")}</span>
             </div>
           </div>
 
@@ -194,31 +202,31 @@ export default function LoginPage() {
             onClick={signInWithGoogle}
             disabled={loading}
           >
-            Sign in with Google
+            {t("signInWithGoogle")}
           </Button>
         </form>
 
         <p className="text-center text-body-small text-text-muted">
           {mode === "login" ? (
             <>
-              No account?{" "}
+              {t("noAccount")}{" "}
               <button
                 type="button"
                 className="text-accent hover:underline"
                 onClick={toggleMode}
               >
-                Create one
+                {t("createOne")}
               </button>
             </>
           ) : (
             <>
-              Already have an account?{" "}
+              {t("hasAccount")}{" "}
               <button
                 type="button"
                 className="text-accent hover:underline"
                 onClick={toggleMode}
               >
-                Sign in
+                {t("signInLink")}
               </button>
             </>
           )}

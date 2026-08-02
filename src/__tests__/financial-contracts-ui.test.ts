@@ -20,17 +20,16 @@ describe("contracts UI", () => {
 
   it("renders one scrollable form with collapsible sections", () => {
     const form = read("src/components/financial/contracts/contract-form.tsx");
-    expect(form).toContain("Contract data");
-    expect(form).toContain("Scope and items");
-    expect(form).toContain("Linked projects");
-    expect(form).toContain("Billing and installments");
+    expect(form).toContain('t("contractData")');
+    expect(form).toContain('t("scopeAndItems")');
+    expect(form).toContain('t("linkedProjectsSection")');
+    expect(form).toContain('t("billingAndInstallments")');
     expect(form).toContain("toggleSection");
   });
 
   it("shows a financial consistency summary before activation", () => {
     const form = read("src/components/financial/contracts/contract-form.tsx");
-    expect(form).toContain("Installment total");
-    expect(form).toContain("Official value");
+    expect(form).toContain('t("scheduleTotal"');
     expect(form).toContain("useContractLifecycle");
     expect(form).toContain('action: "activate"');
   });
@@ -97,14 +96,14 @@ describe("contracts UI", () => {
 
   it("form shows required-value error when officialValue is empty", () => {
     const form = read("src/components/financial/contracts/contract-form.tsx");
-    expect(form).toContain("Official contract value is required");
+    expect(form).toContain('t("errorOfficialValueRequired")');
     expect(form).toContain("parsedOfficialValue");
   });
 
   it("form validates open-ended contracts without exact-sum requirement", () => {
     const form = read("src/components/financial/contracts/contract-form.tsx");
-    expect(form).toContain("A billing frequency is required for open-ended contracts");
-    expect(form).toContain("positive amount");
+    expect(form).toContain('t("errorFrequencyRequired")');
+    expect(form).toContain('t("errorPositiveAmount")');
     expect(form).toContain("validateFinitePlan");
   });
 

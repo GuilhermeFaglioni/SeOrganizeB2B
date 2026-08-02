@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/stores/auth-context";
 import { useBoard, type BoardTask } from "@/hooks/use-kanban";
 import { useProjects } from "@/hooks/use-projects";
@@ -49,6 +50,7 @@ interface SelectedTaskInfo {
 }
 
 export default function BoardPage() {
+  const t = useTranslations("board.pages.list");
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -228,10 +230,10 @@ export default function BoardPage() {
   }));
 
   const filterButtons = [
-    { key: null, label: "All" },
-    { key: "overdue", label: "Overdue" },
-    { key: "this-week", label: "This Week" },
-    { key: "my-tasks", label: "My Tasks" },
+    { key: null, label: t("filterAll") },
+    { key: "overdue", label: t("filterOverdue") },
+    { key: "this-week", label: t("filterThisWeek") },
+    { key: "my-tasks", label: t("filterMyTasks") },
   ];
 
   return (
@@ -245,10 +247,10 @@ export default function BoardPage() {
               onValueChange={handleProjectChange}
             >
               <SelectTrigger className="bg-page-alt">
-                <SelectValue placeholder="Select project" />
+                <SelectValue placeholder={t("selectProject")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_VALUE}>All Projects</SelectItem>
+                <SelectItem value={ALL_VALUE}>{t("allProjects")}</SelectItem>
                 {projects?.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.name}
@@ -322,7 +324,7 @@ export default function BoardPage() {
             />
           ) : (
             <div className="flex items-center justify-center h-full text-text-secondary">
-              Select a project to view its board
+              {t("noProjectSelected")}
             </div>
           )}
         </div>
@@ -343,14 +345,14 @@ export default function BoardPage() {
         <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Delete Task</DialogTitle>
+              <DialogTitle>{t("deleteTitle")}</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete &ldquo;{selectedTaskInfo.task.title}&rdquo;? This action cannot be undone.
+                {t("deleteConfirm", { title: selectedTaskInfo.task.title })}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-              <Button variant="destructive" onClick={handleDeleteTask}>Delete</Button>
+              <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>{t("cancel")}</Button>
+              <Button variant="destructive" onClick={handleDeleteTask}>{t("delete")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -417,6 +419,7 @@ function ProjectBoardSection({
   groupBy: BoardGroupBy;
   onTaskClick: (task: BoardTask, projectName?: string) => void;
 }) {
+  const t = useTranslations("board.pages.list");
   const { data: columns } = useBoard(projectId);
   const router = useRouter();
 
@@ -438,7 +441,7 @@ function ProjectBoardSection({
       >
         <LayoutDashboard size={18} />
         {projectName}
-        <span className="text-sm font-normal text-text-secondary">({taskCount} tasks)</span>
+        <span className="text-sm font-normal text-text-secondary">{t("taskCount", { count: taskCount })}</span>
       </button>
        <div className="h-[250px] min-h-0">
          <KanbanBoard

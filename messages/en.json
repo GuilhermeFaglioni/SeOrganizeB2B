@@ -1,0 +1,1026 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "save": "Save",
+    "savingDraft": "Saving draft...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "confirm": "Confirm",
+    "none": "—",
+    "all": "All",
+    "optional": "optional",
+    "required": "required",
+    "notFound": "Not found",
+    "retry": "Retry",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "errors": {
+    "generic": "An unexpected error occurred",
+    "loadFailed": "Failed to load",
+    "unauthorized": "Unauthorized",
+    "retry": "Retry"
+  },
+  "layout": {
+    "topbar": {
+      "openMenu": "Open menu",
+      "dashboard": "Dashboard"
+    },
+    "sidebar": {
+      "closeMenu": "Close menu",
+      "mainNavigation": "Main navigation",
+      "today": "Today",
+      "board": "Board",
+      "projects": "Projects",
+      "calendar": "Calendar",
+      "documents": "Documents",
+      "financial": "Financial",
+      "settings": "Settings",
+      "signOut": "Sign out",
+      "user": "User"
+    },
+    "pageTitles": {
+      "today": "Today",
+      "documents": "Documents",
+      "calendar": "Calendar",
+      "projects": "Projects",
+      "settings": "Settings",
+      "all": "All tasks",
+      "board": "Board",
+      "actions": {
+        "today": "Capture",
+        "documents": "New document",
+        "calendar": "New event",
+        "projects": "New project",
+        "all": "New task",
+        "board": "New task"
+      }
+    },
+    "localeSwitcher": {
+      "label": "Language",
+      "title": "Change language"
+    }
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Internal Company Organizer",
+      "email": "Email",
+      "emailPlaceholder": "you@company.com",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "signIn": "Sign In",
+      "createAccount": "Create Account",
+      "signingIn": "Signing in...",
+      "creatingAccount": "Creating account...",
+      "sendMagicLink": "Send magic link instead",
+      "or": "or",
+      "signInWithGoogle": "Sign in with Google",
+      "noAccount": "No account?",
+      "createOne": "Create one",
+      "hasAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "magicLinkSent": "Check your email for the magic link!",
+      "magicLinkFailed": "Failed to send magic link",
+      "invalidCredentials": "Invalid email or password",
+      "passwordsDontMatch": "Passwords do not match",
+      "accountExists": "An account with this email already exists.",
+      "accountCreated": "Account created! Check your email to confirm your account.",
+      "createAccountFailed": "Failed to create account",
+      "checkingAuth": "Checking authentication..."
+    }
+  },
+  "notifications": {
+    "center": {
+      "title": "Notifications",
+      "empty": "No notifications.",
+      "markAllRead": "Mark all as read",
+      "unreadAria": "{count} unread notifications",
+      "markAll": "Mark all",
+      "loading": "Loading…",
+      "system": "System"
+    },
+    "push": {
+      "enable": "Enable notifications",
+      "disable": "Disable notifications",
+      "blocked": "Notifications blocked"
+    }
+  },
+  "financial": {
+    "overview": {
+      "page": {
+        "errorMessage": "Failed to load the financial overview",
+        "globalFilters": "Global filters",
+        "client": "Client",
+        "allClients": "All clients",
+        "project": "Project",
+        "allProjects": "All projects",
+        "contractStatus": "Contract status",
+        "allStatuses": "All statuses",
+        "installmentStatus": "Installment status",
+        "allInstallments": "All installments",
+        "kpisAriaLabel": "Financial key performance indicators",
+        "activeContractedValue": "Active contracted value",
+        "mrr": "MRR",
+        "arr": "ARR",
+        "cashForecast": "Cash forecast",
+        "received": "Received",
+        "overdue": "Overdue",
+        "upsell": "Upsell",
+        "downsell": "Downsell",
+        "activeContracts": "Active contracts",
+        "expiringSoon": "Expiring soon",
+        "forecastVsReceived": "Forecast vs. Received",
+        "overdueInstallments": "Overdue installments",
+        "nothingOverdue": "Nothing overdue",
+        "overdueListAria": "Overdue installments",
+        "expiringContracts": "Expiring contracts",
+        "nothingExpiring": "Nothing expiring in the next 30 days",
+        "expiringListAria": "Expiring contracts"
+      },
+      "filters": {
+        "currentMonth": "Current month",
+        "next90": "Next 90 days",
+        "custom": "Custom",
+        "from": "From",
+        "to": "To"
+      },
+      "chart": {
+        "ariaLabel": "Forecast versus received, months {firstMonth} through {lastMonth}",
+        "forecastTitle": "{month} forecast: R$ {value}",
+        "receivedTitle": "{month} received: R$ {value}",
+        "forecast": "Forecast",
+        "received": "Received"
+      }
+    },
+    "shared": {
+      "kpi": {
+        "labelValue": "{label}: {value}"
+      },
+      "errorState": {
+        "retry": "Retry"
+      }
+    },
+    "tabs": {
+      "sections": "Financial sections",
+      "overview": "Overview",
+      "contracts": "Contracts",
+      "receivables": "Receivables",
+      "clients": "Clients"
+    },
+    "contracts": {
+      "list": {
+        "confirmDelete": "Delete \"{title}\"? This permanently removes the contract and all related data.",
+        "contractDeleted": "Contract deleted",
+        "loadFailed": "Failed to load contracts",
+        "newContract": "New contract",
+        "emptyTitle": "No contracts match your filters",
+        "emptyHint": "No results for \"{search}\"",
+        "tableLabel": "Contracts",
+        "colCode": "Code",
+        "colTitle": "Title",
+        "colClient": "Client",
+        "colStatus": "Status",
+        "colOfficialValue": "Official value",
+        "colStart": "Start",
+        "colEnd": "End",
+        "colActions": "Actions",
+        "deleteAria": "Delete contract {code}"
+      },
+      "detail": {
+        "confirmDeleteDetail": "Delete this contract? This permanently removes it and all related installments, items, changes and audits.",
+        "contractDeletedDetail": "Contract deleted",
+        "loadFailedDetail": "Failed to load the contract",
+        "edit": "Edit",
+        "adjustValue": "Adjust value",
+        "delete": "Delete",
+        "commercialSummary": "Commercial summary",
+        "commercialSummaryAria": "Commercial summary details",
+        "officialValue": "Official value",
+        "duration": "Duration",
+        "startDate": "Start",
+        "endDate": "End",
+        "billingFrequency": "Billing frequency",
+        "paymentMethod": "Payment method",
+        "itemsTitle": "Items",
+        "noItems": "No items recorded.",
+        "itemsAria": "Contract items",
+        "itemName": "Name",
+        "itemQuantity": "Quantity",
+        "itemUnit": "Unit",
+        "itemPrice": "Price",
+        "linkedProjects": "Linked projects",
+        "noLinkedProjects": "No linked projects.",
+        "linkedProjectsAria": "Linked projects",
+        "installments": "Installments",
+        "installmentsAria": "Installments",
+        "dueDate": "Due date",
+        "amount": "Amount",
+        "status": "Status",
+        "paidDate": "Paid date",
+        "actions": "Actions",
+        "refund": "refund",
+        "markPaid": "Mark paid",
+        "changesTitle": "Upsell and downsell history",
+        "changesAria": "Upsell and downsell history",
+        "changeType": "Type",
+        "changeDelta": "Delta",
+        "changeEffective": "Effective",
+        "changePrevious": "Previous",
+        "changeNew": "New",
+        "changeReason": "Reason",
+        "auditTitle": "Audit history",
+        "auditAria": "Audit history",
+        "auditChanged": "changed",
+        "auditSystem": "System"
+      },
+      "form": {
+        "durationFixed": "Fixed term",
+        "durationOpenEnded": "Open-ended recurring",
+        "durationOneTime": "One-time",
+        "frequencyMonthly": "Monthly",
+        "frequencyQuarterly": "Quarterly",
+        "frequencySemiannual": "Semiannual",
+        "frequencyAnnual": "Annual",
+        "paymentPix": "Pix",
+        "paymentBoleto": "Boleto",
+        "paymentBankTransfer": "Bank transfer",
+        "paymentCreditCard": "Credit card",
+        "paymentDebitCard": "Debit card",
+        "paymentCash": "Cash",
+        "paymentOther": "Other",
+        "errorOfficialValueRequired": "Official contract value is required",
+        "errorFrequencyRequired": "A billing frequency is required for open-ended contracts",
+        "errorPlanRequired": "An installment plan is required to activate",
+        "errorPositiveAmount": "Each recurring cycle must have a positive amount",
+        "draftSaved": "Draft saved",
+        "contractActivated": "Contract activated",
+        "contractData": "Contract data",
+        "scopeAndItems": "Scope and items",
+        "linkedProjectsSection": "Linked projects",
+        "billingAndInstallments": "Billing and installments",
+        "title": "Title",
+        "clientLabel": "Client",
+        "internalOwner": "Internal owner",
+        "durationType": "Duration type",
+        "officialValueBRL": "Official value (BRL)",
+        "startDateLabel": "Start date",
+        "endDateLabel": "End date",
+        "billingFrequencyLabel": "Billing frequency",
+        "paymentMethodLabel": "Payment method",
+        "notes": "Notes",
+        "selectClient": "Select client",
+        "ownerNone": "None",
+        "itemNameAria": "Item name {number}",
+        "itemNamePlaceholder": "Item name",
+        "itemPriceAria": "Item price {number}",
+        "itemPricePlaceholder": "Price",
+        "itemQuantityAria": "Item quantity {number}",
+        "itemQuantityPlaceholder": "Qty",
+        "removeItemAria": "Remove item {number}",
+        "addItem": "Add item",
+        "itemMismatch": "The item-price sum ({sum}) does not match the official contract value ({official}). This warning does not block saving.",
+        "scheduleHint": "Fill in the value and dates to preview the suggested installment schedule.",
+        "scheduleAria": "Suggested installment schedule",
+        "scheduleDueDate": "Due date",
+        "scheduleAmount": "Amount",
+        "schedulePaymentMethod": "Payment method",
+        "scheduleTotal": "Installment total: {total} · Official value: {official}",
+        "saveDraft": "Save draft",
+        "activate": "Activate"
+      },
+      "lifecycle": {
+        "actionActivate": "Activate",
+        "actionSuspend": "Suspend",
+        "actionResume": "Resume",
+        "actionClose": "Close",
+        "actionRenew": "Renew",
+        "actionCancel": "Cancel",
+        "actionActivated": "Contract activated",
+        "actionSuspended": "Contract suspended",
+        "actionResumed": "Contract resumed",
+        "actionClosed": "Contract closed",
+        "actionRenewed": "Contract renewed",
+        "actionCancelled": "Contract cancelled",
+        "actionApplied": "Contract updated",
+        "cancelTitle": "Cancel contract",
+        "cancelDescription": "Future installments after the effective date will be cancelled. Paid and already overdue installments remain collectible.",
+        "cancelEffectiveDate": "Effective date",
+        "keepContract": "Keep contract",
+        "confirmCancellation": "Confirm cancellation"
+      },
+      "changeDialog": {
+        "valueUpdated": "Contract value updated",
+        "adjustTitle": "Adjust contract value",
+        "adjustDescription": "Review the proposed change before applying it. Paid installments are never modified.",
+        "typeLabel": "Type",
+        "upsell": "Upsell",
+        "downsell": "Downsell",
+        "strategyLabel": "Strategy",
+        "strategyRedistribute": "Redistribute across pending",
+        "strategyAdjust": "Additional / negative installment",
+        "delta": "Delta (BRL)",
+        "effectiveDate": "Effective date",
+        "description": "Description",
+        "proposedResult": "Proposed result",
+        "close": "Close",
+        "previewProposal": "Preview proposal",
+        "confirmAndApply": "Confirm and apply"
+      },
+      "searchFilters": {
+        "filtersLabel": "Contract filters",
+        "searchLabel": "Search contracts",
+        "searchPlaceholder": "Search by title, code or client",
+        "statusFilterLabel": "Status",
+        "allStatuses": "All statuses",
+        "clientFilterLabel": "Client",
+        "allClients": "All clients",
+        "projectFilterLabel": "Project",
+        "allProjects": "All projects"
+      },
+      "csvExport": {
+        "exportLabel": "Export CSV"
+      },
+      "pagination": {
+        "paginationLabel": "Pagination",
+        "previousAria": "Previous page",
+        "previous": "Previous",
+        "pageInfo": "Page {page} of {total}",
+        "nextAria": "Next page",
+        "next": "Next"
+      }
+    },
+    "clients": {
+      "form": {
+        "name": "Name",
+        "legalName": "Legal name",
+        "cpfCnpj": "CPF/CNPJ",
+        "email": "Email",
+        "phone": "Phone",
+        "notes": "Notes",
+        "saveChanges": "Save changes",
+        "createClient": "Create client",
+        "createdSuccess": "Client created",
+        "updatedSuccess": "Client updated",
+        "conflictTitle": "CPF/CNPJ conflict",
+        "conflictMessage": "This CPF/CNPJ is already in use by another client."
+      },
+      "detail": {
+        "loadFailed": "Failed to load the client",
+        "deactivated": "Client deactivated",
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "inactive": "Inactive",
+        "summaryLabel": "Client summary",
+        "contractCountLabel": "Contract count",
+        "contracts": "Contracts",
+        "activeValueLabel": "Active contracted value",
+        "activeContractedValue": "Active contracted value",
+        "projectsCountLabel": "Linked projects count",
+        "linkedProjects": "Linked projects",
+        "historyTitle": "Contract and revenue history",
+        "noContracts": "No contracts recorded for this client.",
+        "contractHistoryLabel": "Contract history",
+        "code": "Code",
+        "title": "Title",
+        "status": "Status",
+        "officialValue": "Official value",
+        "period": "Period"
+      },
+      "list": {
+        "loadFailed": "Failed to load clients",
+        "searchFiltersLabel": "Client search and filters",
+        "searchLabel": "Search clients",
+        "searchPlaceholder": "Search by name, email or CPF/CNPJ",
+        "filterStatusLabel": "Filter by status",
+        "filterAll": "All",
+        "filterActive": "Active",
+        "filterInactive": "Inactive",
+        "newClient": "New client",
+        "noInactiveClients": "No inactive clients",
+        "noSearchMatches": "No clients match your search",
+        "tableLabel": "Clients",
+        "name": "Name",
+        "cpfCnpj": "CPF/CNPJ",
+        "email": "Email",
+        "phone": "Phone",
+        "contracts": "Contracts",
+        "status": "Status",
+        "inactiveRow": "{name} (inactive)",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "pages": {
+        "new": {},
+        "detail": {},
+        "edit": {}
+      }
+    },
+    "receivables": {
+      "list": {
+        "loadFailed": "Failed to load receivables",
+        "statusLabel": "Receivable status",
+        "filterByProjectLabel": "Filter by project",
+        "allProjects": "All projects",
+        "exportCsv": "Export CSV",
+        "noMatches": "No installments match your filters",
+        "tableLabel": "Receivables",
+        "contract": "Contract",
+        "client": "Client",
+        "amount": "Amount",
+        "dueDate": "Due date",
+        "status": "Status",
+        "paidDate": "Paid date",
+        "actions": "Actions",
+        "refund": "refund",
+        "tabAll": "All",
+        "tabPending": "Pending",
+        "tabOverdue": "Overdue",
+        "tabPaid": "Paid",
+        "tabCancelled": "Cancelled"
+      },
+      "installmentActions": {
+        "markPaid": "Mark paid",
+        "cancel": "Cancel",
+        "refund": "Refund",
+        "recordRefund": "Record refund",
+        "refundDescription": "The refund creates a negative paid installment linked to the original one and subtracts from received revenue.",
+        "refundAmountField": "Refund amount (BRL)",
+        "refundDateField": "Refund date",
+        "close": "Close",
+        "confirmRefund": "Confirm refund"
+      }
+    }
+  },
+  "hooks": {
+    "contracts": {
+      "createFailed": "Failed to create contract",
+      "updateFailed": "Failed to update contract",
+      "deleteFailed": "Failed to delete contract",
+      "lifecycleFailed": "Lifecycle action failed",
+      "changeFailed": "Failed to apply contract change"
+    },
+    "clients": {
+      "createFailed": "Failed to create client",
+      "updateFailed": "Failed to update client",
+      "deactivateFailed": "Failed to deactivate client"
+    },
+    "installments": {
+      "recordPaymentFailed": "Failed to record payment",
+      "cancelFailed": "Failed to cancel installment",
+      "recordRefundFailed": "Failed to record refund"
+    },
+    "exports": {},
+    "today": {
+      "loadFailed": "Failed to load today tasks"
+    },
+    "tasks": {
+      "createFailed": "Failed to create task",
+      "updateFailed": "Failed to update task",
+      "deleteFailed": "Failed to delete task"
+    },
+    "savedViews": {
+      "requestFailed": "Request failed"
+    },
+    "activity": {
+      "loadFailed": "Failed to load activity"
+    },
+    "comments": {
+      "you": "You"
+    },
+    "calendar": {},
+    "calendarConflicts": {
+      "conflictCheckFailed": "Conflict check failed"
+    },
+    "projects": {
+      "createFailed": "Failed to create project",
+      "updateFailed": "Failed to update project"
+    },
+    "documents": {},
+    "notifications": {
+      "requestFailed": "Request failed"
+    },
+    "pushNotifications": {
+      "vapidKeyNotFound": "VAPID public key not found",
+      "invalidSubscription": "Invalid subscription"
+    }
+  },
+  "today": {
+    "agenda": {
+      "heading": "Agenda",
+      "loadFailed": "Failed to load agenda. Try again.",
+      "empty": "No events scheduled today.",
+      "allDay": "All day"
+    },
+    "tasks": {
+      "heading": "Today's priorities",
+      "loadFailed": "Failed to load tasks.",
+      "retry": "Try again",
+      "empty": "No tasks overdue or due today."
+    },
+    "savedViews": {
+      "myViews": "My views"
+    },
+    "activity": {
+      "heading": "Recent activity"
+    },
+    "page": {
+      "executiveCockpit": "Executive cockpit",
+      "unreadNotifications": "{count} unread notifications"
+    }
+  },
+  "all": {
+    "page": {
+      "noProjects": "No projects yet. Create your first project to get started.",
+      "allProjects": "All Projects",
+      "taskCount": "({count} tasks)",
+      "moreTasks": "+{count} more"
+    }
+  },
+  "board": {
+    "controls": {
+      "filters": "Filters",
+      "filtersAndView": "Filters and view",
+      "changesApplyImmediately": "Changes are applied immediately.",
+      "clear": "Clear",
+      "assignee": "Assignee",
+      "allPeople": "All people",
+      "teamArea": "Team area",
+      "allAreas": "All areas",
+      "dateFrom": "Start due date",
+      "dateTo": "End due date",
+      "sort": "Sort",
+      "sortManual": "Manual order",
+      "sortPriority": "Priority",
+      "sortDueDate": "Due date",
+      "sortTitle": "Title",
+      "group": "Group",
+      "groupNone": "No grouping",
+      "groupAssignee": "Primary person"
+    },
+    "savedView": {
+      "savedToast": "View saved",
+      "saveFailed": "Failed to save view",
+      "removedToast": "View removed",
+      "myViews": "My views",
+      "saveView": "Save view",
+      "deleteView": "Delete view",
+      "saveViewTitle": "Save view",
+      "saveDescription": "Saves the current filters, sorting, and grouping just for you.",
+      "name": "Name",
+      "namePlaceholder": "E.g.: This week's deliveries",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save"
+    },
+    "pages": {
+      "list": {
+        "filterAll": "All",
+        "filterOverdue": "Overdue",
+        "filterThisWeek": "This Week",
+        "filterMyTasks": "My Tasks",
+        "selectProject": "Select project",
+        "allProjects": "All Projects",
+        "noProjectSelected": "Select a project to view its board",
+        "deleteTitle": "Delete Task",
+        "deleteConfirm": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "taskCount": "({count} tasks)"
+      },
+      "project": {
+        "filterAll": "All",
+        "filterOverdue": "Overdue",
+        "filterThisWeek": "This Week",
+        "filterMyTasks": "My Tasks",
+        "deleteTitle": "Delete Task",
+        "deleteConfirm": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      }
+    }
+  },
+  "kanban": {
+    "board": {
+      "deleteColumnConfirm": "Delete this column and all its tasks?",
+      "boardAria": "Kanban board",
+      "addColumn": "Add Column",
+      "renameColumn": "Rename Column",
+      "columnNamePlaceholder": "Column name",
+      "cancel": "Cancel",
+      "rename": "Rename",
+      "add": "Add"
+    },
+    "column": {
+      "columnAria": "Column: {name}",
+      "addTaskAria": "Add task to {name}",
+      "optionsAria": "Column options for {name}",
+      "rename": "Rename",
+      "delete": "Delete",
+      "noTasksForArea": "No tasks for this area",
+      "noTasksYet": "No tasks yet"
+    },
+    "card": {
+      "taskAria": "Task: {title}",
+      "repeats": "Repeats {type}"
+    },
+    "taskForm": {
+      "titleRequired": "Title is required",
+      "updatedToast": "Task updated",
+      "createdToast": "Task created",
+      "assignedPeople": "{count, plural, one {# person assigned.} other {# people assigned.}}",
+      "saveFailed": "Failed to save task",
+      "editTitle": "Edit Task",
+      "createTitle": "Create Task",
+      "titleLabel": "Title *",
+      "titlePlaceholder": "Task title",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Task description",
+      "assigneesLabel": "Assignees",
+      "teamArea": "Team Area",
+      "selectArea": "Select area",
+      "priority": "Priority",
+      "dueDate": "Due Date",
+      "recurrence": "Recurrence",
+      "recurrenceNone": "None",
+      "recurrenceDaily": "Daily",
+      "recurrenceWeekly": "Weekly",
+      "recurrenceMonthly": "Monthly",
+      "every": "Every",
+      "cancel": "Cancel",
+      "update": "Update",
+      "create": "Create"
+    },
+    "taskDetailModal": {
+      "scheduleInCalendar": "Schedule in Calendar",
+      "edit": "Edit",
+      "timeline": "Timeline"
+    },
+    "taskDetailPanel": {
+      "closeDetails": "Close task details",
+      "srOnlyLabel": "Task detail panel",
+      "scheduleInCalendar": "Schedule in Calendar",
+      "edit": "Edit",
+      "archive": "Archive",
+      "timeline": "Timeline"
+    }
+  },
+  "quickCapture": {
+    "dialog": {
+      "untitledDocument": "Untitled Document",
+      "documentCreated": "Document created",
+      "noWorkColumn": "Project without a work column",
+      "taskCaptured": "Task captured",
+      "captureFailed": "Capture failed",
+      "task": "Task",
+      "event": "Event",
+      "document": "Document",
+      "title": "Quick Capture",
+      "taskTitle": "Task title",
+      "documentTitle": "Document title",
+      "project": "Project",
+      "selectProject": "Select project",
+      "capture": "Capture"
+    }
+  },
+  "comments": {
+    "input": {
+      "mentionAria": "Mention a teammate",
+      "placeholder": "Write a comment... Use @ to mention",
+      "sendAria": "Send comment"
+    },
+    "item": {
+      "userAlt": "User",
+      "unknown": "Unknown",
+      "deleteAria": "Delete comment"
+    },
+    "list": {
+      "heading": "Comments ({count})",
+      "loading": "Loading comments...",
+      "empty": "No comments yet"
+    }
+  },
+  "activity": {
+    "feed": {
+      "loadFailed": "Failed to load activity.",
+      "empty": "No activity yet.",
+      "system": "System"
+    }
+  },
+  "people": {
+    "selector": {
+      "unassigned": "Unassigned",
+      "personCount": "{count, plural, one {# person} other {# people}}",
+      "searchPlaceholder": "Search people",
+      "noPeopleFound": "No people found"
+    },
+    "avatarGroup": {
+      "assignees": "{count} assignees"
+    }
+  },
+  "areas": {
+    "filter": {
+      "teamAreas": "Team Areas"
+    },
+    "list": {
+      "taskCount": "{count} tasks",
+      "projectCount": "{count} projects",
+      "loading": "Loading...",
+      "emptyTitle": "No areas yet",
+      "emptyDescription": "Create your first team area to organize projects and tasks."
+    }
+  },
+  "shared": {
+    "loadingState": {
+      "loading": "Loading..."
+    },
+    "errorBoundary": {
+      "title": "Something went wrong",
+      "unexpectedError": "An unexpected error occurred.",
+      "tryAgain": "Try again"
+    },
+    "confirmDialog": {
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    }
+  },
+  "calendar": {
+    "view": {
+      "syncing": "Syncing…",
+      "syncToastFailed": "Sync failed",
+      "syncFailed": "Failed to sync calendar",
+      "reconnectGoogle": "Reconnect Google",
+      "retry": "Try again",
+      "fcToday": "Today",
+      "fcMonth": "Month",
+      "fcWeek": "Week",
+      "fcDay": "Day",
+      "fcAllDay": "All day"
+    },
+    "eventDetail": {
+      "toastLinksUpdated": "Event links updated",
+      "toastUpdateFailed": "Failed to update event",
+      "sourceLocal": "Local calendar",
+      "allDayDate": "{date} · all day",
+      "dateRange": "{start} — {end}",
+      "description": "Description",
+      "noDescription": "No description.",
+      "timeZone": "Time zone: {timeZone}",
+      "internalAttendees": "Internal attendees",
+      "noInternalAttendees": "None.",
+      "externalAttendees": "External guests",
+      "noExternalAttendees": "None.",
+      "links": "Links",
+      "readOnlyHint": "Google-only event. Sync a local copy to edit links.",
+      "taskProject": "Task project",
+      "projectPlaceholder": "Project",
+      "noTask": "No task",
+      "task": "Task",
+      "taskPlaceholder": "Task",
+      "teamArea": "Team area",
+      "teamAreaPlaceholder": "Team area",
+      "noArea": "No area",
+      "keep": "Keep",
+      "toastDeleted": "Event deleted",
+      "toastDeleteFailed": "Failed to delete event",
+      "deleting": "Deleting…",
+      "confirmDelete": "Confirm deletion",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "saveLinks": "Save links"
+    },
+    "scheduleEvent": {
+      "toastTaskScheduled": "Task scheduled",
+      "toastEventSynced": "Event synced",
+      "toastEventSavedLocal": "Event saved locally",
+      "toastInvitesSent": "Event created and invites sent via Google Calendar.",
+      "toastCreatedGoogle": "Event created in Google Calendar.",
+      "toastConnectGoogle": "Connect Google Calendar to sync and send invites.",
+      "toastCreateFailed": "Failed to create event",
+      "title": "Schedule on calendar",
+      "description": "Create an event, link a task, and invite internal or external people.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Event title",
+      "conflictsFound": "{count} conflict(s) found",
+      "conflictsUnavailable": "Conflicts could not be confirmed",
+      "warningDoesNotBlock": "Warning does not block creation.",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Context, agenda, or notes",
+      "allDay": "All day",
+      "date": "Date",
+      "start": "Start",
+      "duration": "Duration (minutes)",
+      "attendees": "Attendees",
+      "teamArea": "Team area",
+      "linkTeamArea": "Link team area",
+      "noTeamArea": "No team area",
+      "cancel": "Cancel",
+      "scheduling": "Scheduling…",
+      "checking": "Checking…",
+      "createAnyway": "Create anyway",
+      "schedule": "Schedule"
+    },
+    "attendeeSelector": {
+      "invalidEmail": "Invalid email",
+      "invalidEmailHint": "Enter a valid email address.",
+      "inviteExternalEmail": "Invite external email",
+      "add": "Add",
+      "removeEmail": "Remove {email}"
+    },
+    "event": {
+      "ariaLabel": "{title}, {time}, {count} participants",
+      "allDay": "all day",
+      "scheduledTime": "scheduled time"
+    },
+    "upcomingTasks": {
+      "title": "Upcoming Tasks",
+      "loadingLabel": "Loading upcoming tasks",
+      "loadFailed": "Failed to load upcoming tasks.",
+      "retry": "Try again",
+      "empty": "No upcoming tasks",
+      "schedule": "Schedule"
+    },
+    "page": {
+      "toastGoogleConnected": "Google Calendar connected",
+      "toastConnectFailed": "Failed to connect Google Calendar",
+      "toastConnectFailedHint": "Try authorizing again.",
+      "toastCalendarConnectFailed": "Failed to connect calendar",
+      "eyebrow": "Agenda",
+      "title": "Executive calendar",
+      "connectGoogle": "Connect Google",
+      "localCalendarActive": "Local calendar active",
+      "localCalendarHint": "Connect Google Calendar to sync events and send invites.",
+      "connectNow": "Connect now"
+    }
+  },
+  "projects": {
+    "form": {
+      "nameRequired": "Project name is required",
+      "createFailed": "Failed to create project",
+      "title": "New Project",
+      "description": "Create a new project to organize your work.",
+      "nameLabel": "Project Name",
+      "namePlaceholder": "e.g. Q3 Product Launch",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Brief description of the project",
+      "teamArea": "Team Area",
+      "areaPlaceholder": "Select area (optional)",
+      "cancel": "Cancel",
+      "submit": "Create Project"
+    },
+    "card": {
+      "tasksCount": "{count} tasks"
+    },
+    "grid": {
+      "emptyTitle": "No projects yet",
+      "emptyDescription": "Create your first project to get started organizing your work."
+    },
+    "pages": {
+      "list": {
+        "title": "Projects",
+        "newProject": "New Project"
+      },
+      "detail": {
+        "notFound": "Project not found",
+        "backToProjects": "Back to projects",
+        "createdBy": "Created by {name}",
+        "openBoard": "Open Board",
+        "edit": "Edit",
+        "archive": "Archive",
+        "indicatorsLabel": "Project indicators",
+        "metricTotalTasks": "Total Tasks",
+        "metricArchived": "Archived (Done)",
+        "metricActiveTasks": "Active Tasks",
+        "metricOverdue": "Overdue",
+        "metricDueThisWeek": "Due This Week",
+        "completion": "Completion",
+        "completionHint": "Archived task progress",
+        "archivedProgress": "{archived} of {total} tasks archived",
+        "workflowDistribution": "Workflow distribution",
+        "workflowHint": "Tasks by board column",
+        "columnsCount": "{count} columns",
+        "editProjectTitle": "Edit Project",
+        "editProjectDescription": "Update project name, description, or team area.",
+        "nameLabel": "Project Name",
+        "descriptionLabel": "Description",
+        "teamArea": "Team Area",
+        "areaPlaceholder": "Select area",
+        "cancel": "Cancel",
+        "save": "Save",
+        "archiveProjectTitle": "Archive “{name}”?",
+        "archiveProjectDescription": "This will archive the project and hide it from the main view. Tasks and documents will be preserved.",
+        "archiveProject": "Archive Project"
+      }
+    }
+  },
+  "documents": {
+    "list": {
+      "allDocuments": "All Documents",
+      "new": "New",
+      "loading": "Loading...",
+      "empty": "No documents yet"
+    },
+    "editor": {
+      "untitledPlaceholder": "Untitled Document",
+      "noProject": "No project",
+      "edit": "Edit",
+      "split": "Split",
+      "preview": "Preview",
+      "saveDocument": "Save document",
+      "save": "Save",
+      "contentPlaceholder": "Start writing markdown..."
+    },
+    "row": {
+      "deleteDocument": "Delete document"
+    },
+    "preview": {},
+    "pages": {
+      "list": {
+        "untitled": "Untitled Document",
+        "title": "Documents",
+        "deleteTitle": "Delete Document",
+        "deleteDescription": "Are you sure you want to delete this document? This action cannot be undone.",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      },
+      "detail": {
+        "back": "Back"
+      }
+    }
+  },
+  "settings": {
+    "page": {
+      "title": "Settings",
+      "subtitle": "Manage your profile, team areas, and preferences.",
+      "profile": {
+        "title": "Profile",
+        "description": "Manage your name, avatar, and team area assignments"
+      },
+      "areas": {
+        "title": "Team Areas",
+        "description": "Create, edit, and delete team areas used to organize projects and tasks"
+      },
+      "team": {
+        "title": "Team",
+        "description": "View and manage team members and their area assignments"
+      }
+    },
+    "profile": {
+      "backToSettings": "Back to Settings",
+      "title": "Profile",
+      "subtitle": "Manage your profile information and team area assignments.",
+      "emailLabel": "Email",
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "saving": "Saving...",
+      "saveName": "Save Name",
+      "save": "Save",
+      "areasTitle": "Team Areas",
+      "areasDescription": "Select the team areas you belong to. This determines which areas you can filter by and assign tasks to.",
+      "noAreas": "No team areas configured. Create one in Team Areas settings.",
+      "areasUpdated": "Areas updated",
+      "areasUpdateError": "Failed to save areas",
+      "nameUpdated": "Name updated",
+      "nameUpdateError": "Failed to update name"
+    },
+    "areas": {
+      "createError": "Failed to create area",
+      "updateError": "Failed to update area",
+      "title": "Team Areas",
+      "subtitle": "Manage areas used to organize projects and tasks.",
+      "addArea": "Add Area",
+      "editTitle": "Edit Area",
+      "editDescription": "Rename this team area.",
+      "areaNameLabel": "Area Name",
+      "cancel": "Cancel",
+      "save": "Save",
+      "addDescription": "Create a new team area to organize projects and tasks.",
+      "namePlaceholder": "e.g. Design, Engineering",
+      "create": "Create",
+      "deleteTitle": "Delete “{name}”?",
+      "deleteDescription": "This action cannot be undone. Tasks and projects assigned to this area will show as unassigned.",
+      "tasksAffected": "{count} tasks affected",
+      "projectsAffected": "{count} projects affected",
+      "deleteArea": "Delete Area"
+    },
+    "team": {
+      "saveSuccess": "Updated successfully",
+      "saveError": "Failed to save",
+      "backToSettings": "Back to Settings",
+      "title": "Team",
+      "subtitle": "Manage team members and their area assignments.",
+      "unnamed": "Unnamed",
+      "assignLabel": "Assign team areas:",
+      "noAreas": "No areas configured.",
+      "saving": "Saving...",
+      "save": "Save"
+    }
+  }
+}

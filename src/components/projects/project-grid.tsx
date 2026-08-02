@@ -1,6 +1,9 @@
+"use client";
+
 import { ProjectCard } from "@/components/projects/project-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FolderOpen } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { ProjectData } from "@/hooks/use-projects";
 
 export function ProjectGrid({
@@ -10,13 +13,14 @@ export function ProjectGrid({
   projects: ProjectData[];
   onSelect: (id: string) => void;
 }) {
+  const t = useTranslations("projects.grid");
   if (projects.length === 0) {
     return (
       <div data-testid="empty-projects">
         <EmptyState
           icon={FolderOpen}
-          title="No projects yet"
-          description="Create your first project to get started organizing your work."
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
         />
       </div>
     );

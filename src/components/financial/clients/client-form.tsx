@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useCreateClient, useUpdateClient, useClient } from "@/hooks/use-clients";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 
 export function ClientForm({ clientId }: { clientId?: string }) {
   const router = useRouter();
+  const t = useTranslations("financial.clients.form");
   const { data: existing, isLoading: loadingExisting } = useClient(clientId ?? "");
   const createClient = useCreateClient();
   const updateClient = useUpdateClient();
@@ -52,12 +54,12 @@ export function ClientForm({ clientId }: { clientId?: string }) {
         { id: clientId, ...payload },
         {
           onSuccess: () => {
-            toastSuccess("Client updated");
+            toastSuccess(t("updatedSuccess"));
             router.push(`/financial/clients/${clientId}`);
           },
           onError: (error: Error) => {
             if (error.message?.includes("already in use")) {
-              toastError("CPF/CNPJ conflict", "This CPF/CNPJ is already in use by another client.");
+              toastError(t("conflictTitle"), t("conflictMessage"));
             }
           },
         }
@@ -67,12 +69,12 @@ export function ClientForm({ clientId }: { clientId?: string }) {
 
     createClient.mutate(payload, {
       onSuccess: (client) => {
-        toastSuccess("Client created");
+        toastSuccess(t("createdSuccess"));
         router.push(`/financial/clients/${(client as { id: string }).id}`);
       },
       onError: (error: Error) => {
         if (error.message?.includes("already in use")) {
-          toastError("CPF/CNPJ conflict", "This CPF/CNPJ is already in use by another client.");
+          toastError(t("conflictTitle"), t("conflictMessage"));
         }
       },
     });
@@ -82,7 +84,7 @@ export function ClientForm({ clientId }: { clientId?: string }) {
     <div className="mx-auto max-w-xl space-y-4">
       <div className="space-y-4 rounded-xl border border-border bg-page-alt p-4">
         <div>
-          <Label htmlFor="client-name">Name *</Label>
+          <Label htmlFor="client-name">{t("name")} *</Label>
           <Input
             id="client-name"
             value={name}
@@ -91,7 +93,7 @@ export function ClientForm({ clientId }: { clientId?: string }) {
           />
         </div>
         <div>
-          <Label htmlFor="client-legal">Legal name</Label>
+          <Label htmlFor="client-legal">{t("legalName")}</Label>
           <Input
             id="client-legal"
             value={legalName}
@@ -99,7 +101,7 @@ export function ClientForm({ clientId }: { clientId?: string }) {
           />
         </div>
         <div>
-          <Label htmlFor="client-doc">CPF/CNPJ</Label>
+          <Label htmlFor="client-doc">{t("cpfCnpj")}</Label>
           <Input
             id="client-doc"
             value={cpfCnpj}
@@ -107,7 +109,7 @@ export function ClientForm({ clientId }: { clientId?: string }) {
           />
         </div>
         <div>
-          <Label htmlFor="client-email">Email</Label>
+          <Label htmlFor="client-email">{t("email")}</Label>
           <Input
             id="client-email"
             type="email"
@@ -116,7 +118,7 @@ export function ClientForm({ clientId }: { clientId?: string }) {
           />
         </div>
         <div>
-          <Label htmlFor="client-phone">Phone</Label>
+          <Label htmlFor="client-phone">{t("phone")}</Label>
           <Input
             id="client-phone"
             value={phone}
@@ -124,7 +126,7 @@ export function ClientForm({ clientId }: { clientId?: string }) {
           />
         </div>
         <div>
-          <Label htmlFor="client-notes">Notes</Label>
+          <Label htmlFor="client-notes">{t("notes")}</Label>
           <textarea
             id="client-notes"
             value={notes}
@@ -135,7 +137,7 @@ export function ClientForm({ clientId }: { clientId?: string }) {
         </div>
       </div>
       <Button disabled={!name.trim() || createClient.isPending || updateClient.isPending} onClick={submit}>
-        {clientId ? "Save changes" : "Create client"}
+        {clientId ? t("saveChanges") : t("createClient")}
       </Button>
     </div>
   );

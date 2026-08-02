@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { splitMentionContent } from "@/lib/mentions";
 
@@ -26,6 +27,7 @@ export function CommentItem({
   isOwn?: boolean;
   onDelete?: (id: string) => void;
 }) {
+  const t = useTranslations("comments.item");
   const initials = comment.author.name
     ? comment.author.name.charAt(0).toUpperCase()
     : "?";
@@ -33,14 +35,14 @@ export function CommentItem({
   return (
     <div data-testid="comment-item" className="flex gap-3">
       <Avatar className="w-7 h-7 shrink-0">
-        <AvatarImage src={comment.author.avatarUrl || undefined} alt={comment.author.name || "User"} />
+        <AvatarImage src={comment.author.avatarUrl || undefined} alt={comment.author.name || t("userAlt")} />
         <AvatarFallback className="text-[11px]">{initials}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="text-[13px] font-semibold text-text-primary">
-              {comment.author.name || "Unknown"}
+              {comment.author.name || t("unknown")}
             </span>
             <span className="text-[12px] text-text-secondary">
               {new Date(comment.createdAt).toLocaleDateString(undefined, {
@@ -55,7 +57,7 @@ export function CommentItem({
             <button
               onClick={() => onDelete(comment.id)}
               className="text-text-secondary hover:text-danger transition-colors shrink-0"
-              aria-label="Delete comment"
+              aria-label={t("deleteAria")}
             >
               <Trash2 size={14} />
             </button>

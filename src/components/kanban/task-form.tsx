@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ open, onOpenChange, projectId, columnId, task, profiles }: TaskFormProps) {
+  const t = useTranslations("kanban.taskForm");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
@@ -111,7 +113,7 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
     setError("");
 
     if (!title.trim()) {
-      setError("Title is required");
+      setError(t("titleRequired"));
       return;
     }
 
@@ -150,15 +152,15 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
         });
       }
       toastSuccess(
-        isEditing ? "Tarefa atualizada" : "Tarefa criada",
+        isEditing ? t("updatedToast") : t("createdToast"),
         assigneeIds.length > 1
-          ? `${assigneeIds.length} pessoas atribuídas.`
+          ? t("assignedPeople", { count: assigneeIds.length })
           : undefined,
       );
       onOpenChange(false);
     } catch {
-      setError("Failed to save task");
-      toastError("Failed to save task");
+      setError(t("saveFailed"));
+      toastError(t("saveFailed"));
     }
   }
 
@@ -166,34 +168,34 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Task" : "Create Task"}</DialogTitle>
+          <DialogTitle>{isEditing ? t("editTitle") : t("createTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-5 lg:grid-cols-2">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">{t("titleLabel")}</Label>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Task title"
+                  placeholder={t("titlePlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("descriptionLabel")}</Label>
                 <textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Task description"
+                  placeholder={t("descriptionPlaceholder")}
                   className="flex min-h-[250px] w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 />
               </div>
             </div>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Assignees</Label>
+                <Label>{t("assigneesLabel")}</Label>
                 <MultiPersonSelector
                   people={allProfiles || []}
                   value={assigneeIds}
@@ -201,10 +203,10 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="area">Team Area</Label>
+                <Label htmlFor="area">{t("teamArea")}</Label>
                 <Select value={areaId} onValueChange={setAreaId}>
                   <SelectTrigger id="area">
-                    <SelectValue placeholder="Select area" />
+                    <SelectValue placeholder={t("selectArea")} />
                   </SelectTrigger>
                   <SelectContent>
                     {areas?.map((a: { id: string; name: string }) => (
@@ -216,7 +218,7 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Priority</Label>
+                <Label>{t("priority")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {DEFAULT_PRIORITIES.map((p) => (
                     <button
@@ -235,7 +237,7 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="dueDate">Due Date</Label>
+                <Label htmlFor="dueDate">{t("dueDate")}</Label>
                 <Input
                   id="dueDate"
                   type="date"
@@ -245,21 +247,21 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
               </div>
               <div className="grid grid-cols-[1fr_110px] gap-3">
                 <div className="space-y-2">
-                  <Label>Recurrence</Label>
+                  <Label>{t("recurrence")}</Label>
                   <Select value={recurrenceType} onValueChange={setRecurrenceType}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="none">{t("recurrenceNone")}</SelectItem>
+                      <SelectItem value="daily">{t("recurrenceDaily")}</SelectItem>
+                      <SelectItem value="weekly">{t("recurrenceWeekly")}</SelectItem>
+                      <SelectItem value="monthly">{t("recurrenceMonthly")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="recurrenceInterval">Every</Label>
+                  <Label htmlFor="recurrenceInterval">{t("every")}</Label>
                   <Input
                     id="recurrenceInterval"
                     type="number"
@@ -280,10 +282,10 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
           {error && <p className="text-sm text-danger">{error}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={createTask.isPending || updateTask.isPending}>
-              {isEditing ? "Update" : "Create"}
+              {isEditing ? t("update") : t("create")}
             </Button>
           </div>
         </form>

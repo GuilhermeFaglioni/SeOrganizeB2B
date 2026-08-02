@@ -2,19 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 const TABS = [
-  { href: "/financial", label: "Overview", exact: true },
-  { href: "/financial/contracts", label: "Contracts" },
-  { href: "/financial/receivables", label: "Receivables" },
-  { href: "/financial/clients", label: "Clients" },
+  { href: "/financial", labelKey: "overview", exact: true },
+  { href: "/financial/contracts", labelKey: "contracts" },
+  { href: "/financial/receivables", labelKey: "receivables" },
+  { href: "/financial/clients", labelKey: "clients" },
 ];
 
 export function FinancialTabs() {
   const pathname = usePathname();
+  const t = useTranslations("financial.tabs");
   return (
-    <nav aria-label="Financial sections" className="mb-4 flex flex-wrap gap-1">
+    <nav aria-label={t("sections")} className="mb-4 flex flex-wrap gap-1">
       {TABS.map((tab) => {
         const active = tab.exact
           ? pathname === tab.href
@@ -31,7 +33,7 @@ export function FinancialTabs() {
                 : "text-text-secondary hover:bg-bg-secondary"
             )}
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </Link>
         );
       })}

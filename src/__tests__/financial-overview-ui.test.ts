@@ -10,7 +10,7 @@ describe("financial overview UI", () => {
   it("adds a Financial entry to the sidebar navigation", () => {
     const sidebar = read("src/components/layout/sidebar.tsx");
     expect(sidebar).toContain('href: "/financial"');
-    expect(sidebar).toContain('label: "Financial"');
+    expect(sidebar).toContain('label: t("financial")');
     expect(sidebar).toContain("nav-financial");
   });
 

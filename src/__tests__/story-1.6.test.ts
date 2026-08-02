@@ -71,7 +71,7 @@ describe("1.6.5 CommentList component", () => {
     expect(src).toContain("useComments");
     expect(src).toContain("CommentItem");
     expect(src).toContain("CommentInput");
-    expect(src).toContain("No comments yet");
+    expect(src).toContain('t("empty")');
   });
 });
 

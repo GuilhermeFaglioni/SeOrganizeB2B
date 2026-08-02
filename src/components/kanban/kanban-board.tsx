@@ -13,6 +13,7 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { KanbanColumn } from "./kanban-column";
 import { KanbanCard } from "./kanban-card";
 import { useMoveTask, useColumns, type BoardColumn, type BoardTask } from "@/hooks/use-kanban";
@@ -53,6 +54,7 @@ export function KanbanBoard({
   allowColumnManagement?: boolean;
   groupBy?: BoardGroupBy;
 }) {
+  const t = useTranslations("kanban.board");
   const [activeTask, setActiveTask] = useState<BoardTask | null>(null);
   const moveTask = useMoveTask(projectId);
   const { addColumn, renameColumn, deleteColumn } = useColumns(projectId);
@@ -79,7 +81,7 @@ export function KanbanBoard({
   };
 
   const handleDeleteColumn = (columnId: string) => {
-    if (confirm("Delete this column and all its tasks?")) {
+    if (confirm(t("deleteColumnConfirm"))) {
       deleteColumn.mutate(columnId);
     }
   };
@@ -166,7 +168,7 @@ export function KanbanBoard({
           data-testid="kanban-board"
           className="flex gap-4 overflow-x-auto pb-4 h-full snap-x snap-mandatory"
           role="list"
-          aria-label="Kanban board"
+          aria-label={t("boardAria")}
         >
           {columns.map((column) => (
             <KanbanColumn
@@ -192,7 +194,7 @@ export function KanbanBoard({
               className="w-full flex items-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-border text-text-secondary hover:text-text-primary hover:border-accent transition-colors text-sm"
             >
               <Plus size={16} />
-              Add Column
+              {t("addColumn")}
             </button>
           </div>
           )}
@@ -206,19 +208,19 @@ export function KanbanBoard({
         <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Rename Column</DialogTitle>
+              <DialogTitle>{t("renameColumn")}</DialogTitle>
             </DialogHeader>
             <div className="py-2">
               <Input
                 value={renameName}
                 onChange={(e) => setRenameName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleRenameSubmit()}
-                placeholder="Column name"
+                placeholder={t("columnNamePlaceholder")}
               />
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setRenameOpen(false)}>Cancel</Button>
-              <Button onClick={handleRenameSubmit} disabled={!renameName.trim()}>Rename</Button>
+              <Button variant="outline" onClick={() => setRenameOpen(false)}>{t("cancel")}</Button>
+              <Button onClick={handleRenameSubmit} disabled={!renameName.trim()}>{t("rename")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -226,19 +228,19 @@ export function KanbanBoard({
         <Dialog open={addColumnOpen} onOpenChange={setAddColumnOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Column</DialogTitle>
+              <DialogTitle>{t("addColumn")}</DialogTitle>
             </DialogHeader>
             <div className="py-2">
               <Input
                 value={addColumnName}
                 onChange={(e) => setAddColumnName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddColumn()}
-                placeholder="Column name"
+                placeholder={t("columnNamePlaceholder")}
               />
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setAddColumnOpen(false)}>Cancel</Button>
-              <Button onClick={handleAddColumn} disabled={!addColumnName.trim()}>Add</Button>
+              <Button variant="outline" onClick={() => setAddColumnOpen(false)}>{t("cancel")}</Button>
+              <Button onClick={handleAddColumn} disabled={!addColumnName.trim()}>{t("add")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

@@ -46,7 +46,7 @@ describe("financial responsiveness and accessibility", () => {
     expect(list).toContain("<caption");
     const pagination = read("src/components/financial/contracts/pagination.tsx");
     expect(pagination).toContain("aria-live");
-    expect(pagination).toContain('aria-label="Previous page"');
+    expect(pagination).toContain('aria-label={t("previousAria")}');
   });
 
   it("renders loading, empty, error and validation feedback states", () => {
@@ -61,7 +61,7 @@ describe("financial responsiveness and accessibility", () => {
   it("adds aria-live to KPI grid for screen reader announcements", () => {
     const overview = read("src/components/financial/overview/overview-page.tsx");
     expect(overview).toContain('aria-live="polite"');
-    expect(overview).toContain('aria-label="Financial key performance indicators"');
+    expect(overview).toContain('aria-label={t("kpisAriaLabel")}');
   });
 
   it("adds focus-visible ring classes to interactive controls", () => {
@@ -76,7 +76,7 @@ describe("financial responsiveness and accessibility", () => {
 
   it("uses navigation semantics (not ARIA tabs) for financial section links", () => {
     const tabs = read("src/components/financial/financial-tabs.tsx");
-    expect(tabs).toContain('aria-label="Financial sections"');
+    expect(tabs).toContain('aria-label={t("sections")}');
     expect(tabs).toContain("aria-current");
     expect(tabs).not.toContain('role="tablist"');
     expect(tabs).not.toContain('role="tab"');
@@ -86,7 +86,7 @@ describe("financial responsiveness and accessibility", () => {
   it("adds ARIA tab semantics to receivables status tabs", () => {
     const receivables = read("src/components/financial/receivables/receivables-list.tsx");
     expect(receivables).toContain('role="tablist"');
-    expect(receivables).toContain('aria-label="Receivable status"');
+    expect(receivables).toContain('aria-label={t("statusLabel")}');
     expect(receivables).toContain('role="tab"');
     expect(receivables).toContain("aria-selected");
   });
@@ -148,43 +148,43 @@ describe("financial responsiveness and accessibility", () => {
 
   it("adds aria-label to all data tables", () => {
     const contractList = read("src/components/financial/contracts/contract-list.tsx");
-    expect(contractList).toContain('aria-label="Contracts"');
+    expect(contractList).toContain('aria-label={t("tableLabel")}');
     const receivables = read("src/components/financial/receivables/receivables-list.tsx");
-    expect(receivables).toContain('aria-label="Receivables"');
+    expect(receivables).toContain('aria-label={t("tableLabel")}');
     const clientList = read("src/components/financial/clients/client-list.tsx");
-    expect(clientList).toContain('aria-label="Clients"');
+    expect(clientList).toContain('aria-label={t("tableLabel")}');
     const detail = read("src/components/financial/contracts/contract-detail.tsx");
-    expect(detail).toContain('aria-label="Contract items"');
-    expect(detail).toContain('aria-label="Installments"');
-    expect(detail).toContain('aria-label="Upsell and downsell history"');
-    expect(detail).toContain('aria-label="Audit history"');
+    expect(detail).toContain('aria-label={t("itemsAria")}');
+    expect(detail).toContain('aria-label={t("installmentsAria")}');
+    expect(detail).toContain('aria-label={t("changesAria")}');
+    expect(detail).toContain('aria-label={t("auditAria")}');
     const clientDetail = read("src/components/financial/clients/client-detail.tsx");
-    expect(clientDetail).toContain('aria-label="Contract history"');
+    expect(clientDetail).toContain('aria-label={t("contractHistoryLabel")}');
   });
 
   it("adds aria-label to list containers", () => {
     const overview = read("src/components/financial/overview/overview-page.tsx");
-    expect(overview).toContain('aria-label="Overdue installments"');
-    expect(overview).toContain('aria-label="Expiring contracts"');
+    expect(overview).toContain('aria-label={t("overdueListAria")}');
+    expect(overview).toContain('aria-label={t("expiringListAria")}');
     const contractDetail = read("src/components/financial/contracts/contract-detail.tsx");
-    expect(contractDetail).toContain('aria-label="Linked projects"');
-    expect(contractDetail).toContain('aria-label="Audit history"');
+    expect(contractDetail).toContain('aria-label={t("linkedProjectsAria")}');
+    expect(contractDetail).toContain('aria-label={t("auditAria")}');
   });
 
   it("adds role=search to filter areas", () => {
     const search = read("src/components/financial/contracts/contract-search-filters.tsx");
     expect(search).toContain('role="search"');
-    expect(search).toContain('aria-label="Contract filters"');
+    expect(search).toContain('aria-label={t("filtersLabel")}');
     const clientList = read("src/components/financial/clients/client-list.tsx");
     expect(clientList).toContain('role="search"');
-    expect(clientList).toContain('aria-label="Client search and filters"');
+    expect(clientList).toContain('aria-label={t("searchFiltersLabel")}');
   });
 
   it("adds aria-label to client detail summary cards", () => {
     const detail = read("src/components/financial/clients/client-detail.tsx");
-    expect(detail).toContain('aria-label="Contract count"');
-    expect(detail).toContain('aria-label="Active contracted value"');
-    expect(detail).toContain('aria-label="Linked projects count"');
+    expect(detail).toContain('aria-label={t("contractCountLabel")}');
+    expect(detail).toContain('aria-label={t("activeValueLabel")}');
+    expect(detail).toContain('aria-label={t("projectsCountLabel")}');
     expect(detail).toContain('id="client-summary"');
   });
 
@@ -222,8 +222,8 @@ describe("financial responsiveness and accessibility", () => {
     const overview = read("src/components/financial/overview/overview-page.tsx");
     expect(overview).toContain("useProjects");
     expect(overview).toContain("useClients");
-    expect(overview).toContain("Contract status");
-    expect(overview).toContain("Installment status");
-    expect(overview).toContain('aria-label="Global filters"');
+    expect(overview).toContain('t("contractStatus")');
+    expect(overview).toContain('t("installmentStatus")');
+    expect(overview).toContain('aria-label={t("globalFilters")}');
   });
 });

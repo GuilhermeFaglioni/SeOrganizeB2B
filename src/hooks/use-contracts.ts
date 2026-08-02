@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toastError } from "@/lib/toast";
 import { fetchJson, qs } from "@/lib/financial/http";
 import type {
@@ -83,6 +84,7 @@ export function useContract(contractId: string) {
 
 export function useCreateContract() {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.contracts");
   return useMutation({
     mutationFn: (data: {
       title: string;
@@ -115,12 +117,13 @@ export function useCreateContract() {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["overview"] });
     },
-    onError: () => toastError("Failed to create contract"),
+    onError: () => toastError(t("createFailed")),
   });
 }
 
 export function useUpdateContract() {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.contracts");
   return useMutation({
     mutationFn: ({
       id,
@@ -157,12 +160,13 @@ export function useUpdateContract() {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["overview"] });
     },
-    onError: () => toastError("Failed to update contract"),
+    onError: () => toastError(t("updateFailed")),
   });
 }
 
 export function useDeleteContract() {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.contracts");
   return useMutation({
     mutationFn: (id: string) =>
       fetchJson(`/api/contracts/${id}`, { method: "DELETE" }),
@@ -170,12 +174,13 @@ export function useDeleteContract() {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["overview"] });
     },
-    onError: () => toastError("Failed to delete contract"),
+    onError: () => toastError(t("deleteFailed")),
   });
 }
 
 export function useContractLifecycle() {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.contracts");
   return useMutation({
     mutationFn: ({
       id,
@@ -205,12 +210,13 @@ export function useContractLifecycle() {
       queryClient.invalidateQueries({ queryKey: ["overview"] });
       queryClient.invalidateQueries({ queryKey: ["receivables"] });
     },
-    onError: () => toastError("Lifecycle action failed"),
+    onError: () => toastError(t("lifecycleFailed")),
   });
 }
 
 export function useContractChange() {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.contracts");
   return useMutation({
     mutationFn: ({
       id,
@@ -235,6 +241,6 @@ export function useContractChange() {
       queryClient.invalidateQueries({ queryKey: ["overview"] });
       queryClient.invalidateQueries({ queryKey: ["receivables"] });
     },
-    onError: () => toastError("Failed to apply contract change"),
+    onError: () => toastError(t("changeFailed")),
   });
 }
