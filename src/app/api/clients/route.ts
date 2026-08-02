@@ -19,10 +19,22 @@ export async function GET(request: NextRequest) {
   const pageSize = Number.isNaN(parsedPageSize)
     ? 25
     : Math.min(50, Math.max(1, parsedPageSize));
-  const activeOnly = searchParams.get("active") !== "false";
+  const activeParam = searchParams.get("active");
+  const activeFilter: "active" | "inactive" | "all" =
+    activeParam === "true"
+      ? "active"
+      : activeParam === "false"
+        ? "inactive"
+        : activeParam === "all"
+          ? "all"
+          : "active";
 
   const where = {
-    ...(activeOnly ? { active: true } : {}),
+    ...(activeFilter === "active"
+      ? { active: true }
+      : activeFilter === "inactive"
+        ? { active: false }
+        : {}),
     ...(search
       ? {
           OR: [

@@ -122,4 +122,60 @@ describe("clients API route behavior", () => {
     });
     expect(res.status).toBe(404);
   });
+
+  it("filters active clients when active=true", async () => {
+    mockPrisma.client.findMany.mockResolvedValue([{ id: "c1", name: "A", active: true }]);
+    mockPrisma.client.count.mockResolvedValue(1);
+
+    await listClients(makeRequest("http://x/api/clients?active=true"));
+
+    const where = mockPrisma.client.findMany.mock.calls[0][0].where;
+    expect(where).toEqual({ active: true });
+    const countWhere = mockPrisma.client.count.mock.calls[0][0].where;
+    expect(countWhere).toEqual({ active: true });
+  });
+
+  it("filters inactive clients when active=false", async () => {
+    mockPrisma.client.findMany.mockResolvedValue([{ id: "c2", name: "B", active: false }]);
+    mockPrisma.client.count.mockResolvedValue(1);
+
+    await listClients(makeRequest("http://x/api/clients?active=false"));
+
+    const where = mockPrisma.client.findMany.mock.calls[0][0].where;
+    expect(where).toEqual({ active: false });
+    const countWhere = mockPrisma.client.count.mock.calls[0][0].where;
+    expect(countWhere).toEqual({ active: false });
+  });
+
+  it("returns all clients when active=all (no active predicate)", async () => {
+    mockPrisma.client.findMany.mockResolvedValue([]);
+    mockPrisma.client.count.mockResolvedValue(0);
+
+    await listClients(makeRequest("http://x/api/clients?active=all"));
+
+    const where = mockPrisma.client.findMany.mock.calls[0][0].where;
+    expect(where).not.toHaveProperty("active");
+    const countWhere = mockPrisma.client.count.mock.calls[0][0].where;
+    expect(countWhere).not.toHaveProperty("active");
+  });
+
+  it("defaults to active-only when active param is omitted (backward compat)", async () => {
+    mockPrisma.client.findMany.mockResolvedValue([]);
+    mockPrisma.client.count.mockResolvedValue(0);
+
+    await listClients(makeRequest("http://x/api/clients"));
+
+    const where = mockPrisma.client.findMany.mock.calls[0][0].where;
+    expect(where).toEqual({ active: true });
+  });
+
+  it("defaults to active-only for unrecognized active values (backward compat)", async () => {
+    mockPrisma.client.findMany.mockResolvedValue([]);
+    mockPrisma.client.count.mockResolvedValue(0);
+
+    await listClients(makeRequest("http://x/api/clients?active=garbage"));
+
+    const where = mockPrisma.client.findMany.mock.calls[0][0].where;
+    expect(where).toEqual({ active: true });
+  });
 });

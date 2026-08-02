@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Plus, Search } from "lucide-react";
-import { useClients, type ClientData } from "@/hooks/use-clients";
+import { useClients } from "@/hooks/use-clients";
 import { FinancialEmptyState } from "@/components/financial/shared/empty-state";
 import { FinancialErrorState } from "@/components/financial/shared/error-state";
 import { Pagination } from "@/components/financial/contracts/pagination";
@@ -24,7 +24,8 @@ export function ClientList() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
   const [page, setPage] = useState(1);
 
-  const apiActive = statusFilter === "active";
+  const apiActive: true | false | "all" =
+    statusFilter === "active" ? true : statusFilter === "inactive" ? false : "all";
 
   const { data, isLoading, isError, refetch } = useClients({
     search: query || undefined,
@@ -32,11 +33,6 @@ export function ClientList() {
     pageSize: 25,
     active: apiActive,
   });
-
-  const items: ClientData[] =
-    statusFilter === "inactive"
-      ? (data?.items ?? []).filter((c) => !c.active)
-      : (data?.items ?? []);
 
   if (isLoading) return <LoadingState />;
   if (isError || !data) {
@@ -111,7 +107,7 @@ export function ClientList() {
         </Link>
       </div>
 
-      {items.length === 0 ? (
+      {data.items.length === 0 ? (
         <FinancialEmptyState
           title={
             statusFilter === "inactive"
@@ -148,7 +144,7 @@ export function ClientList() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {items.map((client) => (
+              {data.items.map((client) => (
                 <tr
                   key={client.id}
                   className={cn(

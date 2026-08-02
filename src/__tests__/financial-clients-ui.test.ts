@@ -70,7 +70,7 @@ describe("clients UI", () => {
     const list = read("src/components/financial/clients/client-list.tsx");
     expect(list).toContain('role="radiogroup"');
     expect(list).toContain('aria-label="Filter by status"');
-    expect(list).toContain('aria-checked');
+    expect(list).toContain("aria-checked");
     expect(list).toContain('"all"');
     expect(list).toContain('"active"');
     expect(list).toContain('"inactive"');
@@ -81,15 +81,17 @@ describe("clients UI", () => {
     expect(list).toContain("setPage(1)");
   });
 
-  it("list sends active=false for All filter to omit active param from API", () => {
+  it("list sends true/false/all to useClients active param", () => {
     const list = read("src/components/financial/clients/client-list.tsx");
+    expect(list).toContain('"all"');
     expect(list).toContain("apiActive");
-    expect(list).toContain('statusFilter === "active"');
+    expect(list).toContain("statusFilter === \"active\" ? true");
   });
 
-  it("list filters inactive clients client-side when Inactive selected", () => {
+  it("list does not client-side filter inactive clients (server-side only)", () => {
     const list = read("src/components/financial/clients/client-list.tsx");
-    expect(list).toContain("filter((c) => !c.active)");
+    expect(list).not.toContain("filter((c) => !c.active)");
+    expect(list).not.toContain("ClientData");
   });
 
   it("list shows inactive badge and reduced opacity for inactive rows", () => {
@@ -101,5 +103,12 @@ describe("clients UI", () => {
   it("list shows Status column only in All filter", () => {
     const list = read("src/components/financial/clients/client-list.tsx");
     expect(list).toContain('statusFilter === "all"');
+  });
+
+  it("list uses data.items directly (no local items variable)", () => {
+    const list = read("src/components/financial/clients/client-list.tsx");
+    expect(list).toContain("data.items.length === 0");
+    expect(list).toContain("data.items.map");
+    expect(list).not.toContain("\n  const items");
   });
 });

@@ -19,8 +19,8 @@ export interface ClientListFilters {
   search?: string;
   page?: number;
   pageSize?: number;
-  active?: boolean;
-  [key: string]: string | number | boolean | undefined;
+  active?: boolean | "all";
+  [key: string]: string | number | boolean | "all" | undefined;
 }
 
 export function useClients(filters: ClientListFilters) {
