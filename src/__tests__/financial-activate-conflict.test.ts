@@ -222,4 +222,78 @@ describe("activateContract conflict logic", () => {
     expect(tx.installment.createMany).toHaveBeenCalledTimes(1);
     expect(tx.contractProject.deleteMany).not.toHaveBeenCalled();
   });
+
+  it("rejects activation of a cancelled contract", async () => {
+    resetTx();
+
+    const contractId = "cancelled-1";
+
+    tx.contract.findUnique.mockImplementation(async (args: { where: { id: string } }) => {
+      if (args.where.id === contractId) {
+        return {
+          id: contractId,
+          clientId: "client-1",
+          title: "Cancelled Contract",
+          durationType: "fixed",
+          officialValue: toDecimal("100.00"),
+          startDate: "2026-09-01",
+          endDate: "2027-08-31",
+          billingFrequency: "monthly",
+          status: "cancelled",
+          predecessorId: null,
+          projects: [],
+        };
+      }
+      return null;
+    });
+
+    await expect(
+      activateContract(contractId, plan, "actor-1")
+    ).rejects.toThrow(FinancialConflictError);
+
+    await expect(
+      activateContract(contractId, plan, "actor-1")
+    ).rejects.toThrow("Only draft contracts can be activated");
+
+    expect(tx.installment.createMany).not.toHaveBeenCalled();
+    expect(tx.contract.update).not.toHaveBeenCalled();
+    expect(tx.contractProject.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("rejects activation of an active contract", async () => {
+    resetTx();
+
+    const contractId = "active-1";
+
+    tx.contract.findUnique.mockImplementation(async (args: { where: { id: string } }) => {
+      if (args.where.id === contractId) {
+        return {
+          id: contractId,
+          clientId: "client-1",
+          title: "Already Active",
+          durationType: "fixed",
+          officialValue: toDecimal("100.00"),
+          startDate: "2026-09-01",
+          endDate: "2027-08-31",
+          billingFrequency: "monthly",
+          status: "active",
+          predecessorId: null,
+          projects: [],
+        };
+      }
+      return null;
+    });
+
+    await expect(
+      activateContract(contractId, plan, "actor-1")
+    ).rejects.toThrow(FinancialConflictError);
+
+    await expect(
+      activateContract(contractId, plan, "actor-1")
+    ).rejects.toThrow("Only draft contracts can be activated");
+
+    expect(tx.installment.createMany).not.toHaveBeenCalled();
+    expect(tx.contract.update).not.toHaveBeenCalled();
+    expect(tx.contractProject.deleteMany).not.toHaveBeenCalled();
+  });
 });

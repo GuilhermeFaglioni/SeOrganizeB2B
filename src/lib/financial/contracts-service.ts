@@ -204,6 +204,11 @@ export async function activateContract(
       include: { projects: true },
     });
     if (!contract) throw new FinancialValidationError("Contract not found");
+    if (contract.status !== "draft") {
+      throw new FinancialConflictError(
+        "Only draft contracts can be activated"
+      );
+    }
 
     const errors = activationErrors(
       {
