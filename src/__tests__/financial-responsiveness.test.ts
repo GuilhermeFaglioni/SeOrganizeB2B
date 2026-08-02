@@ -74,12 +74,13 @@ describe("financial responsiveness and accessibility", () => {
     expect(pagination).toContain("focus-visible:ring-2");
   });
 
-  it("adds ARIA tab semantics to financial tabs", () => {
+  it("uses navigation semantics (not ARIA tabs) for financial section links", () => {
     const tabs = read("src/components/financial/financial-tabs.tsx");
-    expect(tabs).toContain('role="tablist"');
-    expect(tabs).toContain('role="tab"');
-    expect(tabs).toContain("aria-selected");
+    expect(tabs).toContain('aria-label="Financial sections"');
     expect(tabs).toContain("aria-current");
+    expect(tabs).not.toContain('role="tablist"');
+    expect(tabs).not.toContain('role="tab"');
+    expect(tabs).not.toContain("aria-selected");
   });
 
   it("adds ARIA tab semantics to receivables status tabs", () => {
@@ -209,6 +210,12 @@ describe("financial responsiveness and accessibility", () => {
     expect(receivables).toContain('aria-live="polite"');
     const clientList = read("src/components/financial/clients/client-list.tsx");
     expect(clientList).toContain('aria-live="polite"');
+  });
+
+  it("adds focus-visible ring classes to date inputs in financial filters", () => {
+    const filters = read("src/components/financial/overview/financial-filters.tsx");
+    expect(filters).toContain("focus-visible:ring-2");
+    expect(filters).toContain("focus-visible:ring-accent");
   });
 
   it("adds global filter selects to overview page", () => {

@@ -41,7 +41,7 @@ export function FinancialFilters({
               type="date"
               value={filters.from ?? ""}
               onChange={(event) => onChange({ ...filters, from: event.target.value || undefined })}
-              className="ml-2 rounded-md border border-border bg-page-alt px-2 py-1.5 text-sm"
+              className="ml-2 rounded-md border border-border bg-page-alt px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             />
           </label>
           <label className="text-sm text-text-secondary">
@@ -50,7 +50,7 @@ export function FinancialFilters({
               type="date"
               value={filters.to ?? ""}
               onChange={(event) => onChange({ ...filters, to: event.target.value || undefined })}
-              className="ml-2 rounded-md border border-border bg-page-alt px-2 py-1.5 text-sm"
+              className="ml-2 rounded-md border border-border bg-page-alt px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             />
           </label>
         </div>
