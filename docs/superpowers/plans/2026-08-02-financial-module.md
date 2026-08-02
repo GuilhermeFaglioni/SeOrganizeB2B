@@ -5707,6 +5707,14 @@ describe("contracts UI", () => {
     expect(form).toContain('action: "activate"');
   });
 
+  it("defaults a missing item quantity to 1 in the item-price sum", () => {
+    const form = read("src/components/financial/contracts/contract-form.tsx");
+    expect(form).toContain('.times(toDecimal(item.quantity ?? "1"))');
+    expect(form).toContain("toDecimal(0)");
+    expect(form).not.toContain("String(Number(");
+    expect(form).not.toContain(".times(toDecimal(item.quantity ?? \"0\"))");
+  });
+
   it("exposes lifecycle actions including renew and cancel", () => {
     const actions = read("src/components/financial/contracts/lifecycle-actions.tsx");
     expect(actions).toContain("activate");
@@ -6152,7 +6160,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
       items.reduce(
         (acc, item) =>
           acc.plus(
-            toDecimal(item.price ?? "0").times(toDecimal(item.quantity ?? "0"))
+            toDecimal(item.price ?? "0").times(toDecimal(item.quantity ?? "1"))
           ),
         toDecimal(0)
       ),
@@ -8370,22 +8378,24 @@ integrated review must be `APPROVED` before proceeding.
 
 - [ ] **Step 8: Commit pending changes, push and open the single PR**
 
-Under the continuous authorization granted at the start of the plan, commit
-any pending changes (including any `fix(financial): ...` defect fixes), push
-the branch, and open exactly one pull request after the gates above are green
-and the integrated review is approved:
+Under the continuous authorization granted at the start of the plan, ensure
+every task commit is in place and commit any remaining pending changes
+(including any `fix(financial): ...` defect fixes). Then push the branch and
+open exactly one pull request after the gates above are green and the
+integrated review is approved:
 
 ```bash
+git status
 git add -A
-git commit -m "feat(financial): complete financial module"
+git commit -m "feat(financial): final pending changes" # only when the working tree is not clean
 git push origin feat/financial-module
 gh pr create --base main --head feat/financial-module \
   --title "feat(financial): financial module" \
   --body "Implements the financial module. All verification gates green and integrated review approved."
 ```
 
-Expected: exactly one commit lands, the branch is pushed, and a single PR
-targeting `main` is created.
+Expected: any pending changes are committed, the branch is pushed, and exactly
+one PR targeting `main` is created.
 
 ---
 
