@@ -24,9 +24,11 @@ Vitest. No new runtime dependencies are required (Prisma ships decimal.js).
 
 **Execution constraints:** Work on `feat/financial-module`. One implementation
 agent writes at a time; never edit files in parallel. Never modify paid
-installments. Do not push or open a PR without separate explicit authorization.
-Apply the new migration only when the local database is reachable; otherwise
-validate without applying and note it.
+installments. Continuous authorization is granted to commit after each task.
+Pushing the branch (`feat/financial-module`) and opening the single pull request
+is authorized only after Task 18 gates are green and the final integrated
+review is `APPROVED`. Apply the new migration only when the local database is
+reachable; otherwise validate without applying and note it.
 
 ---
 
@@ -746,6 +748,10 @@ export interface ContractSummary {
   startDate: string;
   endDate: string | null;
   billingFrequency: BillingFrequency | null;
+  clientId: string;
+  ownerId: string | null;
+  notes: string | null;
+  paymentMethod: string;
   client: { id: string; name: string };
 }
 
@@ -1308,8 +1314,8 @@ describe("forecast, received and overdue", () => {
     { status: "pending", expectedAmount: toDecimal("300"), dueDate: "2026-07-31", paidAt: null },
   ];
 
-  it("groups forecast and received by month boundaries", () => {
-    expect(moneyToJson(forecastTotal(installments, "2026-08-01", "2026-08-31"))).toBe("1000.00");
+  it("groups non-cancelled forecast and received by month boundaries", () => {
+    expect(moneyToJson(forecastTotal(installments, "2026-08-01", "2026-08-31"))).toBe("1500.00");
     expect(moneyToJson(receivedTotal(installments, "2026-08-01", "2026-08-31"))).toBe("500.00");
   });
 
@@ -1320,7 +1326,7 @@ describe("forecast, received and overdue", () => {
   it("builds monthly chart points for the selected range", () => {
     const points = groupMonthly(installments, "2026-08-01", "2026-09-30");
     expect(points.map((p) => p.month)).toEqual(["2026-08", "2026-09"]);
-    expect(moneyToJson(points[0].forecast)).toBe("1000.00");
+    expect(moneyToJson(points[0].forecast)).toBe("1500.00");
     expect(moneyToJson(points[0].received)).toBe("500.00");
     expect(moneyToJson(points[1].forecast)).toBe("0.00");
   });
@@ -1370,9 +1376,6 @@ Create `src/lib/financial/metrics.ts`:
 import type {
   BillingFrequency,
   ChangeType,
-  ContractStatus,
-  DurationType,
-  InstallmentStatus,
 } from "./types";
 import { addDaysCivil, compareCivil, diffMonths, isWithin } from "./civil-date";
 import { Money, div, mul, sum, toDecimal, moneyToJson } from "./money";
@@ -1393,8 +1396,8 @@ export function monthlyValue(
 
 interface ContractForMrr {
   officialValue: Money;
-  durationType: DurationType;
-  billingFrequency: BillingFrequency | null;
+  durationType: string;
+  billingFrequency: string | null;
   startDate: string;
   endDate: string | null;
 }
@@ -1403,7 +1406,10 @@ export function mrrForContract(contract: ContractForMrr): Money | null {
   if (contract.durationType === "oneTime") return null;
   if (contract.durationType === "openEnded") {
     if (!contract.billingFrequency) return null;
-    return monthlyValue(contract.officialValue, contract.billingFrequency);
+    return monthlyValue(
+      contract.officialValue,
+      contract.billingFrequency as BillingFrequency
+    );
   }
   if (!contract.endDate) return null;
   const months = Math.max(1, diffMonths(contract.startDate, contract.endDate));
@@ -1416,7 +1422,7 @@ export function arrForContract(contract: ContractForMrr): Money | null {
 }
 
 export interface InstallmentLike {
-  status: InstallmentStatus;
+  status: string;
   expectedAmount: Money;
   dueDate: string;
   paidAt: string | null;
@@ -1502,8 +1508,8 @@ export function isExpiringSoon(
 
 export function activeContractedValue(
   contracts: Array<{
-    status: ContractStatus;
-    durationType: DurationType;
+    status: string;
+    durationType: string;
     officialValue: Money;
   }>
 ): Money {
@@ -1520,7 +1526,7 @@ export function activeContractedValue(
 
 export function sumChangeDeltas(
   changes: Array<{
-    type: ChangeType;
+    type: string;
     delta: Money;
     effectiveDate: string;
   }>,
@@ -1717,9 +1723,7 @@ Create `src/lib/financial/lifecycle.ts`:
 ```ts
 import type {
   ContractStatus,
-  DurationType,
   InstallmentPlanItem,
-  InstallmentStatus,
   LifecycleAction,
 } from "./types";
 import { compareCivil } from "./civil-date";
@@ -1739,10 +1743,10 @@ const TRANSITIONS: Record<ContractStatus, Partial<Record<LifecycleAction, Contra
 };
 
 export function transition(
-  current: ContractStatus,
+  current: string,
   action: LifecycleAction
 ): ContractStatus {
-  const next = TRANSITIONS[current]?.[action];
+  const next = TRANSITIONS[current as ContractStatus]?.[action];
   if (!next) {
     throw new FinancialConflictError(
       `Cannot ${action} a contract in status ${current}`
@@ -1751,19 +1755,18 @@ export function transition(
   return next;
 }
 
-export function renewablePredecessor(status: ContractStatus): boolean {
+export function renewablePredecessor(status: string): boolean {
   return status === "active" || status === "suspended";
 }
 
 interface ContractForActivation {
   clientId: string;
   title: string;
-  durationType: DurationType;
+  durationType: string;
   officialValue: Money;
   startDate: string;
   endDate: string | null;
   billingFrequency: string | null;
-  status: ContractStatus;
 }
 
 export function activationErrors(
@@ -1794,7 +1797,7 @@ export function activationErrors(
 export function cancellationPlan(
   installments: Array<{
     id: string;
-    status: InstallmentStatus;
+    status: string;
     dueDate: string;
   }>,
   effectiveDate: string,
@@ -1895,8 +1898,8 @@ export interface FinancialAuditInput {
   contractId: string;
   actorId: string | null;
   field: string;
-  beforeValue?: unknown;
-  afterValue?: unknown;
+  beforeValue?: Prisma.InputJsonValue;
+  afterValue?: Prisma.InputJsonValue;
   reason?: string | null;
 }
 
@@ -1909,13 +1912,22 @@ export async function recordFinancialAudit(
       contractId: input.contractId,
       actorId: input.actorId,
       field: input.field,
-      beforeValue: input.beforeValue,
-      afterValue: input.afterValue,
-      reason: input.reason ?? null,
+      ...(input.beforeValue !== undefined
+        ? { beforeValue: input.beforeValue }
+        : {}),
+      ...(input.afterValue !== undefined
+        ? { afterValue: input.afterValue }
+        : {}),
+      ...(input.reason ? { reason: input.reason } : {}),
     },
   });
 }
 ```
+
+> Consistency note: callers must pass `Prisma.InputJsonValue`-compatible values
+> (strings, numbers, booleans, JSON objects/arrays). Use the `afterValue`
+> field for single-sided entries and omit `beforeValue` instead of passing
+> `null`.
 
 - [ ] **Step 6: Run the test to verify it passes**
 
@@ -1965,7 +1977,7 @@ describe("financial transactional services", () => {
 
   it("guards project conflicts and renewal predecessors", () => {
     const source = read("src/lib/financial/contracts-service.ts");
-    expect(source).toContain("conflicting active");
+    expect(source).toContain("already belongs to another active contract");
     expect(source).toContain("renewablePredecessor");
     expect(source).toContain("contractProject.deleteMany");
   });
@@ -2249,7 +2261,7 @@ export async function activateContract(
     if (
       contract.predecessorId &&
       predecessor &&
-      !renewablePredecessor(predecessor.status as never)
+      !renewablePredecessor(predecessor.status)
     ) {
       throw new FinancialConflictError(
         "Predecessor is not in a renewable state"
@@ -2316,6 +2328,11 @@ export async function applyLifecycleAction(
     if (!contract) throw new FinancialValidationError("Contract not found");
 
     if (action === "renew") {
+      if (!renewablePredecessor(contract.status)) {
+        throw new FinancialConflictError(
+          "Only active or suspended contracts can be renewed"
+        );
+      }
       const code = await nextContractCode(tx);
       const renewal = await tx.contract.create({
         data: {
@@ -2354,7 +2371,6 @@ export async function applyLifecycleAction(
         contractId,
         actorId,
         field: "renewal",
-        beforeValue: null,
         afterValue: renewal.id,
       });
       return renewal;
@@ -2379,7 +2395,7 @@ export async function applyLifecycleAction(
       }
     }
 
-    const status = transition(contract.status as never, action);
+    const status = transition(contract.status, action);
     const updated = await tx.contract.update({
       where: { id: contractId },
       data: { status },
@@ -2711,7 +2727,7 @@ import {
 import { extendRecurringHorizons } from "./installments-service";
 import { addDaysCivil, addMonthsCivil, compareCivil, todayCivilDate } from "./civil-date";
 import { moneyToJson, sum, toDecimal } from "./money";
-import type { ContractStatus, InstallmentStatus } from "./types";
+import type { BillingFrequency, ContractStatus, InstallmentStatus } from "./types";
 
 export interface OverviewFilters {
   period: "currentMonth" | "next90" | "custom";
@@ -2750,6 +2766,7 @@ export interface OverviewData {
     code: string;
     title: string;
     clientName: string;
+    status: string;
     endDate: string;
     officialValue: string;
   }>;
@@ -2797,10 +2814,26 @@ export async function computeOverview(
 
     const active = contracts.filter((c) => c.status === "active");
     const mrr = sum(
-      active.map((c) => mrrForContract(c) ?? toDecimal(0))
+      active.map((c) =>
+        mrrForContract({
+          officialValue: c.officialValue,
+          durationType: c.durationType,
+          billingFrequency: c.billingFrequency as BillingFrequency | null,
+          startDate: c.startDate,
+          endDate: c.endDate,
+        }) ?? toDecimal(0)
+      )
     );
     const arr = sum(
-      active.map((c) => arrForContract(c) ?? toDecimal(0))
+      active.map((c) =>
+        arrForContract({
+          officialValue: c.officialValue,
+          durationType: c.durationType,
+          billingFrequency: c.billingFrequency as BillingFrequency | null,
+          startDate: c.startDate,
+          endDate: c.endDate,
+        }) ?? toDecimal(0)
+      )
     );
 
     const overdueInstallments = installments
@@ -2830,6 +2863,7 @@ export async function computeOverview(
         code: c.code,
         title: c.title,
         clientName: c.client.name,
+        status: c.status,
         endDate: c.endDate as string,
         officialValue: moneyToJson(c.officialValue),
       }));
@@ -2923,11 +2957,11 @@ describe("clients API", () => {
     expect(source).toContain("CONFLICT");
   });
 
-  it("deactivates instead of hard-deleting clients with history", () => {
+  it("deactivates clients through a patch and never hard-deletes", () => {
     const source = read("src/app/api/clients/[id]/route.ts");
-    expect(source).toContain("active: false");
-    expect(source).toContain("NOT_FOUND");
+    expect(source).toContain("body.active");
     expect(source).toContain("export async function PATCH");
+    expect(source).not.toContain("export async function DELETE");
   });
 });
 ```
@@ -3591,9 +3625,9 @@ describe("contract changes API", () => {
   it("proposes first and applies only after confirmation", () => {
     const source = read("src/app/api/contracts/[id]/changes/route.ts");
     expect(source).toContain("applyContractChange");
-    expect(source).toContain("confirm");
-    expect(source).toContain("proposal");
+    expect(source).toContain("confirm: body.confirm === true");
     expect(source).toContain("VALIDATION_ERROR");
+    expect(source).toContain("strategy");
   });
 
   it("supports redistribute and adjust strategies", () => {
@@ -4265,6 +4299,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { toDecimal } from "@/lib/financial/money";
+import { todayCivilDate } from "@/lib/financial/civil-date";
 import {
   RECEIVABLES_CSV_HEADERS,
   csvDocument,
@@ -4287,10 +4322,15 @@ export async function GET(request: NextRequest) {
   const projectId = searchParams.get("projectId") || "";
   const from = searchParams.get("from") || "";
   const to = searchParams.get("to") || "";
+  const today = todayCivilDate();
 
   const installments = await prisma.installment.findMany({
     where: {
-      ...(status ? { status } : {}),
+      ...(status === "overdue"
+        ? { status: "pending", dueDate: { lt: today } }
+        : status
+          ? { status }
+          : {}),
       ...(clientId ? { contract: { clientId } } : {}),
       ...(projectId ? { contract: { projects: { some: { projectId } } } } : {}),
       ...(from ? { dueDate: { gte: from } } : {}),
@@ -4904,6 +4944,7 @@ export interface OverviewData {
     code: string;
     title: string;
     clientName: string;
+    status: string;
     endDate: string;
     officialValue: string;
   }>;
@@ -5040,13 +5081,10 @@ describe("financial overview UI", () => {
     expect(sidebar).toContain("nav-financial");
   });
 
-  it("keeps the overview and section routes present", () => {
+  it("keeps the overview route and layout present", () => {
     for (const page of [
       "src/app/(authenticated)/financial/page.tsx",
       "src/app/(authenticated)/financial/layout.tsx",
-      "src/app/(authenticated)/financial/contracts/page.tsx",
-      "src/app/(authenticated)/financial/receivables/page.tsx",
-      "src/app/(authenticated)/financial/clients/page.tsx",
     ]) {
       expect(exists(page), page).toBe(true);
     }
@@ -5399,8 +5437,6 @@ Create `src/components/financial/overview/overview-page.tsx`:
 
 import { useState } from "react";
 import { useOverview, type OverviewFilters } from "@/hooks/use-overview";
-import { useProjects } from "@/hooks/use-projects";
-import { useClients } from "@/hooks/use-clients";
 import { KpiCard } from "@/components/financial/shared/kpi-card";
 import { MoneyText } from "@/components/financial/shared/money-text";
 import { CivilDateText } from "@/components/financial/shared/civil-date-text";
@@ -5416,8 +5452,6 @@ export function OverviewPage() {
     period: "currentMonth",
   });
   const { data, isLoading, isError, refetch } = useOverview(filters);
-  const { data: projects } = useProjects();
-  const { data: clientsData } = useClients({ pageSize: 100 });
 
   if (isLoading) return <LoadingState />;
   if (isError || !data) {
@@ -5507,9 +5541,9 @@ export function OverviewPage() {
 }
 ```
 
-Note: `projects` and `clientsData` are fetched above for the global filter
-extension in Task 17; keep them available on the page even if unused so the
-filter selects can be wired there.
+Note: the client, project, contract-status and installment-status global
+filters are wired in Task 17, which re-adds the `useProjects`/`useClients`
+queries and the select controls to this page.
 
 - [ ] **Step 7: Create the tabs, layout and overview page**
 
@@ -5658,17 +5692,19 @@ describe("contracts UI", () => {
 
   it("renders one scrollable form with collapsible sections", () => {
     const form = read("src/components/financial/contracts/contract-form.tsx");
-    expect(form).toContain("details");
-    expect(form).toContain("summary");
+    expect(form).toContain("Contract data");
     expect(form).toContain("Scope and items");
     expect(form).toContain("Linked projects");
     expect(form).toContain("Billing and installments");
+    expect(form).toContain("toggleSection");
   });
 
   it("shows a financial consistency summary before activation", () => {
     const form = read("src/components/financial/contracts/contract-form.tsx");
     expect(form).toContain("Installment total");
     expect(form).toContain("Official value");
+    expect(form).toContain("useContractLifecycle");
+    expect(form).toContain('action: "activate"');
   });
 
   it("exposes lifecycle actions including renew and cancel", () => {
@@ -6035,6 +6071,7 @@ import {
   useCreateContract,
   useUpdateContract,
   useContract,
+  useContractLifecycle,
 } from "@/hooks/use-contracts";
 import { useClients } from "@/hooks/use-clients";
 import { useProjects } from "@/hooks/use-projects";
@@ -6108,11 +6145,15 @@ export function ContractForm({ contractId }: { contractId?: string }) {
 
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
+  const lifecycle = useContractLifecycle();
 
   const itemSum = useMemo(
     () =>
       items.reduce(
-        (acc, item) => acc.plus(toDecimal(item.price && item.quantity ? String(Number(item.price) * Number(item.quantity)) : "0")),
+        (acc, item) =>
+          acc.plus(
+            toDecimal(item.price ?? "0").times(toDecimal(item.quantity ?? "0"))
+          ),
         toDecimal(0)
       ),
     [items]
@@ -6178,6 +6219,30 @@ export function ContractForm({ contractId }: { contractId?: string }) {
         onSuccess: (contract) => {
           toastSuccess("Draft saved");
           router.push(`/financial/contracts/${(contract as { id: string }).id}`);
+        },
+      });
+    }
+  }
+
+  function activate() {
+    const navigate = (id: string) => {
+      lifecycle.mutate(
+        { id, action: "activate", plan: suggestedPlan },
+        {
+          onSuccess: () => {
+            toastSuccess("Contract activated");
+            router.push(`/financial/contracts/${id}`);
+          },
+        }
+      );
+    };
+    if (contractId) {
+      navigate(contractId);
+    } else {
+      createContract.mutate(payload(), {
+        onSuccess: (contract) => {
+          toastSuccess("Draft saved");
+          navigate((contract as { id: string }).id);
         },
       });
     }
@@ -6468,29 +6533,26 @@ export function ContractForm({ contractId }: { contractId?: string }) {
         <Button variant="outline" onClick={saveDraft}>
           Save draft
         </Button>
-        <Button
-          onClick={() =>
-            contractId
-              ? updateContract.mutate({
-                  id: contractId,
-                  ...payload({ status: "active" }),
-                })
-              : undefined
-          }
-        >
-          Activate
-        </Button>
+        {(!existing || existing.status === "draft") && (
+          <Button
+            onClick={activate}
+            disabled={suggestedPlan.length === 0 || planErrors.length > 0}
+          >
+            Activate
+          </Button>
+        )}
       </div>
     </div>
   );
 }
 ```
 
-Note: the activation flow in this form currently relies on the PATCH status
-payload for simplicity; the transactional `activateContract` path is exercised
-by the lifecycle API and remains the authoritative activation in the detail
-view. If a dedicated activation submit is preferred, wire
-`useContractLifecycle` with the `suggestedPlan` and the contract id.
+The activation flow is now real: clicking **Activate** saves the draft through
+`POST /api/contracts` when no contract exists yet (or patches the existing
+draft) and then runs the transactional `activateContract` through
+`POST /api/contracts/[id]/lifecycle` with the server-consistent
+`suggestedPlan`. The button is disabled until a consistent installment plan
+exists, mirroring the activation validation on the server.
 
 Create `src/app/(authenticated)/financial/contracts/new/page.tsx`:
 
@@ -6515,6 +6577,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useContractLifecycle } from "@/hooks/use-contracts";
 import { toastSuccess } from "@/lib/toast";
+import type { InstallmentPlanItem } from "@/lib/financial/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -6528,9 +6591,11 @@ import {
 export function LifecycleActions({
   contractId,
   status,
+  plan,
 }: {
   contractId: string;
   status: string;
+  plan?: InstallmentPlanItem[];
 }) {
   const router = useRouter();
   const lifecycle = useContractLifecycle();
@@ -6552,7 +6617,12 @@ export function LifecycleActions({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {status === "draft" && (
-        <Button onClick={() => run("activate")}>Activate</Button>
+        <Button
+          onClick={() => run("activate", { plan })}
+          disabled={!plan || plan.length === 0}
+        >
+          Activate
+        </Button>
       )}
       {status === "active" && (
         <Button variant="outline" onClick={() => run("suspend")}>
@@ -6569,7 +6639,7 @@ export function LifecycleActions({
           Close
         </Button>
       )}
-      {(status === "active" || status === "suspended" || status === "draft") && (
+      {(status === "active" || status === "suspended") && (
         <Button variant="outline" onClick={() => run("renew")}>
           Renew
         </Button>
@@ -6780,9 +6850,11 @@ Create `src/components/financial/contracts/contract-detail.tsx`:
 ```tsx
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useContract } from "@/hooks/use-contracts";
 import { useMarkInstallmentPaid } from "@/hooks/use-installments";
+import { suggestPlan } from "@/lib/financial/installments";
+import { toDecimal } from "@/lib/financial/money";
 import { MoneyText } from "@/components/financial/shared/money-text";
 import { CivilDateText } from "@/components/financial/shared/civil-date-text";
 import { StatusBadge } from "@/components/financial/shared/status-badge";
@@ -6796,6 +6868,22 @@ export function ContractDetail({ contractId }: { contractId: string }) {
   const { data: contract, isLoading, isError, refetch } = useContract(contractId);
   const markPaid = useMarkInstallmentPaid();
   const [changeOpen, setChangeOpen] = useState(false);
+
+  const activationPlan = useMemo(() => {
+    if (!contract) return [];
+    try {
+      return suggestPlan(
+        toDecimal(contract.officialValue),
+        contract.durationType,
+        contract.startDate,
+        contract.endDate,
+        contract.billingFrequency,
+        contract.paymentMethod as never
+      );
+    } catch {
+      return [];
+    }
+  }, [contract]);
 
   if (isLoading) return <LoadingState />;
   if (isError || !contract) {
@@ -6813,7 +6901,11 @@ export function ContractDetail({ contractId }: { contractId: string }) {
         <div className="flex flex-col items-end gap-2">
           <StatusBadge status={contract.status} />
           <div className="flex flex-wrap gap-2">
-            <LifecycleActions contractId={contract.id} status={contract.status} />
+            <LifecycleActions
+              contractId={contract.id}
+              status={contract.status}
+              plan={activationPlan}
+            />
             {contract.status === "active" && (
               <Button variant="outline" onClick={() => setChangeOpen(true)}>
                 Adjust value
@@ -7552,7 +7644,7 @@ describe("clients UI", () => {
   it("consolidates contract and revenue history on the detail", () => {
     const detail = read("src/components/financial/clients/client-detail.tsx");
     expect(detail).toContain("contracts");
-    expect(detail).toContain("Revenue");
+    expect(detail).toContain("Contract and revenue history");
   });
 
   it("deactivates instead of deleting clients", () => {
@@ -7824,6 +7916,7 @@ Create `src/components/financial/clients/client-detail.tsx`:
 
 import { useClient } from "@/hooks/use-clients";
 import { useDeactivateClient } from "@/hooks/use-clients";
+import { toDecimal, sum } from "@/lib/financial/money";
 import { MoneyText } from "@/components/financial/shared/money-text";
 import { CivilDateText } from "@/components/financial/shared/civil-date-text";
 import { StatusBadge } from "@/components/financial/shared/status-badge";
@@ -7852,9 +7945,11 @@ export function ClientDetail({ clientId }: { clientId: string }) {
   }
 
   const contracts = (client.contracts ?? []) as ClientContract[];
-  const revenue = contracts
-    .filter((contract) => contract.status === "active")
-    .reduce((acc, contract) => acc + Number(contract.officialValue), 0);
+  const revenue = sum(
+    contracts
+      .filter((contract) => contract.status === "active")
+      .map((contract) => toDecimal(contract.officialValue))
+  );
   const activeProjects = contracts.reduce(
     (acc, contract) => acc + (contract._count?.projects ?? 0),
     0
@@ -8081,10 +8176,24 @@ region wrapper in `overview-page.tsx` around the KPI grid:
 
 - [ ] **Step 4: Add global filter wiring to the overview page**
 
-In `src/components/financial/overview/overview-page.tsx`, replace the empty
-`useState` filter setup with client, project, contract-status and
-installment-status selects. Update the imports to include `useProjects`,
-`useClients` and add the selects below `FinancialFilters`:
+In `src/components/financial/overview/overview-page.tsx`, re-add the
+`useProjects` and `useClients` queries (removed in Task 13) and add client,
+project, contract-status and installment-status selects below
+`FinancialFilters`:
+
+```tsx
+import { useProjects } from "@/hooks/use-projects";
+import { useClients } from "@/hooks/use-clients";
+```
+
+Inside `OverviewPage`, after the `useOverview(filters)` call, add:
+
+```tsx
+  const { data: projects } = useProjects();
+  const { data: clientsData } = useClients({ pageSize: 100 });
+```
+
+Then render the global filter selects below `FinancialFilters`:
 
 ```tsx
       <div className="flex flex-wrap items-center gap-3">
@@ -8252,22 +8361,31 @@ git diff --check
 
 Expected: no output.
 
-- [ ] **Step 7: Review the working tree and confirm scope**
+- [ ] **Step 7: Run the final integrated review**
+
+Review the complete `git diff` end-to-end against the design spec and the
+tasks, covering schema, services, controllers, hooks, UI and tests. Confirm
+the scope contains only financial-module files plus any defect fixes. The
+integrated review must be `APPROVED` before proceeding.
+
+- [ ] **Step 8: Commit pending changes, push and open the single PR**
+
+Under the continuous authorization granted at the start of the plan, commit
+any pending changes (including any `fix(financial): ...` defect fixes), push
+the branch, and open exactly one pull request after the gates above are green
+and the integrated review is approved:
 
 ```bash
-git status
-git diff --stat
+git add -A
+git commit -m "feat(financial): complete financial module"
+git push origin feat/financial-module
+gh pr create --base main --head feat/financial-module \
+  --title "feat(financial): financial module" \
+  --body "Implements the financial module. All verification gates green and integrated review approved."
 ```
 
-Expected: only financial-module files plus any defect fixes are modified. No
-push and no PR.
-
-- [ ] **Step 8: Prepare the commit summary**
-
-Review `git status`, `git diff --stat` and `git diff`. If any defect fix was
-required, request explicit commit approval with a `fix(financial): ...`
-message; otherwise state that all gates are green and no further commit is
-needed.
+Expected: exactly one commit lands, the branch is pushed, and a single PR
+targeting `main` is created.
 
 ---
 
