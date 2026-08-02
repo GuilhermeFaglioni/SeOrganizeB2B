@@ -115,7 +115,6 @@ export interface ContractUpdateInput {
   paymentMethod?: PaymentMethod;
   documentUrl?: string | null;
   notes?: string | null;
-  status?: string;
   items?: Array<{
     name: string;
     description?: string | null;
@@ -254,7 +253,6 @@ export async function updateContract(
     if (input.paymentMethod !== undefined) data.paymentMethod = input.paymentMethod;
     if (input.documentUrl !== undefined) data.documentUrl = input.documentUrl;
     if (input.notes !== undefined) data.notes = input.notes;
-    if (input.status !== undefined) data.status = input.status;
     return tx.contract.update({
       where: { id: contractId },
       data,

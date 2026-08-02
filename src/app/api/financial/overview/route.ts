@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { computeOverview } from "@/lib/financial/overview-service";
+import { mapFinancialError } from "@/lib/financial/http";
 import type { ContractStatus, InstallmentStatus } from "@/lib/financial/types";
 
 export async function GET(request: NextRequest) {
@@ -41,15 +42,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data, error: null });
   } catch (error) {
-    return NextResponse.json(
-      {
-        data: null,
-        error: {
-          code: "INTERNAL_ERROR",
-          message: (error as Error).message,
-        },
-      },
-      { status: 500 }
-    );
+    return mapFinancialError(error);
   }
 }

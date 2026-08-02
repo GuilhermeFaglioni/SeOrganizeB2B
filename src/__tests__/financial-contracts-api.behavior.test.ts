@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
+import { FinancialConflictError } from "../lib/financial/lifecycle";
 
 const { mockPrisma, mockCreateContractDraft, mockUpdateContract, mockDeleteDraftContract } =
   vi.hoisted(() => ({
@@ -354,9 +355,9 @@ describe("contracts API route behavior", () => {
     });
 
     it("returns 409 when service throws FinancialConflictError", async () => {
-      const err = new Error("Conflict") as Error & { name: string };
-      err.name = "FinancialConflictError";
-      mockCreateContractDraft.mockRejectedValue(err);
+      mockCreateContractDraft.mockRejectedValue(
+        new FinancialConflictError("Conflict")
+      );
 
       const res = await createContract(
         makeRequest("http://x/api/contracts", {
@@ -533,9 +534,9 @@ describe("contracts API route behavior", () => {
     });
 
     it("returns 409 when service throws FinancialConflictError", async () => {
-      const err = new Error("Only draft and active contracts can be edited") as Error & { name: string };
-      err.name = "FinancialConflictError";
-      mockUpdateContract.mockRejectedValue(err);
+      mockUpdateContract.mockRejectedValue(
+        new FinancialConflictError("Only draft and active contracts can be edited")
+      );
 
       const res = await patchContract(
         makeRequest("http://x/api/contracts/ctr-1", { title: "X" }),
@@ -585,9 +586,9 @@ describe("contracts API route behavior", () => {
     });
 
     it("returns 409 when contract is not a draft", async () => {
-      const err = new Error("Only draft contracts can be deleted") as Error & { name: string };
-      err.name = "FinancialConflictError";
-      mockDeleteDraftContract.mockRejectedValue(err);
+      mockDeleteDraftContract.mockRejectedValue(
+        new FinancialConflictError("Only draft contracts can be deleted")
+      );
 
       const res = await deleteContract(
         makeRequest("http://x/api/contracts/ctr-1", undefined, "DELETE"),

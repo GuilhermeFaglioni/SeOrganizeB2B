@@ -3,10 +3,11 @@ import { formatBRL } from "./money";
 
 export function csvEscape(value: string | number | null): string {
   const text = value === null || value === undefined ? "" : String(value);
-  if (/[",\n\r]/.test(text)) {
-    return `"${text.replace(/"/g, '""')}"`;
+  const neutralized = text.replace(/^([=+\-@\t\r])/, "'$1");
+  if (/[",\n\r]/.test(neutralized)) {
+    return `"${neutralized.replace(/"/g, '""')}"`;
   }
-  return text;
+  return neutralized;
 }
 
 export function moneyCell(value: Money): string {

@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../../prisma/client";
 import { addMonthsCivil, compareCivil, todayCivilDate } from "./civil-date";
 import { FinancialConflictError, FinancialValidationError } from "./lifecycle";
+import { recordFinancialAudit } from "./audit";
 import { lt, neg, sub, sum, toDecimal } from "./money";
 
 export function refundableValue(
@@ -15,7 +16,7 @@ export function refundableValue(
 export async function recordPayment(
   installmentId: string,
   paidAt: string,
-  actorId: string // eslint-disable-line @typescript-eslint/no-unused-vars
+  actorId: string
 ) {
   return prisma.$transaction(async (tx) => {
     const installment = await tx.installment.findUnique({
@@ -27,16 +28,27 @@ export async function recordPayment(
         "Only pending installments can be marked as paid"
       );
     }
-    return tx.installment.update({
+    const updated = await tx.installment.update({
       where: { id: installmentId },
       data: { status: "paid", paidAt },
     });
+    await recordFinancialAudit(tx, {
+      contractId: installment.contractId,
+      actorId,
+      field: "installment.payment",
+      beforeValue: {
+        status: installment.status,
+        paidAt: installment.paidAt ? String(installment.paidAt) : null,
+      },
+      afterValue: { status: "paid", paidAt },
+    });
+    return updated;
   });
 }
 
 export async function cancelInstallment(
   installmentId: string,
-  actorId: string // eslint-disable-line @typescript-eslint/no-unused-vars
+  actorId: string
 ) {
   return prisma.$transaction(async (tx) => {
     const installment = await tx.installment.findUnique({
@@ -48,10 +60,21 @@ export async function cancelInstallment(
         "Only pending installments can be cancelled"
       );
     }
-    return tx.installment.update({
+    const updated = await tx.installment.update({
       where: { id: installmentId },
       data: { status: "cancelled" },
     });
+    await recordFinancialAudit(tx, {
+      contractId: installment.contractId,
+      actorId,
+      field: "installment.cancel",
+      beforeValue: {
+        status: installment.status,
+        paidAt: installment.paidAt ? String(installment.paidAt) : null,
+      },
+      afterValue: { status: "cancelled", paidAt: null },
+    });
+    return updated;
   });
 }
 
@@ -59,7 +82,7 @@ export async function refundInstallment(
   installmentId: string,
   refundAmount: string,
   refundDate: string,
-  actorId: string // eslint-disable-line @typescript-eslint/no-unused-vars
+  actorId: string
 ) {
   return prisma.$transaction(async (tx) => {
     const installment = await tx.installment.findUnique({
@@ -82,7 +105,7 @@ export async function refundInstallment(
         "Refund exceeds the refundable value of the installment"
       );
     }
-    return tx.installment.create({
+    const refund = await tx.installment.create({
       data: {
         contractId: installment.contractId,
         expectedAmount: neg(requested),
@@ -94,6 +117,20 @@ export async function refundInstallment(
         cycleKey: null,
       },
     });
+    await recordFinancialAudit(tx, {
+      contractId: installment.contractId,
+      actorId,
+      field: "installment.refund",
+      beforeValue: {
+        refundable: refundable.toFixed(2),
+      },
+      afterValue: {
+        refundId: refund.id,
+        amount: requested.toFixed(2),
+        refundDate,
+      },
+    });
+    return refund;
   });
 }
 

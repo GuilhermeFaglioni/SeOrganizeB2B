@@ -246,17 +246,19 @@ describe("lifecycle route behavior", () => {
     expect(json.error.code).toBe("CONFLICT");
   });
 
-  it("re-throws unexpected errors (500 in production)", async () => {
+  it("returns 500 on unexpected errors", async () => {
     mocks.mockApplyLifecycleAction.mockRejectedValue(new Error("boom"));
 
-    await expect(
-      lifecyclePOST(
-        makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
-          action: "close",
-        }),
-        { params: { id: "ctr-1" } }
-      )
-    ).rejects.toThrow("boom");
+    const res = await lifecyclePOST(
+      makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
+        action: "close",
+      }),
+      { params: { id: "ctr-1" } }
+    );
+    expect(res.status).toBe(500);
+    const json = await res.json();
+    expect(json.error.code).toBe("INTERNAL_ERROR");
+    expect(json.error.message).toBe("An unexpected error occurred");
   });
 });
 

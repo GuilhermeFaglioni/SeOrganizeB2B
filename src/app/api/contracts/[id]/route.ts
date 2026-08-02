@@ -6,6 +6,7 @@ import {
   updateContract,
 } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
+import { mapFinancialError } from "@/lib/financial/http";
 
 export async function GET(
   _request: NextRequest,
@@ -83,7 +84,6 @@ export async function PATCH(
     "paymentMethod",
     "documentUrl",
     "notes",
-    "status",
   ]) {
     if (body[field] !== undefined) input[field] = body[field];
   }
@@ -108,13 +108,7 @@ export async function PATCH(
     const contract = await updateContract(params.id, input, user.id);
     return NextResponse.json({ data: contract, error: null });
   } catch (error) {
-    const name = (error as { name?: string }).name;
-    const status = name === "FinancialConflictError" ? 409 : 500;
-    const code = name === "FinancialConflictError" ? "CONFLICT" : "INTERNAL_ERROR";
-    return NextResponse.json(
-      { data: null, error: { code, message: (error as Error).message } },
-      { status }
-    );
+    return mapFinancialError(error);
   }
 }
 
@@ -134,12 +128,6 @@ export async function DELETE(
     await deleteDraftContract(params.id);
     return NextResponse.json({ data: null, error: null });
   } catch (error) {
-    const name = (error as { name?: string }).name;
-    const status = name === "FinancialConflictError" ? 409 : 500;
-    const code = name === "FinancialConflictError" ? "CONFLICT" : "INTERNAL_ERROR";
-    return NextResponse.json(
-      { data: null, error: { code, message: (error as Error).message } },
-      { status }
-    );
+    return mapFinancialError(error);
   }
 }

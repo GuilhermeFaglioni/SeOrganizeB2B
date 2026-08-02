@@ -1,3 +1,9 @@
+import { NextResponse } from "next/server";
+import {
+  FinancialConflictError,
+  FinancialValidationError,
+} from "./lifecycle";
+
 export function qs(
   params: Record<string, string | number | boolean | undefined | null>
 ): string {
@@ -19,4 +25,35 @@ export async function fetchJson<T>(
   const json = await res.json();
   if (json.error) throw new Error(json.error.message);
   return json.data as T;
+}
+
+export function mapFinancialError(error: unknown): NextResponse {
+  if (error instanceof FinancialValidationError) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: { code: "VALIDATION_ERROR", message: error.message },
+      },
+      { status: 400 }
+    );
+  }
+  if (error instanceof FinancialConflictError) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: { code: "CONFLICT", message: error.message },
+      },
+      { status: 409 }
+    );
+  }
+  return NextResponse.json(
+    {
+      data: null,
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "An unexpected error occurred",
+      },
+    },
+    { status: 500 }
+  );
 }

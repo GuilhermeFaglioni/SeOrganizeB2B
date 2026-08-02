@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { applyContractChange } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
-import {
-  FinancialConflictError,
-  FinancialValidationError,
-} from "@/lib/financial/lifecycle";
+import { mapFinancialError } from "@/lib/financial/http";
 
 export async function POST(
   request: NextRequest,
@@ -89,24 +86,6 @@ export async function POST(
     );
     return NextResponse.json({ data: result, error: null });
   } catch (error) {
-    if (error instanceof FinancialValidationError) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: { code: "VALIDATION_ERROR", message: error.message },
-        },
-        { status: 400 }
-      );
-    }
-    if (error instanceof FinancialConflictError) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: { code: "CONFLICT", message: error.message },
-        },
-        { status: 409 }
-      );
-    }
-    throw error;
+    return mapFinancialError(error);
   }
 }

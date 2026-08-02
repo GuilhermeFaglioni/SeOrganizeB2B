@@ -58,6 +58,6 @@ describe("installment APIs", () => {
     const source = read("src/app/api/installments/[id]/refund/route.ts");
     expect(source).toContain("refundInstallment");
     expect(source).toContain("VALIDATION_ERROR");
-    expect(source).toContain("CONFLICT");
+    expect(source).toContain("mapFinancialError");
   });
 });

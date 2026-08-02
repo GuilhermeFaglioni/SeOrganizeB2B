@@ -5,10 +5,7 @@ import {
   recordPayment,
 } from "@/lib/financial/installments-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
-import {
-  FinancialConflictError,
-  FinancialValidationError,
-} from "@/lib/financial/lifecycle";
+import { mapFinancialError } from "@/lib/financial/http";
 
 export async function PATCH(
   request: NextRequest,
@@ -60,24 +57,6 @@ export async function PATCH(
       { status: 400 }
     );
   } catch (error) {
-    if (error instanceof FinancialValidationError) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: { code: "VALIDATION_ERROR", message: error.message },
-        },
-        { status: 400 }
-      );
-    }
-    if (error instanceof FinancialConflictError) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: { code: "CONFLICT", message: error.message },
-        },
-        { status: 409 }
-      );
-    }
-    throw error;
+    return mapFinancialError(error);
   }
 }

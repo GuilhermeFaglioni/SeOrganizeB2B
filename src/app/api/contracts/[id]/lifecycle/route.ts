@@ -5,10 +5,7 @@ import {
   applyLifecycleAction,
 } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
-import {
-  FinancialConflictError,
-  FinancialValidationError,
-} from "@/lib/financial/lifecycle";
+import { mapFinancialError } from "@/lib/financial/http";
 
 const ACTIONS = [
   "activate",
@@ -122,24 +119,6 @@ export async function POST(
     );
     return NextResponse.json({ data: contract, error: null });
   } catch (error) {
-    if (error instanceof FinancialValidationError) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: { code: "VALIDATION_ERROR", message: error.message },
-        },
-        { status: 400 }
-      );
-    }
-    if (error instanceof FinancialConflictError) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: { code: "CONFLICT", message: error.message },
-        },
-        { status: 409 }
-      );
-    }
-    throw error;
+    return mapFinancialError(error);
   }
 }

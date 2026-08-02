@@ -3,6 +3,7 @@ import { prisma } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { createContractDraft } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
+import { mapFinancialError } from "@/lib/financial/http";
 
 const SORT_FIELDS = [
   "code",
@@ -194,23 +195,6 @@ export async function POST(request: NextRequest) {
     );
     return NextResponse.json({ data: contract, error: null }, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      {
-        data: null,
-        error: {
-          code:
-            (error as { name?: string }).name === "FinancialConflictError"
-              ? "CONFLICT"
-              : "INTERNAL_ERROR",
-          message: (error as Error).message,
-        },
-      },
-      {
-        status:
-          (error as { name?: string }).name === "FinancialConflictError"
-            ? 409
-            : 500,
-      }
-    );
+    return mapFinancialError(error);
   }
 }

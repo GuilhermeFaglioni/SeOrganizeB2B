@@ -247,7 +247,7 @@ describe("overview API route behavior", () => {
     expect(res.status).toBe(500);
     const json = await res.json();
     expect(json.error.code).toBe("INTERNAL_ERROR");
-    expect(json.error.message).toBe("db connection failed");
+    expect(json.error.message).toBe("An unexpected error occurred");
     expect(json.data).toBeNull();
   });
 
