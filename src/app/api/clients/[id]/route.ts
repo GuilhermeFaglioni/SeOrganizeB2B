@@ -50,11 +50,20 @@ export async function PATCH(
 
   const body = await request.json();
 
+  if (body.name !== undefined) {
+    if (typeof body.name !== "string" || !body.name.trim()) {
+      return NextResponse.json(
+        { data: null, error: { code: "VALIDATION_ERROR", message: "Name is required" } },
+        { status: 400 }
+      );
+    }
+  }
+
   try {
     const client = await prisma.client.update({
       where: { id: params.id },
       data: {
-        name: body.name !== undefined ? body.name : undefined,
+        name: body.name !== undefined ? body.name.trim() : undefined,
         legalName: body.legalName !== undefined ? body.legalName : undefined,
         cpfCnpj: body.cpfCnpj !== undefined ? body.cpfCnpj || null : undefined,
         email: body.email !== undefined ? body.email || null : undefined,

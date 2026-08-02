@@ -13,11 +13,12 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = request.nextUrl;
   const search = searchParams.get("search")?.trim() || "";
-  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-  const pageSize = Math.min(
-    50,
-    Math.max(1, parseInt(searchParams.get("pageSize") || "25", 10))
-  );
+  const parsedPage = parseInt(searchParams.get("page") || "", 10);
+  const page = Number.isNaN(parsedPage) ? 1 : Math.max(1, parsedPage);
+  const parsedPageSize = parseInt(searchParams.get("pageSize") || "", 10);
+  const pageSize = Number.isNaN(parsedPageSize)
+    ? 25
+    : Math.min(50, Math.max(1, parsedPageSize));
   const activeOnly = searchParams.get("active") !== "false";
 
   const where = {
