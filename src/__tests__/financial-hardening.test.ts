@@ -38,7 +38,7 @@ vi.mock("@/lib/financial/contracts-service", () => ({
   get updateContract() {
     return mockUpdateContract;
   },
-  get deleteDraftContract() {
+  get deleteContract() {
     return mockDeleteDraftContract;
   },
 }));
