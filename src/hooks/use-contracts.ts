@@ -224,6 +224,7 @@ export function useContractChange() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["overview"] });
+      queryClient.invalidateQueries({ queryKey: ["receivables"] });
     },
     onError: () => toastError("Failed to apply contract change"),
   });

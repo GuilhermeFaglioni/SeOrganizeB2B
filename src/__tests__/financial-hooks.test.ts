@@ -39,4 +39,14 @@ describe("financial hooks", () => {
     expect(source).toContain("createObjectURL");
     expect(source).toContain("a.download");
   });
+
+  it("useContractChange invalidates contracts, overview, and receivables", () => {
+    const source = read("src/hooks/use-contracts.ts");
+    const fnStart = source.indexOf("export function useContractChange()");
+    const fnEnd = source.indexOf("\n}\n", fnStart) + 3;
+    const fnBody = source.slice(fnStart, fnEnd);
+    expect(fnBody).toContain('invalidateQueries({ queryKey: ["contracts"');
+    expect(fnBody).toContain('invalidateQueries({ queryKey: ["overview"');
+    expect(fnBody).toContain('invalidateQueries({ queryKey: ["receivables"');
+  });
 });
