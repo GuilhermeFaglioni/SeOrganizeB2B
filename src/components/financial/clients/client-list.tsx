@@ -3,21 +3,40 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Plus, Search } from "lucide-react";
-import { useClients } from "@/hooks/use-clients";
+import { useClients, type ClientData } from "@/hooks/use-clients";
 import { FinancialEmptyState } from "@/components/financial/shared/empty-state";
 import { FinancialErrorState } from "@/components/financial/shared/error-state";
 import { Pagination } from "@/components/financial/contracts/pagination";
 import { LoadingState } from "@/components/shared/loading-state";
+import { cn } from "@/lib/utils";
+
+type StatusFilter = "all" | "active" | "inactive";
+
+const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
+];
 
 export function ClientList() {
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
   const [page, setPage] = useState(1);
+
+  const apiActive = statusFilter === "active";
+
   const { data, isLoading, isError, refetch } = useClients({
     search: query || undefined,
     page,
     pageSize: 25,
+    active: apiActive,
   });
+
+  const items: ClientData[] =
+    statusFilter === "inactive"
+      ? (data?.items ?? []).filter((c) => !c.active)
+      : (data?.items ?? []);
 
   if (isLoading) return <LoadingState />;
   if (isError || !data) {
@@ -32,7 +51,7 @@ export function ClientList() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <label htmlFor="client-search" className="sr-only">
             Search clients
           </label>
@@ -61,6 +80,28 @@ export function ClientList() {
           >
             <Search size={16} aria-hidden="true" />
           </button>
+          <div role="radiogroup" aria-label="Filter by status" className="flex items-center gap-1">
+            {STATUS_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={statusFilter === option.value}
+                onClick={() => {
+                  setStatusFilter(option.value);
+                  setPage(1);
+                }}
+                className={cn(
+                  "flex min-h-[44px] items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  statusFilter === option.value
+                    ? "bg-accent text-white"
+                    : "text-text-secondary hover:bg-bg-secondary"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
         <Link
           href="/financial/clients/new"
@@ -70,8 +111,14 @@ export function ClientList() {
         </Link>
       </div>
 
-      {data.items.length === 0 ? (
-        <FinancialEmptyState title="No clients match your search" />
+      {items.length === 0 ? (
+        <FinancialEmptyState
+          title={
+            statusFilter === "inactive"
+              ? "No inactive clients"
+              : "No clients match your search"
+          }
+        />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border bg-page-alt">
           <table className="w-full min-w-[640px] text-left text-sm">
@@ -93,11 +140,22 @@ export function ClientList() {
                 <th scope="col" className="px-3 py-2 font-medium">
                   Contracts
                 </th>
+                {statusFilter === "all" && (
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Status
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {data.items.map((client) => (
-                <tr key={client.id} className="hover:bg-bg-secondary">
+              {items.map((client) => (
+                <tr
+                  key={client.id}
+                  className={cn(
+                    "hover:bg-bg-secondary",
+                    !client.active && "opacity-60"
+                  )}
+                >
                   <td className="px-3 py-2">
                     <Link
                       href={`/financial/clients/${client.id}`}
@@ -105,6 +163,11 @@ export function ClientList() {
                     >
                       {client.name}
                     </Link>
+                    {!client.active && (
+                      <span className="ml-2 inline-flex items-center rounded-full bg-bg-secondary px-2 py-0.5 text-xs font-medium text-text-muted">
+                        Inactive
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2 text-text-secondary">
                     {client.cpfCnpj ?? "\u2014"}
@@ -118,6 +181,20 @@ export function ClientList() {
                   <td className="px-3 py-2 text-text-secondary">
                     {client._count?.contracts ?? 0}
                   </td>
+                  {statusFilter === "all" && (
+                    <td className="px-3 py-2">
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                          client.active
+                            ? "bg-success-bg text-success"
+                            : "bg-bg-secondary text-text-muted"
+                        )}
+                      >
+                        {client.active ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useClient, useDeactivateClient } from "@/hooks/use-clients";
 import { toDecimal, sum } from "@/lib/financial/money";
 import { toastSuccess } from "@/lib/toast";
@@ -62,6 +63,12 @@ export function ClientDetail({ clientId }: { clientId: string }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/financial/clients/${client.id}/edit`}
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px]"
+          >
+            Edit
+          </Link>
           <Button
             variant="outline"
             onClick={() =>
