@@ -9,7 +9,7 @@ interface LoadingStateProps {
 export function LoadingState({ text = "Loading...", skeleton = true }: LoadingStateProps) {
   if (skeleton) {
     return (
-      <div data-testid="loading-state" className="p-4">
+      <div data-testid="loading-state" className="p-4" role="status" aria-live="polite">
         <div className="flex items-center gap-2 mb-4">
           <div className="h-5 w-32 bg-bg-secondary rounded animate-pulse" />
         </div>

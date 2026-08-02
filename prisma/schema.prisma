@@ -1,11 +1,11 @@
 generator client {
-  provider        = "prisma-client-js"
-  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -32,6 +32,9 @@ model Profile {
   commentMentions        CommentMention[]
   savedViews             SavedView[]
   pushSubscriptions      PushSubscription[]
+  ownedContracts         Contract[]              @relation("ContractOwner")
+  contractChangeActors   ContractChange[]        @relation("ContractChangeActor")
+  contractAudits         ContractAudit[]         @relation("ContractAuditActor")
 
   @@map("profiles")
 }
@@ -75,11 +78,12 @@ model Project {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  area      TeamArea?       @relation(fields: [areaId], references: [id])
-  creator   Profile         @relation("ProjectCreator", fields: [createdBy], references: [id])
-  columns   ProjectColumn[]
-  tasks     Task[]
-  documents Document[]
+  area             TeamArea?         @relation(fields: [areaId], references: [id])
+  creator          Profile           @relation("ProjectCreator", fields: [createdBy], references: [id])
+  columns          ProjectColumn[]
+  tasks            Task[]
+  documents        Document[]
+  contractProjects ContractProject[]
 
   @@index([areaId])
   @@map("projects")
@@ -267,15 +271,15 @@ model Document {
 }
 
 model CalendarAuth {
-  id           String   @id @default(uuid())
-  userId       String   @unique @map("user_id")
-  accessToken  String   @map("access_token")
-  refreshToken String   @map("refresh_token")
-  expiresAt    DateTime @map("expires_at")
-  googleEmail  String?  @map("google_email")
+  id           String    @id @default(uuid())
+  userId       String    @unique @map("user_id")
+  accessToken  String    @map("access_token")
+  refreshToken String    @map("refresh_token")
+  expiresAt    DateTime  @map("expires_at")
+  googleEmail  String?   @map("google_email")
   lastSyncAt   DateTime? @map("last_sync_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -283,23 +287,23 @@ model CalendarAuth {
 }
 
 model CalendarEvent {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  taskId      String?  @map("task_id")
-  areaId      String?  @map("area_id")
-  googleId    String?  @map("google_id")
-  etag        String?  @map("etag")
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  taskId      String?   @map("task_id")
+  areaId      String?   @map("area_id")
+  googleId    String?   @map("google_id")
+  etag        String?   @map("etag")
   title       String
   description String?
-  startTime   DateTime @map("start_time")
-  endTime     DateTime @map("end_time")
-  allDay      Boolean  @default(false) @map("all_day")
-  timeZone    String?  @map("time_zone")
+  startTime   DateTime  @map("start_time")
+  endTime     DateTime  @map("end_time")
+  allDay      Boolean   @default(false) @map("all_day")
+  timeZone    String?   @map("time_zone")
   color       String?
-  source      String   @default("google")
+  source      String    @default("google")
   syncedAt    DateTime? @map("synced_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   user      Profile                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   task      Task?                   @relation(fields: [taskId], references: [id])
@@ -329,4 +333,149 @@ model CalendarEventAttendee {
   @@unique([eventId, email])
   @@index([profileId])
   @@map("calendar_event_attendees")
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  name      String
+  legalName String?  @map("legal_name")
+  cpfCnpj   String?  @map("cpf_cnpj")
+  email     String?
+  phone     String?
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  contracts Contract[]
+
+  @@unique([cpfCnpj])
+  @@index([active])
+  @@map("clients")
+}
+
+model Contract {
+  id               String   @id @default(uuid())
+  code             String   @unique
+  title            String?
+  clientId         String?  @map("client_id")
+  ownerId          String?  @map("owner_id")
+  status           String   @default("draft")
+  durationType     String?  @map("duration_type")
+  officialValue    Decimal? @map("official_value") @db.Decimal(14, 2)
+  startDate        String?  @map("start_date")
+  endDate          String?  @map("end_date")
+  billingFrequency String?  @map("billing_frequency")
+  paymentMethod    String   @default("pix") @map("payment_method")
+  documentUrl      String?  @map("document_url")
+  notes            String?
+  predecessorId    String?  @map("predecessor_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  client       Client?           @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  owner        Profile?          @relation("ContractOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  items        ContractItem[]
+  projects     ContractProject[]
+  installments Installment[]
+  changes      ContractChange[]
+  audits       ContractAudit[]
+  predecessor  Contract?         @relation("ContractRenewal", fields: [predecessorId], references: [id], onDelete: SetNull)
+  successors   Contract[]        @relation("ContractRenewal")
+
+  @@index([clientId])
+  @@index([status])
+  @@index([startDate])
+  @@map("contracts")
+}
+
+model ContractItem {
+  id          String   @id @default(uuid())
+  contractId  String   @map("contract_id")
+  name        String
+  description String?
+  quantity    Decimal? @db.Decimal(14, 4)
+  unit        String?
+  price       Decimal? @db.Decimal(14, 2)
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@map("contract_items")
+}
+
+model ContractProject {
+  contractId String @map("contract_id")
+  projectId  String @map("project_id")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([contractId, projectId])
+  @@index([projectId])
+  @@map("contract_projects")
+}
+
+model Installment {
+  id             String   @id @default(uuid())
+  contractId     String   @map("contract_id")
+  expectedAmount Decimal  @map("expected_amount") @db.Decimal(14, 2)
+  dueDate        String   @map("due_date")
+  paymentMethod  String   @default("pix") @map("payment_method")
+  status         String   @default("pending")
+  paidAt         String?  @map("paid_at")
+  refundOfId     String?  @map("refund_of_id")
+  cycleKey       String?  @map("cycle_key")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  contract Contract      @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  refundOf Installment?  @relation("InstallmentRefund", fields: [refundOfId], references: [id], onDelete: SetNull)
+  refunds  Installment[] @relation("InstallmentRefund")
+
+  @@unique([contractId, cycleKey])
+  @@index([contractId, status])
+  @@index([dueDate])
+  @@index([refundOfId])
+  @@map("installments")
+}
+
+model ContractChange {
+  id            String   @id @default(uuid())
+  contractId    String   @map("contract_id")
+  type          String
+  delta         Decimal  @db.Decimal(14, 2)
+  effectiveDate String   @map("effective_date")
+  description   String?
+  previousValue Decimal  @map("previous_value") @db.Decimal(14, 2)
+  newValue      Decimal  @map("new_value") @db.Decimal(14, 2)
+  reason        String?
+  actorId       String   @map("actor_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  actor    Profile  @relation("ContractChangeActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([contractId, effectiveDate])
+  @@map("contract_changes")
+}
+
+model ContractAudit {
+  id          String   @id @default(uuid())
+  contractId  String   @map("contract_id")
+  actorId     String?  @map("actor_id")
+  field       String
+  beforeValue Json?    @map("before_value")
+  afterValue  Json?    @map("after_value")
+  reason      String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  actor    Profile? @relation("ContractAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([contractId, createdAt])
+  @@map("contract_audits")
 }

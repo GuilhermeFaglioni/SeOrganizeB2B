@@ -9,6 +9,7 @@ import {
   Calendar,
   FileText,
   Settings,
+  Wallet,
   X,
   LogOut,
   User as UserIcon,
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/projects", label: "Projects", icon: FolderKanban, testId: "nav-projects" },
   { href: "/calendar", label: "Calendar", icon: Calendar, testId: "nav-calendar" },
   { href: "/documents", label: "Documents", icon: FileText, testId: "nav-documents" },
+  { href: "/financial", label: "Financial", icon: Wallet, testId: "nav-financial" },
   { href: "/settings", label: "Settings", icon: Settings, testId: "nav-settings" },
 ];
 
