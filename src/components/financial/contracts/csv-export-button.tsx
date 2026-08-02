@@ -1,0 +1,22 @@
+"use client";
+
+import { Download } from "lucide-react";
+
+export function CsvExportButton({
+  onExport,
+  label = "Export CSV",
+}: {
+  onExport: () => void;
+  label?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onExport}
+      className="flex min-h-[44px] items-center gap-2 rounded-md border border-border bg-page-alt px-3 py-2 text-sm font-medium text-text-primary hover:bg-bg-secondary"
+    >
+      <Download size={16} aria-hidden="true" />
+      {label}
+    </button>
+  );
+}
