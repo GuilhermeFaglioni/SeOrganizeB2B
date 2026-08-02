@@ -58,6 +58,67 @@ describe("activation rules", () => {
     expect(errors).toContain("A client is required");
     expect(errors).toContain("End date must not precede the start date");
   });
+
+  it("accepts open-ended with rolling plan that does not sum to official value", () => {
+    const plan = [
+      { expectedAmount: "100.00", dueDate: "2026-01-01", paymentMethod: "pix" as const },
+      { expectedAmount: "100.00", dueDate: "2026-02-01", paymentMethod: "pix" as const },
+      { expectedAmount: "100.00", dueDate: "2026-03-01", paymentMethod: "pix" as const },
+    ];
+    const errors = activationErrors(
+      { ...draftContract, durationType: "openEnded", officialValue: toDecimal("100.00"), endDate: null },
+      plan
+    );
+    expect(errors).not.toContain("Installment total must equal the official contract value");
+  });
+
+  it("rejects open-ended with zero official value", () => {
+    const errors = activationErrors(
+      { ...draftContract, durationType: "openEnded", officialValue: toDecimal("0.00"), endDate: null, billingFrequency: "monthly" },
+      []
+    );
+    expect(errors).toContain("A recurring contract value is required");
+  });
+
+  it("rejects open-ended with missing billing frequency", () => {
+    const errors = activationErrors(
+      { ...draftContract, durationType: "openEnded", officialValue: toDecimal("100.00"), endDate: null, billingFrequency: null },
+      [{ expectedAmount: "100.00", dueDate: "2026-01-01", paymentMethod: "pix" }]
+    );
+    expect(errors).toContain("A billing frequency is required for recurring contracts");
+  });
+
+  it("rejects open-ended with empty plan", () => {
+    const errors = activationErrors(
+      { ...draftContract, durationType: "openEnded", officialValue: toDecimal("100.00"), endDate: null, billingFrequency: "monthly" },
+      []
+    );
+    expect(errors).toContain("An installment plan is required to activate");
+  });
+
+  it("rejects open-ended with zero-amount cycle in plan", () => {
+    const errors = activationErrors(
+      { ...draftContract, durationType: "openEnded", officialValue: toDecimal("100.00"), endDate: null, billingFrequency: "monthly" },
+      [{ expectedAmount: "0.00", dueDate: "2026-01-01", paymentMethod: "pix" }]
+    );
+    expect(errors).toContain("Each recurring cycle must have a positive amount");
+  });
+
+  it("still requires exact sum for fixed contracts", () => {
+    const errors = activationErrors(
+      { ...draftContract, officialValue: toDecimal("200.00") },
+      [{ expectedAmount: "100.00", dueDate: "2026-01-01", paymentMethod: "pix" }]
+    );
+    expect(errors).toContain("Installment total must equal the official contract value");
+  });
+
+  it("still requires exact sum for oneTime contracts", () => {
+    const errors = activationErrors(
+      { ...draftContract, durationType: "oneTime", officialValue: toDecimal("500.00"), endDate: null },
+      [{ expectedAmount: "300.00", dueDate: "2026-01-01", paymentMethod: "pix" }]
+    );
+    expect(errors).toContain("Installment total must equal the official contract value");
+  });
 });
 
 describe("cancellation plan", () => {

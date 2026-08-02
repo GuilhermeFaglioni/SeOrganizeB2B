@@ -4,8 +4,8 @@ import type {
   LifecycleAction,
 } from "./types";
 import { compareCivil } from "./civil-date";
-import { Money, eq } from "./money";
-import { validateFinitePlan, sumPlan } from "./installments";
+import { Money, toDecimal } from "./money";
+import { validateFinitePlan } from "./installments";
 
 export class FinancialConflictError extends Error {}
 
@@ -65,8 +65,15 @@ export function activationErrors(
   }
   if (contract.durationType !== "openEnded") {
     errors.push(...validateFinitePlan(plan, contract.officialValue));
-  } else if (!eq(sumPlan(plan), contract.officialValue)) {
-    errors.push("Installment total must equal the official contract value");
+  } else {
+    if (contract.officialValue.isZero() || contract.officialValue.isNegative()) {
+      errors.push("A recurring contract value is required");
+    }
+    if (plan.length === 0) {
+      errors.push("An installment plan is required to activate");
+    } else if (plan.some((item) => toDecimal(item.expectedAmount).lte(0))) {
+      errors.push("Each recurring cycle must have a positive amount");
+    }
   }
   return errors;
 }

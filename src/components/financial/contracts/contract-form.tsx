@@ -112,10 +112,11 @@ export function ContractForm({ contractId }: { contractId?: string }) {
   const itemSum = useMemo(
     () =>
       items.reduce(
-        (acc, item) =>
-          acc.plus(
-            toDecimal(item.price ?? "0").times(toDecimal(item.quantity ?? "1"))
-          ),
+        (acc, item) => {
+          const price = item.price && item.price !== "" ? item.price : "0";
+          const qty = item.quantity && item.quantity !== "" ? item.quantity : "1";
+          return acc.plus(toDecimal(price).times(toDecimal(qty)));
+        },
         toDecimal(0)
       ),
     [items]
@@ -138,13 +139,23 @@ export function ContractForm({ contractId }: { contractId?: string }) {
   }, [officialValue, startDate, endDate, durationType, billingFrequency, paymentMethod]);
 
   const planTotal = useMemo(() => sumPlan(suggestedPlan), [suggestedPlan]);
-  const planErrors =
-    durationType === "openEnded"
-      ? !eq(planTotal, toDecimal(officialValue))
-        ? ["Installment total must equal the official contract value"]
-        : []
-      : validateFinitePlan(suggestedPlan, toDecimal(officialValue || "0"));
-  const itemMismatch = items.length > 0 && !eq(itemSum, toDecimal(officialValue || "0"));
+  const parsedOfficialValue = officialValue && officialValue !== "" ? toDecimal(officialValue) : null;
+  const planErrors: string[] = [];
+  if (!parsedOfficialValue) {
+    planErrors.push("Official contract value is required");
+  } else if (durationType === "openEnded") {
+    if (!billingFrequency) {
+      planErrors.push("A billing frequency is required for open-ended contracts");
+    }
+    if (suggestedPlan.length === 0) {
+      planErrors.push("An installment plan is required to activate");
+    } else if (suggestedPlan.some((item) => !item.expectedAmount || toDecimal(item.expectedAmount).lte(0))) {
+      planErrors.push("Each recurring cycle must have a positive amount");
+    }
+  } else {
+    planErrors.push(...validateFinitePlan(suggestedPlan, parsedOfficialValue));
+  }
+  const itemMismatch = items.length > 0 && !eq(itemSum, parsedOfficialValue ?? toDecimal(0));
 
   function payload(extra: Record<string, unknown> = {}) {
     return {

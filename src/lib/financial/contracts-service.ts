@@ -116,6 +116,15 @@ export interface ContractUpdateInput {
   documentUrl?: string | null;
   notes?: string | null;
   status?: string;
+  items?: Array<{
+    name: string;
+    description?: string | null;
+    quantity?: string | null;
+    unit?: string | null;
+    price?: string | null;
+    position: number;
+  }>;
+  projectIds?: string[];
 }
 
 export async function updateContract(
@@ -124,7 +133,10 @@ export async function updateContract(
   actorId: string
 ) {
   return prisma.$transaction(async (tx) => {
-    const contract = await tx.contract.findUnique({ where: { id: contractId } });
+    const contract = await tx.contract.findUnique({
+      where: { id: contractId },
+      include: { items: { orderBy: { position: "asc" } }, projects: true },
+    });
     if (!contract) throw new FinancialValidationError("Contract not found");
     if (contract.status !== "draft" && contract.status !== "active") {
       throw new FinancialConflictError(
@@ -152,6 +164,80 @@ export async function updateContract(
         });
       }
     }
+
+    if (input.items !== undefined) {
+      const beforeItems = contract.items.map((item) => ({
+        name: item.name,
+        description: item.description,
+        quantity: item.quantity?.toString() ?? null,
+        unit: item.unit,
+        price: item.price?.toString() ?? null,
+        position: item.position,
+      }));
+      await tx.contractItem.deleteMany({ where: { contractId } });
+      if (input.items.length > 0) {
+        await tx.contractItem.createMany({
+          data: input.items.map((item) => ({
+            contractId,
+            name: item.name,
+            description: item.description ?? null,
+            quantity: item.quantity ? toDecimal(item.quantity) : null,
+            unit: item.unit ?? null,
+            price: item.price ? toDecimal(item.price) : null,
+            position: item.position,
+          })),
+        });
+      }
+      await recordFinancialAudit(tx, {
+        contractId,
+        actorId,
+        field: "items",
+        beforeValue: beforeItems,
+        afterValue: input.items,
+      });
+    }
+
+    if (input.projectIds !== undefined) {
+      const beforeProjects = contract.projects.map((p) => p.projectId);
+
+      if (contract.status === "active") {
+        for (const projectId of input.projectIds) {
+          const conflict = await tx.contractProject.findFirst({
+            where: {
+              projectId,
+              contract: {
+                status: "active",
+                id: { not: contractId },
+              },
+            },
+            select: { contractId: true },
+          });
+          if (conflict) {
+            throw new FinancialConflictError(
+              "A linked project already belongs to another active contract"
+            );
+          }
+        }
+      }
+
+      await tx.contractProject.deleteMany({ where: { contractId } });
+      if (input.projectIds.length > 0) {
+        await tx.contractProject.createMany({
+          data: input.projectIds.map((projectId) => ({
+            contractId,
+            projectId,
+          })),
+        });
+      }
+      await recordFinancialAudit(tx, {
+        contractId,
+        actorId,
+        field: "projects",
+        beforeValue: beforeProjects,
+        afterValue: input.projectIds,
+      });
+    }
+
     const data: Prisma.ContractUpdateInput = {};
     if (input.title !== undefined) data.title = input.title;
     if (input.clientId !== undefined) data.client = { connect: { id: input.clientId } };

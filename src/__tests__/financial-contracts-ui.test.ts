@@ -37,8 +37,8 @@ describe("contracts UI", () => {
 
   it("defaults a missing item quantity to 1 in the item-price sum", () => {
     const form = read("src/components/financial/contracts/contract-form.tsx");
-    expect(form).toContain('.times(toDecimal(item.quantity ?? "1"))');
-    expect(form).toContain("toDecimal(0)");
+    expect(form).toContain('item.quantity && item.quantity !== "" ? item.quantity : "1"');
+    expect(form).toContain('item.price && item.price !== "" ? item.price : "0"');
     expect(form).not.toContain("String(Number(");
     expect(form).not.toContain('.times(toDecimal(item.quantity ?? "0"))');
   });
@@ -93,5 +93,24 @@ describe("contracts UI", () => {
     expect(form).toContain("existing.projects");
     expect(form).toContain("setProjectIds");
     expect(form).toContain("setItems");
+  });
+
+  it("form shows required-value error when officialValue is empty", () => {
+    const form = read("src/components/financial/contracts/contract-form.tsx");
+    expect(form).toContain("Official contract value is required");
+    expect(form).toContain("parsedOfficialValue");
+  });
+
+  it("form validates open-ended contracts without exact-sum requirement", () => {
+    const form = read("src/components/financial/contracts/contract-form.tsx");
+    expect(form).toContain("A billing frequency is required for open-ended contracts");
+    expect(form).toContain("positive amount");
+    expect(form).toContain("validateFinitePlan");
+  });
+
+  it("form sends items and projectIds in the update payload", () => {
+    const form = read("src/components/financial/contracts/contract-form.tsx");
+    expect(form).toContain("items: items");
+    expect(form).toContain("projectIds,");
   });
 });

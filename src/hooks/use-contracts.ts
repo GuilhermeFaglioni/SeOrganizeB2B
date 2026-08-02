@@ -138,6 +138,15 @@ export function useUpdateContract() {
       paymentMethod?: string;
       documentUrl?: string | null;
       notes?: string | null;
+      items?: Array<{
+        name: string;
+        description?: string | null;
+        quantity?: string | null;
+        unit?: string | null;
+        price?: string | null;
+        position: number;
+      }>;
+      projectIds?: string[];
     }) =>
       fetchJson(`/api/contracts/${id}`, {
         method: "PATCH",

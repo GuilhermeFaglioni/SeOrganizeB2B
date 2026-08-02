@@ -21,6 +21,26 @@ describe("financial transactional services", () => {
     expect(source).toContain("contractProject.deleteMany");
   });
 
+  it("updateContract atomically replaces items and projects with audit", () => {
+    const source = read("src/lib/financial/contracts-service.ts");
+    expect(source).toContain("contractItem.deleteMany");
+    expect(source).toContain("contractItem.createMany");
+    expect(source).toContain("contractProject.deleteMany");
+    expect(source).toContain("contractProject.createMany");
+    expect(source).toContain('field: "items"');
+    expect(source).toContain('field: "projects"');
+    expect(source).toContain("beforeValue: beforeItems");
+    expect(source).toContain("afterValue: input.items");
+    expect(source).toContain("beforeValue: beforeProjects");
+    expect(source).toContain("afterValue: input.projectIds");
+  });
+
+  it("updateContract checks project uniqueness for active contracts", () => {
+    const source = read("src/lib/financial/contracts-service.ts");
+    expect(source).toContain('contract.status === "active"');
+    expect(source).toContain("A linked project already belongs to another active contract");
+  });
+
   it("generates the next sequential contract code per year", () => {
     const source = read("src/lib/financial/contracts-service.ts");
     expect(source).toContain("nextContractCode");

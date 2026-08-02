@@ -490,6 +490,33 @@ describe("contracts API route behavior", () => {
       );
     });
 
+    it("forwards items and projectIds to updateContract", async () => {
+      mockUpdateContract.mockResolvedValue(mockContract);
+
+      const items = [
+        { name: "Service", price: "1000", position: 0 },
+      ];
+      const projectIds = ["proj-1", "proj-2"];
+
+      const res = await patchContract(
+        makeRequest("http://x/api/contracts/ctr-1", {
+          items,
+          projectIds,
+        }),
+        { params: { id: "ctr-1" } }
+      );
+
+      expect(res.status).toBe(200);
+      expect(mockUpdateContract).toHaveBeenCalledWith(
+        "ctr-1",
+        expect.objectContaining({
+          items,
+          projectIds,
+        }),
+        "user-1"
+      );
+    });
+
     it("converts officialValue to string", async () => {
       mockUpdateContract.mockResolvedValue(mockContract);
 

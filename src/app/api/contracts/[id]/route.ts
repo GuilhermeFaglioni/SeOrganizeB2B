@@ -101,6 +101,8 @@ export async function PATCH(
       { status: 400 }
     );
   }
+  if (body.items !== undefined) input.items = body.items;
+  if (body.projectIds !== undefined) input.projectIds = body.projectIds;
 
   try {
     const contract = await updateContract(params.id, input, user.id);
