@@ -50,9 +50,15 @@ export async function GET(request: NextRequest) {
     prisma.installment.count({ where }),
   ]);
 
+  const itemsWithDisplayStatus = items.map((item) => ({
+    ...item,
+    displayStatus:
+      item.status === "pending" && item.dueDate < today ? "overdue" : item.status,
+  }));
+
   return NextResponse.json({
     data: {
-      items,
+      items: itemsWithDisplayStatus,
       total,
       page,
       pageSize,

@@ -8,6 +8,7 @@ const STYLES: Record<string, string> = {
   suspended: "bg-warning-bg text-warning",
   pending: "bg-warning-bg text-warning",
   paid: "bg-success-bg text-success",
+  overdue: "bg-danger-bg text-danger",
 };
 
 export function StatusBadge({ status }: { status: string }) {

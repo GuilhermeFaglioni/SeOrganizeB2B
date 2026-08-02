@@ -15,9 +15,9 @@ import { CsvExportButton } from "@/components/financial/contracts/csv-export-but
 import { Pagination } from "@/components/financial/contracts/pagination";
 import { InstallmentActions } from "@/components/financial/receivables/installment-actions";
 import { LoadingState } from "@/components/shared/loading-state";
-import type { Paginated } from "@/lib/financial/types";
+import type { DisplayableInstallment, Paginated } from "@/lib/financial/types";
 
-interface ReceivableRow {
+type ReceivableRow = DisplayableInstallment<{
   id: string;
   expectedAmount: string;
   dueDate: string;
@@ -31,7 +31,7 @@ interface ReceivableRow {
     title: string;
     client: { name: string };
   };
-}
+}>;
 
 const STATUS_TABS = [
   { value: "", label: "All" },
@@ -146,7 +146,7 @@ export function ReceivablesList() {
                     )}
                   </td>
                   <td className="px-3 py-2 text-text-secondary"><CivilDateText date={installment.dueDate} /></td>
-                  <td className="px-3 py-2"><StatusBadge status={installment.status} /></td>
+                  <td className="px-3 py-2"><StatusBadge status={installment.displayStatus} /></td>
                   <td className="px-3 py-2 text-text-secondary"><CivilDateText date={installment.paidAt} /></td>
                   <td className="px-3 py-2">
                     <InstallmentActions installment={installment} />

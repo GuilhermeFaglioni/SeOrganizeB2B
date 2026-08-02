@@ -13,6 +13,13 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 export const INSTALLMENT_STATUSES = ["pending", "paid", "cancelled"] as const;
 export type InstallmentStatus = (typeof INSTALLMENT_STATUSES)[number];
 
+export const DISPLAY_STATUSES = ["pending", "paid", "cancelled", "overdue"] as const;
+export type DisplayStatus = (typeof DISPLAY_STATUSES)[number];
+
+export type DisplayableInstallment<T extends { status: string }> = T & {
+  displayStatus: DisplayStatus;
+};
+
 export const CHANGE_TYPES = ["upsell", "downsell"] as const;
 export type ChangeType = (typeof CHANGE_TYPES)[number];
 
