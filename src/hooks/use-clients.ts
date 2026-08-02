@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toastError } from "@/lib/toast";
 import { fetchJson, qs } from "@/lib/financial/http";
 import type { Paginated } from "@/lib/financial/types";
@@ -39,6 +40,7 @@ export function useClient(clientId: string) {
 }
 
 export function useCreateClient() {
+  const t = useTranslations("hooks.clients");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: {
@@ -57,11 +59,12 @@ export function useCreateClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: () => toastError("Failed to create client"),
+    onError: () => toastError(t("createFailed")),
   });
 }
 
 export function useUpdateClient() {
+  const t = useTranslations("hooks.clients");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -85,11 +88,12 @@ export function useUpdateClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: () => toastError("Failed to update client"),
+    onError: () => toastError(t("updateFailed")),
   });
 }
 
 export function useDeactivateClient() {
+  const t = useTranslations("hooks.clients");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
@@ -101,6 +105,6 @@ export function useDeactivateClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: () => toastError("Failed to deactivate client"),
+    onError: () => toastError(t("deactivateFailed")),
   });
 }

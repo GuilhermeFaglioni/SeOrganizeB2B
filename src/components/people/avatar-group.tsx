@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -27,13 +30,14 @@ export function AvatarGroup({
   limit?: number;
   size?: "xs" | "sm";
 }) {
+  const t = useTranslations("people.avatarGroup");
   const visible = people.slice(0, limit);
   const remaining = Math.max(people.length - visible.length, 0);
 
   if (people.length === 0) return null;
 
   return (
-    <div className="flex items-center -space-x-2" aria-label={`${people.length} assignees`}>
+    <div className="flex items-center -space-x-2" aria-label={t("assignees", { count: people.length })}>
       {visible.map((person) => (
         <Avatar
           key={person.id}

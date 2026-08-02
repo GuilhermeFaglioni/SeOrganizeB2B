@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { fetchJson, qs } from "@/lib/financial/http";
 import { exportReceivablesCsv } from "@/hooks/use-financial-exports";
@@ -34,14 +35,15 @@ type ReceivableRow = DisplayableInstallment<{
 }>;
 
 const STATUS_TABS = [
-  { value: "", label: "All" },
-  { value: "pending", label: "Pending" },
-  { value: "overdue", label: "Overdue" },
-  { value: "paid", label: "Paid" },
-  { value: "cancelled", label: "Cancelled" },
+  { value: "" },
+  { value: "pending" },
+  { value: "overdue" },
+  { value: "paid" },
+  { value: "cancelled" },
 ];
 
 export function ReceivablesList() {
+  const t = useTranslations("financial.receivables.list");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 25;
@@ -56,16 +58,24 @@ export function ReceivablesList() {
       ),
   });
 
+  const tabLabels: Record<string, string> = {
+    "": t("tabAll"),
+    pending: t("tabPending"),
+    overdue: t("tabOverdue"),
+    paid: t("tabPaid"),
+    cancelled: t("tabCancelled"),
+  };
+
   if (isLoading) return <LoadingState />;
   if (isError || !data) {
-    return <FinancialErrorState message="Failed to load receivables" onRetry={() => refetch()} />;
+    return <FinancialErrorState message={t("loadFailed")} onRetry={() => refetch()} />;
   }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-page-alt p-1" role="tablist" aria-label="Receivable status">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-page-alt p-1" role="tablist" aria-label={t("statusLabel")}>
             {STATUS_TABS.map((tab) => (
               <button
                 key={tab.value || "all"}
@@ -82,7 +92,7 @@ export function ReceivablesList() {
                 role="tab"
                 aria-selected={status === tab.value}
               >
-                {tab.label}
+                {tabLabels[tab.value]}
               </button>
             ))}
           </div>
@@ -94,9 +104,9 @@ export function ReceivablesList() {
                 setPage(1);
               }}
               className="rounded-md border border-border bg-page-alt px-2 py-2 text-sm"
-              aria-label="Filter by project"
+              aria-label={t("filterByProjectLabel")}
             >
-              <option value="">All projects</option>
+              <option value="">{t("allProjects")}</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
                   {project.name}
@@ -106,26 +116,26 @@ export function ReceivablesList() {
           )}
         </div>
         <CsvExportButton
-          label="Export CSV"
+          label={t("exportCsv")}
           onExport={() => exportReceivablesCsv({ status, projectId })}
         />
       </div>
 
       {data.items.length === 0 ? (
-        <FinancialEmptyState title="No installments match your filters" />
+        <FinancialEmptyState title={t("noMatches")} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border bg-page-alt" aria-live="polite">
-          <table className="w-full min-w-[760px] text-left text-sm" aria-label="Receivables">
-            <caption className="sr-only">Receivables</caption>
+          <table className="w-full min-w-[760px] text-left text-sm" aria-label={t("tableLabel")}>
+            <caption className="sr-only">{t("tableLabel")}</caption>
             <thead className="border-b border-border text-xs uppercase text-text-muted">
               <tr>
-                <th scope="col" className="px-3 py-2 font-medium">Contract</th>
-                <th scope="col" className="px-3 py-2 font-medium">Client</th>
-                <th scope="col" className="px-3 py-2 font-medium">Amount</th>
-                <th scope="col" className="px-3 py-2 font-medium">Due date</th>
-                <th scope="col" className="px-3 py-2 font-medium">Status</th>
-                <th scope="col" className="px-3 py-2 font-medium">Paid date</th>
-                <th scope="col" className="px-3 py-2 font-medium">Actions</th>
+                <th scope="col" className="px-3 py-2 font-medium">{t("contract")}</th>
+                <th scope="col" className="px-3 py-2 font-medium">{t("client")}</th>
+                <th scope="col" className="px-3 py-2 font-medium">{t("amount")}</th>
+                <th scope="col" className="px-3 py-2 font-medium">{t("dueDate")}</th>
+                <th scope="col" className="px-3 py-2 font-medium">{t("status")}</th>
+                <th scope="col" className="px-3 py-2 font-medium">{t("paidDate")}</th>
+                <th scope="col" className="px-3 py-2 font-medium">{t("actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -144,7 +154,7 @@ export function ReceivablesList() {
                   <td className="px-3 py-2 font-medium">
                     <MoneyText value={installment.expectedAmount} />
                     {installment.refundOfId && (
-                      <span className="ml-1 text-xs text-text-muted">refund</span>
+                      <span className="ml-1 text-xs text-text-muted">{t("refund")}</span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-text-secondary"><CivilDateText date={installment.dueDate} /></td>

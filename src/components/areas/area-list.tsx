@@ -5,6 +5,7 @@ import { AreaBadge } from "@/components/areas/area-badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Pencil, Trash2, Layers } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface AreaListProps {
   onEdit: (area: { id: string; name: string; color: string | null }) => void;
@@ -20,6 +21,7 @@ function AreaRow({
   onEdit: AreaListProps["onEdit"];
   onDelete: AreaListProps["onDelete"];
 }) {
+  const t = useTranslations("areas.list");
   const { data: impact } = useAreaImpact(area.id);
 
   return (
@@ -31,8 +33,8 @@ function AreaRow({
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3 text-body-small text-text-secondary">
-          <span>{impact?.tasks ?? "—"} tasks</span>
-          <span>{impact?.projects ?? "—"} projects</span>
+          <span>{t("taskCount", { count: impact?.tasks ?? "—" })}</span>
+          <span>{t("projectCount", { count: impact?.projects ?? "—" })}</span>
         </div>
 
         <div className="flex items-center gap-1">
@@ -49,18 +51,19 @@ function AreaRow({
 }
 
 export function AreaList({ onEdit, onDelete }: AreaListProps) {
+  const t = useTranslations("areas.list");
   const { data: areas, isLoading } = useAreas();
 
   if (isLoading) {
-    return <div className="py-8 text-center text-body-small text-text-secondary">Loading...</div>;
+    return <div className="py-8 text-center text-body-small text-text-secondary">{t("loading")}</div>;
   }
 
   if (!areas || areas.length === 0) {
     return (
       <EmptyState
         icon={Layers}
-        title="No areas yet"
-        description="Create your first team area to organize projects and tasks."
+        title={t("emptyTitle")}
+        description={t("emptyDescription")}
       />
     );
   }

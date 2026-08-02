@@ -8,6 +8,7 @@ import { useAreas } from "@/hooks/use-areas";
 import { AreaBadge } from "@/components/areas/area-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTranslations } from "next-intl";
 import { LoadingState } from "@/components/shared/loading-state";
 import {
   Dialog,
@@ -67,6 +68,7 @@ export default function ProjectDetailPage() {
   const params = useParams<{ projectId: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const t = useTranslations("projects.pages.detail");
   const projectId = params.projectId;
   const { data: areas } = useAreas();
   const updateProject = useUpdateProject();
@@ -107,7 +109,7 @@ export default function ProjectDetailPage() {
   };
 
   if (isLoading) return <LoadingState />;
-  if (!project) return <div className="p-6 text-center text-text-secondary">Project not found</div>;
+  if (!project) return <div className="p-6 text-center text-text-secondary">{t("notFound")}</div>;
 
   return (
     <div className="h-full overflow-hidden p-3 sm:p-4 lg:p-5">
@@ -117,7 +119,7 @@ export default function ProjectDetailPage() {
             <button
               onClick={() => router.push("/projects")}
               className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-bg-secondary hover:text-text-primary"
-              aria-label="Back to projects"
+              aria-label={t("backToProjects")}
             >
               <ArrowLeft size={18} />
             </button>
@@ -135,7 +137,9 @@ export default function ProjectDetailPage() {
               </div>
               <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
                 <span>
-                  Created by {project.creator.name || project.creator.email}
+                  {t("createdBy", {
+                    name: project.creator.name || project.creator.email,
+                  })}
                 </span>
                 {project.description && (
                   <span className="max-w-2xl truncate text-text-muted">
@@ -152,7 +156,7 @@ export default function ProjectDetailPage() {
               onClick={() => router.push(`/board/${projectId}`)}
             >
               <LayoutDashboard className="h-4 w-4" />
-              Open Board
+              {t("openBoard")}
             </Button>
             <Button
               size="sm"
@@ -160,7 +164,7 @@ export default function ProjectDetailPage() {
               onClick={() => setEditOpen(true)}
             >
               <Edit3 className="h-4 w-4" />
-              Edit
+              {t("edit")}
             </Button>
             <Button
               size="sm"
@@ -168,20 +172,20 @@ export default function ProjectDetailPage() {
               onClick={() => setDeleteOpen(true)}
             >
               <Trash2 className="h-4 w-4" />
-              Archive
+              {t("archive")}
             </Button>
           </div>
         </header>
 
         <section
           className="grid shrink-0 grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-5 lg:gap-3"
-          aria-label="Project indicators"
+          aria-label={t("indicatorsLabel")}
         >
-          <MetricCard icon={ListChecks} label="Total Tasks" value={project.stats.totalTasks} />
-          <MetricCard icon={CheckCircle2} label="Archived (Done)" value={project.stats.archivedTasks} />
-          <MetricCard icon={Columns} label="Active Tasks" value={project.stats.activeTasks} />
-          <MetricCard icon={AlertCircle} label="Overdue" value={project.stats.overdueTasks} />
-          <MetricCard icon={Clock} label="Due This Week" value={project.stats.thisWeekTasks} />
+          <MetricCard icon={ListChecks} label={t("metricTotalTasks")} value={project.stats.totalTasks} />
+          <MetricCard icon={CheckCircle2} label={t("metricArchived")} value={project.stats.archivedTasks} />
+          <MetricCard icon={Columns} label={t("metricActiveTasks")} value={project.stats.activeTasks} />
+          <MetricCard icon={AlertCircle} label={t("metricOverdue")} value={project.stats.overdueTasks} />
+          <MetricCard icon={Clock} label={t("metricDueThisWeek")} value={project.stats.thisWeekTasks} />
         </section>
 
         <div className="grid min-h-0 gap-3 lg:flex-1 lg:grid-cols-[minmax(260px,0.72fr)_minmax(0,1.5fr)] lg:gap-4">
@@ -189,10 +193,10 @@ export default function ProjectDetailPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-sm font-semibold text-text-primary">
-                  Completion
+                  {t("completion")}
                 </h2>
                 <p className="mt-0.5 text-xs text-text-secondary">
-                  Archived task progress
+                  {t("completionHint")}
                 </p>
               </div>
               <span className="text-3xl font-semibold tracking-tight text-text-primary">
@@ -207,7 +211,10 @@ export default function ProjectDetailPage() {
                 />
               </div>
               <p className="mt-2 text-xs text-text-secondary">
-                {project.stats.archivedTasks} of {project.stats.totalTasks} tasks archived
+                {t("archivedProgress", {
+                  archived: project.stats.archivedTasks,
+                  total: project.stats.totalTasks,
+                })}
               </p>
             </div>
           </section>
@@ -216,14 +223,14 @@ export default function ProjectDetailPage() {
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-text-primary">
-                  Workflow distribution
+                  {t("workflowDistribution")}
                 </h2>
                 <p className="mt-0.5 text-xs text-text-secondary">
-                  Tasks by board column
+                  {t("workflowHint")}
                 </p>
               </div>
               <span className="rounded-full bg-bg-secondary px-2 py-1 text-[11px] font-medium text-text-secondary">
-                {project.columns.length} columns
+                {t("columnsCount", { count: project.columns.length })}
               </span>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -248,23 +255,23 @@ export default function ProjectDetailPage() {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Project</DialogTitle>
-            <DialogDescription>Update project name, description, or team area.</DialogDescription>
+            <DialogTitle>{t("editProjectTitle")}</DialogTitle>
+            <DialogDescription>{t("editProjectDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <label className="text-label text-text-secondary">Project Name</label>
+              <label className="text-label text-text-secondary">{t("nameLabel")}</label>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <label className="text-label text-text-secondary">Description</label>
+              <label className="text-label text-text-secondary">{t("descriptionLabel")}</label>
               <Input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <label className="text-label text-text-secondary">Team Area</label>
+              <label className="text-label text-text-secondary">{t("teamArea")}</label>
               <Select value={editAreaId} onValueChange={setEditAreaId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select area" />
+                  <SelectValue placeholder={t("areaPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {areas?.map((a: { id: string; name: string }) => (
@@ -275,8 +282,8 @@ export default function ProjectDetailPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={handleEdit}>Save</Button>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>{t("cancel")}</Button>
+            <Button onClick={handleEdit}>{t("save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -284,14 +291,14 @@ export default function ProjectDetailPage() {
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Archive &ldquo;{project.name}&rdquo;?</DialogTitle>
+            <DialogTitle>{t("archiveProjectTitle", { name: project.name })}</DialogTitle>
             <DialogDescription>
-              This will archive the project and hide it from the main view. Tasks and documents will be preserved.
+              {t("archiveProjectDescription")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Archive Project</Button>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>{t("cancel")}</Button>
+            <Button variant="destructive" onClick={handleDelete}>{t("archiveProject")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface Area {
@@ -15,12 +16,13 @@ interface AreaFilterProps {
 }
 
 export function AreaFilter({ areas, selected, onToggle }: AreaFilterProps) {
+  const t = useTranslations("areas.filter");
   if (areas.length === 0) return null;
 
   return (
     <div data-testid="area-filter" className="px-4 py-3 space-y-2">
       <span className="text-label text-sidebar-text-muted uppercase tracking-wider">
-        Team Areas
+        {t("teamAreas")}
       </span>
       <div className="space-y-1.5">
         {areas.map((area) => (

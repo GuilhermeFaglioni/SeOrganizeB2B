@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Check, ChevronsUpDown, Search, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ export function MultiPersonSelector({
   onValueChange: (ids: string[]) => void;
   disabled?: boolean;
 }) {
+  const t = useTranslations("people.selector");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const selected = useMemo(
@@ -63,8 +65,8 @@ export function MultiPersonSelector({
             <Users className="h-4 w-4 text-text-secondary" />
             <span className="truncate">
               {value.length === 0
-                ? "Unassigned"
-                : `${value.length} ${value.length === 1 ? "person" : "people"}`}
+                ? t("unassigned")
+                : t("personCount", { count: value.length })}
             </span>
           </span>
           <ChevronsUpDown className="h-4 w-4 opacity-50" />
@@ -76,14 +78,14 @@ export function MultiPersonSelector({
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search people"
+            placeholder={t("searchPlaceholder")}
             className="pl-8"
           />
         </div>
         <div className="max-h-64 space-y-1 overflow-y-auto">
           {visiblePeople.length === 0 && (
             <p className="px-2 py-6 text-center text-sm text-text-secondary">
-              No people found
+              {t("noPeopleFound")}
             </p>
           )}
           {visiblePeople.map((person) => {

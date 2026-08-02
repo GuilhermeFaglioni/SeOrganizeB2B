@@ -3,8 +3,10 @@
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { Bell, BellOff, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 export function PushNotificationToggle() {
+  const t = useTranslations("notifications.push");
   const {
     isSupported,
     permission,
@@ -37,9 +39,9 @@ export function PushNotificationToggle() {
   };
 
   const getLabel = () => {
-    if (permission === "denied") return "Notificações bloqueadas";
-    if (isSubscribed) return "Desativar notificações";
-    return "Ativar notificações";
+    if (permission === "denied") return t("blocked");
+    if (isSubscribed) return t("disable");
+    return t("enable");
   };
 
   return (

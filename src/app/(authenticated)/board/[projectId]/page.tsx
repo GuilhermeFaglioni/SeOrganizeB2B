@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/stores/auth-context";
 import { useBoard, type BoardTask } from "@/hooks/use-kanban";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
@@ -21,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export default function BoardPage() {
+  const t = useTranslations("board.pages.project");
   const params = useParams<{ projectId: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -94,10 +96,10 @@ export default function BoardPage() {
   }
 
   const filterButtons = [
-    { key: null, label: "All" },
-    { key: "overdue", label: "Overdue" },
-    { key: "this-week", label: "This Week" },
-    { key: "my-tasks", label: "My Tasks" },
+    { key: null, label: t("filterAll") },
+    { key: "overdue", label: t("filterOverdue") },
+    { key: "this-week", label: t("filterThisWeek") },
+    { key: "my-tasks", label: t("filterMyTasks") },
   ];
 
   return (
@@ -170,14 +172,14 @@ export default function BoardPage() {
           <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Delete Task</DialogTitle>
+                <DialogTitle>{t("deleteTitle")}</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to delete &ldquo;{selectedTask.title}&rdquo;? This action cannot be undone.
+                  {t("deleteConfirm", { title: selectedTask.title })}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-                <Button variant="destructive" onClick={handleDeleteTask}>Delete</Button>
+                <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>{t("cancel")}</Button>
+                <Button variant="destructive" onClick={handleDeleteTask}>{t("delete")}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

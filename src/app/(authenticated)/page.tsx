@@ -5,8 +5,10 @@ import { TodayAgenda } from "@/components/today/today-agenda";
 import { TodayActivity } from "@/components/today/today-activity";
 import { useNotifications } from "@/hooks/use-notifications";
 import { TodaySavedViews } from "@/components/today/today-saved-views";
+import { useTranslations } from "next-intl";
 
 export default function AuthenticatedHome() {
+  const t = useTranslations("today.page");
   const { data: notifications } = useNotifications();
   const today = new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
@@ -20,7 +22,7 @@ export default function AuthenticatedHome() {
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-label uppercase tracking-[0.12em] text-text-muted">
-              Cockpit executivo
+              {t("executiveCockpit")}
             </p>
             <h2 className="text-display capitalize text-text-primary">{today}</h2>
           </div>
@@ -28,7 +30,7 @@ export default function AuthenticatedHome() {
             className="rounded-full border border-border bg-page-alt px-3 py-1.5 text-xs font-medium text-text-secondary shadow-card"
             aria-live="polite"
           >
-            {notifications?.unreadCount ?? 0} notificações não lidas
+            {t("unreadNotifications", { count: notifications?.unreadCount ?? 0 })}
           </div>
         </div>
         <TodaySavedViews />

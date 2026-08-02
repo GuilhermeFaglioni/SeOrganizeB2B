@@ -6,6 +6,7 @@ import { CalendarView } from "@/components/calendar/calendar-view";
 import { UpcomingTasksPanel } from "@/components/calendar/upcoming-tasks-panel";
 import { useCalendarAuth, useUpcomingTasks } from "@/hooks/use-calendar";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import { ExternalLink, Link2 } from "lucide-react";
 import { useScheduleEventDialog } from "@/stores/schedule-event-context";
 import { toastError, toastSuccess } from "@/lib/toast";
@@ -20,6 +21,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export default function CalendarPage() {
+  const t = useTranslations("calendar.page");
   const { data: auth, isLoading } = useCalendarAuth();
   const {
     data: upcomingTasks = [],
@@ -34,16 +36,16 @@ export default function CalendarPage() {
   useEffect(() => {
     const authResult = searchParams.get("calendarAuth");
     if (authResult === "connected") {
-      toastSuccess("Google Calendar conectado");
+      toastSuccess(t("toastGoogleConnected"));
       router.replace("/calendar");
     } else if (authResult === "failed" || searchParams.get("error")) {
       toastError(
-        "Falha ao conectar Google Calendar",
-        "Tente autorizar novamente.",
+        t("toastConnectFailed"),
+        t("toastConnectFailedHint"),
       );
       router.replace("/calendar");
     }
-  }, [router, searchParams]);
+  }, [router, searchParams, t]);
 
   async function connectGoogleCalendar() {
     try {
@@ -53,7 +55,7 @@ export default function CalendarPage() {
       window.location.href = url;
     } catch (error) {
       toastError(
-        "Falha ao conectar calendário",
+        t("toastCalendarConnectFailed"),
         error instanceof Error ? error.message : undefined,
       );
     }
@@ -67,9 +69,9 @@ export default function CalendarPage() {
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-page-alt p-4 shadow-card">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-label uppercase text-text-muted">Agenda</p>
+            <p className="text-label uppercase text-text-muted">{t("eyebrow")}</p>
             <h2 className="text-display text-text-primary">
-              Calendário executivo
+              {t("title")}
             </h2>
           </div>
           <div className="flex items-center gap-2">
@@ -80,7 +82,7 @@ export default function CalendarPage() {
                 onClick={connectGoogleCalendar}
               >
                 <Link2 className="h-4 w-4" />
-                Conectar Google
+                {t("connectGoogle")}
               </Button>
             )}
           </div>
@@ -89,11 +91,10 @@ export default function CalendarPage() {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3">
             <div>
               <p className="text-sm font-semibold text-brand-900">
-                Calendário local ativo
+                {t("localCalendarActive")}
               </p>
               <p className="text-xs text-brand-700">
-                Conecte Google Calendar para sincronizar eventos e enviar
-                convites.
+                {t("localCalendarHint")}
               </p>
             </div>
             <button
@@ -101,7 +102,7 @@ export default function CalendarPage() {
               onClick={connectGoogleCalendar}
               className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700"
             >
-              Conectar agora
+              {t("connectNow")}
               <ExternalLink className="h-3 w-3" />
             </button>
           </div>

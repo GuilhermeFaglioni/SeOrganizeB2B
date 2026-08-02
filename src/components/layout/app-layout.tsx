@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { useRouter, usePathname } from "next/navigation";
@@ -21,24 +22,26 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const { openScheduleEvent } = useScheduleEventDialog();
   const { openQuickCapture } = useQuickCapture();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const t = useTranslations("layout.pageTitles");
 
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  const pageMeta = pathname === "/"
-    ? { title: "Today", action: "Capture" }
-    : pathname.startsWith("/documents")
-    ? { title: "Documents", action: "New document" }
-    : pathname.startsWith("/calendar")
-      ? { title: "Calendar", action: "New event" }
-      : pathname.startsWith("/projects")
-        ? { title: "Projects", action: "New project" }
-        : pathname.startsWith("/settings")
-          ? { title: "Settings", action: null }
-          : pathname.startsWith("/all")
-            ? { title: "All tasks", action: "New task" }
-            : { title: "Board", action: "New task" };
+  const pageMeta =
+    pathname === "/"
+      ? { title: t("today"), action: t("actions.today") }
+      : pathname.startsWith("/documents")
+      ? { title: t("documents"), action: t("actions.documents") }
+      : pathname.startsWith("/calendar")
+        ? { title: t("calendar"), action: t("actions.calendar") }
+        : pathname.startsWith("/projects")
+          ? { title: t("projects"), action: t("actions.projects") }
+          : pathname.startsWith("/settings")
+            ? { title: t("settings"), action: null }
+            : pathname.startsWith("/all")
+              ? { title: t("all"), action: t("actions.all") }
+              : { title: t("board"), action: t("actions.board") };
 
   const handleNewClick = async () => {
     if (pathname === "/" || pathname.startsWith("/board")) {

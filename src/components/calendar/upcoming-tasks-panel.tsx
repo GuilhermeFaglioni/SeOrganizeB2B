@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import type { UpcomingTask } from "@/hooks/use-calendar";
 import { useScheduleEventDialog } from "@/stores/schedule-event-context";
 import { AvatarGroup } from "@/components/people/avatar-group";
+import { useTranslations } from "next-intl";
 
 const PRIORITY_BORDER: Record<string, string> = {
   urgent: "#dc2626",
@@ -27,15 +28,16 @@ export function UpcomingTasksPanel({
   onRetry?: () => void;
 }) {
   const { openScheduleEvent } = useScheduleEventDialog();
+  const t = useTranslations("calendar.upcomingTasks");
   const sorted = [...tasks]
-    .filter((t) => t.dueDate)
+    .filter((task) => task.dueDate)
     .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime());
 
   return (
     <div data-testid="upcoming-tasks" className="space-y-3">
-      <h3 className="text-label font-semibold text-text-primary">Upcoming Tasks</h3>
+      <h3 className="text-label font-semibold text-text-primary">{t("title")}</h3>
       {isLoading && (
-        <div className="space-y-2" aria-label="Carregando próximas tarefas">
+        <div className="space-y-2" aria-label={t("loadingLabel")}>
           {[0, 1, 2].map((item) => (
             <div
               key={item}
@@ -46,18 +48,18 @@ export function UpcomingTasksPanel({
       )}
       {error && (
         <div className="rounded-xl border border-danger/20 bg-danger-bg p-3 text-sm text-danger">
-          <p>Falha ao carregar próximas tarefas.</p>
+          <p>{t("loadFailed")}</p>
           <button
             type="button"
             onClick={onRetry}
             className="mt-2 font-semibold underline underline-offset-2"
           >
-            Tentar novamente
+            {t("retry")}
           </button>
         </div>
       )}
       {!isLoading && !error && sorted.length === 0 && (
-        <div className="text-body-small text-text-secondary text-center py-4">No upcoming tasks</div>
+        <div className="text-body-small text-text-secondary text-center py-4">{t("empty")}</div>
       )}
       {!isLoading && !error && <div className="space-y-2">
         {sorted.map((task) => {
@@ -114,7 +116,7 @@ export function UpcomingTasksPanel({
                     className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-accent opacity-0 transition-opacity hover:bg-brand-50 group-hover:opacity-100 focus:opacity-100"
                   >
                     <Plus className="h-3 w-3" />
-                    Agendar
+                    {t("schedule")}
                   </button>
                 </div>
               </div>

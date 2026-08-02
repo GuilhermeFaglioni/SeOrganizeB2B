@@ -2,10 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useContract } from "@/hooks/use-contracts";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useContract, useDeleteContract } from "@/hooks/use-contracts";
 import { useMarkInstallmentPaid } from "@/hooks/use-installments";
 import { suggestPlan } from "@/lib/financial/installments";
 import { toDecimal } from "@/lib/financial/money";
+import { toastSuccess } from "@/lib/toast";
 import { MoneyText } from "@/components/financial/shared/money-text";
 import { CivilDateText } from "@/components/financial/shared/civil-date-text";
 import { StatusBadge } from "@/components/financial/shared/status-badge";
@@ -14,11 +17,31 @@ import { LifecycleActions } from "@/components/financial/contracts/lifecycle-act
 import { ChangeDialog } from "@/components/financial/contracts/change-dialog";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/shared/loading-state";
+import { Trash2 } from "lucide-react";
 
 export function ContractDetail({ contractId }: { contractId: string }) {
+  const router = useRouter();
+  const t = useTranslations("financial.contracts.detail");
   const { data: contract, isLoading, isError, refetch } = useContract(contractId);
   const markPaid = useMarkInstallmentPaid();
+  const deleteContract = useDeleteContract();
   const [changeOpen, setChangeOpen] = useState(false);
+
+  function handleDelete() {
+    if (
+      !window.confirm(
+        t("confirmDeleteDetail")
+      )
+    ) {
+      return;
+    }
+    deleteContract.mutate(contract!.id, {
+      onSuccess: () => {
+        toastSuccess(t("contractDeletedDetail"));
+        router.push("/financial/contracts");
+      },
+    });
+  }
 
   const activationPlan = useMemo(() => {
     if (!contract) return [];
@@ -38,7 +61,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
 
   if (isLoading) return <LoadingState />;
   if (isError || !contract) {
-    return <FinancialErrorState message="Failed to load the contract" onRetry={() => refetch()} />;
+    return <FinancialErrorState message={t("loadFailedDetail")} onRetry={() => refetch()} />;
   }
 
   return (
@@ -62,63 +85,66 @@ export function ContractDetail({ contractId }: { contractId: string }) {
                 href={`/financial/contracts/${contract.id}/edit`}
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px] focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
-                Edit
+                {t("edit")}
               </Link>
             )}
             {contract.status === "active" && (
               <Button variant="outline" onClick={() => setChangeOpen(true)}>
-                Adjust value
+                {t("adjustValue")}
               </Button>
             )}
+            <Button variant="destructive" onClick={handleDelete}>
+              <Trash2 size={16} aria-hidden="true" /> {t("delete")}
+            </Button>
           </div>
         </div>
       </div>
 
       <section aria-labelledby="commercial-summary" className="rounded-xl border border-border bg-page-alt p-4">
         <h2 id="commercial-summary" className="mb-3 text-base font-semibold text-text-primary">
-          Commercial summary
+          {t("commercialSummary")}
         </h2>
-        <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4" aria-label="Commercial summary details">
+        <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4" aria-label={t("commercialSummaryAria")}>
           <div>
-            <dt className="text-xs text-text-muted">Official value</dt>
+            <dt className="text-xs text-text-muted">{t("officialValue")}</dt>
             <dd className="font-semibold text-text-primary"><MoneyText value={contract.officialValue} /></dd>
           </div>
           <div>
-            <dt className="text-xs text-text-muted">Duration</dt>
+            <dt className="text-xs text-text-muted">{t("duration")}</dt>
             <dd className="text-text-primary">{contract.durationType}</dd>
           </div>
           <div>
-            <dt className="text-xs text-text-muted">Start</dt>
+            <dt className="text-xs text-text-muted">{t("startDate")}</dt>
             <dd className="text-text-primary"><CivilDateText date={contract.startDate} /></dd>
           </div>
           <div>
-            <dt className="text-xs text-text-muted">End</dt>
+            <dt className="text-xs text-text-muted">{t("endDate")}</dt>
             <dd className="text-text-primary"><CivilDateText date={contract.endDate} /></dd>
           </div>
           <div>
-            <dt className="text-xs text-text-muted">Billing frequency</dt>
+            <dt className="text-xs text-text-muted">{t("billingFrequency")}</dt>
             <dd className="text-text-primary">{contract.billingFrequency ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs text-text-muted">Payment method</dt>
+            <dt className="text-xs text-text-muted">{t("paymentMethod")}</dt>
             <dd className="text-text-primary">{contract.paymentMethod}</dd>
           </div>
         </dl>
       </section>
 
       <section aria-labelledby="items-title" className="rounded-xl border border-border bg-page-alt p-4">
-        <h2 id="items-title" className="mb-3 text-base font-semibold text-text-primary">Items</h2>
+        <h2 id="items-title" className="mb-3 text-base font-semibold text-text-primary">{t("itemsTitle")}</h2>
         {contract.items.length === 0 ? (
-          <p className="text-sm text-text-muted">No items recorded.</p>
+          <p className="text-sm text-text-muted">{t("noItems")}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-left text-sm" aria-label="Contract items">
+            <table className="w-full min-w-[480px] text-left text-sm" aria-label={t("itemsAria")}>
               <thead className="text-xs uppercase text-text-muted">
                 <tr>
-                  <th scope="col" className="px-3 py-1 font-medium">Name</th>
-                  <th scope="col" className="px-3 py-1 font-medium">Quantity</th>
-                  <th scope="col" className="px-3 py-1 font-medium">Unit</th>
-                  <th scope="col" className="px-3 py-1 font-medium">Price</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("itemName")}</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("itemQuantity")}</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("itemUnit")}</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("itemPrice")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -137,11 +163,11 @@ export function ContractDetail({ contractId }: { contractId: string }) {
       </section>
 
       <section aria-labelledby="projects-title" className="rounded-xl border border-border bg-page-alt p-4">
-        <h2 id="projects-title" className="mb-3 text-base font-semibold text-text-primary">Linked projects</h2>
+        <h2 id="projects-title" className="mb-3 text-base font-semibold text-text-primary">{t("linkedProjects")}</h2>
         {contract.projects.length === 0 ? (
-          <p className="text-sm text-text-muted">No linked projects.</p>
+          <p className="text-sm text-text-muted">{t("noLinkedProjects")}</p>
         ) : (
-          <ul className="flex flex-wrap gap-2" aria-label="Linked projects">
+          <ul className="flex flex-wrap gap-2" aria-label={t("linkedProjectsAria")}>
             {contract.projects.map((link) => (
               <li key={link.project.id} className="rounded-md bg-bg-secondary px-3 py-1 text-sm text-text-secondary">
                 {link.project.name}
@@ -152,17 +178,17 @@ export function ContractDetail({ contractId }: { contractId: string }) {
       </section>
 
       <section aria-labelledby="installments-title" className="rounded-xl border border-border bg-page-alt p-4">
-        <h2 id="installments-title" className="mb-3 text-base font-semibold text-text-primary">Installments</h2>
+        <h2 id="installments-title" className="mb-3 text-base font-semibold text-text-primary">{t("installments")}</h2>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-left text-sm" aria-label="Installments">
+          <table className="w-full min-w-[560px] text-left text-sm" aria-label={t("installmentsAria")}>
             <thead className="text-xs uppercase text-text-muted">
               <tr>
-                <th scope="col" className="px-3 py-1 font-medium">Due date</th>
-                <th scope="col" className="px-3 py-1 font-medium">Amount</th>
-                <th scope="col" className="px-3 py-1 font-medium">Status</th>
-                <th scope="col" className="px-3 py-1 font-medium">Paid date</th>
-                <th scope="col" className="px-3 py-1 font-medium">Payment method</th>
-                <th scope="col" className="px-3 py-1 font-medium">Actions</th>
+                <th scope="col" className="px-3 py-1 font-medium">{t("dueDate")}</th>
+                <th scope="col" className="px-3 py-1 font-medium">{t("amount")}</th>
+                <th scope="col" className="px-3 py-1 font-medium">{t("status")}</th>
+                <th scope="col" className="px-3 py-1 font-medium">{t("paidDate")}</th>
+                <th scope="col" className="px-3 py-1 font-medium">{t("paymentMethod")}</th>
+                <th scope="col" className="px-3 py-1 font-medium">{t("actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -172,7 +198,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
                   <td className="px-3 py-1 font-medium">
                     <MoneyText value={installment.expectedAmount} />
                     {installment.refundOfId && (
-                      <span className="ml-1 text-xs text-text-muted">refund</span>
+                      <span className="ml-1 text-xs text-text-muted">{t("refund")}</span>
                     )}
                   </td>
                   <td className="px-3 py-1"><StatusBadge status={installment.status} /></td>
@@ -190,7 +216,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
                         }
                         className="rounded-md bg-success px-2 py-1 text-xs font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                       >
-                        Mark paid
+                        {t("markPaid")}
                       </button>
                     )}
                   </td>
@@ -203,17 +229,17 @@ export function ContractDetail({ contractId }: { contractId: string }) {
 
       {contract.changes.length > 0 && (
         <section aria-labelledby="changes-title" className="rounded-xl border border-border bg-page-alt p-4">
-          <h2 id="changes-title" className="mb-3 text-base font-semibold text-text-primary">Upsell and downsell history</h2>
+          <h2 id="changes-title" className="mb-3 text-base font-semibold text-text-primary">{t("changesTitle")}</h2>
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-left text-sm" aria-label="Upsell and downsell history">
+          <table className="w-full min-w-[560px] text-left text-sm" aria-label={t("changesAria")}>
               <thead className="text-xs uppercase text-text-muted">
                 <tr>
-                  <th scope="col" className="px-3 py-1 font-medium">Type</th>
-                  <th scope="col" className="px-3 py-1 font-medium">Delta</th>
-                  <th scope="col" className="px-3 py-1 font-medium">Effective</th>
-                  <th scope="col" className="px-3 py-1 font-medium">Previous</th>
-                  <th scope="col" className="px-3 py-1 font-medium">New</th>
-                  <th scope="col" className="px-3 py-1 font-medium">Reason</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("changeType")}</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("changeDelta")}</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("changeEffective")}</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("changePrevious")}</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("changeNew")}</th>
+                  <th scope="col" className="px-3 py-1 font-medium">{t("changeReason")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -235,16 +261,16 @@ export function ContractDetail({ contractId }: { contractId: string }) {
 
       {contract.audits.length > 0 && (
         <section aria-labelledby="audit-title" className="rounded-xl border border-border bg-page-alt p-4">
-          <h2 id="audit-title" className="mb-3 text-base font-semibold text-text-primary">Audit history</h2>
-          <ul className="divide-y divide-border text-sm" aria-label="Audit history">
+          <h2 id="audit-title" className="mb-3 text-base font-semibold text-text-primary">{t("auditTitle")}</h2>
+          <ul className="divide-y divide-border text-sm" aria-label={t("auditAria")}>
             {contract.audits.map((audit) => (
               <li key={audit.id} className="py-2">
                 <p className="text-text-primary">
-                  <span className="font-medium">{audit.field}</span> changed
+                  <span className="font-medium">{audit.field}</span> {t("auditChanged")}
                   {audit.reason ? ` — ${audit.reason}` : ""}
                 </p>
                 <p className="text-xs text-text-muted">
-                  {audit.actor?.name ?? "System"} · {new Date(audit.createdAt).toLocaleString()}
+                  {audit.actor?.name ?? t("auditSystem")} · {new Date(audit.createdAt).toLocaleString()}
                 </p>
               </li>
             ))}

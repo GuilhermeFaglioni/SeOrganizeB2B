@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/stores/auth-context";
 import { useAreas } from "@/hooks/use-areas";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { toastError, toastSuccess } from "@/lib/toast";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const t = useTranslations("settings.profile");
   const { user, updateUserName } = useAuth();
   const { data: areas } = useAreas();
   const [selectedAreaIds, setSelectedAreaIds] = useState<string[]>([]);
@@ -49,10 +51,10 @@ export default function ProfilePage() {
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error.message);
-      toastSuccess("Áreas atualizadas");
+      toastSuccess(t("areasUpdated"));
     } catch (err) {
       toastError(
-        "Falha ao salvar áreas",
+        t("areasUpdateError"),
         err instanceof Error ? err.message : undefined,
       );
     } finally {
@@ -67,29 +69,29 @@ export default function ProfilePage() {
           onClick={() => router.push("/settings")}
           className="text-sm text-text-secondary hover:text-text-primary"
         >
-          &larr; Back to Settings
+          &larr; {t("backToSettings")}
         </button>
       </div>
 
       <div>
-        <h1 className="text-heading-1 text-text-primary">Profile</h1>
+        <h1 className="text-heading-1 text-text-primary">{t("title")}</h1>
         <p className="text-body-small text-text-secondary mt-1">
-          Manage your profile information and team area assignments.
+          {t("subtitle")}
         </p>
       </div>
 
       <div className="bg-page-alt border border-border rounded-xl p-6 space-y-4">
         <div className="space-y-2">
-          <label className="text-label text-text-secondary">Email</label>
+          <label className="text-label text-text-secondary">{t("emailLabel")}</label>
           <Input value={user?.email || ""} disabled />
         </div>
 
         <div className="space-y-2">
-          <label className="text-label text-text-secondary">Name</label>
+          <label className="text-label text-text-secondary">{t("nameLabel")}</label>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t("namePlaceholder")}
           />
         </div>
 
@@ -104,25 +106,25 @@ export default function ProfilePage() {
             const data = await res.json();
             if (data.error) throw new Error(data.error.message);
             updateUserName(data.data.name);
-            toastSuccess("Nome atualizado");
+            toastSuccess(t("nameUpdated"));
           } catch (err) {
             toastError(
-              "Falha ao atualizar nome",
+              t("nameUpdateError"),
               err instanceof Error ? err.message : undefined,
             );
           } finally {
             setSaving(false);
           }
         }} disabled={saving || !name.trim()}>
-          {saving ? "Saving..." : "Save Name"}
+          {saving ? t("saving") : t("saveName")}
         </Button>
 
       </div>
 
       <div className="bg-page-alt border border-border rounded-xl p-6 space-y-4">
-        <h2 className="text-base font-semibold text-text-primary">Team Areas</h2>
+        <h2 className="text-base font-semibold text-text-primary">{t("areasTitle")}</h2>
         <p className="text-sm text-text-secondary">
-          Select the team areas you belong to. This determines which areas you can filter by and assign tasks to.
+          {t("areasDescription")}
         </p>
 
         {areas && areas.length > 0 ? (
@@ -147,11 +149,11 @@ export default function ProfilePage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-text-secondary">No team areas configured. Create one in Team Areas settings.</p>
+          <p className="text-sm text-text-secondary">{t("noAreas")}</p>
         )}
 
         <Button onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save"}
+          {saving ? t("saving") : t("save")}
         </Button>
       </div>
     </div>

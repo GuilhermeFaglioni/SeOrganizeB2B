@@ -1,10 +1,14 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { ActivityFeed } from "@/components/activity/activity-feed";
 
 export function TodayActivity() {
+  const t = useTranslations("today.activity");
   return (
     <section className="rounded-2xl border border-border bg-page-alt p-5 shadow-card">
       <h3 className="mb-4 text-heading-1 text-text-primary">
-        Atividade recente
+        {t("heading")}
       </h3>
       <ActivityFeed limit={12} />
     </section>

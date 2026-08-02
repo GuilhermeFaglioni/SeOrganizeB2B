@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -32,6 +33,7 @@ export function useComments(taskId: string) {
 
 export function useCreateComment(taskId: string) {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.comments");
 
   return useMutation({
     mutationFn: (data: { content: string }) =>
@@ -49,7 +51,7 @@ export function useCreateComment(taskId: string) {
         authorId: "current",
         content: newComment.content,
         createdAt: new Date().toISOString(),
-        author: { id: "current", name: "You", avatarUrl: null },
+        author: { id: "current", name: t("you"), avatarUrl: null },
       };
       queryClient.setQueryData<CommentData[]>(["comments", taskId], (old) =>
         old ? [...old, optimistic] : [optimistic]

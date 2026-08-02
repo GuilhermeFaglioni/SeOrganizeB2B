@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { FinancialConflictError } from "../lib/financial/lifecycle";
 
-const { mockPrisma, mockCreateContractDraft, mockUpdateContract, mockDeleteDraftContract } =
+const { mockPrisma, mockCreateContractDraft, mockUpdateContract, mockDeleteContract } =
   vi.hoisted(() => ({
     mockPrisma: {
       contract: {
@@ -13,7 +13,7 @@ const { mockPrisma, mockCreateContractDraft, mockUpdateContract, mockDeleteDraft
     },
     mockCreateContractDraft: vi.fn(),
     mockUpdateContract: vi.fn(),
-    mockDeleteDraftContract: vi.fn(),
+    mockDeleteContract: vi.fn(),
   }));
 
 vi.mock("../../prisma/client", () => ({
@@ -31,8 +31,8 @@ vi.mock("@/lib/financial/contracts-service", () => ({
   get updateContract() {
     return mockUpdateContract;
   },
-  get deleteDraftContract() {
-    return mockDeleteDraftContract;
+  get deleteContract() {
+    return mockDeleteContract;
   },
 }));
 
@@ -73,7 +73,7 @@ describe("contracts API route behavior", () => {
     mockPrisma.contract.findUnique.mockReset();
     mockCreateContractDraft.mockReset();
     mockUpdateContract.mockReset();
-    mockDeleteDraftContract.mockReset();
+    mockDeleteContract.mockReset();
   });
 
   afterEach(() => {
@@ -571,8 +571,8 @@ describe("contracts API route behavior", () => {
       expect(res.status).toBe(401);
     });
 
-    it("deletes a draft contract and returns 200", async () => {
-      mockDeleteDraftContract.mockResolvedValue(undefined);
+    it("deletes a contract and returns 200", async () => {
+      mockDeleteContract.mockResolvedValue(undefined);
 
       const res = await deleteContract(
         makeRequest("http://x/api/contracts/ctr-1", undefined, "DELETE"),
@@ -582,12 +582,12 @@ describe("contracts API route behavior", () => {
       const json = await res.json();
       expect(json.data).toBeNull();
       expect(json.error).toBeNull();
-      expect(mockDeleteDraftContract).toHaveBeenCalledWith("ctr-1");
+      expect(mockDeleteContract).toHaveBeenCalledWith("ctr-1");
     });
 
-    it("returns 409 when contract is not a draft", async () => {
-      mockDeleteDraftContract.mockRejectedValue(
-        new FinancialConflictError("Only draft contracts can be deleted")
+    it("returns 409 when the service reports a conflict", async () => {
+      mockDeleteContract.mockRejectedValue(
+        new FinancialConflictError("Cannot delete this contract")
       );
 
       const res = await deleteContract(
@@ -600,7 +600,7 @@ describe("contracts API route behavior", () => {
     });
 
     it("returns 500 for unexpected errors", async () => {
-      mockDeleteDraftContract.mockRejectedValue(new Error("boom"));
+      mockDeleteContract.mockRejectedValue(new Error("boom"));
 
       const res = await deleteContract(
         makeRequest("http://x/api/contracts/ctr-1", undefined, "DELETE"),

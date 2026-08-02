@@ -2,16 +2,18 @@
 
 import { Bookmark } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useSavedViews } from "@/hooks/use-saved-views";
 
 export function TodaySavedViews() {
+  const t = useTranslations("today.savedViews");
   const router = useRouter();
   const { data: views = [] } = useSavedViews();
   if (!views.length) return null;
   return (
     <div className="mb-5 flex items-center gap-2 overflow-x-auto">
       <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-text-secondary">
-        <Bookmark className="h-3.5 w-3.5" /> Minhas views
+        <Bookmark className="h-3.5 w-3.5" /> {t("myViews")}
       </span>
       {views.slice(0, 6).map((view) => {
         const params = new URLSearchParams();

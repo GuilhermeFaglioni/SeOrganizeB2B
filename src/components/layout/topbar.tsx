@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Menu, Plus } from "lucide-react";
 import { NotificationCenter } from "@/components/notifications/notification-center";
 import { PushNotificationToggle } from "@/components/notifications/push-notification-toggle";
+import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 
 interface TopbarProps {
   title?: string;
@@ -18,6 +20,8 @@ export function Topbar({
   actionLabel = "Novo",
   onMenuClick,
 }: TopbarProps) {
+  const t = useTranslations("layout.topbar");
+
   return (
     <header
       data-testid="topbar"
@@ -31,7 +35,7 @@ export function Topbar({
             size="icon"
             onClick={onMenuClick}
             className="shrink-0 bg-sidebar text-white hover:bg-sidebar-hover hover:text-white sm:hidden"
-            aria-label="Open menu"
+            aria-label={t("openMenu")}
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
           </Button>
@@ -45,6 +49,7 @@ export function Topbar({
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <LocaleSwitcher />
           <PushNotificationToggle />
           <NotificationCenter />
           {onNewClick && (

@@ -6,6 +6,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DatesSetArg, EventClickArg } from "@fullcalendar/core";
+import { useTranslations } from "next-intl";
 import { useCalendarEvents } from "@/hooks/use-calendar";
 import { useIsMobile, useIsTablet } from "@/hooks/use-media-query";
 import { CalendarEvent } from "./calendar-event";
@@ -45,6 +46,7 @@ export function CalendarView({
   onCreateEvent?: (date: string, allDay: boolean) => void;
   onSyncError?: () => void;
 }) {
+  const t = useTranslations("calendar.view");
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const calendarRef = useRef<FullCalendar>(null);
@@ -99,11 +101,11 @@ export function CalendarView({
     if (error) {
       console.error("Calendar query failed:", error);
       toastError(
-        "Falha na sincronização",
+        t("syncToastFailed"),
         error instanceof Error ? error.message : undefined,
       );
     }
-  }, [error]);
+  }, [error, t]);
 
   useEffect(() => {
     if (isMobile || isTablet) {
@@ -118,7 +120,7 @@ export function CalendarView({
     >
       {isLoading && (
         <div className="pointer-events-none absolute right-4 top-3 z-10 rounded-full border border-border bg-page-alt/90 px-3 py-1 text-xs text-text-secondary shadow-card">
-          Sincronizando…
+          {t("syncing")}
         </div>
       )}
       {error && (
@@ -126,7 +128,7 @@ export function CalendarView({
           <span>
             {error instanceof Error
               ? error.message
-              : "Falha ao sincronizar calendário"}
+              : t("syncFailed")}
           </span>
           <button
             type="button"
@@ -136,7 +138,7 @@ export function CalendarView({
             }}
             className="font-semibold underline underline-offset-2"
           >
-            {onSyncError ? "Reconectar Google" : "Tentar novamente"}
+            {onSyncError ? t("reconnectGoogle") : t("retry")}
           </button>
         </div>
       )}
@@ -152,12 +154,12 @@ export function CalendarView({
             : "timeGridWeek,timeGridDay,dayGridMonth",
         }}
         buttonText={{
-          today: "Today",
-          month: "Month",
-          week: "Week",
-          day: "Day",
+          today: t("fcToday"),
+          month: t("fcMonth"),
+          week: t("fcWeek"),
+          day: t("fcDay"),
         }}
-        allDayText="All day"
+        allDayText={t("fcAllDay")}
         firstDay={1}
         nowIndicator
         selectable

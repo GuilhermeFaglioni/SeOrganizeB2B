@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface DocumentRowDoc {
   id: string;
@@ -18,6 +19,7 @@ export function DocumentRow({
   onClick?: () => void;
   onDelete?: (e: React.MouseEvent) => void;
 }) {
+  const t = useTranslations("documents.row");
   const updated = new Date(doc.updatedAt).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -47,7 +49,7 @@ export function DocumentRow({
         <button
           onClick={onDelete}
           className="text-text-secondary hover:text-danger transition-colors p-1"
-          aria-label="Delete document"
+          aria-label={t("deleteDocument")}
         >
           <Trash2 size={16} />
         </button>

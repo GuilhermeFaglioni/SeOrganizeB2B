@@ -60,7 +60,7 @@ describe("2.2.4 DocumentList component", () => {
     expect(src).toContain('data-testid="document-list"');
     expect(src).toContain("useDocuments");
     expect(src).toContain("DocumentRow");
-    expect(src).toContain("No documents yet");
+    expect(src).toContain('t("empty")');
   });
 });
 

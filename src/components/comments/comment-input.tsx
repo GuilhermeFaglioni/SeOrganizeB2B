@@ -8,6 +8,7 @@ import {
   type ChangeEvent,
 } from "react";
 import { Send } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useProfiles } from "@/hooks/use-profiles";
 
 export function CommentInput({
@@ -17,6 +18,7 @@ export function CommentInput({
   onSubmit: (content: string) => void;
   isPending?: boolean;
 }) {
+  const t = useTranslations("comments.input");
   const [content, setContent] = useState("");
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -106,7 +108,7 @@ export function CommentInput({
           <div
             className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-page-alt p-1 shadow-lg"
             role="listbox"
-            aria-label="Mention a teammate"
+            aria-label={t("mentionAria")}
           >
             {mentionOptions.map((profile) => (
               <button
@@ -129,7 +131,7 @@ export function CommentInput({
           value={content}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder="Write a comment... Use @ to mention"
+          placeholder={t("placeholder")}
           className="w-full min-h-[80px] resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
       </div>
@@ -137,7 +139,7 @@ export function CommentInput({
         onClick={handleSubmit}
         disabled={isEmpty || isPending}
         className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-accent text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent/90 transition-colors shrink-0"
-        aria-label="Send comment"
+        aria-label={t("sendAria")}
       >
         <Send size={16} />
       </button>

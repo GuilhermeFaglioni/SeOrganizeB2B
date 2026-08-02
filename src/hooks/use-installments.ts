@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toastError } from "@/lib/toast";
 import { fetchJson } from "@/lib/financial/http";
 
 export function useMarkInstallmentPaid() {
+  const t = useTranslations("hooks.installments");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, paidAt }: { id: string; paidAt: string }) =>
@@ -16,11 +18,12 @@ export function useMarkInstallmentPaid() {
       queryClient.invalidateQueries({ queryKey: ["overview"] });
       queryClient.invalidateQueries({ queryKey: ["receivables"] });
     },
-    onError: () => toastError("Failed to record payment"),
+    onError: () => toastError(t("recordPaymentFailed")),
   });
 }
 
 export function useCancelInstallment() {
+  const t = useTranslations("hooks.installments");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
@@ -34,11 +37,12 @@ export function useCancelInstallment() {
       queryClient.invalidateQueries({ queryKey: ["overview"] });
       queryClient.invalidateQueries({ queryKey: ["receivables"] });
     },
-    onError: () => toastError("Failed to cancel installment"),
+    onError: () => toastError(t("cancelFailed")),
   });
 }
 
 export function useRefundInstallment() {
+  const t = useTranslations("hooks.installments");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -60,6 +64,6 @@ export function useRefundInstallment() {
       queryClient.invalidateQueries({ queryKey: ["overview"] });
       queryClient.invalidateQueries({ queryKey: ["receivables"] });
     },
-    onError: () => toastError("Failed to record refund"),
+    onError: () => toastError(t("recordRefundFailed")),
   });
 }

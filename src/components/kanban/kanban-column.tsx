@@ -4,6 +4,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { KanbanCard } from "./kanban-card";
 import type { BoardColumn, BoardTask } from "@/hooks/use-kanban";
@@ -39,6 +40,7 @@ export function KanbanColumn({
   allowColumnManagement?: boolean;
   groupBy?: BoardGroupBy;
 }) {
+  const t = useTranslations("kanban.column");
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -57,7 +59,7 @@ export function KanbanColumn({
         compact ? "w-[260px] min-w-[240px]" : "w-[280px] min-w-[260px]"
       )}
       role="region"
-      aria-label={`Column: ${column.name}`}
+      aria-label={t("columnAria", { name: column.name })}
     >
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
@@ -71,7 +73,7 @@ export function KanbanColumn({
           <button
             onClick={onAddClick}
             className="text-text-secondary hover:text-text-primary transition-colors p-1"
-            aria-label={`Add task to ${column.name}`}
+            aria-label={t("addTaskAria", { name: column.name })}
           >
             <Plus size={16} />
           </button>
@@ -79,7 +81,7 @@ export function KanbanColumn({
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="text-text-secondary hover:text-text-primary transition-colors p-1"
-              aria-label={`Column options for ${column.name}`}
+              aria-label={t("optionsAria", { name: column.name })}
             >
               <MoreHorizontal size={16} />
             </button>
@@ -95,7 +97,7 @@ export function KanbanColumn({
                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg-secondary"
                   >
                     <Pencil size={14} />
-                    Rename
+                    {t("rename")}
                   </button>
                   <button
                     onClick={() => {
@@ -105,7 +107,7 @@ export function KanbanColumn({
                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-bg-secondary"
                   >
                     <Trash2 size={14} />
-                    Delete
+                    {t("delete")}
                   </button>
                 </div>
               </>
@@ -149,7 +151,7 @@ export function KanbanColumn({
         ))}
         {displayedTasks.length === 0 && (
           <div className="text-caption text-text-secondary text-center py-4">
-            {areaFilter ? "No tasks for this area" : "No tasks yet"}
+            {areaFilter ? t("noTasksForArea") : t("noTasksYet")}
           </div>
         )}
       </div>

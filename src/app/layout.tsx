@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { SwRegister } from "@/components/sw-register";
 import { ThemeWatcher } from "@/components/theme-watcher";
+import { I18nProvider } from "@/i18n/provider";
 import "./globals.css";
 
 const geist = localFont({
@@ -56,6 +57,21 @@ const themeScript = `
   })();
 `;
 
+// Inline script to set the saved locale lang before hydration
+const localeScript = `
+  (function() {
+    try {
+      var match = document.cookie.match(/(?:^|; )NEXT_LOCALE=([^;]*)/);
+      if (match) {
+        var locale = decodeURIComponent(match[1]);
+        if (locale === 'pt-BR' || locale === 'en') {
+          document.documentElement.lang = locale;
+        }
+      }
+    } catch(e) {}
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -65,11 +81,14 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: localeScript }} />
       </head>
       <body>
-        <ThemeWatcher />
-        <SwRegister />
-        {children}
+        <I18nProvider>
+          <ThemeWatcher />
+          <SwRegister />
+          {children}
+        </I18nProvider>
       </body>
     </html>
   );

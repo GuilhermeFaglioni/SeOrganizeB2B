@@ -35,7 +35,7 @@ describe("2.3.4 Responsive sidebar", () => {
     expect(src).toContain("isMobile");
     expect(src).toContain("aria-label");
     expect(topbar).toContain("Menu");
-    expect(topbar).toContain('aria-label="Open menu"');
+    expect(topbar).toContain('aria-label={t("openMenu")}');
   });
 });
 
@@ -92,7 +92,7 @@ describe("2.3.12 ARIA attributes", () => {
 
   it("Sidebar has aria-label on nav", () => {
     const src = read("src/components/layout/sidebar.tsx");
-    expect(src).toContain('aria-label="Main navigation"');
+    expect(src).toContain('aria-label={t("mainNavigation")}');
   });
 });
 

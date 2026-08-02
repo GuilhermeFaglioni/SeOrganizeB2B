@@ -15,7 +15,7 @@ describe("mobile layout regressions", () => {
     expect(appLayout).toContain("mobileMenuOpen");
     expect(appLayout).toContain("onMenuClick");
     expect(topbar).toContain("Menu");
-    expect(topbar).toContain('aria-label="Open menu"');
+    expect(topbar).toContain('aria-label={t("openMenu")}');
     expect(topbar).toContain("min-w-0");
     expect(topbar).toContain("truncate");
     expect(sidebar).toContain("mobileOpen");
@@ -25,8 +25,8 @@ describe("mobile layout regressions", () => {
   it("keeps document save available as an accessible mobile icon action", () => {
     const editor = read("src/components/documents/document-editor.tsx");
 
-    expect(editor).toContain('aria-label="Save document"');
-    expect(editor).toContain('title="Save document"');
+    expect(editor).toContain('aria-label={t("saveDocument")}');
+    expect(editor).toContain('title={t("saveDocument")}');
     expect(editor).toContain("sm:hidden");
   });
 

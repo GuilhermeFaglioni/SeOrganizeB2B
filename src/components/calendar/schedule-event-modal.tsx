@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useScheduleEvent } from "@/hooks/use-calendar";
+import { useTranslations } from "next-intl";
 import { EventAttendeeSelector } from "./event-attendee-selector";
 import { toastError, toastSuccess } from "@/lib/toast";
 import {
@@ -67,6 +68,7 @@ export function ScheduleEventModal({
   const [profileIds, setProfileIds] = useState<string[]>([]);
   const [attendeeEmails, setAttendeeEmails] = useState<string[]>([]);
   const [areaId, setAreaId] = useState("");
+  const t = useTranslations("calendar.scheduleEvent");
   const scheduleEvent = useScheduleEvent();
   const { data: areas = [] } = useAreas();
   const conflictCheck = useCalendarConflicts();
@@ -138,21 +140,21 @@ export function ScheduleEventModal({
         onSuccess: (createdEvent) => {
           toastSuccess(
             taskId
-              ? "Tarefa agendada"
+              ? t("toastTaskScheduled")
               : createdEvent.source === "google"
-                ? "Evento sincronizado"
-                : "Evento salvo localmente",
+                ? t("toastEventSynced")
+                : t("toastEventSavedLocal"),
             createdEvent.source === "google"
               ? attendeeEmails.length + profileIds.length > 0
-                ? "Evento criado e convites enviados pelo Google Calendar."
-                : "Evento criado no Google Calendar."
-              : "Conecte Google Calendar para sincronizar e enviar convites.",
+                ? t("toastInvitesSent")
+                : t("toastCreatedGoogle")
+              : t("toastConnectGoogle"),
           );
           onOpenChange(false);
         },
         onError: (error) => {
           toastError(
-            "Falha ao criar evento",
+            t("toastCreateFailed"),
             error instanceof Error ? error.message : undefined,
           );
         },
@@ -189,19 +191,19 @@ export function ScheduleEventModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Agendar no calendário</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Crie evento, vincule tarefa e convide pessoas internas ou externas.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="event-title">Título</Label>
+            <Label htmlFor="event-title">{t("titleLabel")}</Label>
             <Input
               id="event-title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Título do evento"
+              placeholder={t("titlePlaceholder")}
               autoFocus
             />
           </div>
@@ -210,8 +212,8 @@ export function ScheduleEventModal({
               <div className="flex gap-2 font-semibold">
                 <AlertTriangle className="h-4 w-4 text-warning" />
                 {conflicts?.length
-                  ? `${conflicts.length} conflito(s) encontrado(s)`
-                  : "Conflitos não puderam ser confirmados"}
+                  ? t("conflictsFound", { count: conflicts.length })
+                  : t("conflictsUnavailable")}
               </div>
               {!!conflicts?.length && (
                 <ul className="mt-2 space-y-1 pl-6 text-xs text-text-secondary">
@@ -224,17 +226,17 @@ export function ScheduleEventModal({
                 </ul>
               )}
               <p className="mt-2 text-xs text-text-secondary">
-                Aviso não bloqueia criação.
+                {t("warningDoesNotBlock")}
               </p>
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="event-description">Descrição</Label>
+            <Label htmlFor="event-description">{t("descriptionLabel")}</Label>
             <textarea
               id="event-description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Contexto, pauta ou observações"
+              placeholder={t("descriptionPlaceholder")}
               rows={3}
               className="flex w-full rounded-md border border-border bg-page-alt px-3 py-2 text-sm outline-none transition-shadow placeholder:text-text-muted focus-visible:ring-2 focus-visible:ring-accent"
             />
@@ -245,11 +247,11 @@ export function ScheduleEventModal({
               checked={allDay}
               onCheckedChange={(checked) => setAllDay(checked === true)}
             />
-            <Label htmlFor="event-all-day">Dia inteiro</Label>
+            <Label htmlFor="event-all-day">{t("allDay")}</Label>
           </div>
           <div className={allDay ? "grid gap-4" : "grid grid-cols-2 gap-4"}>
             <div className="space-y-2">
-              <Label htmlFor="event-date">Data</Label>
+              <Label htmlFor="event-date">{t("date")}</Label>
               <Input
                 id="event-date"
                 type="date"
@@ -259,7 +261,7 @@ export function ScheduleEventModal({
             </div>
             {!allDay && (
               <div className="space-y-2">
-                <Label htmlFor="event-start">Início</Label>
+                <Label htmlFor="event-start">{t("start")}</Label>
                 <Input
                   id="event-start"
                   type="time"
@@ -271,7 +273,7 @@ export function ScheduleEventModal({
           </div>
           {!allDay && (
             <div className="space-y-2">
-              <Label htmlFor="event-duration">Duração (minutos)</Label>
+              <Label htmlFor="event-duration">{t("duration")}</Label>
               <Input
                 id="event-duration"
                 type="number"
@@ -283,7 +285,7 @@ export function ScheduleEventModal({
             </div>
           )}
           <div className="space-y-2">
-            <Label>Participantes</Label>
+            <Label>{t("attendees")}</Label>
             <EventAttendeeSelector
               profileIds={profileIds}
               attendeeEmails={attendeeEmails}
@@ -292,7 +294,7 @@ export function ScheduleEventModal({
             />
           </div>
           <div className="space-y-2">
-            <Label>Team area</Label>
+            <Label>{t("teamArea")}</Label>
             <Select
               value={areaId || "__none__"}
               onValueChange={(value) =>
@@ -300,10 +302,10 @@ export function ScheduleEventModal({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Vincular team area" />
+                <SelectValue placeholder={t("linkTeamArea")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">Sem team area</SelectItem>
+                <SelectItem value="__none__">{t("noTeamArea")}</SelectItem>
                 {areas.map((area) => (
                   <SelectItem key={area.id} value={area.id}>
                     {area.name}
@@ -318,7 +320,7 @@ export function ScheduleEventModal({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
@@ -330,12 +332,12 @@ export function ScheduleEventModal({
               }
             >
               {scheduleEvent.isPending
-                ? "Agendando…"
+                ? t("scheduling")
                 : conflictCheck.isPending
-                  ? "Verificando…"
+                  ? t("checking")
                   : conflicts !== null || conflictCheckUnavailable
-                    ? "Criar mesmo assim"
-                    : "Agendar"}
+                    ? t("createAnyway")
+                    : t("schedule")}
             </Button>
           </DialogFooter>
         </form>

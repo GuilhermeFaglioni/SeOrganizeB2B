@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   useCreateContract,
   useUpdateContract,
@@ -20,26 +21,26 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 
 const DURATION_TYPES = [
-  { value: "fixed", label: "Fixed term" },
-  { value: "openEnded", label: "Open-ended recurring" },
-  { value: "oneTime", label: "One-time" },
+  { value: "fixed", labelKey: "durationFixed" },
+  { value: "openEnded", labelKey: "durationOpenEnded" },
+  { value: "oneTime", labelKey: "durationOneTime" },
 ];
 
 const FREQUENCIES = [
-  { value: "monthly", label: "Monthly" },
-  { value: "quarterly", label: "Quarterly" },
-  { value: "semiannual", label: "Semiannual" },
-  { value: "annual", label: "Annual" },
+  { value: "monthly", labelKey: "frequencyMonthly" },
+  { value: "quarterly", labelKey: "frequencyQuarterly" },
+  { value: "semiannual", labelKey: "frequencySemiannual" },
+  { value: "annual", labelKey: "frequencyAnnual" },
 ];
 
 const PAYMENT_METHODS = [
-  { value: "pix", label: "Pix" },
-  { value: "boleto", label: "Boleto" },
-  { value: "bank_transfer", label: "Bank transfer" },
-  { value: "credit_card", label: "Credit card" },
-  { value: "debit_card", label: "Debit card" },
-  { value: "cash", label: "Cash" },
-  { value: "other", label: "Other" },
+  { value: "pix", labelKey: "paymentPix" },
+  { value: "boleto", labelKey: "paymentBoleto" },
+  { value: "bank_transfer", labelKey: "paymentBankTransfer" },
+  { value: "credit_card", labelKey: "paymentCreditCard" },
+  { value: "debit_card", labelKey: "paymentDebitCard" },
+  { value: "cash", labelKey: "paymentCash" },
+  { value: "other", labelKey: "paymentOther" },
 ];
 
 interface ItemRow {
@@ -53,6 +54,7 @@ interface ItemRow {
 
 export function ContractForm({ contractId }: { contractId?: string }) {
   const router = useRouter();
+  const t = useTranslations("financial.contracts.form");
   const { data: existing } = useContract(contractId ?? "");
   const { data: clientsData } = useClients({ pageSize: 100 });
   const { data: projects } = useProjects();
@@ -142,15 +144,15 @@ export function ContractForm({ contractId }: { contractId?: string }) {
   const parsedOfficialValue = officialValue && officialValue !== "" ? toDecimal(officialValue) : null;
   const planErrors: string[] = [];
   if (!parsedOfficialValue) {
-    planErrors.push("Official contract value is required");
+    planErrors.push(t("errorOfficialValueRequired"));
   } else if (durationType === "openEnded") {
     if (!billingFrequency) {
-      planErrors.push("A billing frequency is required for open-ended contracts");
+      planErrors.push(t("errorFrequencyRequired"));
     }
     if (suggestedPlan.length === 0) {
-      planErrors.push("An installment plan is required to activate");
+      planErrors.push(t("errorPlanRequired"));
     } else if (suggestedPlan.some((item) => !item.expectedAmount || toDecimal(item.expectedAmount).lte(0))) {
-      planErrors.push("Each recurring cycle must have a positive amount");
+      planErrors.push(t("errorPositiveAmount"));
     }
   } else {
     planErrors.push(...validateFinitePlan(suggestedPlan, parsedOfficialValue));
@@ -190,7 +192,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
     } else {
       createContract.mutate(payload(), {
         onSuccess: (contract) => {
-          toastSuccess("Draft saved");
+          toastSuccess(t("draftSaved"));
           router.push(`/financial/contracts/${(contract as { id: string }).id}`);
         },
       });
@@ -203,7 +205,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
         { id, action: "activate", plan: suggestedPlan },
         {
           onSuccess: () => {
-            toastSuccess("Contract activated");
+            toastSuccess(t("contractActivated"));
             router.push(`/financial/contracts/${id}`);
           },
         }
@@ -214,7 +216,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
     } else {
       createContract.mutate(payload(), {
         onSuccess: (contract) => {
-          toastSuccess("Draft saved");
+          toastSuccess(t("draftSaved"));
           navigate((contract as { id: string }).id);
         },
       });
@@ -229,24 +231,24 @@ export function ContractForm({ contractId }: { contractId?: string }) {
     <div className="mx-auto max-w-3xl space-y-4 pb-16">
       <section className="rounded-xl border border-border bg-page-alt p-4" aria-labelledby="contract-data-heading">
         <button type="button" onClick={() => toggleSection("contract")} className="flex w-full items-center justify-between text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none" aria-expanded={sectionsOpen.contract}>
-          <h2 id="contract-data-heading" className="text-base font-semibold text-text-primary">Contract data</h2>
+          <h2 id="contract-data-heading" className="text-base font-semibold text-text-primary">{t("contractData")}</h2>
           {sectionsOpen.contract ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         {sectionsOpen.contract && (
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <Label htmlFor="contract-title">Title</Label>
+              <Label htmlFor="contract-title">{t("title")}</Label>
               <Input id="contract-title" value={title} onChange={(event) => setTitle(event.target.value)} />
             </div>
             <div>
-              <Label htmlFor="contract-client">Client</Label>
+              <Label htmlFor="contract-client">{t("clientLabel")}</Label>
               <select
                 id="contract-client"
                 value={clientId}
                 onChange={(event) => setClientId(event.target.value)}
                 className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
-                <option value="">Select client</option>
+                <option value="">{t("selectClient")}</option>
                 {clientsData?.items.map((client) => (
                   <option key={client.id} value={client.id}>
                     {client.name}
@@ -255,14 +257,14 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               </select>
             </div>
             <div>
-              <Label htmlFor="contract-owner">Internal owner</Label>
+              <Label htmlFor="contract-owner">{t("internalOwner")}</Label>
               <select
                 id="contract-owner"
                 value={ownerId ?? ""}
                 onChange={(event) => setOwnerId(event.target.value)}
                 className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
-                <option value="">None</option>
+                <option value="">{t("ownerNone")}</option>
                 {profiles?.map((profile) => (
                   <option key={profile.id} value={profile.id}>
                     {profile.name || profile.email}
@@ -271,7 +273,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               </select>
             </div>
             <div>
-              <Label htmlFor="contract-duration">Duration type</Label>
+              <Label htmlFor="contract-duration">{t("durationType")}</Label>
               <select
                 id="contract-duration"
                 value={durationType}
@@ -280,13 +282,13 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               >
                 {DURATION_TYPES.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(option.labelKey)}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <Label htmlFor="contract-value">Official value (BRL)</Label>
+              <Label htmlFor="contract-value">{t("officialValueBRL")}</Label>
               <Input
                 id="contract-value"
                 type="number"
@@ -297,11 +299,11 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               />
             </div>
             <div>
-              <Label htmlFor="contract-start">Start date</Label>
+              <Label htmlFor="contract-start">{t("startDateLabel")}</Label>
               <Input id="contract-start" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
             </div>
             <div>
-              <Label htmlFor="contract-end">End date</Label>
+              <Label htmlFor="contract-end">{t("endDateLabel")}</Label>
               <Input
                 id="contract-end"
                 type="date"
@@ -311,7 +313,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               />
             </div>
             <div>
-              <Label htmlFor="contract-frequency">Billing frequency</Label>
+              <Label htmlFor="contract-frequency">{t("billingFrequencyLabel")}</Label>
               <select
                 id="contract-frequency"
                 value={billingFrequency ?? "monthly"}
@@ -321,13 +323,13 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               >
                 {FREQUENCIES.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(option.labelKey)}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <Label htmlFor="contract-payment">Payment method</Label>
+              <Label htmlFor="contract-payment">{t("paymentMethodLabel")}</Label>
               <select
                 id="contract-payment"
                 value={paymentMethod}
@@ -336,13 +338,13 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               >
                 {PAYMENT_METHODS.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(option.labelKey)}
                   </option>
                 ))}
               </select>
             </div>
             <div className="sm:col-span-2">
-              <Label htmlFor="contract-notes">Notes</Label>
+              <Label htmlFor="contract-notes">{t("notes")}</Label>
               <textarea
                 id="contract-notes"
                 value={notes ?? ""}
@@ -357,7 +359,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
 
       <section className="rounded-xl border border-border bg-page-alt p-4" aria-labelledby="scope-heading">
         <button type="button" onClick={() => toggleSection("scope")} className="flex w-full items-center justify-between text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none" aria-expanded={sectionsOpen.scope}>
-          <h2 id="scope-heading" className="text-base font-semibold text-text-primary">Scope and items</h2>
+          <h2 id="scope-heading" className="text-base font-semibold text-text-primary">{t("scopeAndItems")}</h2>
           {sectionsOpen.scope ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         {sectionsOpen.scope && (
@@ -365,41 +367,41 @@ export function ContractForm({ contractId }: { contractId?: string }) {
             {items.map((item, index) => (
               <div key={index} className="grid grid-cols-2 gap-3 sm:grid-cols-5">
                 <input
-                  aria-label={`Item name ${index + 1}`}
+                  aria-label={t("itemNameAria", { number: index + 1 })}
                   value={item.name}
                   onChange={(event) =>
                     setItems((prev) => prev.map((row, i) => (i === index ? { ...row, name: event.target.value } : row)))
                   }
-                  placeholder="Item name"
+                  placeholder={t("itemNamePlaceholder")}
                   className="col-span-2 rounded-md border border-border bg-page px-3 py-2 text-sm sm:col-span-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 />
                 <input
-                  aria-label={`Item price ${index + 1}`}
+                  aria-label={t("itemPriceAria", { number: index + 1 })}
                   type="number"
                   step="0.01"
                   value={item.price ?? ""}
                   onChange={(event) =>
                     setItems((prev) => prev.map((row, i) => (i === index ? { ...row, price: event.target.value } : row)))
                   }
-                  placeholder="Price"
+                  placeholder={t("itemPricePlaceholder")}
                   className="rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 />
                 <input
-                  aria-label={`Item quantity ${index + 1}`}
+                  aria-label={t("itemQuantityAria", { number: index + 1 })}
                   type="number"
                   step="0.01"
                   value={item.quantity ?? ""}
                   onChange={(event) =>
                     setItems((prev) => prev.map((row, i) => (i === index ? { ...row, quantity: event.target.value } : row)))
                   }
-                  placeholder="Qty"
+                  placeholder={t("itemQuantityPlaceholder")}
                   className="rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}
                   className="flex min-h-[44px] items-center justify-center rounded-md text-text-secondary hover:text-danger focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                  aria-label={`Remove item ${index + 1}`}
+                  aria-label={t("removeItemAria", { number: index + 1 })}
                 >
                   <Trash2 size={16} />
                 </button>
@@ -415,13 +417,14 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               }
               className="flex min-h-[44px] items-center gap-1 rounded-md border border-border px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             >
-              <Plus size={16} /> Add item
+              <Plus size={16} /> {t("addItem")}
             </button>
             {itemMismatch && (
               <p role="alert" className="rounded-md bg-warning-bg p-3 text-sm text-warning">
-                The item-price sum ({formatBRL(itemSum)}) does not match the
-                official contract value ({formatBRL(toDecimal(officialValue || "0"))}).
-                This warning does not block saving.
+                {t("itemMismatch", {
+                  sum: formatBRL(itemSum),
+                  official: formatBRL(toDecimal(officialValue || "0")),
+                })}
               </p>
             )}
           </div>
@@ -430,7 +433,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
 
       <section className="rounded-xl border border-border bg-page-alt p-4" aria-labelledby="projects-heading">
         <button type="button" onClick={() => toggleSection("projects")} className="flex w-full items-center justify-between text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none" aria-expanded={sectionsOpen.projects}>
-          <h2 id="projects-heading" className="text-base font-semibold text-text-primary">Linked projects</h2>
+          <h2 id="projects-heading" className="text-base font-semibold text-text-primary">{t("linkedProjectsSection")}</h2>
           {sectionsOpen.projects ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         {sectionsOpen.projects && (
@@ -458,23 +461,23 @@ export function ContractForm({ contractId }: { contractId?: string }) {
 
       <section className="rounded-xl border border-border bg-page-alt p-4" aria-labelledby="billing-heading">
         <button type="button" onClick={() => toggleSection("billing")} className="flex w-full items-center justify-between text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none" aria-expanded={sectionsOpen.billing}>
-          <h2 id="billing-heading" className="text-base font-semibold text-text-primary">Billing and installments</h2>
+          <h2 id="billing-heading" className="text-base font-semibold text-text-primary">{t("billingAndInstallments")}</h2>
           {sectionsOpen.billing ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         {sectionsOpen.billing && (
           <div className="mt-4 space-y-3">
             {suggestedPlan.length === 0 ? (
               <p className="text-sm text-text-muted">
-                Fill in the value and dates to preview the suggested installment schedule.
+                {t("scheduleHint")}
               </p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[420px] text-left text-sm" aria-label="Suggested installment schedule">
+                <table className="w-full min-w-[420px] text-left text-sm" aria-label={t("scheduleAria")}>
                   <thead className="text-xs uppercase text-text-muted">
                     <tr>
-                      <th scope="col" className="px-3 py-1 font-medium">Due date</th>
-                      <th scope="col" className="px-3 py-1 font-medium">Amount</th>
-                      <th scope="col" className="px-3 py-1 font-medium">Payment method</th>
+                      <th scope="col" className="px-3 py-1 font-medium">{t("scheduleDueDate")}</th>
+                      <th scope="col" className="px-3 py-1 font-medium">{t("scheduleAmount")}</th>
+                      <th scope="col" className="px-3 py-1 font-medium">{t("schedulePaymentMethod")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -490,8 +493,10 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               </div>
             )}
             <p className="text-sm text-text-secondary">
-              Installment total: {formatBRL(planTotal)} · Official value:{" "}
-              {formatBRL(toDecimal(officialValue || "0"))}
+              {t("scheduleTotal", {
+                total: formatBRL(planTotal),
+                official: formatBRL(toDecimal(officialValue || "0")),
+              })}
             </p>
             {planErrors.map((error) => (
               <p key={error} role="alert" className="rounded-md bg-danger-bg p-3 text-sm text-danger">
@@ -504,14 +509,14 @@ export function ContractForm({ contractId }: { contractId?: string }) {
 
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" onClick={saveDraft}>
-          Save draft
+          {t("saveDraft")}
         </Button>
         {(!existing || existing.status === "draft") && (
           <Button
             onClick={activate}
             disabled={suggestedPlan.length === 0 || planErrors.length > 0}
           >
-            Activate
+            {t("activate")}
           </Button>
         )}
       </div>

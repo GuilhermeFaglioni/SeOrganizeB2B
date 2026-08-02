@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useCreateProject } from "@/hooks/use-projects";
 import { useAreas } from "@/hooks/use-areas";
+import { useTranslations } from "next-intl";
 
 interface ProjectFormProps {
   open: boolean;
@@ -29,6 +30,7 @@ interface ProjectFormProps {
 
 export function ProjectForm({ open, onOpenChange }: ProjectFormProps) {
   const router = useRouter();
+  const t = useTranslations("projects.form");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [areaId, setAreaId] = useState("");
@@ -38,7 +40,7 @@ export function ProjectForm({ open, onOpenChange }: ProjectFormProps) {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      setError("Project name is required");
+      setError(t("nameRequired"));
       return;
     }
     setError("");
@@ -54,7 +56,7 @@ export function ProjectForm({ open, onOpenChange }: ProjectFormProps) {
       onOpenChange(false);
       router.push(`/board/${created.id}`);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to create project");
+      setError(e instanceof Error ? e.message : t("createFailed"));
     }
   };
 
@@ -62,32 +64,32 @@ export function ProjectForm({ open, onOpenChange }: ProjectFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New Project</DialogTitle>
-          <DialogDescription>Create a new project to organize your work.</DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <label className="text-label text-text-secondary">Project Name</label>
+            <label className="text-label text-text-secondary">{t("nameLabel")}</label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Q3 Product Launch"
+              placeholder={t("namePlaceholder")}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-label text-text-secondary">Description</label>
+            <label className="text-label text-text-secondary">{t("descriptionLabel")}</label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of the project"
+              placeholder={t("descriptionPlaceholder")}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-label text-text-secondary">Team Area</label>
+            <label className="text-label text-text-secondary">{t("teamArea")}</label>
             <Select value={areaId} onValueChange={setAreaId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select area (optional)" />
+                <SelectValue placeholder={t("areaPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {areas?.map((a: { id: string; name: string }) => (
@@ -102,10 +104,10 @@ export function ProjectForm({ open, onOpenChange }: ProjectFormProps) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={!name.trim()}>
-            Create Project
+            {t("submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

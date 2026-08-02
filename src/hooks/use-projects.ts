@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toastError } from "@/lib/toast";
 
 const API = "/api/projects";
@@ -28,6 +29,7 @@ export function useProjects() {
 }
 
 export function useCreateProject() {
+  const t = useTranslations("hooks.projects");
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -40,11 +42,12 @@ export function useCreateProject() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
-    onError: () => toastError("Failed to create project"),
+    onError: () => toastError(t("createFailed")),
   });
 }
 
 export function useUpdateProject() {
+  const t = useTranslations("hooks.projects");
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -57,7 +60,7 @@ export function useUpdateProject() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
-    onError: () => toastError("Failed to update project"),
+    onError: () => toastError(t("updateFailed")),
   });
 }
 

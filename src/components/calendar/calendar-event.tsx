@@ -4,6 +4,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 
 import type { CalendarEventData } from "@/lib/calendar/types";
 import { motion, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 
 const AREA_COLORS: Record<string, string> = {
   "1": "#3b82f6",
@@ -31,6 +32,7 @@ export function CalendarEvent({
   compact?: boolean;
 }) {
   const reduceMotion = useReducedMotion();
+  const t = useTranslations("calendar.event");
   if (!event) return null;
   const borderColor = event.color
     ? AREA_COLORS[event.color] || event.color
@@ -41,9 +43,11 @@ export function CalendarEvent({
   return (
     <motion.div
       onClick={onClick}
-      aria-label={`${event.title}, ${
-        event.allDay ? "dia inteiro" : timeText || "horário definido"
-      }, ${event.attendees.length} participantes`}
+      aria-label={t("ariaLabel", {
+        title: event.title,
+        time: event.allDay ? t("allDay") : timeText || t("scheduledTime"),
+        count: event.attendees.length,
+      })}
       initial={reduceMotion ? false : { opacity: 0, y: 2 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.16, ease: "easeOut" }}

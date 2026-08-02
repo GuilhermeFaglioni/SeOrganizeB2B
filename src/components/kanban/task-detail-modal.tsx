@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar, CalendarDays, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PRIORITY_COLORS } from "@/lib/constants";
 import { AreaBadge } from "@/components/areas/area-badge";
 import { CommentList } from "@/components/comments/comment-list";
@@ -22,6 +23,7 @@ export function TaskDetailModal({
   onOpenChange: (open: boolean) => void;
   onEdit?: () => void;
 }) {
+  const t = useTranslations("kanban.taskDetailModal");
   const priorityColor = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
   const { openScheduleEvent } = useScheduleEventDialog();
 
@@ -82,11 +84,11 @@ export function TaskDetailModal({
               }
             >
               <Calendar size={14} />
-              Schedule in Calendar
+              {t("scheduleInCalendar")}
             </Button>
             {onEdit && (
               <Button size="sm" variant="outline" onClick={onEdit}>
-                Edit
+                {t("edit")}
               </Button>
             )}
           </div>
@@ -94,7 +96,7 @@ export function TaskDetailModal({
           <CommentList taskId={task.id} />
           <div className="border-t border-border pt-4">
             <h3 className="mb-3 text-sm font-semibold text-text-primary">
-              Timeline
+              {t("timeline")}
             </h3>
             <ActivityFeed taskId={task.id} />
           </div>

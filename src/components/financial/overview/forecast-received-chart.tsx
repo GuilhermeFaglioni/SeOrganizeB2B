@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface ChartPoint {
   month: string;
   forecast: string;
@@ -9,6 +11,7 @@ interface ChartPoint {
 const BAR_GAP = 4;
 
 export function ForecastReceivedChart({ data }: { data: ChartPoint[] }) {
+  const t = useTranslations("financial.overview.chart");
   const max = Math.max(
     1,
     ...data.flatMap((point) => [Number(point.forecast), Number(point.received)])
@@ -25,7 +28,7 @@ export function ForecastReceivedChart({ data }: { data: ChartPoint[] }) {
       <svg
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label={`Forecast versus received, months ${data[0]?.month ?? ""} through ${data[data.length - 1]?.month ?? ""}`}
+        aria-label={t("ariaLabel", { firstMonth: data[0]?.month ?? "", lastMonth: data[data.length - 1]?.month ?? "" })}
         className="h-56 w-full min-w-[560px]"
         preserveAspectRatio="xMidYMid meet"
       >
@@ -56,7 +59,7 @@ export function ForecastReceivedChart({ data }: { data: ChartPoint[] }) {
                 height={forecastHeight}
                 fill="var(--color-accent)"
               >
-                <title>{`${point.month} forecast: R$ ${point.forecast}`}</title>
+                <title>{t("forecastTitle", { month: point.month, value: point.forecast })}</title>
               </rect>
               <rect
                 x={centerX + 1}
@@ -65,7 +68,7 @@ export function ForecastReceivedChart({ data }: { data: ChartPoint[] }) {
                 height={receivedHeight}
                 fill="var(--color-success)"
               >
-                <title>{`${point.month} received: R$ ${point.received}`}</title>
+                <title>{t("receivedTitle", { month: point.month, value: point.received })}</title>
               </rect>
               <text
                 x={centerX}
@@ -82,10 +85,10 @@ export function ForecastReceivedChart({ data }: { data: ChartPoint[] }) {
       </svg>
       <figcaption className="mt-2 flex items-center gap-4 text-xs text-text-secondary">
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-accent" aria-hidden="true" /> Forecast
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-accent" aria-hidden="true" /> {t("forecast")}
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-success" aria-hidden="true" /> Received
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-success" aria-hidden="true" /> {t("received")}
         </span>
       </figcaption>
     </figure>

@@ -5,6 +5,7 @@ import { useDocuments, type DocumentData } from "@/hooks/use-documents";
 import { useProjects } from "@/hooks/use-projects";
 import { DocumentRow } from "./document-row";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function DocumentList({
   onSelectDoc,
@@ -16,6 +17,7 @@ export function DocumentList({
   onDeleteDoc?: (id: string) => void;
 }) {
   const { data: projects } = useProjects();
+  const t = useTranslations("documents.list");
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const { data: documents, isLoading } = useDocuments(activeProjectId);
 
@@ -33,7 +35,7 @@ export function DocumentList({
               !activeProjectId ? "bg-accent text-white" : "bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
             }`}
           >
-            All Documents
+            {t("allDocuments")}
           </button>
           {projects?.map((p: { id: string; name: string }) => (
             <button
@@ -51,13 +53,13 @@ export function DocumentList({
             className="ml-2 flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-accent text-white hover:bg-accent/90"
           >
             <Plus size={16} />
-            New
+            {t("new")}
           </button>
         </div>
       </div>
 
       {isLoading && (
-        <div className="text-body-small text-text-secondary text-center py-8">Loading...</div>
+        <div className="text-body-small text-text-secondary text-center py-8">{t("loading")}</div>
       )}
 
       {!isLoading && documents && documents.length > 0 && (
@@ -78,7 +80,7 @@ export function DocumentList({
 
       {!isLoading && documents && documents.length === 0 && (
         <div className="text-body-small text-text-secondary text-center py-8">
-          No documents yet
+          {t("empty")}
         </div>
       )}
     </div>

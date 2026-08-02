@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, CheckSquare2, FileText } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ export function QuickCaptureDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useTranslations("quickCapture.dialog");
   const router = useRouter();
   const [type, setType] = useState<CaptureType>("task");
   const [title, setTitle] = useState("");
@@ -60,12 +62,12 @@ export function QuickCaptureDialog({
     try {
       if (type === "document") {
         const document = (await createDocument.mutateAsync({
-          title: title.trim() || "Untitled Document",
+          title: title.trim() || t("untitledDocument"),
         })) as { id: string };
         onOpenChange(false);
         setTitle("");
         router.push(`/documents/${document.id}`);
-        toastSuccess("Documento criado");
+        toastSuccess(t("documentCreated"));
         return;
       }
       if (!title.trim() || !projectId) return;
@@ -77,33 +79,33 @@ export function QuickCaptureDialog({
       const column = (
         payload.data as Array<{ id: string; completesTasks: boolean }>
       ).find((item) => !item.completesTasks);
-      if (!column) throw new Error("Projeto sem coluna de trabalho");
+      if (!column) throw new Error(t("noWorkColumn"));
       await createTask.mutateAsync({
         title: title.trim(),
         columnId: column.id,
       });
       onOpenChange(false);
       setTitle("");
-      toastSuccess("Tarefa capturada");
+      toastSuccess(t("taskCaptured"));
       router.push(`/board?project=${projectId}`);
     } catch (error) {
       toastError(
-        "Falha na captura",
+        t("captureFailed"),
         error instanceof Error ? error.message : undefined
       );
     }
   }
 
   const choices = [
-    { key: "task" as const, label: "Tarefa", icon: CheckSquare2 },
-    { key: "event" as const, label: "Evento", icon: CalendarDays },
-    { key: "document" as const, label: "Documento", icon: FileText },
+    { key: "task" as const, label: t("task"), icon: CheckSquare2 },
+    { key: "event" as const, label: t("event"), icon: CalendarDays },
+    { key: "document" as const, label: t("document"), icon: FileText },
   ];
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Quick Capture</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-3 gap-2">
           {choices.map(({ key, label, icon: Icon }) => (
@@ -126,7 +128,7 @@ export function QuickCaptureDialog({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="capture-title">
-                {type === "task" ? "Título da tarefa" : "Título do documento"}
+                {type === "task" ? t("taskTitle") : t("documentTitle")}
               </Label>
               <Input
                 id="capture-title"
@@ -138,10 +140,10 @@ export function QuickCaptureDialog({
             </div>
             {type === "task" && (
               <div className="space-y-2">
-                <Label>Projeto</Label>
+                <Label>{t("project")}</Label>
                 <Select value={projectId} onValueChange={setProjectId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione projeto" />
+                    <SelectValue placeholder={t("selectProject")} />
                   </SelectTrigger>
                   <SelectContent>
                     {projects.map((project) => (
@@ -162,7 +164,7 @@ export function QuickCaptureDialog({
                   (type === "task" && (!title.trim() || !projectId))
                 }
               >
-                Capturar
+                {t("capture")}
               </Button>
             </div>
           </div>

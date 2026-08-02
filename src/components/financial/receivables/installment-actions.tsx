@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   useCancelInstallment,
   useMarkInstallmentPaid,
@@ -26,6 +27,7 @@ export function InstallmentActions({
     dueDate: string;
   };
 }) {
+  const t = useTranslations("financial.receivables.installmentActions");
   const markPaid = useMarkInstallmentPaid();
   const cancel = useCancelInstallment();
   const refund = useRefundInstallment();
@@ -45,10 +47,10 @@ export function InstallmentActions({
             })
           }
         >
-          Mark paid
+          {t("markPaid")}
         </Button>
         <Button size="sm" variant="outline" onClick={() => cancel.mutate(installment.id)}>
-          Cancel
+          {t("cancel")}
         </Button>
       </div>
     );
@@ -58,20 +60,19 @@ export function InstallmentActions({
     return (
       <>
         <Button size="sm" variant="outline" onClick={() => setRefundOpen(true)}>
-          Refund
+          {t("refund")}
         </Button>
         <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Record refund</DialogTitle>
+              <DialogTitle>{t("recordRefund")}</DialogTitle>
               <DialogDescription>
-                The refund creates a negative paid installment linked to the
-                original one and subtracts from received revenue.
+                {t("refundDescription")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
               <label htmlFor="refund-amount" className="block text-sm text-text-secondary">
-                Refund amount (BRL)
+                {t("refundAmountField")}
                 <input
                   id="refund-amount"
                   type="number"
@@ -82,7 +83,7 @@ export function InstallmentActions({
                 />
               </label>
               <label htmlFor="refund-date" className="block text-sm text-text-secondary">
-                Refund date
+                {t("refundDateField")}
                 <input
                   id="refund-date"
                   type="date"
@@ -94,7 +95,7 @@ export function InstallmentActions({
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setRefundOpen(false)}>
-                Close
+                {t("close")}
               </Button>
               <Button
                 disabled={!refundAmount || !refundDate}
@@ -109,7 +110,7 @@ export function InstallmentActions({
                   )
                 }
               >
-                Confirm refund
+                {t("confirmRefund")}
               </Button>
             </DialogFooter>
           </DialogContent>
