@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   useCreateContract,
@@ -58,16 +58,16 @@ export function ContractForm({ contractId }: { contractId?: string }) {
   const { data: projects } = useProjects();
   const { data: profiles } = useProfiles();
 
-  const [title, setTitle] = useState(existing?.title ?? "");
-  const [clientId, setClientId] = useState(existing?.clientId ?? "");
-  const [ownerId, setOwnerId] = useState(existing?.ownerId ?? "");
-  const [durationType, setDurationType] = useState<string>(existing?.durationType ?? "fixed");
-  const [officialValue, setOfficialValue] = useState(existing?.officialValue ?? "");
-  const [startDate, setStartDate] = useState(existing?.startDate ?? "");
-  const [endDate, setEndDate] = useState(existing?.endDate ?? "");
-  const [billingFrequency, setBillingFrequency] = useState<string>(existing?.billingFrequency ?? "monthly");
-  const [paymentMethod, setPaymentMethod] = useState(existing?.paymentMethod ?? "pix");
-  const [notes, setNotes] = useState(existing?.notes ?? "");
+  const [title, setTitle] = useState("");
+  const [clientId, setClientId] = useState("");
+  const [ownerId, setOwnerId] = useState("");
+  const [durationType, setDurationType] = useState<string>("fixed");
+  const [officialValue, setOfficialValue] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [billingFrequency, setBillingFrequency] = useState<string>("monthly");
+  const [paymentMethod, setPaymentMethod] = useState("pix");
+  const [notes, setNotes] = useState("");
   const [items, setItems] = useState<ItemRow[]>([]);
   const [projectIds, setProjectIds] = useState<string[]>([]);
   const [sectionsOpen, setSectionsOpen] = useState<Record<string, boolean>>({
@@ -76,6 +76,34 @@ export function ContractForm({ contractId }: { contractId?: string }) {
     projects: true,
     billing: true,
   });
+
+  const hydratedId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!existing || hydratedId.current === existing.id) return;
+    hydratedId.current = existing.id;
+    setTitle(existing.title ?? "");
+    setClientId(existing.clientId ?? "");
+    setOwnerId(existing.ownerId ?? "");
+    setDurationType(existing.durationType ?? "fixed");
+    setOfficialValue(existing.officialValue ?? "");
+    setStartDate(existing.startDate ?? "");
+    setEndDate(existing.endDate ?? "");
+    setBillingFrequency(existing.billingFrequency ?? "monthly");
+    setPaymentMethod(existing.paymentMethod ?? "pix");
+    setNotes(existing.notes ?? "");
+    setItems(
+      (existing.items ?? []).map((item) => ({
+        name: item.name,
+        description: item.description ?? undefined,
+        quantity: item.quantity ?? undefined,
+        unit: item.unit ?? undefined,
+        price: item.price ?? undefined,
+        position: item.position,
+      }))
+    );
+    setProjectIds((existing.projects ?? []).map((link) => link.project.id));
+  }, [existing]);
 
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();

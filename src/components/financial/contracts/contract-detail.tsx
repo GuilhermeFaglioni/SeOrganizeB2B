@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useContract } from "@/hooks/use-contracts";
 import { useMarkInstallmentPaid } from "@/hooks/use-installments";
 import { suggestPlan } from "@/lib/financial/installments";
@@ -56,6 +57,14 @@ export function ContractDetail({ contractId }: { contractId: string }) {
               status={contract.status}
               plan={activationPlan}
             />
+            {(contract.status === "draft" || contract.status === "active") && (
+              <Link
+                href={`/financial/contracts/${contract.id}/edit`}
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px]"
+              >
+                Edit
+              </Link>
+            )}
             {contract.status === "active" && (
               <Button variant="outline" onClick={() => setChangeOpen(true)}>
                 Adjust value

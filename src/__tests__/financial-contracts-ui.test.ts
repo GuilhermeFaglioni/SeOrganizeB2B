@@ -7,11 +7,12 @@ const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 const exists = (path: string) => existsSync(resolve(root, path));
 
 describe("contracts UI", () => {
-  it("keeps the list, new and detail routes present", () => {
+  it("keeps the list, new, detail and edit routes present", () => {
     for (const page of [
       "src/app/(authenticated)/financial/contracts/page.tsx",
       "src/app/(authenticated)/financial/contracts/new/page.tsx",
       "src/app/(authenticated)/financial/contracts/[contractId]/page.tsx",
+      "src/app/(authenticated)/financial/contracts/[contractId]/edit/page.tsx",
     ]) {
       expect(exists(page), page).toBe(true);
     }
@@ -62,5 +63,35 @@ describe("contracts UI", () => {
     const dialog = read("src/components/financial/contracts/change-dialog.tsx");
     expect(dialog).toContain("proposal");
     expect(dialog).toContain("confirm");
+  });
+
+  it("edit route renders ContractForm with contractId param", () => {
+    const editPage = read("src/app/(authenticated)/financial/contracts/[contractId]/edit/page.tsx");
+    expect(editPage).toContain("ContractForm");
+    expect(editPage).toContain("contractId");
+  });
+
+  it("detail shows Edit link for draft and active contracts", () => {
+    const detail = read("src/components/financial/contracts/contract-detail.tsx");
+    expect(detail).toContain('href={`/financial/contracts/${contract.id}/edit`}');
+    expect(detail).toContain('contract.status === "draft"');
+    expect(detail).toContain('contract.status === "active"');
+  });
+
+  it("form hydrates async contract data once via useRef guard without clobbering edits", () => {
+    const form = read("src/components/financial/contracts/contract-form.tsx");
+    expect(form).toContain("hydratedId");
+    expect(form).toContain("useRef");
+    expect(form).toContain("useEffect");
+    expect(form).toContain("hydratedId.current = existing.id");
+    expect(form).toContain("hydratedId.current === existing.id");
+  });
+
+  it("form hydrates items and projectIds from fetched contract", () => {
+    const form = read("src/components/financial/contracts/contract-form.tsx");
+    expect(form).toContain("existing.items");
+    expect(form).toContain("existing.projects");
+    expect(form).toContain("setProjectIds");
+    expect(form).toContain("setItems");
   });
 });
