@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { toastError } from "@/lib/toast";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
@@ -37,6 +38,7 @@ export function useTask(id: string) {
 
 export function useCreateTask(projectId: string) {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.tasks");
 
   return useMutation({
     mutationFn: (data: {
@@ -59,12 +61,13 @@ export function useCreateTask(projectId: string) {
       queryClient.invalidateQueries({ queryKey: ["board", projectId] });
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
     },
-    onError: () => toastError("Failed to create task"),
+    onError: () => toastError(t("createFailed")),
   });
 }
 
 export function useUpdateTask(projectId: string) {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.tasks");
 
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string; title?: string; description?: string; columnId?: string; assigneeIds?: string[]; areaId?: string; priority?: string; dueDate?: string; archived?: boolean; recurrenceType?: "daily" | "weekly" | "monthly" | null; recurrenceInterval?: number | null }) =>
@@ -80,12 +83,13 @@ export function useUpdateTask(projectId: string) {
       queryClient.invalidateQueries({ queryKey: ["activity"] });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
-    onError: () => toastError("Failed to update task"),
+    onError: () => toastError(t("updateFailed")),
   });
 }
 
 export function useDeleteTask(projectId: string) {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.tasks");
 
   return useMutation({
     mutationFn: (id: string) =>
@@ -94,6 +98,6 @@ export function useDeleteTask(projectId: string) {
       queryClient.invalidateQueries({ queryKey: ["board", projectId] });
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
     },
-    onError: () => toastError("Failed to delete task"),
+    onError: () => toastError(t("deleteFailed")),
   });
 }

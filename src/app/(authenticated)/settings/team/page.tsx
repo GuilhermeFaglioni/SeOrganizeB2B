@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAreas } from "@/hooks/use-areas";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Users } from "lucide-react";
@@ -22,12 +23,14 @@ interface ProfileWithAreas {
 
 export default function TeamPage() {
   const router = useRouter();
+  const t = useTranslations("settings.team");
   const { data: areas } = useAreas();
   const [profiles, setProfiles] = useState<ProfileWithAreas[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editMap, setEditMap] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     fetchJson<ProfileWithAreas[]>("/api/profiles").then((data) => {
@@ -61,9 +64,11 @@ export default function TeamPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ areaIds: editMap[profileId] || [] }),
       });
-      setMessage("Updated successfully");
+      setIsSuccess(true);
+      setMessage(t("saveSuccess"));
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Failed to save");
+      setIsSuccess(false);
+      setMessage(err instanceof Error ? err.message : t("saveError"));
     } finally {
       setSaving(false);
     }
@@ -73,14 +78,14 @@ export default function TeamPage() {
     <div data-testid="team-page" className="p-6 max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
         <button onClick={() => router.push("/settings")} className="text-sm text-text-secondary hover:text-text-primary">
-          &larr; Back to Settings
+          &larr; {t("backToSettings")}
         </button>
       </div>
 
       <div>
-        <h1 className="text-heading-1 text-text-primary">Team</h1>
+        <h1 className="text-heading-1 text-text-primary">{t("title")}</h1>
         <p className="text-body-small text-text-secondary mt-1">
-          Manage team members and their area assignments.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -100,7 +105,7 @@ export default function TeamPage() {
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-medium text-text-primary">
-                    {profile.name || "Unnamed"}
+                    {profile.name || t("unnamed")}
                   </p>
                   <p className="text-xs text-text-secondary">{profile.email}</p>
                 </div>
@@ -110,7 +115,7 @@ export default function TeamPage() {
 
             {expandedId === profile.id && (
               <div className="border-t border-border p-4 space-y-3">
-                <p className="text-sm text-text-secondary">Assign team areas:</p>
+                <p className="text-sm text-text-secondary">{t("assignLabel")}</p>
                 {areas && areas.length > 0 ? (
                   <div className="space-y-2">
                     {areas.map((area: { id: string; name: string; color: string }) => (
@@ -133,10 +138,10 @@ export default function TeamPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-text-secondary">No areas configured.</p>
+                  <p className="text-sm text-text-secondary">{t("noAreas")}</p>
                 )}
                 <Button size="sm" onClick={() => handleSave(profile.id)} disabled={saving}>
-                  {saving ? "Saving..." : "Save"}
+                  {saving ? t("saving") : t("save")}
                 </Button>
               </div>
             )}
@@ -145,7 +150,7 @@ export default function TeamPage() {
       </div>
 
       {message && (
-        <p className={`text-sm ${message.includes("success") ? "text-success" : "text-danger"}`}>
+        <p className={`text-sm ${isSuccess ? "text-success" : "text-danger"}`}>
           {message}
         </p>
       )}

@@ -2,6 +2,7 @@
 
 import { Bell, CheckCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
@@ -15,6 +16,7 @@ import {
 
 export function NotificationCenter() {
   const router = useRouter();
+  const t = useTranslations("notifications.center");
   const { data, isLoading } = useNotifications();
   const markOne = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
@@ -36,7 +38,7 @@ export function NotificationCenter() {
       <PopoverTrigger asChild>
         <button
           className="relative flex h-10 w-10 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-page"
-          aria-label={`${data?.unreadCount ?? 0} notificações não lidas`}
+          aria-label={t("unreadAria", { count: data?.unreadCount ?? 0 })}
         >
           <Bell className="h-4 w-4" />
           {!!data?.unreadCount && (
@@ -48,24 +50,24 @@ export function NotificationCenter() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[380px] max-w-[calc(100vw-24px)] p-0">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <p className="text-sm font-semibold text-text-primary">Notificações</p>
+          <p className="text-sm font-semibold text-text-primary">{t("title")}</p>
           <button
             onClick={() => markAll.mutate()}
             disabled={!data?.unreadCount}
             className="flex items-center gap-1 text-xs font-medium text-accent disabled:opacity-40"
           >
-            <CheckCheck className="h-3.5 w-3.5" /> Marcar todas
+            <CheckCheck className="h-3.5 w-3.5" /> {t("markAll")}
           </button>
         </div>
         <div className="max-h-[440px] overflow-y-auto" aria-live="polite">
           {isLoading && (
             <p className="p-6 text-center text-sm text-text-secondary">
-              Carregando…
+              {t("loading")}
             </p>
           )}
           {!isLoading && !items.length && (
             <p className="p-8 text-center text-sm text-text-secondary">
-              Nenhuma notificação.
+              {t("empty")}
             </p>
           )}
           {items.map((item) => (
@@ -82,7 +84,7 @@ export function NotificationCenter() {
                 {item.activity.summary}
               </p>
               <p className="mt-1 text-xs text-text-secondary">
-                {item.activity.actor?.name || "Sistema"} ·{" "}
+                {item.activity.actor?.name || t("system")} ·{" "}
                 {new Date(item.createdAt).toLocaleString("pt-BR")}
               </p>
             </button>

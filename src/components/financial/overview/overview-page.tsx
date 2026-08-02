@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useOverview, type OverviewFilters } from "@/hooks/use-overview";
 import { useProjects } from "@/hooks/use-projects";
 import { useClients } from "@/hooks/use-clients";
@@ -15,6 +16,7 @@ import { FinancialFilters } from "@/components/financial/overview/financial-filt
 import { LoadingState } from "@/components/shared/loading-state";
 
 export function OverviewPage() {
+  const t = useTranslations("financial.overview.page");
   const [filters, setFilters] = useState<OverviewFilters>({
     period: "currentMonth",
   });
@@ -24,7 +26,7 @@ export function OverviewPage() {
 
   if (isLoading) return <LoadingState />;
   if (isError || !data) {
-    return <FinancialErrorState message="Failed to load the financial overview" onRetry={() => refetch()} />;
+    return <FinancialErrorState message={t("errorMessage")} onRetry={() => refetch()} />;
   }
 
   const { kpis, monthly, overdueInstallments, expiringContracts } = data;
@@ -33,9 +35,9 @@ export function OverviewPage() {
     <div className="space-y-6">
       <FinancialFilters filters={filters} onChange={setFilters} />
 
-      <div className="flex flex-wrap items-center gap-3" role="group" aria-label="Global filters">
+      <div className="flex flex-wrap items-center gap-3" role="group" aria-label={t("globalFilters")}>
         <label className="text-sm text-text-secondary">
-          Client
+          {t("client")}
           <select
             value={filters.clientId ?? ""}
             onChange={(event) =>
@@ -43,7 +45,7 @@ export function OverviewPage() {
             }
             className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
-            <option value="">All clients</option>
+            <option value="">{t("allClients")}</option>
             {clientsData?.items.map((client) => (
               <option key={client.id} value={client.id}>
                 {client.name}
@@ -52,7 +54,7 @@ export function OverviewPage() {
           </select>
         </label>
         <label className="text-sm text-text-secondary">
-          Project
+          {t("project")}
           <select
             value={filters.projectId ?? ""}
             onChange={(event) =>
@@ -60,7 +62,7 @@ export function OverviewPage() {
             }
             className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
-            <option value="">All projects</option>
+            <option value="">{t("allProjects")}</option>
             {projects?.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.name}
@@ -69,7 +71,7 @@ export function OverviewPage() {
           </select>
         </label>
         <label className="text-sm text-text-secondary">
-          Contract status
+          {t("contractStatus")}
           <select
             value={filters.contractStatus ?? ""}
             onChange={(event) =>
@@ -77,7 +79,7 @@ export function OverviewPage() {
             }
             className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
-            <option value="">All statuses</option>
+            <option value="">{t("allStatuses")}</option>
             {["draft", "active", "closed", "cancelled", "suspended"].map((status) => (
               <option key={status} value={status}>
                 {status}
@@ -86,7 +88,7 @@ export function OverviewPage() {
           </select>
         </label>
         <label className="text-sm text-text-secondary">
-          Installment status
+          {t("installmentStatus")}
           <select
             value={filters.installmentStatus ?? ""}
             onChange={(event) =>
@@ -94,7 +96,7 @@ export function OverviewPage() {
             }
             className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
-            <option value="">All installments</option>
+            <option value="">{t("allInstallments")}</option>
             {["pending", "paid", "cancelled"].map((status) => (
               <option key={status} value={status}>
                 {status}
@@ -107,23 +109,23 @@ export function OverviewPage() {
       <div
         className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
         aria-live="polite"
-        aria-label="Financial key performance indicators"
+        aria-label={t("kpisAriaLabel")}
       >
-        <KpiCard label="Active contracted value" value={kpis.activeContractedValue} />
-        <KpiCard label="MRR" value={kpis.mrr} />
-        <KpiCard label="ARR" value={kpis.arr} />
-        <KpiCard label="Cash forecast" value={kpis.cashForecast} />
-        <KpiCard label="Received" value={kpis.received} />
-        <KpiCard label="Overdue" value={kpis.overdue} />
-        <KpiCard label="Upsell" value={kpis.upsell} />
-        <KpiCard label="Downsell" value={kpis.downsell} />
-        <KpiCard label="Active contracts" value={kpis.activeContracts} isMoney={false} />
-        <KpiCard label="Expiring soon" value={kpis.expiringSoon} isMoney={false} />
+        <KpiCard label={t("activeContractedValue")} value={kpis.activeContractedValue} />
+        <KpiCard label={t("mrr")} value={kpis.mrr} />
+        <KpiCard label={t("arr")} value={kpis.arr} />
+        <KpiCard label={t("cashForecast")} value={kpis.cashForecast} />
+        <KpiCard label={t("received")} value={kpis.received} />
+        <KpiCard label={t("overdue")} value={kpis.overdue} />
+        <KpiCard label={t("upsell")} value={kpis.upsell} />
+        <KpiCard label={t("downsell")} value={kpis.downsell} />
+        <KpiCard label={t("activeContracts")} value={kpis.activeContracts} isMoney={false} />
+        <KpiCard label={t("expiringSoon")} value={kpis.expiringSoon} isMoney={false} />
       </div>
 
       <section aria-labelledby="chart-title">
         <h2 id="chart-title" className="mb-2 text-base font-semibold text-text-primary">
-          Forecast vs. Received
+          {t("forecastVsReceived")}
         </h2>
         <div className="rounded-xl border border-border bg-page-alt p-4">
           <ForecastReceivedChart data={monthly} />
@@ -133,12 +135,12 @@ export function OverviewPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section aria-labelledby="overdue-title">
           <h2 id="overdue-title" className="mb-2 text-base font-semibold text-text-primary">
-            Overdue installments
+            {t("overdueInstallments")}
           </h2>
           {overdueInstallments.length === 0 ? (
-            <FinancialEmptyState title="Nothing overdue" />
+            <FinancialEmptyState title={t("nothingOverdue")} />
           ) : (
-            <ul className="divide-y divide-border rounded-xl border border-border bg-page-alt" aria-label="Overdue installments">
+            <ul className="divide-y divide-border rounded-xl border border-border bg-page-alt" aria-label={t("overdueListAria")}>
               {overdueInstallments.map((installment) => (
                 <li key={installment.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
                   <div className="min-w-0 flex-1">
@@ -157,12 +159,12 @@ export function OverviewPage() {
 
         <section aria-labelledby="expiring-title">
           <h2 id="expiring-title" className="mb-2 text-base font-semibold text-text-primary">
-            Expiring contracts
+            {t("expiringContracts")}
           </h2>
           {expiringContracts.length === 0 ? (
-            <FinancialEmptyState title="Nothing expiring in the next 30 days" />
+            <FinancialEmptyState title={t("nothingExpiring")} />
           ) : (
-            <ul className="divide-y divide-border rounded-xl border border-border bg-page-alt" aria-label="Expiring contracts">
+            <ul className="divide-y divide-border rounded-xl border border-border bg-page-alt" aria-label={t("expiringListAria")}>
               {expiringContracts.map((contract) => (
                 <li key={contract.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
                   <div className="min-w-0 flex-1">

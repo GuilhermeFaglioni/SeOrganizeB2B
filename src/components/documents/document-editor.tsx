@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { MarkdownPreview } from "./markdown-preview";
 import { useAutoSave } from "@/hooks/use-documents";
 import { useProjects } from "@/hooks/use-projects";
+import { useTranslations } from "next-intl";
 import { Save, Eye, Edit, Columns } from "lucide-react";
 
 type ViewMode = "split" | "edit" | "preview";
@@ -25,6 +26,7 @@ export function DocumentEditor({
   const [viewMode, setViewMode] = useState<ViewMode>("split");
   const { scheduleSave, updateDoc } = useAutoSave();
   const { data: projects } = useProjects();
+  const t = useTranslations("documents.editor");
   const synced = useRef(false);
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export function DocumentEditor({
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
           className="min-w-0 flex-1 basis-full bg-transparent text-[18px] font-semibold text-text-primary outline-none sm:basis-auto"
-          placeholder="Untitled Document"
+          placeholder={t("untitledPlaceholder")}
         />
         <div className="flex w-full min-w-0 items-center justify-end gap-2 sm:w-auto">
           <select
@@ -73,7 +75,7 @@ export function DocumentEditor({
             onChange={(e) => setProjectId(e.target.value)}
             className="min-w-0 flex-1 rounded-md border border-input bg-page-alt px-2 py-1 text-sm sm:flex-none"
           >
-            <option value="">No project</option>
+            <option value="">{t("noProject")}</option>
             {projects?.map((p: { id: string; name: string }) => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
@@ -82,21 +84,21 @@ export function DocumentEditor({
             <button
               onClick={() => setViewMode("edit")}
               className={`p-1.5 ${viewMode === "edit" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
-              title="Edit"
+              title={t("edit")}
             >
               <Edit size={16} />
             </button>
             <button
               onClick={() => setViewMode("split")}
               className={`p-1.5 ${viewMode === "split" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
-              title="Split"
+              title={t("split")}
             >
               <Columns size={16} />
             </button>
             <button
               onClick={() => setViewMode("preview")}
               className={`p-1.5 ${viewMode === "preview" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
-              title="Preview"
+              title={t("preview")}
             >
               <Eye size={16} />
             </button>
@@ -105,13 +107,13 @@ export function DocumentEditor({
             onClick={handleSave}
             disabled={updateDoc.isPending}
             className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent/90 disabled:opacity-50 sm:min-h-0 sm:min-w-0"
-            aria-label="Save document"
-            title="Save document"
+            aria-label={t("saveDocument")}
+            title={t("saveDocument")}
           >
             <Save className="h-4 w-4 sm:hidden" aria-hidden="true" />
             <span className="hidden items-center gap-1 sm:inline-flex">
               <Save className="h-4 w-4" aria-hidden="true" />
-              Save
+              {t("save")}
             </span>
           </button>
         </div>
@@ -125,7 +127,7 @@ export function DocumentEditor({
                 value={content}
                 onChange={(e) => handleContentChange(e.target.value)}
                 className="h-full min-h-0 w-full resize-none border-none bg-page-alt p-4 font-mono text-sm outline-none"
-                placeholder="Start writing markdown..."
+                placeholder={t("contentPlaceholder")}
               />
             </div>
           </div>

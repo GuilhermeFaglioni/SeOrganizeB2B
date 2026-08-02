@@ -1,6 +1,7 @@
 "use client";
 
 import { X, Calendar, CalendarDays, Users, Trash2, Archive } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PRIORITY_COLORS } from "@/lib/constants";
 import { AreaBadge } from "@/components/areas/area-badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function TaskDetailPanel({
   onDelete?: () => void;
   onArchive?: () => void;
 }) {
+  const t = useTranslations("kanban.taskDetailPanel");
   const priorityColor = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
   const { openScheduleEvent } = useScheduleEventDialog();
 
@@ -41,7 +43,7 @@ export function TaskDetailPanel({
           </span>
           <span className="text-caption text-text-secondary">#{task.id.slice(0, 8)}</span>
         </div>
-        <button onClick={onClose} className="flex min-h-[44px] min-w-[44px] items-center justify-center text-text-secondary hover:text-text-primary" aria-label="Close task details">
+        <button onClick={onClose} className="flex min-h-[44px] min-w-[44px] items-center justify-center text-text-secondary hover:text-text-primary" aria-label={t("closeDetails")}>
           <X size={18} />
         </button>
       </div>
@@ -49,7 +51,7 @@ export function TaskDetailPanel({
       <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4">
         <div>
           <h2 className="text-heading-1 font-semibold text-text-primary mb-2">{task.title}</h2>
-          <span className="sr-only">Task detail panel</span>
+          <span className="sr-only">{t("srOnlyLabel")}</span>
           {task.description && (
             <p className="text-body-small text-text-secondary whitespace-pre-wrap">{task.description}</p>
           )}
@@ -91,11 +93,11 @@ export function TaskDetailPanel({
             }
           >
             <Calendar size={14} />
-            Schedule in Calendar
+            {t("scheduleInCalendar")}
           </Button>
           {onEdit && (
             <Button size="sm" variant="outline" onClick={onEdit}>
-              Edit
+              {t("edit")}
             </Button>
           )}
           {onDelete && (
@@ -106,7 +108,7 @@ export function TaskDetailPanel({
           {onArchive && (
             <Button size="sm" variant="outline" onClick={onArchive}>
               <Archive size={14} />
-              Archive
+              {t("archive")}
             </Button>
           )}
         </div>
@@ -114,7 +116,7 @@ export function TaskDetailPanel({
         <CommentList taskId={task.id} />
         <div className="border-t border-border pt-5">
           <h3 className="mb-3 text-sm font-semibold text-text-primary">
-            Timeline
+            {t("timeline")}
           </h3>
           <ActivityFeed taskId={task.id} />
         </div>

@@ -15,7 +15,7 @@ describe("B1: itemSum safe empty fallbacks", () => {
 describe("B2: officialValue required-value error and safe parsing", () => {
   it("form shows required-value error when officialValue is empty", () => {
     const form = readForm();
-    expect(form).toContain("Official contract value is required");
+    expect(form).toContain('t("errorOfficialValueRequired")');
     expect(form).toContain("parsedOfficialValue");
   });
 
@@ -140,8 +140,8 @@ describe("B3: open-ended activation does NOT require exact sum", () => {
 
   it("form planErrors for openEnded validates required value and frequency", () => {
     const form = readForm();
-    expect(form).toContain("A billing frequency is required for open-ended contracts");
-    expect(form).toContain("positive amount");
+    expect(form).toContain('t("errorFrequencyRequired")');
+    expect(form).toContain('t("errorPositiveAmount")');
   });
 
   it("form planErrors for fixed/oneTime still uses validateFinitePlan", () => {

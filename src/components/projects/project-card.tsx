@@ -1,8 +1,12 @@
+"use client";
+
 import { ChevronRight } from "lucide-react";
 import { AreaBadge } from "@/components/areas/area-badge";
 import type { ProjectData } from "@/hooks/use-projects";
+import { useTranslations } from "next-intl";
 
 export function ProjectCard({ project }: { project: ProjectData }) {
+  const t = useTranslations("projects.card");
   return (
     <div
       data-testid="project-card"
@@ -27,7 +31,7 @@ export function ProjectCard({ project }: { project: ProjectData }) {
           <AreaBadge name={project.area.name} color={project.area.color} />
         )}
         <span className="text-caption text-text-muted">
-          {project._count?.tasks ?? 0} tasks
+          {t("tasksCount", { count: project._count?.tasks ?? 0 })}
         </span>
       </div>
     </div>

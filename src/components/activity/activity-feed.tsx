@@ -1,6 +1,7 @@
 "use client";
 
 import { Activity, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useActivity } from "@/hooks/use-activity";
 import { LoadingState } from "@/components/shared/loading-state";
 
@@ -11,6 +12,7 @@ export function ActivityFeed({
   taskId?: string;
   limit?: number;
 }) {
+  const t = useTranslations("activity.feed");
   const { data = [], isLoading, error, refetch } = useActivity(taskId, limit);
   if (isLoading) return <LoadingState />;
   if (error) {
@@ -19,12 +21,12 @@ export function ActivityFeed({
         className="flex items-center gap-2 text-sm text-danger"
         onClick={() => refetch()}
       >
-        <AlertCircle className="h-4 w-4" /> Falha ao carregar atividade.
+        <AlertCircle className="h-4 w-4" /> {t("loadFailed")}
       </button>
     );
   }
   if (!data.length) {
-    return <p className="text-sm text-text-secondary">Sem atividade ainda.</p>;
+    return <p className="text-sm text-text-secondary">{t("empty")}</p>;
   }
   return (
     <ol className="space-y-3" aria-live="polite">
@@ -36,7 +38,7 @@ export function ActivityFeed({
           <div className="min-w-0">
             <p className="text-sm text-text-primary">{item.summary}</p>
             <p className="text-xs text-text-secondary">
-              {item.actor?.name || "Sistema"} ·{" "}
+              {item.actor?.name || t("system")} ·{" "}
               {new Date(item.createdAt).toLocaleString("pt-BR")}
             </p>
           </div>

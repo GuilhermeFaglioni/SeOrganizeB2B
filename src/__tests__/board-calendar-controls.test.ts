@@ -52,7 +52,7 @@ describe("saved views and board controls", () => {
     const source = read("src/components/board/board-controls.tsx");
     expect(source).toContain("PopoverTrigger");
     expect(source).toContain("PopoverContent");
-    expect(source).toContain(">Filtros<");
+    expect(source).toContain('t("filters")');
     expect(source).toContain("activeControlCount");
   });
 

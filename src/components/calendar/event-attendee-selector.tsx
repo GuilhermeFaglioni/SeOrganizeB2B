@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MultiPersonSelector } from "@/components/people/multi-person-selector";
 import { useProfiles } from "@/hooks/use-profiles";
+import { useTranslations } from "next-intl";
 import { toastError } from "@/lib/toast";
 
 export function EventAttendeeSelector({
@@ -20,12 +21,13 @@ export function EventAttendeeSelector({
   onAttendeeEmailsChange: (emails: string[]) => void;
 }) {
   const { data: profiles = [], isLoading } = useProfiles();
+  const t = useTranslations("calendar.attendeeSelector");
   const [email, setEmail] = useState("");
 
   function addEmail() {
     const normalized = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
-      toastError("E-mail inválido", "Informe um endereço de e-mail válido.");
+      toastError(t("invalidEmail"), t("invalidEmailHint"));
       return;
     }
     if (!attendeeEmails.includes(normalized)) {
@@ -56,11 +58,11 @@ export function EventAttendeeSelector({
             }}
             className="pl-9"
             type="email"
-            placeholder="Convidar e-mail externo"
+            placeholder={t("inviteExternalEmail")}
           />
         </div>
         <Button type="button" variant="outline" onClick={addEmail}>
-          Adicionar
+          {t("add")}
         </Button>
       </div>
       {attendeeEmails.length > 0 && (
@@ -73,7 +75,7 @@ export function EventAttendeeSelector({
               {item}
               <button
                 type="button"
-                aria-label={`Remover ${item}`}
+                aria-label={t("removeEmail", { email: item })}
                 onClick={() =>
                   onAttendeeEmailsChange(
                     attendeeEmails.filter((candidate) => candidate !== item),

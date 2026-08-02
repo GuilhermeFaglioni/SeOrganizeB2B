@@ -23,7 +23,7 @@ describe("Hoje cockpit", () => {
 
   it("mounts Hoje first in sidebar", () => {
     expect(read("src/components/layout/sidebar.tsx")).toContain(
-      '{ href: "/", label: "Hoje"'
+      '{ href: "/", label: t("today")'
     );
   });
 });

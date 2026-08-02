@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function Pagination({
@@ -11,29 +12,30 @@ export function Pagination({
   totalPages: number;
   onPageChange: (page: number) => void;
 }) {
+  const t = useTranslations("financial.contracts.pagination");
   if (totalPages <= 1) return null;
   return (
-    <nav aria-label="Pagination" className="flex items-center justify-between gap-2 py-3 text-sm text-text-secondary">
+    <nav aria-label={t("paginationLabel")} className="flex items-center justify-between gap-2 py-3 text-sm text-text-secondary">
       <button
         type="button"
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
         className="flex min-h-[44px] items-center gap-1 rounded-md px-3 text-sm disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        aria-label="Previous page"
+        aria-label={t("previousAria")}
       >
-        <ChevronLeft size={16} /> Previous
+        <ChevronLeft size={16} /> {t("previous")}
       </button>
       <span aria-live="polite">
-        Page {page} of {totalPages}
+        {t("pageInfo", { page, total: totalPages })}
       </span>
       <button
         type="button"
         disabled={page >= totalPages}
         onClick={() => onPageChange(page + 1)}
         className="flex min-h-[44px] items-center gap-1 rounded-md px-3 text-sm disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        aria-label="Next page"
+        aria-label={t("nextAria")}
       >
-        Next <ChevronRight size={16} />
+        {t("next")} <ChevronRight size={16} />
       </button>
     </nav>
   );

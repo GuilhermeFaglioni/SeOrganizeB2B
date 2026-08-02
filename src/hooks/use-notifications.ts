@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import type { NotificationItem } from "@/lib/activity/types";
 
 interface NotificationData {
@@ -8,26 +9,29 @@ interface NotificationData {
   unreadCount: number;
 }
 
-async function request(url: string, init?: RequestInit) {
+async function request(url: string, init?: RequestInit, fallbackMessage?: string) {
   const response = await fetch(url, init);
   const body = await response.json();
-  if (!response.ok) throw new Error(body.error?.message || "Request failed");
+  if (!response.ok)
+    throw new Error(body.error?.message || fallbackMessage || "Request failed");
   return body.data;
 }
 
 export function useNotifications() {
+  const t = useTranslations("hooks.notifications");
   return useQuery<NotificationData>({
     queryKey: ["notifications"],
-    queryFn: () => request("/api/notifications"),
+    queryFn: () => request("/api/notifications", undefined, t("requestFailed")),
     refetchInterval: 30_000,
   });
 }
 
 export function useMarkNotificationRead() {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.notifications");
   return useMutation({
     mutationFn: (id: string) =>
-      request(`/api/notifications/${id}`, { method: "PATCH" }),
+      request(`/api/notifications/${id}`, { method: "PATCH" }, t("requestFailed")),
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: ["notifications"] });
       const previous = queryClient.getQueryData<NotificationData>([
@@ -67,8 +71,10 @@ export function useMarkNotificationRead() {
 
 export function useMarkAllNotificationsRead() {
   const queryClient = useQueryClient();
+  const t = useTranslations("hooks.notifications");
   return useMutation({
-    mutationFn: () => request("/api/notifications", { method: "PATCH" }),
+    mutationFn: () =>
+      request("/api/notifications", { method: "PATCH" }, t("requestFailed")),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["notifications"] });
       const previous = queryClient.getQueryData<NotificationData>([

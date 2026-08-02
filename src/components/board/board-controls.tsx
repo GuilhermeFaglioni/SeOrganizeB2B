@@ -1,6 +1,7 @@
 "use client";
 
 import { SlidersHorizontal, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAreas } from "@/hooks/use-areas";
 import { useProfiles } from "@/hooks/use-profiles";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export function BoardControls({
   onChange: (key: keyof BoardControlValues, value: string | null) => void;
   onClear: () => void;
 }) {
+  const t = useTranslations("board.controls");
   const { data: profiles = [] } = useProfiles();
   const { data: areas = [] } = useAreas();
   const activeControlCount = [
@@ -54,7 +56,7 @@ export function BoardControls({
       <PopoverTrigger asChild>
         <Button variant="outline" className="relative gap-2">
           <SlidersHorizontal className="h-4 w-4" />
-          <span>Filtros</span>
+          <span>{t("filters")}</span>
           {activeControlCount > 0 && (
             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-white">
               {activeControlCount}
@@ -69,10 +71,10 @@ export function BoardControls({
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-text-primary">
-              Filtros e visualização
+              {t("filtersAndView")}
             </p>
             <p className="text-xs text-text-muted">
-              Alterações são aplicadas imediatamente.
+              {t("changesApplyImmediately")}
             </p>
           </div>
           {activeControlCount > 0 && (
@@ -83,7 +85,7 @@ export function BoardControls({
               onClick={onClear}
             >
               <X className="h-3.5 w-3.5" />
-              Limpar
+              {t("clear")}
             </Button>
           )}
         </div>
@@ -91,7 +93,7 @@ export function BoardControls({
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <span className="mb-1 block text-[11px] font-medium text-text-secondary">
-              Responsável
+              {t("assignee")}
             </span>
             <Select
               value={values.assignee || ALL}
@@ -103,7 +105,7 @@ export function BoardControls({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>Todas as pessoas</SelectItem>
+                <SelectItem value={ALL}>{t("allPeople")}</SelectItem>
                 {profiles.map((profile) => (
                   <SelectItem key={profile.id} value={profile.id}>
                     {profile.name || profile.email}
@@ -115,7 +117,7 @@ export function BoardControls({
 
           <div>
             <span className="mb-1 block text-[11px] font-medium text-text-secondary">
-              Team area
+              {t("teamArea")}
             </span>
             <Select
               value={values.areas || ALL}
@@ -127,7 +129,7 @@ export function BoardControls({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>Todas as áreas</SelectItem>
+                <SelectItem value={ALL}>{t("allAreas")}</SelectItem>
                 {areas.map((area) => (
                   <SelectItem key={area.id} value={area.id}>
                     {area.name}
@@ -139,7 +141,7 @@ export function BoardControls({
 
           <label>
             <span className="mb-1 block text-[11px] font-medium text-text-secondary">
-              Prazo inicial
+              {t("dateFrom")}
             </span>
             <Input
               className="h-9"
@@ -153,7 +155,7 @@ export function BoardControls({
 
           <label>
             <span className="mb-1 block text-[11px] font-medium text-text-secondary">
-              Prazo final
+              {t("dateTo")}
             </span>
             <Input
               className="h-9"
@@ -168,7 +170,7 @@ export function BoardControls({
 
           <div>
             <span className="mb-1 block text-[11px] font-medium text-text-secondary">
-              Ordenar
+              {t("sort")}
             </span>
             <Select
               value={values.sort}
@@ -178,17 +180,17 @@ export function BoardControls({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="manual">Ordem manual</SelectItem>
-                <SelectItem value="priority">Prioridade</SelectItem>
-                <SelectItem value="dueDate">Prazo</SelectItem>
-                <SelectItem value="title">Título</SelectItem>
+                <SelectItem value="manual">{t("sortManual")}</SelectItem>
+                <SelectItem value="priority">{t("sortPriority")}</SelectItem>
+                <SelectItem value="dueDate">{t("sortDueDate")}</SelectItem>
+                <SelectItem value="title">{t("sortTitle")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
             <span className="mb-1 block text-[11px] font-medium text-text-secondary">
-              Agrupar
+              {t("group")}
             </span>
             <Select
               value={values.group}
@@ -198,9 +200,9 @@ export function BoardControls({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="workflow">Sem agrupamento</SelectItem>
-                <SelectItem value="assignee">Pessoa principal</SelectItem>
-                <SelectItem value="area">Team area</SelectItem>
+                <SelectItem value="workflow">{t("groupNone")}</SelectItem>
+                <SelectItem value="assignee">{t("groupAssignee")}</SelectItem>
+                <SelectItem value="area">{t("teamArea")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

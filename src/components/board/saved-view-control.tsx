@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { BookmarkPlus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   useCreateSavedView,
   useDeleteSavedView,
@@ -37,6 +38,7 @@ export function SavedViewControl({
   filters: BoardViewFilters;
   onApply: (filters: BoardViewFilters) => void;
 }) {
+  const t = useTranslations("board.savedView");
   const [selectedId, setSelectedId] = useState(NONE);
   const [saveViewOpen, setSaveViewOpen] = useState(false);
   const [viewName, setViewName] = useState("");
@@ -55,10 +57,10 @@ export function SavedViewControl({
       setSelectedId((view as { id: string }).id);
       setViewName("");
       setSaveViewOpen(false);
-      toastSuccess("Visualização salva");
+      toastSuccess(t("savedToast"));
     } catch (error) {
       toastError(
-        "Falha ao salvar visualização",
+        t("saveFailed"),
         error instanceof Error ? error.message : undefined
       );
     }
@@ -74,7 +76,7 @@ export function SavedViewControl({
     if (selectedId === NONE) return;
     await remove.mutateAsync(selectedId);
     setSelectedId(NONE);
-    toastSuccess("Visualização removida");
+    toastSuccess(t("removedToast"));
   }
 
   return (
@@ -82,10 +84,10 @@ export function SavedViewControl({
       <div className="ml-auto flex items-center gap-1">
       <Select value={selectedId} onValueChange={select}>
         <SelectTrigger className="w-[180px] bg-page-alt">
-          <SelectValue placeholder="Minhas views" />
+          <SelectValue placeholder={t("myViews")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={NONE}>Minhas views</SelectItem>
+          <SelectItem value={NONE}>{t("myViews")}</SelectItem>
           {views.map((view) => (
             <SelectItem key={view.id} value={view.id}>
               {view.name}
@@ -97,7 +99,7 @@ export function SavedViewControl({
         size="icon"
         variant="outline"
         onClick={() => setSaveViewOpen(true)}
-        title="Salvar view"
+        title={t("saveView")}
       >
         <BookmarkPlus className="h-4 w-4" />
       </Button>
@@ -106,7 +108,7 @@ export function SavedViewControl({
           size="icon"
           variant="outline"
           onClick={deleteSelected}
-          title="Excluir view"
+          title={t("deleteView")}
         >
           <Trash2 className="h-4 w-4 text-danger" />
         </Button>
@@ -115,31 +117,31 @@ export function SavedViewControl({
       <Dialog open={saveViewOpen} onOpenChange={setSaveViewOpen}>
         <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Salvar visualização</DialogTitle>
+          <DialogTitle>{t("saveViewTitle")}</DialogTitle>
           <DialogDescription>
-            Salva filtros, ordenação e agrupamento atuais apenas para você.
+            {t("saveDescription")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="saved-view-name">Nome</Label>
+          <Label htmlFor="saved-view-name">{t("name")}</Label>
           <Input
             id="saved-view-name"
             autoFocus
             value={viewName}
             onChange={(event) => setViewName(event.target.value)}
             onKeyDown={(event) => event.key === "Enter" && save()}
-            placeholder="Ex.: Entregas desta semana"
+            placeholder={t("namePlaceholder")}
           />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setSaveViewOpen(false)}>
-            Cancelar
+            {t("cancel")}
           </Button>
           <Button
             onClick={save}
             disabled={!viewName.trim() || create.isPending}
           >
-            {create.isPending ? "Salvando…" : "Salvar"}
+            {create.isPending ? t("saving") : t("save")}
           </Button>
         </DialogFooter>
         </DialogContent>

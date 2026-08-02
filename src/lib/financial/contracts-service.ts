@@ -261,18 +261,13 @@ export async function updateContract(
   });
 }
 
-export async function deleteDraftContract(contractId: string) {
+export async function deleteContract(contractId: string) {
   return prisma.$transaction(async (tx) => {
     const contract = await tx.contract.findUnique({
       where: { id: contractId },
-      select: { status: true },
+      select: { id: true },
     });
     if (!contract) throw new FinancialValidationError("Contract not found");
-    if (contract.status !== "draft") {
-      throw new FinancialConflictError(
-        "Only draft contracts can be deleted"
-      );
-    }
     await tx.contract.delete({ where: { id: contractId } });
   });
 }

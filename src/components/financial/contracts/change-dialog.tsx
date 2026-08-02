@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useContractChange } from "@/hooks/use-contracts";
 import { toastSuccess } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export function ChangeDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useTranslations("financial.contracts.changeDialog");
   const change = useContractChange();
   const [type, setType] = useState<"upsell" | "downsell">("upsell");
   const [delta, setDelta] = useState("");
@@ -47,7 +49,7 @@ export function ChangeDialog({
           if (!data.applied) {
             setProposal(data.proposal ?? null);
           } else {
-            toastSuccess("Contract value updated");
+            toastSuccess(t("valueUpdated"));
             setProposal(null);
             onOpenChange(false);
           }
@@ -60,41 +62,40 @@ export function ChangeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Adjust contract value</DialogTitle>
+          <DialogTitle>{t("adjustTitle")}</DialogTitle>
           <DialogDescription>
-            Review the proposed change before applying it. Paid installments
-            are never modified.
+            {t("adjustDescription")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <label htmlFor="change-type" className="text-sm text-text-secondary">
-              Type
+              {t("typeLabel")}
               <select
                 id="change-type"
                 value={type}
                 onChange={(event) => setType(event.target.value as "upsell" | "downsell")}
                 className="ml-2 rounded-md border border-border bg-page px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
-                <option value="upsell">Upsell</option>
-                <option value="downsell">Downsell</option>
+                <option value="upsell">{t("upsell")}</option>
+                <option value="downsell">{t("downsell")}</option>
               </select>
             </label>
             <label htmlFor="change-strategy" className="text-sm text-text-secondary">
-              Strategy
+              {t("strategyLabel")}
               <select
                 id="change-strategy"
                 value={strategy}
                 onChange={(event) => setStrategy(event.target.value as "redistribute" | "adjust")}
                 className="ml-2 rounded-md border border-border bg-page px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
-                <option value="redistribute">Redistribute across pending</option>
-                <option value="adjust">Additional / negative installment</option>
+                <option value="redistribute">{t("strategyRedistribute")}</option>
+                <option value="adjust">{t("strategyAdjust")}</option>
               </select>
             </label>
           </div>
           <label htmlFor="change-delta" className="block text-sm text-text-secondary">
-            Delta (BRL)
+            {t("delta")}
             <input
               id="change-delta"
               type="number"
@@ -105,7 +106,7 @@ export function ChangeDialog({
             />
           </label>
           <label htmlFor="change-effective-date" className="block text-sm text-text-secondary">
-            Effective date
+            {t("effectiveDate")}
             <input
               id="change-effective-date"
               type="date"
@@ -115,7 +116,7 @@ export function ChangeDialog({
             />
           </label>
           <label htmlFor="change-description" className="block text-sm text-text-secondary">
-            Description
+            {t("description")}
             <input
               id="change-description"
               value={description}
@@ -125,25 +126,25 @@ export function ChangeDialog({
           </label>
           {proposal !== null && (
             <div className="rounded-md bg-bg-secondary p-3 text-sm text-text-secondary">
-              <p className="mb-2 font-medium text-text-primary">Proposed result</p>
+              <p className="mb-2 font-medium text-text-primary">{t("proposedResult")}</p>
               <pre className="overflow-x-auto text-xs">{JSON.stringify(proposal, null, 2)}</pre>
             </div>
           )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t("close")}
           </Button>
           {!proposal && (
             <Button
               disabled={!delta || !effectiveDate}
               onClick={() => requestProposal(false)}
             >
-              Preview proposal
+              {t("previewProposal")}
             </Button>
           )}
           {proposal !== null && (
-            <Button onClick={() => requestProposal(true)}>Confirm and apply</Button>
+            <Button onClick={() => requestProposal(true)}>{t("confirmAndApply")}</Button>
           )}
         </DialogFooter>
       </DialogContent>

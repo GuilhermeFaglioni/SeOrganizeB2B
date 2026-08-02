@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
+import { isAppLocale } from "@/i18n/config";
 
 export async function GET() {
   const user = await getUser();
@@ -29,34 +30,46 @@ export async function PATCH(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name } = body;
+  const { name, locale } = body;
 
-  if (typeof name !== "string" || !name.trim()) {
-    return NextResponse.json({ data: null, error: { code: "VALIDATION_ERROR", message: "Name is required" } }, { status: 400 });
+  if (locale !== undefined && !isAppLocale(locale)) {
+    return NextResponse.json({ data: null, error: { code: "VALIDATION_ERROR", message: "Invalid locale" } }, { status: 400 });
   }
 
-  const normalizedName = name.trim();
-  const supabase = await createClient();
-  const { error: authError } = await supabase.auth.updateUser({
-    data: { full_name: normalizedName },
-  });
-  if (authError) {
-    return NextResponse.json(
-      {
-        data: null,
-        error: {
-          code: "AUTH_UPDATE_ERROR",
-          message: authError.message,
+  const data: { name?: string; locale?: string } = {};
+  if (typeof name === "string" && name.trim()) {
+    data.name = name.trim();
+  }
+  if (locale !== undefined) {
+    data.locale = locale;
+  }
+  if (!data.name && data.locale === undefined) {
+    return NextResponse.json({ data: null, error: { code: "VALIDATION_ERROR", message: "Nothing to update" } }, { status: 400 });
+  }
+
+  if (data.name) {
+    const supabase = await createClient();
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { full_name: data.name },
+    });
+    if (authError) {
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            code: "AUTH_UPDATE_ERROR",
+            message: authError.message,
+          },
         },
-      },
-      { status: 502 },
-    );
+        { status: 502 },
+      );
+    }
   }
 
   const updated = await prisma.profile.update({
     where: { id: user.id },
-    data: { name: normalizedName },
+    data,
   });
 
-  return NextResponse.json({ data: { id: updated.id, name: updated.name, email: updated.email }, error: null });
+  return NextResponse.json({ data: { id: updated.id, name: updated.name, email: updated.email, locale: updated.locale }, error: null });
 }

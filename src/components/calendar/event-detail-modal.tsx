@@ -29,6 +29,7 @@ import {
 import { useProjects } from "@/hooks/use-projects";
 import { useAreas } from "@/hooks/use-areas";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useUpdateCalendarEvent, useDeleteCalendarEvent } from "@/hooks/use-calendar";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -50,6 +51,7 @@ export function EventDetailModal({
 }) {
   const { data: projects = [] } = useProjects();
   const { data: areas = [] } = useAreas();
+  const t = useTranslations("calendar.eventDetail");
   const [projectId, setProjectId] = useState("");
   const [taskId, setTaskId] = useState(NONE);
   const [areaId, setAreaId] = useState(NONE);
@@ -94,11 +96,11 @@ export function EventDetailModal({
         taskId: taskId === NONE ? null : taskId,
         areaId: areaId === NONE ? null : areaId,
       });
-      toastSuccess("Vínculos do evento atualizados");
+      toastSuccess(t("toastLinksUpdated"));
       onOpenChange(false);
     } catch (error) {
       toastError(
-        "Falha ao atualizar evento",
+        t("toastUpdateFailed"),
         error instanceof Error ? error.message : undefined
       );
     }
@@ -114,27 +116,32 @@ export function EventDetailModal({
             ) : (
               <CalendarClock className="h-3.5 w-3.5" />
             )}
-            {event.source === "google" ? "Google Calendar" : "Calendário local"}
+            {event.source === "google" ? "Google Calendar" : t("sourceLocal")}
           </div>
           <DialogTitle>{event.title}</DialogTitle>
           <DialogDescription>
             {event.allDay
-              ? `${start.toLocaleDateString("pt-BR")} · dia inteiro`
-              : `${start.toLocaleString("pt-BR")} — ${end.toLocaleString("pt-BR")}`}
+              ? t("allDayDate", {
+                  date: start.toLocaleDateString("pt-BR"),
+                })
+              : t("dateRange", {
+                  start: start.toLocaleString("pt-BR"),
+                  end: end.toLocaleString("pt-BR"),
+                })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5">
           <div className="rounded-xl border border-border bg-page-alt p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-              Descrição
+              {t("description")}
             </p>
             <p className="mt-2 whitespace-pre-wrap text-sm text-text-primary">
-              {event.description || "Sem descrição."}
+              {event.description || t("noDescription")}
             </p>
             {event.timeZone && (
               <p className="mt-3 text-xs text-text-secondary">
-                Fuso: {event.timeZone}
+                {t("timeZone", { timeZone: event.timeZone })}
               </p>
             )}
           </div>
@@ -142,7 +149,7 @@ export function EventDetailModal({
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-border p-4">
               <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                <Users className="h-4 w-4 text-accent" /> Pessoas internas
+                <Users className="h-4 w-4 text-accent" /> {t("internalAttendees")}
               </p>
               {internalAttendees.length ? (
                 <ul className="space-y-2 text-sm text-text-secondary">
@@ -154,12 +161,12 @@ export function EventDetailModal({
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-text-secondary">Nenhuma.</p>
+                <p className="text-sm text-text-secondary">{t("noInternalAttendees")}</p>
               )}
             </div>
             <div className="rounded-xl border border-border p-4">
               <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                <Mail className="h-4 w-4 text-accent" /> Convidados externos
+                <Mail className="h-4 w-4 text-accent" /> {t("externalAttendees")}
               </p>
               {externalAttendees.length ? (
                 <ul className="space-y-2 text-sm text-text-secondary">
@@ -168,24 +175,23 @@ export function EventDetailModal({
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-text-secondary">Nenhum.</p>
+                <p className="text-sm text-text-secondary">{t("noExternalAttendees")}</p>
               )}
             </div>
           </div>
 
           <div className="rounded-xl border border-border p-4">
             <p className="mb-4 flex items-center gap-2 text-sm font-semibold">
-              <Link2 className="h-4 w-4 text-accent" /> Vínculos
+              <Link2 className="h-4 w-4 text-accent" /> {t("links")}
             </p>
             {isReadOnly ? (
               <p className="text-sm text-text-secondary">
-                Evento somente Google. Sincronize uma cópia local para editar
-                vínculos.
+                {t("readOnlyHint")}
               </p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>Projeto da tarefa</Label>
+                  <Label>{t("taskProject")}</Label>
                   <Select
                     value={projectId || NONE}
                     onValueChange={(value) => {
@@ -194,10 +200,10 @@ export function EventDetailModal({
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Projeto" />
+                      <SelectValue placeholder={t("projectPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={NONE}>Sem tarefa</SelectItem>
+                      <SelectItem value={NONE}>{t("noTask")}</SelectItem>
                       {projects.map((project) => (
                         <SelectItem key={project.id} value={project.id}>
                           {project.name}
@@ -207,17 +213,17 @@ export function EventDetailModal({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Tarefa</Label>
+                  <Label>{t("task")}</Label>
                   <Select
                     value={taskId}
                     onValueChange={setTaskId}
                     disabled={!projectId}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Tarefa" />
+                      <SelectValue placeholder={t("taskPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={NONE}>Sem tarefa</SelectItem>
+                      <SelectItem value={NONE}>{t("noTask")}</SelectItem>
                       {tasks.map((task) => (
                         <SelectItem key={task.id} value={task.id}>
                           {task.title}
@@ -227,13 +233,13 @@ export function EventDetailModal({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Team area</Label>
+                  <Label>{t("teamArea")}</Label>
                   <Select value={areaId} onValueChange={setAreaId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Team area" />
+                      <SelectValue placeholder={t("teamAreaPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={NONE}>Sem área</SelectItem>
+                      <SelectItem value={NONE}>{t("noArea")}</SelectItem>
                       {areas.map((area) => (
                         <SelectItem key={area.id} value={area.id}>
                           {area.name}
@@ -255,19 +261,19 @@ export function EventDetailModal({
                   variant="outline"
                   onClick={() => setConfirmDelete(false)}
                 >
-                  Manter
+                  {t("keep")}
                 </Button>
                 <Button
                   variant="destructive"
                   onClick={async () => {
                     try {
                       await deleteEvent.mutateAsync(event!.id);
-                      toastSuccess("Evento excluído");
+                      toastSuccess(t("toastDeleted"));
                       setConfirmDelete(false);
                       onOpenChange(false);
                     } catch (error) {
                       toastError(
-                        "Falha ao excluir evento",
+                        t("toastDeleteFailed"),
                         error instanceof Error ? error.message : undefined,
                       );
                     }
@@ -275,8 +281,8 @@ export function EventDetailModal({
                   disabled={deleteEvent.isPending}
                 >
                   {deleteEvent.isPending
-                    ? "Excluindo…"
-                    : "Confirmar exclusão"}
+                    ? t("deleting")
+                    : t("confirmDelete")}
                 </Button>
               </>
             ) : (
@@ -286,13 +292,13 @@ export function EventDetailModal({
                   className="text-danger hover:text-danger"
                   onClick={() => setConfirmDelete(true)}
                 >
-                  Excluir
+                  {t("delete")}
                 </Button>
                 <Button variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancelar
+                  {t("cancel")}
                 </Button>
                 <Button onClick={saveLinks} disabled={updateEvent.isPending}>
-                  {updateEvent.isPending ? "Salvando…" : "Salvar vínculos"}
+                  {updateEvent.isPending ? t("saving") : t("saveLinks")}
                 </Button>
               </>
             )}

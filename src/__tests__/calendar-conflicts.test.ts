@@ -26,7 +26,7 @@ describe("calendar conflict warning", () => {
     const modal = read(
       "src/components/calendar/schedule-event-modal.tsx"
     );
-    expect(modal).toContain("Criar mesmo assim");
-    expect(modal).toContain("Aviso não bloqueia criação");
+    expect(modal).toContain('t("createAnyway")');
+    expect(modal).toContain('t("warningDoesNotBlock")');
   });
 });

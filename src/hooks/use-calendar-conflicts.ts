@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 export interface CalendarConflict {
   id: string;
@@ -11,6 +12,7 @@ export interface CalendarConflict {
 }
 
 export function useCalendarConflicts() {
+  const t = useTranslations("hooks.calendarConflicts");
   return useMutation<
     {
       conflicts: CalendarConflict[];
@@ -27,7 +29,7 @@ export function useCalendarConflicts() {
       });
       const body = await response.json();
       if (!response.ok) {
-        throw new Error(body.error?.message || "Conflict check failed");
+        throw new Error(body.error?.message || t("conflictCheckFailed"));
       }
       return body.data;
     },

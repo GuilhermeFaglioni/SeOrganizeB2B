@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import {
-  deleteDraftContract,
+  deleteContract,
   updateContract,
 } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
@@ -125,7 +125,7 @@ export async function DELETE(
   }
 
   try {
-    await deleteDraftContract(params.id);
+    await deleteContract(params.id);
     return NextResponse.json({ data: null, error: null });
   } catch (error) {
     return mapFinancialError(error);

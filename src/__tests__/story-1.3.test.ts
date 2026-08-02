@@ -116,7 +116,7 @@ describe("1.3.7 Sidebar area filter", () => {
     expect(src).not.toContain("AreaFilter");
     expect(src).not.toContain("useAreas");
     expect(read("src/components/board/board-controls.tsx")).toContain(
-      "Team area"
+      't("teamArea")'
     );
   });
 });

@@ -6,8 +6,10 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { KanbanCard } from "@/components/kanban/kanban-card";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function AllProjectsPage() {
+  const t = useTranslations("all.page");
   const { data: projects, isLoading } = useProjects();
 
   if (isLoading) return <LoadingState />;
@@ -15,14 +17,14 @@ export default function AllProjectsPage() {
   if (!projects || projects.length === 0) {
     return (
       <div className="p-6 text-center text-text-secondary">
-        No projects yet. Create your first project to get started.
+        {t("noProjects")}
       </div>
     );
   }
 
   return (
     <div className="p-6 space-y-8 max-w-5xl mx-auto">
-      <h1 className="text-heading-1 text-text-primary">All Projects</h1>
+      <h1 className="text-heading-1 text-text-primary">{t("allProjects")}</h1>
       <div className="space-y-6">
         {projects.map((project) => (
           <ProjectSection key={project.id} projectId={project.id} projectName={project.name} />
@@ -33,6 +35,7 @@ export default function AllProjectsPage() {
 }
 
 function ProjectSection({ projectId, projectName }: { projectId: string; projectName: string }) {
+  const t = useTranslations("all.page");
   const { data: columns } = useBoard(projectId);
   const router = useRouter();
 
@@ -49,7 +52,7 @@ function ProjectSection({ projectId, projectName }: { projectId: string; project
       >
         <LayoutDashboard size={18} />
         {projectName}
-        <span className="text-sm font-normal text-text-secondary">({taskCount} tasks)</span>
+        <span className="text-sm font-normal text-text-secondary">{t("taskCount", { count: taskCount })}</span>
       </button>
       <div className="space-y-2">
         {columns.map((col) => (
@@ -63,7 +66,7 @@ function ProjectSection({ projectId, projectName }: { projectId: string; project
                   ))}
                   {col.tasks.length > 5 && (
                     <div className="flex items-center justify-center text-sm text-text-secondary border border-dashed border-border rounded-lg p-3">
-                      +{col.tasks.length - 5} more
+                      {t("moreTasks", { count: col.tasks.length - 5 })}
                     </div>
                   )}
                 </div>

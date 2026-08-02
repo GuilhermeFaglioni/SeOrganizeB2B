@@ -1,31 +1,33 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function SettingsPage() {
+  const t = useTranslations("settings.page");
   return (
     <div data-testid="settings-page" className="p-6 max-w-3xl space-y-6">
       <div>
-        <h1 className="text-heading-1 text-text-primary">Settings</h1>
+        <h1 className="text-heading-1 text-text-primary">{t("title")}</h1>
         <p className="text-body-small text-text-secondary mt-1">
-          Manage your profile, team areas, and preferences.
+          {t("subtitle")}
         </p>
       </div>
 
       <div className="grid gap-4">
         <SettingsCard
-          title="Profile"
-          description="Manage your name, avatar, and team area assignments"
+          title={t("profile.title")}
+          description={t("profile.description")}
           href="/settings/profile"
         />
         <SettingsCard
-          title="Team Areas"
-          description="Create, edit, and delete team areas used to organize projects and tasks"
+          title={t("areas.title")}
+          description={t("areas.description")}
           href="/settings/areas"
         />
         <SettingsCard
-          title="Team"
-          description="View and manage team members and their area assignments"
+          title={t("team.title")}
+          description={t("team.description")}
           href="/settings/team"
         />
       </div>

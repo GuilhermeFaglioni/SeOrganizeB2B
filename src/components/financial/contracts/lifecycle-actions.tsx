@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useContractLifecycle } from "@/hooks/use-contracts";
 import { toastSuccess } from "@/lib/toast";
 import type { InstallmentPlanItem } from "@/lib/financial/types";
@@ -25,16 +26,26 @@ export function LifecycleActions({
   plan?: InstallmentPlanItem[];
 }) {
   const router = useRouter();
+  const t = useTranslations("financial.contracts.lifecycle");
   const lifecycle = useContractLifecycle();
   const [cancelOpen, setCancelOpen] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState("");
+
+  const ACTION_TOAST_KEYS: Record<string, string> = {
+    activate: "actionActivated",
+    suspend: "actionSuspended",
+    resume: "actionResumed",
+    close: "actionClosed",
+    renew: "actionRenewed",
+    cancel: "actionCancelled",
+  };
 
   function run(action: string, extra: Record<string, unknown> = {}) {
     lifecycle.mutate(
       { id: contractId, action, ...extra },
       {
         onSuccess: () => {
-          toastSuccess(`Contract ${action.replace("_", " ")}`);
+          toastSuccess(t(ACTION_TOAST_KEYS[action] ?? "actionApplied"));
           router.refresh();
         },
       }
@@ -48,47 +59,46 @@ export function LifecycleActions({
           onClick={() => run("activate", { plan })}
           disabled={!plan || plan.length === 0}
         >
-          Activate
+          {t("actionActivate")}
         </Button>
       )}
       {status === "active" && (
         <Button variant="outline" onClick={() => run("suspend")}>
-          Suspend
+          {t("actionSuspend")}
         </Button>
       )}
       {status === "suspended" && (
         <Button variant="outline" onClick={() => run("resume")}>
-          Resume
+          {t("actionResume")}
         </Button>
       )}
       {(status === "active" || status === "suspended") && (
         <Button variant="outline" onClick={() => run("close")}>
-          Close
+          {t("actionClose")}
         </Button>
       )}
       {(status === "active" || status === "suspended") && (
         <Button variant="outline" onClick={() => run("renew")}>
-          Renew
+          {t("actionRenew")}
         </Button>
       )}
       {(status === "active" || status === "suspended" || status === "draft") && (
         <Button variant="destructive" onClick={() => setCancelOpen(true)}>
-          Cancel
+          {t("actionCancel")}
         </Button>
       )}
 
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel contract</DialogTitle>
+            <DialogTitle>{t("cancelTitle")}</DialogTitle>
             <DialogDescription>
-              Future installments after the effective date will be cancelled.
-              Paid and already overdue installments remain collectible.
+              {t("cancelDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <label htmlFor="cancel-date" className="text-sm text-text-secondary">
-              Effective date
+              {t("cancelEffectiveDate")}
             </label>
             <input
               id="cancel-date"
@@ -100,7 +110,7 @@ export function LifecycleActions({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelOpen(false)}>
-              Keep contract
+              {t("keepContract")}
             </Button>
             <Button
               variant="destructive"
@@ -110,7 +120,7 @@ export function LifecycleActions({
                 setCancelOpen(false);
               }}
             >
-              Confirm cancellation
+              {t("confirmCancellation")}
             </Button>
           </DialogFooter>
         </DialogContent>

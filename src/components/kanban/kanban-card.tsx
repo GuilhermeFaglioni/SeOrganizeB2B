@@ -3,6 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CalendarDays, MessageSquare, GripVertical, FolderKanban, Repeat2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PRIORITY_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { AreaBadge } from "@/components/areas/area-badge";
@@ -20,6 +21,7 @@ export function KanbanCard({
   onClick?: () => void;
   projectName?: string;
 }) {
+  const t = useTranslations("kanban.card");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   });
@@ -42,7 +44,7 @@ export function KanbanCard({
       data-testid={`task-card-${task.id}`}
       role="button"
       tabIndex={0}
-      aria-label={`Task: ${task.title}`}
+      aria-label={t("taskAria", { title: task.title })}
       className={cn(
         "touch-none cursor-grab rounded-lg border bg-page-alt p-[10px] shadow-card transition-[transform,box-shadow,border-color] hover:shadow-elevated motion-safe:hover:-translate-y-0.5 active:cursor-grabbing",
         isOverdue && "border-danger",
@@ -92,7 +94,7 @@ export function KanbanCard({
           {task.recurrenceType && (
             <span
               className="inline-flex items-center text-text-secondary"
-              title={`Repeats ${task.recurrenceType}`}
+              title={t("repeats", { type: task.recurrenceType })}
             >
               <Repeat2 size={11} />
             </span>

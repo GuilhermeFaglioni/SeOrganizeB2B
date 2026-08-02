@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 
 interface UsePushNotificationsReturn {
   isSupported: boolean;
@@ -24,6 +25,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 export function usePushNotifications(): UsePushNotificationsReturn {
+  const t = useTranslations("hooks.pushNotifications");
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,7 +65,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       // Get VAPID public key
       const response = await fetch("/api/push/vapid-public-key");
       const { data } = await response.json();
-      if (!data?.publicKey) throw new Error("VAPID public key not found");
+      if (!data?.publicKey) throw new Error(t("vapidKeyNotFound"));
 
       const applicationServerKey = urlBase64ToUint8Array(data.publicKey);
       const subscription = await registration.pushManager.subscribe({
@@ -72,7 +74,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       });
 
       const { endpoint, keys } = subscription.toJSON();
-      if (!endpoint || !keys) throw new Error("Invalid subscription");
+      if (!endpoint || !keys) throw new Error(t("invalidSubscription"));
 
       // Register with server
       await fetch("/api/push/register", {
@@ -92,7 +94,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported, permission]);
+  }, [isSupported, permission, t]);
 
   const unsubscribe = useCallback(async () => {
     if (!isSupported) return;

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -20,16 +21,6 @@ import { useIsTablet, useIsMobile } from "@/hooks/use-media-query";
 import { useAuth } from "@/stores/auth-context";
 import { motion } from "motion/react";
 
-const navItems = [
-  { href: "/", label: "Hoje", icon: SunMedium, testId: "nav-today" },
-  { href: "/board", label: "Board", icon: LayoutDashboard, testId: "nav-board" },
-  { href: "/projects", label: "Projetos", icon: FolderKanban, testId: "nav-projects" },
-  { href: "/calendar", label: "Calendar", icon: Calendar, testId: "nav-calendar" },
-  { href: "/documents", label: "Documents", icon: FileText, testId: "nav-documents" },
-  { href: "/financial", label: "Financial", icon: Wallet, testId: "nav-financial" },
-  { href: "/settings", label: "Settings", icon: Settings, testId: "nav-settings" },
-];
-
 function isRouteActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
@@ -47,6 +38,17 @@ export function Sidebar({
   const isTablet = useIsTablet();
   const isMobile = useIsMobile();
   const { signOut, user } = useAuth();
+  const t = useTranslations("layout.sidebar");
+
+  const navItems = [
+    { href: "/", label: t("today"), icon: SunMedium, testId: "nav-today" },
+    { href: "/board", label: t("board"), icon: LayoutDashboard, testId: "nav-board" },
+    { href: "/projects", label: t("projects"), icon: FolderKanban, testId: "nav-projects" },
+    { href: "/calendar", label: t("calendar"), icon: Calendar, testId: "nav-calendar" },
+    { href: "/documents", label: t("documents"), icon: FileText, testId: "nav-documents" },
+    { href: "/financial", label: t("financial"), icon: Wallet, testId: "nav-financial" },
+    { href: "/settings", label: t("settings"), icon: Settings, testId: "nav-settings" },
+  ];
 
   if (isMobile) {
     return (
@@ -68,11 +70,11 @@ export function Sidebar({
                   </div>
                   <span className="text-sidebar-text text-sm font-semibold">{APP_NAME}</span>
                 </div>
-                <button onClick={() => onMobileOpenChange?.(false)} className="flex min-h-[44px] min-w-[44px] items-center justify-center text-white" aria-label="Close menu">
+                <button onClick={() => onMobileOpenChange?.(false)} className="flex min-h-[44px] min-w-[44px] items-center justify-center text-white" aria-label={t("closeMenu")}>
                   <X size={20} />
                 </button>
               </div>
-              <nav className="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Main navigation">
+              <nav className="flex-1 overflow-y-auto p-3 space-y-1" aria-label={t("mainNavigation")}>
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = isRouteActive(pathname, item.href);
@@ -111,14 +113,14 @@ export function Sidebar({
                       <UserIcon size={14} className="text-sidebar-text" />
                     </div>
                     <span className="text-sm text-sidebar-text truncate">
-                      {user?.user_metadata?.full_name || user?.email || "User"}
+                      {user?.user_metadata?.full_name || user?.email || t("user")}
                     </span>
                   </div>
                   <button
                     onClick={() => signOut()}
                     className="text-sidebar-text-muted hover:text-sidebar-text transition-colors p-1"
-                    title="Sign out"
-                    aria-label="Sign out"
+                    title={t("signOut")}
+                    aria-label={t("signOut")}
                   >
                     <LogOut size={16} />
                   </button>
@@ -148,7 +150,7 @@ export function Sidebar({
         )}
       </div>
 
-      <nav className="overflow-y-auto p-3 pb-1 space-y-1" aria-label="Main navigation">
+      <nav className="overflow-y-auto p-3 pb-1 space-y-1" aria-label={t("mainNavigation")}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = isRouteActive(pathname, item.href);
@@ -189,8 +191,8 @@ export function Sidebar({
           <button
             onClick={() => signOut()}
             className="text-sidebar-text-muted hover:text-sidebar-text transition-colors"
-            title="Sign out"
-            aria-label="Sign out"
+            title={t("signOut")}
+            aria-label={t("signOut")}
           >
             <LogOut size={18} />
           </button>
@@ -207,8 +209,8 @@ export function Sidebar({
             <button
               onClick={() => signOut()}
               className="text-sidebar-text-muted hover:text-sidebar-text transition-colors p-1"
-              title="Sign out"
-              aria-label="Sign out"
+              title={t("signOut")}
+              aria-label={t("signOut")}
             >
               <LogOut size={16} />
             </button>

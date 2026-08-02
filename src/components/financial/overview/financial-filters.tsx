@@ -1,12 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { OverviewFilters } from "@/hooks/use-overview";
 
-const PERIODS = [
-  { value: "currentMonth", label: "Current month" },
-  { value: "next90", label: "Next 90 days" },
-  { value: "custom", label: "Custom" },
-] as const;
+const PERIODS = ["currentMonth", "next90", "custom"] as const;
 
 export function FinancialFilters({
   filters,
@@ -15,28 +12,29 @@ export function FinancialFilters({
   filters: OverviewFilters;
   onChange: (next: OverviewFilters) => void;
 }) {
+  const t = useTranslations("financial.overview.filters");
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div className="flex items-center gap-1 rounded-lg border border-border bg-page-alt p-1">
         {PERIODS.map((period) => (
           <button
-            key={period.value}
+            key={period}
             type="button"
-            onClick={() => onChange({ ...filters, period: period.value })}
+            onClick={() => onChange({ ...filters, period })}
             className={`rounded-md px-3 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
-              filters.period === period.value
+              filters.period === period
                 ? "bg-accent text-white"
                 : "text-text-secondary hover:bg-bg-secondary"
             }`}
           >
-            {period.label}
+            {t(period)}
           </button>
         ))}
       </div>
       {filters.period === "custom" && (
         <div className="flex items-center gap-2">
           <label className="text-sm text-text-secondary">
-            From
+            {t("from")}
             <input
               type="date"
               value={filters.from ?? ""}
@@ -45,7 +43,7 @@ export function FinancialFilters({
             />
           </label>
           <label className="text-sm text-text-secondary">
-            To
+            {t("to")}
             <input
               type="date"
               value={filters.to ?? ""}

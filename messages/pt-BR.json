@@ -1,0 +1,1026 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "saving": "Salvando...",
+    "saved": "Salvo",
+    "save": "Salvar",
+    "savingDraft": "Salvando rascunho...",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "close": "Fechar",
+    "back": "Voltar",
+    "confirm": "Confirmar",
+    "none": "—",
+    "all": "Todos",
+    "optional": "opcional",
+    "required": "obrigatório",
+    "notFound": "Não encontrado",
+    "retry": "Tentar novamente",
+    "yes": "Sim",
+    "no": "Não"
+  },
+  "errors": {
+    "generic": "Ocorreu um erro inesperado",
+    "loadFailed": "Falha ao carregar",
+    "unauthorized": "Não autorizado",
+    "retry": "Tentar novamente"
+  },
+  "layout": {
+    "topbar": {
+      "openMenu": "Abrir menu",
+      "dashboard": "Painel"
+    },
+    "sidebar": {
+      "closeMenu": "Fechar menu",
+      "mainNavigation": "Navegação principal",
+      "today": "Hoje",
+      "board": "Board",
+      "projects": "Projetos",
+      "calendar": "Calendário",
+      "documents": "Documentos",
+      "financial": "Financeiro",
+      "settings": "Configurações",
+      "signOut": "Sair",
+      "user": "Usuário"
+    },
+    "pageTitles": {
+      "today": "Hoje",
+      "documents": "Documentos",
+      "calendar": "Calendário",
+      "projects": "Projetos",
+      "settings": "Configurações",
+      "all": "Todas as tarefas",
+      "board": "Board",
+      "actions": {
+        "today": "Capturar",
+        "documents": "Novo documento",
+        "calendar": "Novo evento",
+        "projects": "Novo projeto",
+        "all": "Nova tarefa",
+        "board": "Nova tarefa"
+      }
+    },
+    "localeSwitcher": {
+      "label": "Idioma",
+      "title": "Alterar idioma"
+    }
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Organizador interno da empresa",
+      "email": "E-mail",
+      "emailPlaceholder": "voce@empresa.com",
+      "password": "Senha",
+      "passwordPlaceholder": "Digite sua senha",
+      "confirmPassword": "Confirmar senha",
+      "confirmPasswordPlaceholder": "Confirme sua senha",
+      "signIn": "Entrar",
+      "createAccount": "Criar conta",
+      "signingIn": "Entrando...",
+      "creatingAccount": "Criando conta...",
+      "sendMagicLink": "Enviar link mágico",
+      "or": "ou",
+      "signInWithGoogle": "Entrar com Google",
+      "noAccount": "Não tem conta?",
+      "createOne": "Crie uma",
+      "hasAccount": "Já tem uma conta?",
+      "signInLink": "Entrar",
+      "magicLinkSent": "Verifique seu e-mail para o link mágico!",
+      "magicLinkFailed": "Falha ao enviar o link mágico",
+      "invalidCredentials": "E-mail ou senha inválidos",
+      "passwordsDontMatch": "As senhas não coincidem",
+      "accountExists": "Já existe uma conta com este e-mail.",
+      "accountCreated": "Conta criada! Verifique seu e-mail para confirmar.",
+      "createAccountFailed": "Falha ao criar conta",
+      "checkingAuth": "Verificando autenticação..."
+    }
+  },
+  "notifications": {
+    "center": {
+      "title": "Notificações",
+      "empty": "Nenhuma notificação.",
+      "markAllRead": "Marcar todas como lidas",
+      "unreadAria": "{count} notificações não lidas",
+      "markAll": "Marcar todas",
+      "loading": "Carregando…",
+      "system": "Sistema"
+    },
+    "push": {
+      "enable": "Ativar notificações",
+      "disable": "Desativar notificações",
+      "blocked": "Notificações bloqueadas"
+    }
+  },
+  "financial": {
+    "overview": {
+      "page": {
+        "errorMessage": "Falha ao carregar a visão geral financeira",
+        "globalFilters": "Filtros globais",
+        "client": "Cliente",
+        "allClients": "Todos os clientes",
+        "project": "Projeto",
+        "allProjects": "Todos os projetos",
+        "contractStatus": "Status do contrato",
+        "allStatuses": "Todos os status",
+        "installmentStatus": "Status da parcela",
+        "allInstallments": "Todas as parcelas",
+        "kpisAriaLabel": "Indicadores-chave de desempenho financeiro",
+        "activeContractedValue": "Valor contratado ativo",
+        "mrr": "MRR",
+        "arr": "ARR",
+        "cashForecast": "Previsão de caixa",
+        "received": "Recebido",
+        "overdue": "Vencido",
+        "upsell": "Upsell",
+        "downsell": "Downsell",
+        "activeContracts": "Contratos ativos",
+        "expiringSoon": "Expira em breve",
+        "forecastVsReceived": "Previsão vs. Recebido",
+        "overdueInstallments": "Parcelas vencidas",
+        "nothingOverdue": "Nada vencido",
+        "overdueListAria": "Parcelas vencidas",
+        "expiringContracts": "Contratos a expirar",
+        "nothingExpiring": "Nada expira nos próximos 30 dias",
+        "expiringListAria": "Contratos a expirar"
+      },
+      "filters": {
+        "currentMonth": "Mês atual",
+        "next90": "Próximos 90 dias",
+        "custom": "Personalizado",
+        "from": "De",
+        "to": "Até"
+      },
+      "chart": {
+        "ariaLabel": "Previsão versus recebido, meses {firstMonth} a {lastMonth}",
+        "forecastTitle": "{month} previsão: R$ {value}",
+        "receivedTitle": "{month} recebido: R$ {value}",
+        "forecast": "Previsão",
+        "received": "Recebido"
+      }
+    },
+    "shared": {
+      "kpi": {
+        "labelValue": "{label}: {value}"
+      },
+      "errorState": {
+        "retry": "Tentar novamente"
+      }
+    },
+    "tabs": {
+      "sections": "Seções financeiras",
+      "overview": "Visão geral",
+      "contracts": "Contratos",
+      "receivables": "Recebíveis",
+      "clients": "Clientes"
+    },
+    "contracts": {
+      "list": {
+        "confirmDelete": "Excluir \"{title}\"? Isso remove permanentemente o contrato e todos os dados relacionados.",
+        "contractDeleted": "Contrato excluído",
+        "loadFailed": "Falha ao carregar contratos",
+        "newContract": "Novo contrato",
+        "emptyTitle": "Nenhum contrato corresponde aos seus filtros",
+        "emptyHint": "Nenhum resultado para \"{search}\"",
+        "tableLabel": "Contratos",
+        "colCode": "Código",
+        "colTitle": "Título",
+        "colClient": "Cliente",
+        "colStatus": "Status",
+        "colOfficialValue": "Valor oficial",
+        "colStart": "Início",
+        "colEnd": "Fim",
+        "colActions": "Ações",
+        "deleteAria": "Excluir contrato {code}"
+      },
+      "detail": {
+        "confirmDeleteDetail": "Excluir este contrato? Isso remove permanentemente todas as parcelas, itens, alterações e auditorias relacionadas.",
+        "contractDeletedDetail": "Contrato excluído",
+        "loadFailedDetail": "Falha ao carregar o contrato",
+        "edit": "Editar",
+        "adjustValue": "Ajustar valor",
+        "delete": "Excluir",
+        "commercialSummary": "Resumo comercial",
+        "commercialSummaryAria": "Detalhes do resumo comercial",
+        "officialValue": "Valor oficial",
+        "duration": "Duração",
+        "startDate": "Início",
+        "endDate": "Fim",
+        "billingFrequency": "Frequência de cobrança",
+        "paymentMethod": "Forma de pagamento",
+        "itemsTitle": "Itens",
+        "noItems": "Nenhum item registrado.",
+        "itemsAria": "Itens do contrato",
+        "itemName": "Nome",
+        "itemQuantity": "Quantidade",
+        "itemUnit": "Unidade",
+        "itemPrice": "Preço",
+        "linkedProjects": "Projetos vinculados",
+        "noLinkedProjects": "Nenhum projeto vinculado.",
+        "linkedProjectsAria": "Projetos vinculados",
+        "installments": "Parcelas",
+        "installmentsAria": "Parcelas",
+        "dueDate": "Vencimento",
+        "amount": "Valor",
+        "status": "Status",
+        "paidDate": "Data de pagamento",
+        "actions": "Ações",
+        "refund": "reembolso",
+        "markPaid": "Marcar como pago",
+        "changesTitle": "Histórico de upsell e downsell",
+        "changesAria": "Histórico de upsell e downsell",
+        "changeType": "Tipo",
+        "changeDelta": "Delta",
+        "changeEffective": "Vigência",
+        "changePrevious": "Anterior",
+        "changeNew": "Novo",
+        "changeReason": "Motivo",
+        "auditTitle": "Histórico de auditoria",
+        "auditAria": "Histórico de auditoria",
+        "auditChanged": "alterado",
+        "auditSystem": "Sistema"
+      },
+      "form": {
+        "durationFixed": "Prazo fixo",
+        "durationOpenEnded": "Recorrente sem prazo",
+        "durationOneTime": "Única vez",
+        "frequencyMonthly": "Mensal",
+        "frequencyQuarterly": "Trimestral",
+        "frequencySemiannual": "Semestral",
+        "frequencyAnnual": "Anual",
+        "paymentPix": "Pix",
+        "paymentBoleto": "Boleto",
+        "paymentBankTransfer": "Transferência bancária",
+        "paymentCreditCard": "Cartão de crédito",
+        "paymentDebitCard": "Cartão de débito",
+        "paymentCash": "Dinheiro",
+        "paymentOther": "Outro",
+        "errorOfficialValueRequired": "O valor oficial do contrato é obrigatório",
+        "errorFrequencyRequired": "Uma frequência de cobrança é obrigatória para contratos recorrentes",
+        "errorPlanRequired": "Um plano de parcelas é obrigatório para ativar",
+        "errorPositiveAmount": "Cada ciclo recorrente deve ter um valor positivo",
+        "draftSaved": "Rascunho salvo",
+        "contractActivated": "Contrato ativado",
+        "contractData": "Dados do contrato",
+        "scopeAndItems": "Escopo e itens",
+        "linkedProjectsSection": "Projetos vinculados",
+        "billingAndInstallments": "Cobrança e parcelas",
+        "title": "Título",
+        "clientLabel": "Cliente",
+        "internalOwner": "Responsável interno",
+        "durationType": "Tipo de duração",
+        "officialValueBRL": "Valor oficial (BRL)",
+        "startDateLabel": "Data de início",
+        "endDateLabel": "Data de término",
+        "billingFrequencyLabel": "Frequência de cobrança",
+        "paymentMethodLabel": "Forma de pagamento",
+        "notes": "Observações",
+        "selectClient": "Selecione o cliente",
+        "ownerNone": "Nenhum",
+        "itemNameAria": "Nome do item {number}",
+        "itemNamePlaceholder": "Nome do item",
+        "itemPriceAria": "Preço do item {number}",
+        "itemPricePlaceholder": "Preço",
+        "itemQuantityAria": "Quantidade do item {number}",
+        "itemQuantityPlaceholder": "Qtd",
+        "removeItemAria": "Remover item {number}",
+        "addItem": "Adicionar item",
+        "itemMismatch": "A soma dos preços dos itens ({sum}) não corresponde ao valor oficial do contrato ({official}). Este aviso não bloqueia o salvamento.",
+        "scheduleHint": "Preencha o valor e as datas para visualizar o cronograma de parcelas sugerido.",
+        "scheduleAria": "Cronograma de parcelas sugerido",
+        "scheduleDueDate": "Vencimento",
+        "scheduleAmount": "Valor",
+        "schedulePaymentMethod": "Forma de pagamento",
+        "scheduleTotal": "Total de parcelas: {total} · Valor oficial: {official}",
+        "saveDraft": "Salvar rascunho",
+        "activate": "Ativar"
+      },
+      "lifecycle": {
+        "actionActivate": "Ativar",
+        "actionSuspend": "Suspender",
+        "actionResume": "Retomar",
+        "actionClose": "Encerrar",
+        "actionRenew": "Renovar",
+        "actionCancel": "Cancelar",
+        "actionActivated": "Contrato ativado",
+        "actionSuspended": "Contrato suspenso",
+        "actionResumed": "Contrato retomado",
+        "actionClosed": "Contrato encerrado",
+        "actionRenewed": "Contrato renovado",
+        "actionCancelled": "Contrato cancelado",
+        "actionApplied": "Contrato atualizado",
+        "cancelTitle": "Cancelar contrato",
+        "cancelDescription": "As parcelas futuras após a data de vigência serão canceladas. Parcelas pagas e já vencidas permanecem cobráveis.",
+        "cancelEffectiveDate": "Data de vigência",
+        "keepContract": "Manter contrato",
+        "confirmCancellation": "Confirmar cancelamento"
+      },
+      "changeDialog": {
+        "valueUpdated": "Valor do contrato atualizado",
+        "adjustTitle": "Ajustar valor do contrato",
+        "adjustDescription": "Revise a alteração proposta antes de aplicá-la. Parcelas pagas nunca são modificadas.",
+        "typeLabel": "Tipo",
+        "upsell": "Upsell",
+        "downsell": "Downsell",
+        "strategyLabel": "Estratégia",
+        "strategyRedistribute": "Redistribuir entre pendentes",
+        "strategyAdjust": "Parcela adicional / negativa",
+        "delta": "Delta (BRL)",
+        "effectiveDate": "Data de vigência",
+        "description": "Descrição",
+        "proposedResult": "Resultado proposto",
+        "close": "Fechar",
+        "previewProposal": "Pré-visualizar proposta",
+        "confirmAndApply": "Confirmar e aplicar"
+      },
+      "searchFilters": {
+        "filtersLabel": "Filtros de contratos",
+        "searchLabel": "Buscar contratos",
+        "searchPlaceholder": "Buscar por título, código ou cliente",
+        "statusFilterLabel": "Status",
+        "allStatuses": "Todos os status",
+        "clientFilterLabel": "Cliente",
+        "allClients": "Todos os clientes",
+        "projectFilterLabel": "Projeto",
+        "allProjects": "Todos os projetos"
+      },
+      "csvExport": {
+        "exportLabel": "Exportar CSV"
+      },
+      "pagination": {
+        "paginationLabel": "Paginação",
+        "previousAria": "Página anterior",
+        "previous": "Anterior",
+        "pageInfo": "Página {page} de {total}",
+        "nextAria": "Próxima página",
+        "next": "Próxima"
+      }
+    },
+    "clients": {
+      "form": {
+        "name": "Nome",
+        "legalName": "Razão social",
+        "cpfCnpj": "CPF/CNPJ",
+        "email": "E-mail",
+        "phone": "Telefone",
+        "notes": "Observações",
+        "saveChanges": "Salvar alterações",
+        "createClient": "Criar cliente",
+        "createdSuccess": "Cliente criado",
+        "updatedSuccess": "Cliente atualizado",
+        "conflictTitle": "Conflito de CPF/CNPJ",
+        "conflictMessage": "Este CPF/CNPJ já está em uso por outro cliente."
+      },
+      "detail": {
+        "loadFailed": "Falha ao carregar o cliente",
+        "deactivated": "Cliente desativado",
+        "edit": "Editar",
+        "deactivate": "Desativar",
+        "inactive": "Inativo",
+        "summaryLabel": "Resumo do cliente",
+        "contractCountLabel": "Número de contratos",
+        "contracts": "Contratos",
+        "activeValueLabel": "Valor contratado ativo",
+        "activeContractedValue": "Valor contratado ativo",
+        "projectsCountLabel": "Número de projetos vinculados",
+        "linkedProjects": "Projetos vinculados",
+        "historyTitle": "Histórico de contratos e receita",
+        "noContracts": "Nenhum contrato registrado para este cliente.",
+        "contractHistoryLabel": "Histórico de contratos",
+        "code": "Código",
+        "title": "Título",
+        "status": "Status",
+        "officialValue": "Valor oficial",
+        "period": "Período"
+      },
+      "list": {
+        "loadFailed": "Falha ao carregar os clientes",
+        "searchFiltersLabel": "Busca e filtros de clientes",
+        "searchLabel": "Buscar clientes",
+        "searchPlaceholder": "Buscar por nome, e-mail ou CPF/CNPJ",
+        "filterStatusLabel": "Filtrar por status",
+        "filterAll": "Todos",
+        "filterActive": "Ativos",
+        "filterInactive": "Inativos",
+        "newClient": "Novo cliente",
+        "noInactiveClients": "Nenhum cliente inativo",
+        "noSearchMatches": "Nenhum cliente corresponde à sua busca",
+        "tableLabel": "Clientes",
+        "name": "Nome",
+        "cpfCnpj": "CPF/CNPJ",
+        "email": "E-mail",
+        "phone": "Telefone",
+        "contracts": "Contratos",
+        "status": "Status",
+        "inactiveRow": "{name} (inativo)",
+        "active": "Ativo",
+        "inactive": "Inativo"
+      },
+      "pages": {
+        "new": {},
+        "detail": {},
+        "edit": {}
+      }
+    },
+    "receivables": {
+      "list": {
+        "loadFailed": "Falha ao carregar os recebíveis",
+        "statusLabel": "Status do recebível",
+        "filterByProjectLabel": "Filtrar por projeto",
+        "allProjects": "Todos os projetos",
+        "exportCsv": "Exportar CSV",
+        "noMatches": "Nenhuma parcela corresponde aos seus filtros",
+        "tableLabel": "Recebíveis",
+        "contract": "Contrato",
+        "client": "Cliente",
+        "amount": "Valor",
+        "dueDate": "Vencimento",
+        "status": "Status",
+        "paidDate": "Data de pagamento",
+        "actions": "Ações",
+        "refund": "reembolso",
+        "tabAll": "Todos",
+        "tabPending": "Pendentes",
+        "tabOverdue": "Vencidas",
+        "tabPaid": "Pagas",
+        "tabCancelled": "Canceladas"
+      },
+      "installmentActions": {
+        "markPaid": "Marcar como pago",
+        "cancel": "Cancelar",
+        "refund": "Reembolsar",
+        "recordRefund": "Registrar reembolso",
+        "refundDescription": "O reembolso cria uma parcela paga negativa vinculada à parcela original e subtrai da receita recebida.",
+        "refundAmountField": "Valor do reembolso (BRL)",
+        "refundDateField": "Data do reembolso",
+        "close": "Fechar",
+        "confirmRefund": "Confirmar reembolso"
+      }
+    }
+  },
+  "hooks": {
+    "contracts": {
+      "createFailed": "Falha ao criar contrato",
+      "updateFailed": "Falha ao atualizar contrato",
+      "deleteFailed": "Falha ao excluir contrato",
+      "lifecycleFailed": "Falha na ação do ciclo de vida",
+      "changeFailed": "Falha ao aplicar alteração no contrato"
+    },
+    "clients": {
+      "createFailed": "Falha ao criar cliente",
+      "updateFailed": "Falha ao atualizar cliente",
+      "deactivateFailed": "Falha ao desativar cliente"
+    },
+    "installments": {
+      "recordPaymentFailed": "Falha ao registrar o pagamento",
+      "cancelFailed": "Falha ao cancelar a parcela",
+      "recordRefundFailed": "Falha ao registrar o reembolso"
+    },
+    "exports": {},
+    "today": {
+      "loadFailed": "Falha ao carregar tarefas de hoje"
+    },
+    "tasks": {
+      "createFailed": "Falha ao criar tarefa",
+      "updateFailed": "Falha ao atualizar tarefa",
+      "deleteFailed": "Falha ao excluir tarefa"
+    },
+    "savedViews": {
+      "requestFailed": "Falha na requisição"
+    },
+    "activity": {
+      "loadFailed": "Falha ao carregar atividade"
+    },
+    "comments": {
+      "you": "Você"
+    },
+    "calendar": {},
+    "calendarConflicts": {
+      "conflictCheckFailed": "Falha na verificação de conflitos"
+    },
+    "projects": {
+      "createFailed": "Falha ao criar projeto",
+      "updateFailed": "Falha ao atualizar projeto"
+    },
+    "documents": {},
+    "notifications": {
+      "requestFailed": "Falha na requisição"
+    },
+    "pushNotifications": {
+      "vapidKeyNotFound": "Chave pública VAPID não encontrada",
+      "invalidSubscription": "Inscrição inválida"
+    }
+  },
+  "today": {
+    "agenda": {
+      "heading": "Agenda",
+      "loadFailed": "Falha ao carregar agenda. Tentar novamente.",
+      "empty": "Agenda livre hoje.",
+      "allDay": "Dia inteiro"
+    },
+    "tasks": {
+      "heading": "Prioridades de hoje",
+      "loadFailed": "Falha ao carregar tarefas.",
+      "retry": "Tentar novamente",
+      "empty": "Nenhuma tarefa vencida ou para hoje."
+    },
+    "savedViews": {
+      "myViews": "Minhas views"
+    },
+    "activity": {
+      "heading": "Atividade recente"
+    },
+    "page": {
+      "executiveCockpit": "Cockpit executivo",
+      "unreadNotifications": "{count} notificações não lidas"
+    }
+  },
+  "all": {
+    "page": {
+      "noProjects": "Nenhum projeto ainda. Crie seu primeiro projeto para começar.",
+      "allProjects": "Todos os projetos",
+      "taskCount": "({count} tarefas)",
+      "moreTasks": "+{count} mais"
+    }
+  },
+  "board": {
+    "controls": {
+      "filters": "Filtros",
+      "filtersAndView": "Filtros e visualização",
+      "changesApplyImmediately": "Alterações são aplicadas imediatamente.",
+      "clear": "Limpar",
+      "assignee": "Responsável",
+      "allPeople": "Todas as pessoas",
+      "teamArea": "Área da equipe",
+      "allAreas": "Todas as áreas",
+      "dateFrom": "Prazo inicial",
+      "dateTo": "Prazo final",
+      "sort": "Ordenar",
+      "sortManual": "Ordem manual",
+      "sortPriority": "Prioridade",
+      "sortDueDate": "Prazo",
+      "sortTitle": "Título",
+      "group": "Agrupar",
+      "groupNone": "Sem agrupamento",
+      "groupAssignee": "Pessoa principal"
+    },
+    "savedView": {
+      "savedToast": "Visualização salva",
+      "saveFailed": "Falha ao salvar visualização",
+      "removedToast": "Visualização removida",
+      "myViews": "Minhas views",
+      "saveView": "Salvar view",
+      "deleteView": "Excluir view",
+      "saveViewTitle": "Salvar visualização",
+      "saveDescription": "Salva filtros, ordenação e agrupamento atuais apenas para você.",
+      "name": "Nome",
+      "namePlaceholder": "Ex.: Entregas desta semana",
+      "cancel": "Cancelar",
+      "saving": "Salvando…",
+      "save": "Salvar"
+    },
+    "pages": {
+      "list": {
+        "filterAll": "Todos",
+        "filterOverdue": "Vencidas",
+        "filterThisWeek": "Esta semana",
+        "filterMyTasks": "Minhas tarefas",
+        "selectProject": "Selecione o projeto",
+        "allProjects": "Todos os projetos",
+        "noProjectSelected": "Selecione um projeto para ver seu board",
+        "deleteTitle": "Excluir tarefa",
+        "deleteConfirm": "Tem certeza de que deseja excluir \"{title}\"? Esta ação não pode ser desfeita.",
+        "cancel": "Cancelar",
+        "delete": "Excluir",
+        "taskCount": "({count} tarefas)"
+      },
+      "project": {
+        "filterAll": "Todos",
+        "filterOverdue": "Vencidas",
+        "filterThisWeek": "Esta semana",
+        "filterMyTasks": "Minhas tarefas",
+        "deleteTitle": "Excluir tarefa",
+        "deleteConfirm": "Tem certeza de que deseja excluir \"{title}\"? Esta ação não pode ser desfeita.",
+        "cancel": "Cancelar",
+        "delete": "Excluir"
+      }
+    }
+  },
+  "kanban": {
+    "board": {
+      "deleteColumnConfirm": "Excluir esta coluna e todas as suas tarefas?",
+      "boardAria": "Quadro Kanban",
+      "addColumn": "Adicionar coluna",
+      "renameColumn": "Renomear coluna",
+      "columnNamePlaceholder": "Nome da coluna",
+      "cancel": "Cancelar",
+      "rename": "Renomear",
+      "add": "Adicionar"
+    },
+    "column": {
+      "columnAria": "Coluna: {name}",
+      "addTaskAria": "Adicionar tarefa a {name}",
+      "optionsAria": "Opções da coluna {name}",
+      "rename": "Renomear",
+      "delete": "Excluir",
+      "noTasksForArea": "Nenhuma tarefa para esta área",
+      "noTasksYet": "Nenhuma tarefa ainda"
+    },
+    "card": {
+      "taskAria": "Tarefa: {title}",
+      "repeats": "Repete {type}"
+    },
+    "taskForm": {
+      "titleRequired": "O título é obrigatório",
+      "updatedToast": "Tarefa atualizada",
+      "createdToast": "Tarefa criada",
+      "assignedPeople": "{count} pessoas atribuídas.",
+      "saveFailed": "Falha ao salvar tarefa",
+      "editTitle": "Editar tarefa",
+      "createTitle": "Criar tarefa",
+      "titleLabel": "Título *",
+      "titlePlaceholder": "Título da tarefa",
+      "descriptionLabel": "Descrição",
+      "descriptionPlaceholder": "Descrição da tarefa",
+      "assigneesLabel": "Responsáveis",
+      "teamArea": "Área da equipe",
+      "selectArea": "Selecione a área",
+      "priority": "Prioridade",
+      "dueDate": "Data de vencimento",
+      "recurrence": "Recorrência",
+      "recurrenceNone": "Nenhuma",
+      "recurrenceDaily": "Diária",
+      "recurrenceWeekly": "Semanal",
+      "recurrenceMonthly": "Mensal",
+      "every": "A cada",
+      "cancel": "Cancelar",
+      "update": "Atualizar",
+      "create": "Criar"
+    },
+    "taskDetailModal": {
+      "scheduleInCalendar": "Agendar no calendário",
+      "edit": "Editar",
+      "timeline": "Linha do tempo"
+    },
+    "taskDetailPanel": {
+      "closeDetails": "Fechar detalhes da tarefa",
+      "srOnlyLabel": "Painel de detalhes da tarefa",
+      "scheduleInCalendar": "Agendar no calendário",
+      "edit": "Editar",
+      "archive": "Arquivar",
+      "timeline": "Linha do tempo"
+    }
+  },
+  "quickCapture": {
+    "dialog": {
+      "untitledDocument": "Documento sem título",
+      "documentCreated": "Documento criado",
+      "noWorkColumn": "Projeto sem coluna de trabalho",
+      "taskCaptured": "Tarefa capturada",
+      "captureFailed": "Falha na captura",
+      "task": "Tarefa",
+      "event": "Evento",
+      "document": "Documento",
+      "title": "Captura rápida",
+      "taskTitle": "Título da tarefa",
+      "documentTitle": "Título do documento",
+      "project": "Projeto",
+      "selectProject": "Selecione projeto",
+      "capture": "Capturar"
+    }
+  },
+  "comments": {
+    "input": {
+      "mentionAria": "Mencionar um colega",
+      "placeholder": "Escreva um comentário... Use @ para mencionar",
+      "sendAria": "Enviar comentário"
+    },
+    "item": {
+      "userAlt": "Usuário",
+      "unknown": "Desconhecido",
+      "deleteAria": "Excluir comentário"
+    },
+    "list": {
+      "heading": "Comentários ({count})",
+      "loading": "Carregando comentários...",
+      "empty": "Nenhum comentário ainda"
+    }
+  },
+  "activity": {
+    "feed": {
+      "loadFailed": "Falha ao carregar atividade.",
+      "empty": "Sem atividade ainda.",
+      "system": "Sistema"
+    }
+  },
+  "people": {
+    "selector": {
+      "unassigned": "Não atribuído",
+      "personCount": "{count, plural, one {# pessoa} other {# pessoas}}",
+      "searchPlaceholder": "Buscar pessoas",
+      "noPeopleFound": "Nenhuma pessoa encontrada"
+    },
+    "avatarGroup": {
+      "assignees": "{count} responsáveis"
+    }
+  },
+  "areas": {
+    "filter": {
+      "teamAreas": "Áreas da equipe"
+    },
+    "list": {
+      "taskCount": "{count} tarefas",
+      "projectCount": "{count} projetos",
+      "loading": "Carregando...",
+      "emptyTitle": "Nenhuma área ainda",
+      "emptyDescription": "Crie sua primeira área da equipe para organizar projetos e tarefas."
+    }
+  },
+  "shared": {
+    "loadingState": {
+      "loading": "Carregando..."
+    },
+    "errorBoundary": {
+      "title": "Algo deu errado",
+      "unexpectedError": "Ocorreu um erro inesperado.",
+      "tryAgain": "Tentar novamente"
+    },
+    "confirmDialog": {
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    }
+  },
+  "calendar": {
+    "view": {
+      "syncing": "Sincronizando…",
+      "syncToastFailed": "Falha na sincronização",
+      "syncFailed": "Falha ao sincronizar calendário",
+      "reconnectGoogle": "Reconectar Google",
+      "retry": "Tentar novamente",
+      "fcToday": "Hoje",
+      "fcMonth": "Mês",
+      "fcWeek": "Semana",
+      "fcDay": "Dia",
+      "fcAllDay": "Dia inteiro"
+    },
+    "eventDetail": {
+      "toastLinksUpdated": "Vínculos do evento atualizados",
+      "toastUpdateFailed": "Falha ao atualizar evento",
+      "sourceLocal": "Calendário local",
+      "allDayDate": "{date} · dia inteiro",
+      "dateRange": "{start} — {end}",
+      "description": "Descrição",
+      "noDescription": "Sem descrição.",
+      "timeZone": "Fuso: {timeZone}",
+      "internalAttendees": "Pessoas internas",
+      "noInternalAttendees": "Nenhuma.",
+      "externalAttendees": "Convidados externos",
+      "noExternalAttendees": "Nenhum.",
+      "links": "Vínculos",
+      "readOnlyHint": "Evento somente Google. Sincronize uma cópia local para editar vínculos.",
+      "taskProject": "Projeto da tarefa",
+      "projectPlaceholder": "Projeto",
+      "noTask": "Sem tarefa",
+      "task": "Tarefa",
+      "taskPlaceholder": "Tarefa",
+      "teamArea": "Área da equipe",
+      "teamAreaPlaceholder": "Área da equipe",
+      "noArea": "Sem área",
+      "keep": "Manter",
+      "toastDeleted": "Evento excluído",
+      "toastDeleteFailed": "Falha ao excluir evento",
+      "deleting": "Excluindo…",
+      "confirmDelete": "Confirmar exclusão",
+      "delete": "Excluir",
+      "cancel": "Cancelar",
+      "saving": "Salvando…",
+      "saveLinks": "Salvar vínculos"
+    },
+    "scheduleEvent": {
+      "toastTaskScheduled": "Tarefa agendada",
+      "toastEventSynced": "Evento sincronizado",
+      "toastEventSavedLocal": "Evento salvo localmente",
+      "toastInvitesSent": "Evento criado e convites enviados pelo Google Calendar.",
+      "toastCreatedGoogle": "Evento criado no Google Calendar.",
+      "toastConnectGoogle": "Conecte Google Calendar para sincronizar e enviar convites.",
+      "toastCreateFailed": "Falha ao criar evento",
+      "title": "Agendar no calendário",
+      "description": "Crie evento, vincule tarefa e convide pessoas internas ou externas.",
+      "titleLabel": "Título",
+      "titlePlaceholder": "Título do evento",
+      "conflictsFound": "{count} conflito(s) encontrado(s)",
+      "conflictsUnavailable": "Conflitos não puderam ser confirmados",
+      "warningDoesNotBlock": "Aviso não bloqueia criação.",
+      "descriptionLabel": "Descrição",
+      "descriptionPlaceholder": "Contexto, pauta ou observações",
+      "allDay": "Dia inteiro",
+      "date": "Data",
+      "start": "Início",
+      "duration": "Duração (minutos)",
+      "attendees": "Participantes",
+      "teamArea": "Área da equipe",
+      "linkTeamArea": "Vincular team area",
+      "noTeamArea": "Sem team area",
+      "cancel": "Cancelar",
+      "scheduling": "Agendando…",
+      "checking": "Verificando…",
+      "createAnyway": "Criar mesmo assim",
+      "schedule": "Agendar"
+    },
+    "attendeeSelector": {
+      "invalidEmail": "E-mail inválido",
+      "invalidEmailHint": "Informe um endereço de e-mail válido.",
+      "inviteExternalEmail": "Convidar e-mail externo",
+      "add": "Adicionar",
+      "removeEmail": "Remover {email}"
+    },
+    "event": {
+      "ariaLabel": "{title}, {time}, {count} participantes",
+      "allDay": "dia inteiro",
+      "scheduledTime": "horário definido"
+    },
+    "upcomingTasks": {
+      "title": "Próximas tarefas",
+      "loadingLabel": "Carregando próximas tarefas",
+      "loadFailed": "Falha ao carregar próximas tarefas.",
+      "retry": "Tentar novamente",
+      "empty": "Nenhuma tarefa próxima",
+      "schedule": "Agendar"
+    },
+    "page": {
+      "toastGoogleConnected": "Google Calendar conectado",
+      "toastConnectFailed": "Falha ao conectar Google Calendar",
+      "toastConnectFailedHint": "Tente autorizar novamente.",
+      "toastCalendarConnectFailed": "Falha ao conectar calendário",
+      "eyebrow": "Agenda",
+      "title": "Calendário executivo",
+      "connectGoogle": "Conectar Google",
+      "localCalendarActive": "Calendário local ativo",
+      "localCalendarHint": "Conecte Google Calendar para sincronizar eventos e enviar convites.",
+      "connectNow": "Conectar agora"
+    }
+  },
+  "projects": {
+    "form": {
+      "nameRequired": "O nome do projeto é obrigatório",
+      "createFailed": "Falha ao criar projeto",
+      "title": "Novo Projeto",
+      "description": "Crie um novo projeto para organizar seu trabalho.",
+      "nameLabel": "Nome do Projeto",
+      "namePlaceholder": "ex.: Lançamento do produto Q3",
+      "descriptionLabel": "Descrição",
+      "descriptionPlaceholder": "Breve descrição do projeto",
+      "teamArea": "Team area",
+      "areaPlaceholder": "Selecione a área (opcional)",
+      "cancel": "Cancelar",
+      "submit": "Criar Projeto"
+    },
+    "card": {
+      "tasksCount": "{count} tarefas"
+    },
+    "grid": {
+      "emptyTitle": "Nenhum projeto ainda",
+      "emptyDescription": "Crie seu primeiro projeto para começar a organizar seu trabalho."
+    },
+    "pages": {
+      "list": {
+        "title": "Projetos",
+        "newProject": "Novo Projeto"
+      },
+      "detail": {
+        "notFound": "Projeto não encontrado",
+        "backToProjects": "Voltar para projetos",
+        "createdBy": "Criado por {name}",
+        "openBoard": "Abrir Board",
+        "edit": "Editar",
+        "archive": "Arquivar",
+        "indicatorsLabel": "Indicadores do projeto",
+        "metricTotalTasks": "Total de Tarefas",
+        "metricArchived": "Arquivadas (Concluídas)",
+        "metricActiveTasks": "Tarefas Ativas",
+        "metricOverdue": "Atrasadas",
+        "metricDueThisWeek": "Para Esta Semana",
+        "completion": "Conclusão",
+        "completionHint": "Progresso de tarefas arquivadas",
+        "archivedProgress": "{archived} de {total} tarefas arquivadas",
+        "workflowDistribution": "Distribuição do fluxo de trabalho",
+        "workflowHint": "Tarefas por coluna do board",
+        "columnsCount": "{count} colunas",
+        "editProjectTitle": "Editar Projeto",
+        "editProjectDescription": "Atualize o nome, a descrição ou a área do projeto.",
+        "nameLabel": "Nome do Projeto",
+        "descriptionLabel": "Descrição",
+        "teamArea": "Team area",
+        "areaPlaceholder": "Selecione a área",
+        "cancel": "Cancelar",
+        "save": "Salvar",
+        "archiveProjectTitle": "Arquivar “{name}”?",
+        "archiveProjectDescription": "Isso arquivará o projeto e o ocultará da visualização principal. As tarefas e os documentos serão preservados.",
+        "archiveProject": "Arquivar Projeto"
+      }
+    }
+  },
+  "documents": {
+    "list": {
+      "allDocuments": "Todos os Documentos",
+      "new": "Novo",
+      "loading": "Carregando...",
+      "empty": "Nenhum documento ainda"
+    },
+    "editor": {
+      "untitledPlaceholder": "Documento sem título",
+      "noProject": "Sem projeto",
+      "edit": "Editar",
+      "split": "Dividir",
+      "preview": "Pré-visualizar",
+      "saveDocument": "Salvar documento",
+      "save": "Salvar",
+      "contentPlaceholder": "Comece a escrever markdown..."
+    },
+    "row": {
+      "deleteDocument": "Excluir documento"
+    },
+    "preview": {},
+    "pages": {
+      "list": {
+        "untitled": "Documento sem título",
+        "title": "Documentos",
+        "deleteTitle": "Excluir Documento",
+        "deleteDescription": "Tem certeza de que deseja excluir este documento? Esta ação não pode ser desfeita.",
+        "cancel": "Cancelar",
+        "delete": "Excluir"
+      },
+      "detail": {
+        "back": "Voltar"
+      }
+    }
+  },
+  "settings": {
+    "page": {
+      "title": "Configurações",
+      "subtitle": "Gerencie seu perfil, áreas da equipe e preferências.",
+      "profile": {
+        "title": "Perfil",
+        "description": "Gerencie seu nome, avatar e atribuições de área da equipe"
+      },
+      "areas": {
+        "title": "Áreas da equipe",
+        "description": "Crie, edite e exclua áreas da equipe usadas para organizar projetos e tarefas"
+      },
+      "team": {
+        "title": "Equipe",
+        "description": "Veja e gerencie membros da equipe e suas atribuições de área"
+      }
+    },
+    "profile": {
+      "backToSettings": "Voltar para Configurações",
+      "title": "Perfil",
+      "subtitle": "Gerencie suas informações de perfil e atribuições de área da equipe.",
+      "emailLabel": "E-mail",
+      "nameLabel": "Nome",
+      "namePlaceholder": "Seu nome",
+      "saving": "Salvando...",
+      "saveName": "Salvar nome",
+      "save": "Salvar",
+      "areasTitle": "Áreas da equipe",
+      "areasDescription": "Selecione as áreas da equipe às quais você pertence. Isso determina quais áreas você pode filtrar e atribuir tarefas.",
+      "noAreas": "Nenhuma área da equipe configurada. Crie uma em Configurações de Áreas da Equipe.",
+      "areasUpdated": "Áreas atualizadas",
+      "areasUpdateError": "Falha ao salvar áreas",
+      "nameUpdated": "Nome atualizado",
+      "nameUpdateError": "Falha ao atualizar nome"
+    },
+    "areas": {
+      "createError": "Falha ao criar área",
+      "updateError": "Falha ao atualizar área",
+      "title": "Áreas da equipe",
+      "subtitle": "Gerencie áreas usadas para organizar projetos e tarefas.",
+      "addArea": "Adicionar área",
+      "editTitle": "Editar área",
+      "editDescription": "Renomeie esta área da equipe.",
+      "areaNameLabel": "Nome da área",
+      "cancel": "Cancelar",
+      "save": "Salvar",
+      "addDescription": "Crie uma nova área da equipe para organizar projetos e tarefas.",
+      "namePlaceholder": "ex.: Design, Engenharia",
+      "create": "Criar",
+      "deleteTitle": "Excluir “{name}”?",
+      "deleteDescription": "Esta ação não pode ser desfeita. Tarefas e projetos atribuídos a esta área aparecerão como não atribuídos.",
+      "tasksAffected": "{count} tarefas afetadas",
+      "projectsAffected": "{count} projetos afetados",
+      "deleteArea": "Excluir área"
+    },
+    "team": {
+      "saveSuccess": "Atualizado com sucesso",
+      "saveError": "Falha ao salvar",
+      "backToSettings": "Voltar para Configurações",
+      "title": "Equipe",
+      "subtitle": "Gerencie membros da equipe e suas atribuições de área.",
+      "unnamed": "Sem nome",
+      "assignLabel": "Atribuir áreas da equipe:",
+      "noAreas": "Nenhuma área configurada.",
+      "saving": "Salvando...",
+      "save": "Salvar"
+    }
+  }
+}

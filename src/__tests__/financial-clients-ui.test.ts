@@ -28,7 +28,7 @@ describe("clients UI", () => {
   it("consolidates contract and revenue history on the detail", () => {
     const detail = read("src/components/financial/clients/client-detail.tsx");
     expect(detail).toContain("contracts");
-    expect(detail).toContain("Contract and revenue history");
+    expect(detail).toContain('t("historyTitle")');
   });
 
   it("deactivates instead of deleting clients", () => {
@@ -69,7 +69,7 @@ describe("clients UI", () => {
   it("list has accessible status filter with All/Active/Inactive", () => {
     const list = read("src/components/financial/clients/client-list.tsx");
     expect(list).toContain('role="radiogroup"');
-    expect(list).toContain('aria-label="Filter by status"');
+    expect(list).toContain('aria-label={t("filterStatusLabel")}');
     expect(list).toContain("aria-checked");
     expect(list).toContain('"all"');
     expect(list).toContain('"active"');
@@ -97,7 +97,7 @@ describe("clients UI", () => {
   it("list shows inactive badge and reduced opacity for inactive rows", () => {
     const list = read("src/components/financial/clients/client-list.tsx");
     expect(list).toContain("opacity-60");
-    expect(list).toContain("Inactive");
+    expect(list).toContain('t("inactive")');
   });
 
   it("list shows Status column only in All filter", () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarDays, Clock3 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCalendarEvents } from "@/hooks/use-calendar";
 import { LoadingState } from "@/components/shared/loading-state";
 
@@ -13,6 +14,7 @@ function todayRange() {
 }
 
 export function TodayAgenda() {
+  const t = useTranslations("today.agenda");
   const range = todayRange();
   const { data = [], isLoading, error, refetch } = useCalendarEvents(
     range.start,
@@ -22,7 +24,7 @@ export function TodayAgenda() {
     <section className="rounded-2xl border border-border bg-page-alt p-5 shadow-card">
       <div className="mb-4 flex items-center gap-2">
         <CalendarDays className="h-4 w-4 text-accent" />
-        <h3 className="text-heading-1 text-text-primary">Agenda</h3>
+        <h3 className="text-heading-1 text-text-primary">{t("heading")}</h3>
       </div>
       {isLoading && <LoadingState />}
       {error && (
@@ -30,12 +32,12 @@ export function TodayAgenda() {
           className="text-sm text-danger underline"
           onClick={() => refetch()}
         >
-          Falha ao carregar agenda. Tentar novamente.
+          {t("loadFailed")}
         </button>
       )}
       {!isLoading && !error && data.length === 0 && (
         <p className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-text-secondary">
-          Agenda livre hoje.
+          {t("empty")}
         </p>
       )}
       <div className="space-y-2">
@@ -51,7 +53,7 @@ export function TodayAgenda() {
               </p>
               <p className="text-xs text-text-secondary">
                 {event.allDay
-                  ? "Dia inteiro"
+                  ? t("allDay")
                   : new Date(event.startTime).toLocaleTimeString("pt-BR", {
                       hour: "2-digit",
                       minute: "2-digit",

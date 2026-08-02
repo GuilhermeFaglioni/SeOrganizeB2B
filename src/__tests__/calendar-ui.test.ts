@@ -19,7 +19,7 @@ describe("calendar experience contracts", () => {
   it("keeps the calendar visible without Google", () => {
     const source = read("src/app/(authenticated)/calendar/page.tsx");
     expect(source).toContain("<CalendarView");
-    expect(source).toContain("Calendário local ativo");
+    expect(source).toContain('t("localCalendarActive")');
   });
 
   it("shares one scheduling dialog across authenticated routes", () => {
