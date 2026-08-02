@@ -225,7 +225,13 @@ export async function activateContract(
       const conflict = await tx.contractProject.findFirst({
         where: {
           projectId: link.projectId,
-          contract: { status: "active", id: { not: contractId } },
+          contract: {
+            status: "active",
+            id: {
+              not: contractId,
+              notIn: contract.predecessorId ? [contract.predecessorId] : [],
+            },
+          },
         },
         select: { contractId: true },
       });
