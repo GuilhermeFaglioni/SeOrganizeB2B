@@ -12,7 +12,7 @@ export function FinancialErrorState({
         <button
           type="button"
           onClick={onRetry}
-          className="mt-2 rounded-md px-3 py-1.5 text-xs font-medium underline"
+          className="mt-2 rounded-md px-3 py-1.5 text-xs font-medium underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
           Retry
         </button>

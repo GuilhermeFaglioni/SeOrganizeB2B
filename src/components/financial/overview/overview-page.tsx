@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useOverview, type OverviewFilters } from "@/hooks/use-overview";
+import { useProjects } from "@/hooks/use-projects";
+import { useClients } from "@/hooks/use-clients";
 import { KpiCard } from "@/components/financial/shared/kpi-card";
 import { MoneyText } from "@/components/financial/shared/money-text";
 import { CivilDateText } from "@/components/financial/shared/civil-date-text";
@@ -17,6 +19,8 @@ export function OverviewPage() {
     period: "currentMonth",
   });
   const { data, isLoading, isError, refetch } = useOverview(filters);
+  const { data: projects } = useProjects();
+  const { data: clientsData } = useClients({ pageSize: 100 });
 
   if (isLoading) return <LoadingState />;
   if (isError || !data) {
@@ -29,7 +33,82 @@ export function OverviewPage() {
     <div className="space-y-6">
       <FinancialFilters filters={filters} onChange={setFilters} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="flex flex-wrap items-center gap-3" role="group" aria-label="Global filters">
+        <label className="text-sm text-text-secondary">
+          Client
+          <select
+            value={filters.clientId ?? ""}
+            onChange={(event) =>
+              setFilters({ ...filters, clientId: event.target.value || undefined })
+            }
+            className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            <option value="">All clients</option>
+            {clientsData?.items.map((client) => (
+              <option key={client.id} value={client.id}>
+                {client.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm text-text-secondary">
+          Project
+          <select
+            value={filters.projectId ?? ""}
+            onChange={(event) =>
+              setFilters({ ...filters, projectId: event.target.value || undefined })
+            }
+            className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            <option value="">All projects</option>
+            {projects?.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm text-text-secondary">
+          Contract status
+          <select
+            value={filters.contractStatus ?? ""}
+            onChange={(event) =>
+              setFilters({ ...filters, contractStatus: event.target.value || undefined })
+            }
+            className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            <option value="">All statuses</option>
+            {["draft", "active", "closed", "cancelled", "suspended"].map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm text-text-secondary">
+          Installment status
+          <select
+            value={filters.installmentStatus ?? ""}
+            onChange={(event) =>
+              setFilters({ ...filters, installmentStatus: event.target.value || undefined })
+            }
+            className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            <option value="">All installments</option>
+            {["pending", "paid", "cancelled"].map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        aria-live="polite"
+        aria-label="Financial key performance indicators"
+      >
         <KpiCard label="Active contracted value" value={kpis.activeContractedValue} />
         <KpiCard label="MRR" value={kpis.mrr} />
         <KpiCard label="ARR" value={kpis.arr} />
@@ -59,7 +138,7 @@ export function OverviewPage() {
           {overdueInstallments.length === 0 ? (
             <FinancialEmptyState title="Nothing overdue" />
           ) : (
-            <ul className="divide-y divide-border rounded-xl border border-border bg-page-alt">
+            <ul className="divide-y divide-border rounded-xl border border-border bg-page-alt" aria-label="Overdue installments">
               {overdueInstallments.map((installment) => (
                 <li key={installment.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
                   <div className="min-w-0 flex-1">
@@ -83,7 +162,7 @@ export function OverviewPage() {
           {expiringContracts.length === 0 ? (
             <FinancialEmptyState title="Nothing expiring in the next 30 days" />
           ) : (
-            <ul className="divide-y divide-border rounded-xl border border-border bg-page-alt">
+            <ul className="divide-y divide-border rounded-xl border border-border bg-page-alt" aria-label="Expiring contracts">
               {expiringContracts.map((contract) => (
                 <li key={contract.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
                   <div className="min-w-0 flex-1">

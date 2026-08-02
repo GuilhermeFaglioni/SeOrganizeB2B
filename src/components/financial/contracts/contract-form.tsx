@@ -227,9 +227,9 @@ export function ContractForm({ contractId }: { contractId?: string }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 pb-16">
-      <section className="rounded-xl border border-border bg-page-alt p-4">
-        <button type="button" onClick={() => toggleSection("contract")} className="flex w-full items-center justify-between text-left">
-          <h2 className="text-base font-semibold text-text-primary">Contract data</h2>
+      <section className="rounded-xl border border-border bg-page-alt p-4" aria-labelledby="contract-data-heading">
+        <button type="button" onClick={() => toggleSection("contract")} className="flex w-full items-center justify-between text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none" aria-expanded={sectionsOpen.contract}>
+          <h2 id="contract-data-heading" className="text-base font-semibold text-text-primary">Contract data</h2>
           {sectionsOpen.contract ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         {sectionsOpen.contract && (
@@ -244,7 +244,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                 id="contract-client"
                 value={clientId}
                 onChange={(event) => setClientId(event.target.value)}
-                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 <option value="">Select client</option>
                 {clientsData?.items.map((client) => (
@@ -260,7 +260,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                 id="contract-owner"
                 value={ownerId ?? ""}
                 onChange={(event) => setOwnerId(event.target.value)}
-                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 <option value="">None</option>
                 {profiles?.map((profile) => (
@@ -276,7 +276,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                 id="contract-duration"
                 value={durationType}
                 onChange={(event) => setDurationType(event.target.value)}
-                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 {DURATION_TYPES.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -317,7 +317,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                 value={billingFrequency ?? "monthly"}
                 disabled={durationType === "oneTime"}
                 onChange={(event) => setBillingFrequency(event.target.value)}
-                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 {FREQUENCIES.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -332,7 +332,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                 id="contract-payment"
                 value={paymentMethod}
                 onChange={(event) => setPaymentMethod(event.target.value)}
-                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 {PAYMENT_METHODS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -348,16 +348,16 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                 value={notes ?? ""}
                 onChange={(event) => setNotes(event.target.value)}
                 rows={3}
-                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+                className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               />
             </div>
           </div>
         )}
       </section>
 
-      <section className="rounded-xl border border-border bg-page-alt p-4">
-        <button type="button" onClick={() => toggleSection("scope")} className="flex w-full items-center justify-between text-left">
-          <h2 className="text-base font-semibold text-text-primary">Scope and items</h2>
+      <section className="rounded-xl border border-border bg-page-alt p-4" aria-labelledby="scope-heading">
+        <button type="button" onClick={() => toggleSection("scope")} className="flex w-full items-center justify-between text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none" aria-expanded={sectionsOpen.scope}>
+          <h2 id="scope-heading" className="text-base font-semibold text-text-primary">Scope and items</h2>
           {sectionsOpen.scope ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         {sectionsOpen.scope && (
@@ -371,7 +371,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                     setItems((prev) => prev.map((row, i) => (i === index ? { ...row, name: event.target.value } : row)))
                   }
                   placeholder="Item name"
-                  className="col-span-2 rounded-md border border-border bg-page px-3 py-2 text-sm sm:col-span-2"
+                  className="col-span-2 rounded-md border border-border bg-page px-3 py-2 text-sm sm:col-span-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 />
                 <input
                   aria-label={`Item price ${index + 1}`}
@@ -382,7 +382,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                     setItems((prev) => prev.map((row, i) => (i === index ? { ...row, price: event.target.value } : row)))
                   }
                   placeholder="Price"
-                  className="rounded-md border border-border bg-page px-3 py-2 text-sm"
+                  className="rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 />
                 <input
                   aria-label={`Item quantity ${index + 1}`}
@@ -393,12 +393,12 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                     setItems((prev) => prev.map((row, i) => (i === index ? { ...row, quantity: event.target.value } : row)))
                   }
                   placeholder="Qty"
-                  className="rounded-md border border-border bg-page px-3 py-2 text-sm"
+                  className="rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}
-                  className="flex min-h-[44px] items-center justify-center rounded-md text-text-secondary hover:text-danger"
+                  className="flex min-h-[44px] items-center justify-center rounded-md text-text-secondary hover:text-danger focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   aria-label={`Remove item ${index + 1}`}
                 >
                   <Trash2 size={16} />
@@ -413,12 +413,12 @@ export function ContractForm({ contractId }: { contractId?: string }) {
                   { name: "", position: prev.length },
                 ])
               }
-              className="flex min-h-[44px] items-center gap-1 rounded-md border border-border px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary"
+              className="flex min-h-[44px] items-center gap-1 rounded-md border border-border px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             >
               <Plus size={16} /> Add item
             </button>
             {itemMismatch && (
-              <p className="rounded-md bg-warning-bg p-3 text-sm text-warning">
+              <p role="alert" className="rounded-md bg-warning-bg p-3 text-sm text-warning">
                 The item-price sum ({formatBRL(itemSum)}) does not match the
                 official contract value ({formatBRL(toDecimal(officialValue || "0"))}).
                 This warning does not block saving.
@@ -428,9 +428,9 @@ export function ContractForm({ contractId }: { contractId?: string }) {
         )}
       </section>
 
-      <section className="rounded-xl border border-border bg-page-alt p-4">
-        <button type="button" onClick={() => toggleSection("projects")} className="flex w-full items-center justify-between text-left">
-          <h2 className="text-base font-semibold text-text-primary">Linked projects</h2>
+      <section className="rounded-xl border border-border bg-page-alt p-4" aria-labelledby="projects-heading">
+        <button type="button" onClick={() => toggleSection("projects")} className="flex w-full items-center justify-between text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none" aria-expanded={sectionsOpen.projects}>
+          <h2 id="projects-heading" className="text-base font-semibold text-text-primary">Linked projects</h2>
           {sectionsOpen.projects ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         {sectionsOpen.projects && (
@@ -456,9 +456,9 @@ export function ContractForm({ contractId }: { contractId?: string }) {
         )}
       </section>
 
-      <section className="rounded-xl border border-border bg-page-alt p-4">
-        <button type="button" onClick={() => toggleSection("billing")} className="flex w-full items-center justify-between text-left">
-          <h2 className="text-base font-semibold text-text-primary">Billing and installments</h2>
+      <section className="rounded-xl border border-border bg-page-alt p-4" aria-labelledby="billing-heading">
+        <button type="button" onClick={() => toggleSection("billing")} className="flex w-full items-center justify-between text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none" aria-expanded={sectionsOpen.billing}>
+          <h2 id="billing-heading" className="text-base font-semibold text-text-primary">Billing and installments</h2>
           {sectionsOpen.billing ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
         </button>
         {sectionsOpen.billing && (
@@ -469,7 +469,7 @@ export function ContractForm({ contractId }: { contractId?: string }) {
               </p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[420px] text-left text-sm">
+                <table className="w-full min-w-[420px] text-left text-sm" aria-label="Suggested installment schedule">
                   <thead className="text-xs uppercase text-text-muted">
                     <tr>
                       <th scope="col" className="px-3 py-1 font-medium">Due date</th>

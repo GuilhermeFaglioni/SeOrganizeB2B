@@ -65,7 +65,7 @@ export function ClientDetail({ clientId }: { clientId: string }) {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/financial/clients/${client.id}/edit`}
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px]"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px] focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             Edit
           </Link>
@@ -87,13 +87,14 @@ export function ClientDetail({ clientId }: { clientId: string }) {
         aria-labelledby="client-summary"
         className="grid grid-cols-1 gap-4 sm:grid-cols-3"
       >
-        <div className="rounded-xl border border-border bg-page-alt p-4">
+        <h2 id="client-summary" className="sr-only">Client summary</h2>
+        <div className="rounded-xl border border-border bg-page-alt p-4" aria-label="Contract count">
           <p className="text-sm text-text-secondary">Contracts</p>
           <p className="mt-1 text-2xl font-semibold text-text-primary">
             {contracts.length}
           </p>
         </div>
-        <div className="rounded-xl border border-border bg-page-alt p-4">
+        <div className="rounded-xl border border-border bg-page-alt p-4" aria-label="Active contracted value">
           <p className="text-sm text-text-secondary">
             Active contracted value
           </p>
@@ -101,7 +102,7 @@ export function ClientDetail({ clientId }: { clientId: string }) {
             <MoneyText value={revenue.toFixed(2)} />
           </p>
         </div>
-        <div className="rounded-xl border border-border bg-page-alt p-4">
+        <div className="rounded-xl border border-border bg-page-alt p-4" aria-label="Linked projects count">
           <p className="text-sm text-text-secondary">Linked projects</p>
           <p className="mt-1 text-2xl font-semibold text-text-primary">
             {activeProjects}
@@ -125,7 +126,7 @@ export function ClientDetail({ clientId }: { clientId: string }) {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-sm">
+            <table className="w-full min-w-[560px] text-left text-sm" aria-label="Contract history">
               <thead className="text-xs uppercase text-text-muted">
                 <tr>
                   <th scope="col" className="px-3 py-1 font-medium">

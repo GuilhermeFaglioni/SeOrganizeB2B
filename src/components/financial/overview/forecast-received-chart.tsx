@@ -82,10 +82,10 @@ export function ForecastReceivedChart({ data }: { data: ChartPoint[] }) {
       </svg>
       <figcaption className="mt-2 flex items-center gap-4 text-xs text-text-secondary">
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-accent" /> Forecast
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-accent" aria-hidden="true" /> Forecast
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-success" /> Received
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-success" aria-hidden="true" /> Received
         </span>
       </figcaption>
     </figure>

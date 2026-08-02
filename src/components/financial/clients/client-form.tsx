@@ -130,7 +130,7 @@ export function ClientForm({ clientId }: { clientId?: string }) {
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
             rows={3}
-            className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+            className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           />
         </div>
       </div>

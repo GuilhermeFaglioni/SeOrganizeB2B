@@ -70,23 +70,25 @@ export function InstallmentActions({
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
-              <label className="block text-sm text-text-secondary">
+              <label htmlFor="refund-amount" className="block text-sm text-text-secondary">
                 Refund amount (BRL)
                 <input
+                  id="refund-amount"
                   type="number"
                   step="0.01"
                   value={refundAmount}
                   onChange={(event) => setRefundAmount(event.target.value)}
-                  className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 />
               </label>
-              <label className="block text-sm text-text-secondary">
+              <label htmlFor="refund-date" className="block text-sm text-text-secondary">
                 Refund date
                 <input
+                  id="refund-date"
                   type="date"
                   value={refundDate}
                   onChange={(event) => setRefundDate(event.target.value)}
-                  className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 />
               </label>
             </div>

@@ -65,7 +65,7 @@ export function ReceivablesList() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-page-alt p-1">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-page-alt p-1" role="tablist" aria-label="Receivable status">
             {STATUS_TABS.map((tab) => (
               <button
                 key={tab.value || "all"}
@@ -74,11 +74,13 @@ export function ReceivablesList() {
                   setStatus(tab.value);
                   setPage(1);
                 }}
-                className={`rounded-md px-3 py-1.5 text-sm ${
+                className={`rounded-md px-3 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
                   status === tab.value
                     ? "bg-accent text-white"
                     : "text-text-secondary hover:bg-bg-secondary"
                 }`}
+                role="tab"
+                aria-selected={status === tab.value}
               >
                 {tab.label}
               </button>
@@ -112,8 +114,8 @@ export function ReceivablesList() {
       {data.items.length === 0 ? (
         <FinancialEmptyState title="No installments match your filters" />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-page-alt">
-          <table className="w-full min-w-[760px] text-left text-sm">
+        <div className="overflow-x-auto rounded-xl border border-border bg-page-alt" aria-live="polite">
+          <table className="w-full min-w-[760px] text-left text-sm" aria-label="Receivables">
             <caption className="sr-only">Receivables</caption>
             <thead className="border-b border-border text-xs uppercase text-text-muted">
               <tr>
@@ -132,7 +134,7 @@ export function ReceivablesList() {
                   <td className="px-3 py-2">
                     <Link
                       href={`/financial/contracts/${installment.contract.id}`}
-                      className="font-medium text-text-primary hover:text-accent"
+                      className="font-medium text-text-primary hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                     >
                       {installment.contract.title}
                     </Link>

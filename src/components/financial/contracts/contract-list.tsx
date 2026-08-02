@@ -46,7 +46,7 @@ export function ContractList() {
           <CsvExportButton onExport={() => exportContractsCsv({ search: filters.search, status: filters.status, clientId: filters.clientId, projectId: filters.projectId })} />
           <Link
             href="/financial/contracts/new"
-            className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white"
+            className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             <Plus size={16} aria-hidden="true" /> New contract
           </Link>
@@ -54,10 +54,10 @@ export function ContractList() {
       </div>
 
       {data.items.length === 0 ? (
-        <FinancialEmptyState title="No contracts match your filters" />
+        <FinancialEmptyState title="No contracts match your filters" hint={filters.search ? `No results for "${filters.search}"` : undefined} />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-page-alt">
-          <table className="w-full min-w-[720px] text-left text-sm">
+        <div className="overflow-x-auto rounded-xl border border-border bg-page-alt" aria-live="polite">
+          <table className="w-full min-w-[720px] text-left text-sm" aria-label="Contracts">
             <caption className="sr-only">Contracts</caption>
             <thead className="border-b border-border text-xs uppercase text-text-muted">
               <tr>
@@ -77,7 +77,7 @@ export function ContractList() {
                   <td className="px-3 py-2">
                     <Link
                       href={`/financial/contracts/${contract.id}`}
-                      className="font-medium text-text-primary hover:text-accent"
+                      className="font-medium text-text-primary hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                     >
                       {contract.title}
                     </Link>

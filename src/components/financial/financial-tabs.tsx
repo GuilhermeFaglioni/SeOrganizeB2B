@@ -14,7 +14,7 @@ const TABS = [
 export function FinancialTabs() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Financial sections" className="mb-4 flex flex-wrap gap-1">
+    <nav aria-label="Financial sections" className="mb-4 flex flex-wrap gap-1" role="tablist">
       {TABS.map((tab) => {
         const active = tab.exact
           ? pathname === tab.href
@@ -23,8 +23,11 @@ export function FinancialTabs() {
           <Link
             key={tab.href}
             href={tab.href}
+            role="tab"
+            aria-selected={active}
+            aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-[44px] items-center rounded-md px-4 py-2 text-sm font-medium",
+              "flex min-h-[44px] items-center rounded-md px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
               active
                 ? "bg-accent text-white"
                 : "text-text-secondary hover:bg-bg-secondary"

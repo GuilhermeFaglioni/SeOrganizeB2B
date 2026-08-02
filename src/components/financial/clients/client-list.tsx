@@ -47,7 +47,7 @@ export function ClientList() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2" role="search" aria-label="Client search and filters">
           <label htmlFor="client-search" className="sr-only">
             Search clients
           </label>
@@ -63,7 +63,7 @@ export function ClientList() {
               }
             }}
             placeholder="Search by name, email or CPF/CNPJ"
-            className="w-64 rounded-md border border-border bg-page-alt px-3 py-2 text-sm"
+            className="w-64 rounded-md border border-border bg-page-alt px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           />
           <button
             type="button"
@@ -71,7 +71,7 @@ export function ClientList() {
               setQuery(search.trim());
               setPage(1);
             }}
-            className="flex min-h-[44px] items-center gap-1 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white"
+            className="flex min-h-[44px] items-center gap-1 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             aria-label="Search clients"
           >
             <Search size={16} aria-hidden="true" />
@@ -88,7 +88,7 @@ export function ClientList() {
                   setPage(1);
                 }}
                 className={cn(
-                  "flex min-h-[44px] items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex min-h-[44px] items-center rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
                   statusFilter === option.value
                     ? "bg-accent text-white"
                     : "text-text-secondary hover:bg-bg-secondary"
@@ -101,7 +101,7 @@ export function ClientList() {
         </div>
         <Link
           href="/financial/clients/new"
-          className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white"
+          className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
           <Plus size={16} aria-hidden="true" /> New client
         </Link>
@@ -116,8 +116,8 @@ export function ClientList() {
           }
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-page-alt">
-          <table className="w-full min-w-[640px] text-left text-sm">
+        <div className="overflow-x-auto rounded-xl border border-border bg-page-alt" aria-live="polite">
+          <table className="w-full min-w-[640px] text-left text-sm" aria-label="Clients">
             <caption className="sr-only">Clients</caption>
             <thead className="border-b border-border text-xs uppercase text-text-muted">
               <tr>
@@ -151,11 +151,12 @@ export function ClientList() {
                     "hover:bg-bg-secondary",
                     !client.active && "opacity-60"
                   )}
+                  aria-label={!client.active ? `${client.name} (inactive)` : undefined}
                 >
                   <td className="px-3 py-2">
                     <Link
                       href={`/financial/clients/${client.id}`}
-                      className="font-medium text-text-primary hover:text-accent"
+                      className="font-medium text-text-primary hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                     >
                       {client.name}
                     </Link>

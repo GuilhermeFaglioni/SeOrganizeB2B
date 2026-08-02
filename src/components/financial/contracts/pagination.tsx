@@ -18,7 +18,7 @@ export function Pagination({
         type="button"
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
-        className="flex min-h-[44px] items-center gap-1 rounded-md px-3 text-sm disabled:opacity-40"
+        className="flex min-h-[44px] items-center gap-1 rounded-md px-3 text-sm disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         aria-label="Previous page"
       >
         <ChevronLeft size={16} /> Previous
@@ -30,7 +30,7 @@ export function Pagination({
         type="button"
         disabled={page >= totalPages}
         onClick={() => onPageChange(page + 1)}
-        className="flex min-h-[44px] items-center gap-1 rounded-md px-3 text-sm disabled:opacity-40"
+        className="flex min-h-[44px] items-center gap-1 rounded-md px-3 text-sm disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         aria-label="Next page"
       >
         Next <ChevronRight size={16} />

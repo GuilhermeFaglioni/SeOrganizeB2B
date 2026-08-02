@@ -68,54 +68,59 @@ export function ChangeDialog({
         </DialogHeader>
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <label className="text-sm text-text-secondary">
+            <label htmlFor="change-type" className="text-sm text-text-secondary">
               Type
               <select
+                id="change-type"
                 value={type}
                 onChange={(event) => setType(event.target.value as "upsell" | "downsell")}
-                className="ml-2 rounded-md border border-border bg-page px-2 py-2 text-sm"
+                className="ml-2 rounded-md border border-border bg-page px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 <option value="upsell">Upsell</option>
                 <option value="downsell">Downsell</option>
               </select>
             </label>
-            <label className="text-sm text-text-secondary">
+            <label htmlFor="change-strategy" className="text-sm text-text-secondary">
               Strategy
               <select
+                id="change-strategy"
                 value={strategy}
                 onChange={(event) => setStrategy(event.target.value as "redistribute" | "adjust")}
-                className="ml-2 rounded-md border border-border bg-page px-2 py-2 text-sm"
+                className="ml-2 rounded-md border border-border bg-page px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 <option value="redistribute">Redistribute across pending</option>
                 <option value="adjust">Additional / negative installment</option>
               </select>
             </label>
           </div>
-          <label className="block text-sm text-text-secondary">
+          <label htmlFor="change-delta" className="block text-sm text-text-secondary">
             Delta (BRL)
             <input
+              id="change-delta"
               type="number"
               step="0.01"
               value={delta}
               onChange={(event) => setDelta(event.target.value)}
-              className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             />
           </label>
-          <label className="block text-sm text-text-secondary">
+          <label htmlFor="change-effective-date" className="block text-sm text-text-secondary">
             Effective date
             <input
+              id="change-effective-date"
               type="date"
               value={effectiveDate}
               onChange={(event) => setEffectiveDate(event.target.value)}
-              className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             />
           </label>
-          <label className="block text-sm text-text-secondary">
+          <label htmlFor="change-description" className="block text-sm text-text-secondary">
             Description
             <input
+              id="change-description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             />
           </label>
           {proposal !== null && (

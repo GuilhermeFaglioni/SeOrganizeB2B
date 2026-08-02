@@ -60,7 +60,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
             {(contract.status === "draft" || contract.status === "active") && (
               <Link
                 href={`/financial/contracts/${contract.id}/edit`}
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px]"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px] focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 Edit
               </Link>
@@ -78,7 +78,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
         <h2 id="commercial-summary" className="mb-3 text-base font-semibold text-text-primary">
           Commercial summary
         </h2>
-        <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4" aria-label="Commercial summary details">
           <div>
             <dt className="text-xs text-text-muted">Official value</dt>
             <dd className="font-semibold text-text-primary"><MoneyText value={contract.officialValue} /></dd>
@@ -112,7 +112,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
           <p className="text-sm text-text-muted">No items recorded.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-left text-sm">
+            <table className="w-full min-w-[480px] text-left text-sm" aria-label="Contract items">
               <thead className="text-xs uppercase text-text-muted">
                 <tr>
                   <th scope="col" className="px-3 py-1 font-medium">Name</th>
@@ -141,7 +141,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
         {contract.projects.length === 0 ? (
           <p className="text-sm text-text-muted">No linked projects.</p>
         ) : (
-          <ul className="flex flex-wrap gap-2">
+          <ul className="flex flex-wrap gap-2" aria-label="Linked projects">
             {contract.projects.map((link) => (
               <li key={link.project.id} className="rounded-md bg-bg-secondary px-3 py-1 text-sm text-text-secondary">
                 {link.project.name}
@@ -154,7 +154,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
       <section aria-labelledby="installments-title" className="rounded-xl border border-border bg-page-alt p-4">
         <h2 id="installments-title" className="mb-3 text-base font-semibold text-text-primary">Installments</h2>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-left text-sm">
+          <table className="w-full min-w-[560px] text-left text-sm" aria-label="Installments">
             <thead className="text-xs uppercase text-text-muted">
               <tr>
                 <th scope="col" className="px-3 py-1 font-medium">Due date</th>
@@ -188,7 +188,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
                             paidAt: new Date().toISOString().slice(0, 10),
                           })
                         }
-                        className="rounded-md bg-success px-2 py-1 text-xs font-medium text-white"
+                        className="rounded-md bg-success px-2 py-1 text-xs font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                       >
                         Mark paid
                       </button>
@@ -205,7 +205,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
         <section aria-labelledby="changes-title" className="rounded-xl border border-border bg-page-alt p-4">
           <h2 id="changes-title" className="mb-3 text-base font-semibold text-text-primary">Upsell and downsell history</h2>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-sm">
+          <table className="w-full min-w-[560px] text-left text-sm" aria-label="Upsell and downsell history">
               <thead className="text-xs uppercase text-text-muted">
                 <tr>
                   <th scope="col" className="px-3 py-1 font-medium">Type</th>
@@ -236,7 +236,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
       {contract.audits.length > 0 && (
         <section aria-labelledby="audit-title" className="rounded-xl border border-border bg-page-alt p-4">
           <h2 id="audit-title" className="mb-3 text-base font-semibold text-text-primary">Audit history</h2>
-          <ul className="divide-y divide-border text-sm">
+          <ul className="divide-y divide-border text-sm" aria-label="Audit history">
             {contract.audits.map((audit) => (
               <li key={audit.id} className="py-2">
                 <p className="text-text-primary">

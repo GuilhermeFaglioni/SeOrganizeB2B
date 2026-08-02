@@ -23,7 +23,7 @@ export function FinancialFilters({
             key={period.value}
             type="button"
             onClick={() => onChange({ ...filters, period: period.value })}
-            className={`rounded-md px-3 py-1.5 text-sm ${
+            className={`rounded-md px-3 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
               filters.period === period.value
                 ? "bg-accent text-white"
                 : "text-text-secondary hover:bg-bg-secondary"

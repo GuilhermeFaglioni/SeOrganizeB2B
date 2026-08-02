@@ -29,7 +29,7 @@ export function ContractSearchFilters({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3" role="search" aria-label="Contract filters">
       <div className="flex items-center gap-2">
         <label htmlFor="contract-search" className="sr-only">
           Search contracts
@@ -43,12 +43,12 @@ export function ContractSearchFilters({
             if (event.key === "Enter") submitSearch();
           }}
           placeholder="Search by title, code or client"
-          className="w-56 rounded-md border border-border bg-page-alt px-3 py-2 text-sm"
+          className="w-56 rounded-md border border-border bg-page-alt px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         />
         <button
           type="button"
           onClick={submitSearch}
-          className="flex min-h-[44px] items-center gap-1 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white"
+          className="flex min-h-[44px] items-center gap-1 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           aria-label="Search contracts"
         >
           <Search size={16} aria-hidden="true" />
@@ -62,7 +62,7 @@ export function ContractSearchFilters({
           onChange={(event) =>
             onChange({ ...values, status: event.target.value || undefined })
           }
-          className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm"
+          className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
           <option value="">All statuses</option>
           {statuses.map((status) => (
@@ -81,7 +81,7 @@ export function ContractSearchFilters({
             onChange={(event) =>
               onChange({ ...values, clientId: event.target.value || undefined })
             }
-            className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm"
+            className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             <option value="">All clients</option>
             {clients.map((client) => (
@@ -101,7 +101,7 @@ export function ContractSearchFilters({
             onChange={(event) =>
               onChange({ ...values, projectId: event.target.value || undefined })
             }
-            className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm"
+            className="ml-2 rounded-md border border-border bg-page-alt px-2 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             <option value="">All projects</option>
             {projects.map((project) => (
