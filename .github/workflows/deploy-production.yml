@@ -47,13 +47,15 @@ jobs:
         run: npx tsc --noEmit
 
       # Apply pending migrations BEFORE building/deploying so the database is
-      # ready for the new code. Uses the same connection the app uses at
-      # runtime (session pooler as DATABASE_URL, direct connection as DIRECT_URL).
+      # ready for the new code. Uses the session pooler for both connections:
+      # Supabase direct connections are IP-restricted and hang from GitHub
+      # Actions runners, while the session pooler is reachable.
       - name: Reconcile known schema drift
         run: npx tsx scripts/reconcile-prod.ts
+        timeout-minutes: 5
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_SESSION_URL }}
-          DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          DIRECT_URL: ${{ secrets.SUPABASE_SESSION_URL }}
 
       - name: Apply Prisma migrations
         run: |
@@ -65,9 +67,10 @@ jobs:
             npx prisma migrate resolve --applied 20260803130000_add_roles || true
             npx prisma migrate deploy
           fi
+        timeout-minutes: 10
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_SESSION_URL }}
-          DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          DIRECT_URL: ${{ secrets.SUPABASE_SESSION_URL }}
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
