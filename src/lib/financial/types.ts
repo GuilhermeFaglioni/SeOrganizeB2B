@@ -25,6 +25,9 @@ export type ChangeType = (typeof CHANGE_TYPES)[number];
 
 export type LifecycleAction = "activate" | "suspend" | "resume" | "close" | "cancel" | "renew";
 
+export const PROPOSAL_STATUSES = ["draft", "sent", "viewed", "accepted", "rejected"] as const;
+export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number];
+
 export interface InstallmentPlanItem {
   expectedAmount: string;
   dueDate: string;
