@@ -6,6 +6,7 @@ import {
 } from "@/lib/financial/proposal-templates-service";
 import { sanitizeProposalHtml } from "@/lib/financial/proposals";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function GET() {
   const user = await getUser();
@@ -15,6 +16,8 @@ export async function GET() {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.proposals.view");
+  if (denied) return denied;
 
   const templates = await listProposalTemplates();
   return NextResponse.json({ data: templates, error: null });
@@ -28,6 +31,8 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.proposals.manageTemplates");
+  if (denied) return denied;
 
   const body = await request.json();
   if (typeof body.name !== "string" || !body.name.trim()) {

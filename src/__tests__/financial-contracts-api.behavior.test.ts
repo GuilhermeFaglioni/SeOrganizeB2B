@@ -20,6 +20,18 @@ vi.mock("../../prisma/client", () => ({
   prisma: mockPrisma,
 }));
 
+vi.mock("@/lib/authz/authz", () => ({
+  denyFor: vi.fn().mockResolvedValue(null),
+  getEffectivePermissions: vi.fn().mockResolvedValue({
+    isAdmin: true,
+    roleId: 'admin',
+    roleName: 'Admin',
+    permissions: [],
+  }),
+  can: vi.fn().mockResolvedValue(true),
+  hasPermission: vi.fn().mockReturnValue(true),
+}));
+
 vi.mock("@/lib/supabase/server", () => ({
   getUser: vi.fn().mockResolvedValue({ id: "user-1", email: "a@b.c" }),
 }));

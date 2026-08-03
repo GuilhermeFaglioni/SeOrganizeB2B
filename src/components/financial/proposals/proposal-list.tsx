@@ -10,6 +10,7 @@ import {
   useProposals,
   type ProposalListFilters,
 } from "@/hooks/use-proposals";
+import { useCan } from "@/hooks/use-permissions";
 import { toastSuccess } from "@/lib/toast";
 import { MoneyText } from "@/components/financial/shared/money-text";
 import { CivilDateText } from "@/components/financial/shared/civil-date-text";
@@ -30,6 +31,7 @@ export function ProposalList() {
   });
   const { data, isLoading, isError, refetch } = useProposals(filters);
   const deleteProposal = useDeleteProposal();
+  const { can } = useCan();
 
   function handleDelete(proposal: { id: string; title: string }) {
     if (
@@ -86,18 +88,22 @@ export function ProposalList() {
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href="/financial/proposals/templates"
-            className="flex min-h-[44px] items-center gap-2 rounded-md border border-border bg-transparent px-3 py-2 text-sm font-medium text-text-secondary hover:bg-page focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          >
-            <FileText size={16} aria-hidden="true" /> {t("templates")}
-          </Link>
-          <Link
-            href="/financial/proposals/new"
-            className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          >
-            <Plus size={16} aria-hidden="true" /> {t("newProposal")}
-          </Link>
+          {can("financial.proposals.manageTemplates") && (
+            <Link
+              href="/financial/proposals/templates"
+              className="flex min-h-[44px] items-center gap-2 rounded-md border border-border bg-transparent px-3 py-2 text-sm font-medium text-text-secondary hover:bg-page focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              <FileText size={16} aria-hidden="true" /> {t("templates")}
+            </Link>
+          )}
+          {can("financial.proposals.create") && (
+            <Link
+              href="/financial/proposals/new"
+              className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              <Plus size={16} aria-hidden="true" /> {t("newProposal")}
+            </Link>
+          )}
         </div>
       </div>
 
@@ -139,14 +145,16 @@ export function ProposalList() {
                     <CivilDateText date={proposal.createdAt.slice(0, 10)} />
                   </td>
                   <td className="px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(proposal)}
-                      aria-label={`${t("deleteAria")} ${proposal.code}`}
-                      className="flex min-h-[44px] items-center justify-center rounded-md text-text-secondary hover:text-danger focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                    >
-                      <Trash2 size={16} aria-hidden="true" />
-                    </button>
+                    {can("financial.proposals.delete") && (
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(proposal)}
+                        aria-label={`${t("deleteAria")} ${proposal.code}`}
+                        className="flex min-h-[44px] items-center justify-center rounded-md text-text-secondary hover:text-danger focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                      >
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

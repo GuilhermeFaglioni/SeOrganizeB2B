@@ -6,6 +6,7 @@ import {
   sanitizeProposalHtml,
 } from "@/lib/financial/proposals";
 import { isAppLocale } from "@/i18n/config";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function POST(request: NextRequest) {
   const user = await getUser();
@@ -15,6 +16,8 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.proposals.view");
+  if (denied) return denied;
 
   const body = await request.json();
   if (typeof body.html !== "string") {

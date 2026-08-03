@@ -54,13 +54,31 @@ describe("i18n integrity", () => {
         source.matchAll(/const\s+(\w+)\s*=\s*useTranslations\("([^"]+)"\)/g)
       );
 
-      for (const declaration of declarations) {
-        const [, translator, namespace] = declaration;
+      const bindings = declarations.map((declaration) => ({
+        name: declaration[1],
+        namespace: declaration[2],
+        index: declaration.index ?? 0,
+      }));
+
+      for (const binding of bindings) {
         const calls = Array.from(
-          source.matchAll(new RegExp(`\\b${translator}\\("([^"]+)"`, "g"))
+          source.matchAll(
+            new RegExp(`\\b${binding.name}\\("([^"]+)"`, "g")
+          )
         );
         for (const call of calls) {
-          const key = `${namespace}.${call[1]}`;
+          // Associate the call with the last declaration of the same name
+          // that appears before it (supports multiple components per file).
+          let owner = binding;
+          for (const candidate of bindings) {
+            if (
+              candidate.name === binding.name &&
+              candidate.index <= (call.index ?? 0)
+            ) {
+              owner = candidate;
+            }
+          }
+          const key = `${owner.namespace}.${call[1]}`;
           if (!(key in ptKeys) || !(key in enKeys)) {
             missing.push(`${file.replace(`${root}/`, "")}: ${key}`);
           }

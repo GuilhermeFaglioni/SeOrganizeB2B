@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
+import { denyFor } from "@/lib/authz/authz";
 import { recordActivity } from "@/lib/activity/record";
 
 export async function DELETE(request: NextRequest, { params }: { params: { taskId: string; commentId: string } }) {
@@ -8,6 +9,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { taskI
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+
+  const denied = await denyFor(user.id, "tasks.edit");
+  if (denied) return denied;
 
   const comment = await prisma.comment.findUnique({ where: { id: params.commentId } });
   if (!comment) {

@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { todayCivilDate } from "@/lib/financial/civil-date";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -12,6 +13,8 @@ export async function GET(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.receivables.view");
+  if (denied) return denied;
 
   const { searchParams } = request.nextUrl;
   const status = searchParams.get("status") || "";

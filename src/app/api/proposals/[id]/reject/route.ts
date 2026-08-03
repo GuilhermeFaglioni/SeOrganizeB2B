@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { rejectProposal } from "@/lib/financial/proposals-service";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function POST(
   request: NextRequest,
@@ -14,6 +15,8 @@ export async function POST(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.proposals.acceptReject");
+  if (denied) return denied;
 
   const body = await request.json().catch(() => ({}));
   try {

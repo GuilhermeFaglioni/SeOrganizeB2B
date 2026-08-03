@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useDocuments, type DocumentData } from "@/hooks/use-documents";
+import { useCan } from "@/hooks/use-permissions";
 import { useProjects } from "@/hooks/use-projects";
 import { DocumentRow } from "./document-row";
 import { Plus } from "lucide-react";
@@ -18,6 +19,7 @@ export function DocumentList({
 }) {
   const { data: projects } = useProjects();
   const t = useTranslations("documents.list");
+  const { can } = useCan();
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const { data: documents, isLoading } = useDocuments(activeProjectId);
 
@@ -48,6 +50,7 @@ export function DocumentList({
               {p.name}
             </button>
           ))}
+          {can("documents.create") && (
           <button
             onClick={onNewDoc}
             className="ml-2 flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-accent text-white hover:bg-accent/90"
@@ -55,6 +58,7 @@ export function DocumentList({
             <Plus size={16} />
             {t("new")}
           </button>
+          )}
         </div>
       </div>
 
@@ -69,10 +73,14 @@ export function DocumentList({
               key={doc.id}
               doc={doc}
               onClick={() => onSelectDoc?.(doc.id)}
-              onDelete={(e) => {
-                e.stopPropagation();
-                onDeleteDoc?.(doc.id);
-              }}
+              onDelete={
+                can("documents.delete")
+                  ? (e) => {
+                      e.stopPropagation();
+                      onDeleteDoc?.(doc.id);
+                    }
+                  : undefined
+              }
             />
           ))}
         </div>

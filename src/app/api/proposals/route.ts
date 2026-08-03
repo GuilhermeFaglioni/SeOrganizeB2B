@@ -6,6 +6,7 @@ import {
 } from "@/lib/financial/proposals-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 
 const SORT_FIELDS = ["code", "title", "status", "totalValue", "createdAt", "client"] as const;
 
@@ -92,6 +93,8 @@ export async function GET(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.proposals.view");
+  if (denied) return denied;
 
   const { searchParams } = request.nextUrl;
   const sortByRaw = searchParams.get("sortBy") || "createdAt";
@@ -119,6 +122,8 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.proposals.create");
+  if (denied) return denied;
 
   const body = await request.json();
   const { errors, input } = parseProposalInput(body);

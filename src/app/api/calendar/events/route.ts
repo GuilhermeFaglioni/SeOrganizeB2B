@@ -15,6 +15,7 @@ import type {
   CalendarResponseStatus,
 } from "@/lib/calendar/types";
 import { POST as createScheduledEvent } from "../schedule/route";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -27,6 +28,8 @@ export async function GET(request: NextRequest) {
       { status: 401 },
     );
   }
+  const denied = await denyFor(user.id, "calendar.view");
+  if (denied) return denied;
 
   const { searchParams } = new URL(request.url);
   const timeMin =
@@ -160,5 +163,17 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const user = await getUser();
+  if (!user) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: { code: "AUTH_ERROR", message: "Unauthorized" },
+      },
+      { status: 401 },
+    );
+  }
+  const denied = await denyFor(user.id, "calendar.create");
+  if (denied) return denied;
   return createScheduledEvent(request);
 }

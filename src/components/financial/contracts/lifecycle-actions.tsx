@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useContractLifecycle } from "@/hooks/use-contracts";
+import { useCan } from "@/hooks/use-permissions";
 import { toastSuccess } from "@/lib/toast";
 import type { InstallmentPlanItem } from "@/lib/financial/types";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export function LifecycleActions({
   const router = useRouter();
   const t = useTranslations("financial.contracts.lifecycle");
   const lifecycle = useContractLifecycle();
+  const { can } = useCan();
   const [cancelOpen, setCancelOpen] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState("");
 
@@ -51,6 +53,8 @@ export function LifecycleActions({
       }
     );
   }
+
+  if (!can("financial.contracts.lifecycle")) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-2">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { MarkdownPreview } from "./markdown-preview";
 import { useAutoSave } from "@/hooks/use-documents";
+import { useCan } from "@/hooks/use-permissions";
 import { useProjects } from "@/hooks/use-projects";
 import { useTranslations } from "next-intl";
 import { Save, Eye, Edit, Columns } from "lucide-react";
@@ -27,6 +28,7 @@ export function DocumentEditor({
   const { scheduleSave, updateDoc } = useAutoSave();
   const { data: projects } = useProjects();
   const t = useTranslations("documents.editor");
+  const { can } = useCan();
   const synced = useRef(false);
 
   useEffect(() => {
@@ -105,7 +107,7 @@ export function DocumentEditor({
           </div>
           <button
             onClick={handleSave}
-            disabled={updateDoc.isPending}
+            disabled={updateDoc.isPending || !can("documents.edit")}
             className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent/90 disabled:opacity-50 sm:min-h-0 sm:min-w-0"
             aria-label={t("saveDocument")}
             title={t("saveDocument")}

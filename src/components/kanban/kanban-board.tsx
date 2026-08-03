@@ -17,6 +17,7 @@ import { useTranslations } from "next-intl";
 import { KanbanColumn } from "./kanban-column";
 import { KanbanCard } from "./kanban-card";
 import { useMoveTask, useColumns, type BoardColumn, type BoardTask } from "@/hooks/use-kanban";
+import { useCan } from "@/hooks/use-permissions";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,7 @@ export function KanbanBoard({
   groupBy?: BoardGroupBy;
 }) {
   const t = useTranslations("kanban.board");
+  const { can } = useCan();
   const [activeTask, setActiveTask] = useState<BoardTask | null>(null);
   const moveTask = useMoveTask(projectId);
   const { addColumn, renameColumn, deleteColumn } = useColumns(projectId);
@@ -81,6 +83,7 @@ export function KanbanBoard({
   };
 
   const handleDeleteColumn = (columnId: string) => {
+    if (!can("projects.edit")) return;
     if (confirm(t("deleteColumnConfirm"))) {
       deleteColumn.mutate(columnId);
     }
@@ -187,7 +190,7 @@ export function KanbanBoard({
               groupBy={groupBy}
             />
           ))}
-          {allowColumnManagement && (
+          {can("projects.edit") && allowColumnManagement && (
           <div className="flex-shrink-0 w-[280px] min-w-[260px] flex items-start pt-2">
             <button
               onClick={() => setAddColumnOpen(true)}
@@ -220,7 +223,7 @@ export function KanbanBoard({
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setRenameOpen(false)}>{t("cancel")}</Button>
-              <Button onClick={handleRenameSubmit} disabled={!renameName.trim()}>{t("rename")}</Button>
+              <Button onClick={handleRenameSubmit} disabled={!renameName.trim() || !can("projects.edit")}>{t("rename")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

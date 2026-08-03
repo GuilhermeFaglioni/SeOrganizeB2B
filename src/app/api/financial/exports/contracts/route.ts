@@ -9,6 +9,7 @@ import {
   csvEscape,
   moneyCell,
 } from "@/lib/financial/csv";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -18,6 +19,8 @@ export async function GET(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.contracts.view");
+  if (denied) return denied;
 
   const { searchParams } = request.nextUrl;
   const search = searchParams.get("search")?.trim() || "";

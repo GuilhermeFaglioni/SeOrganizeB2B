@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { computeOverview } from "@/lib/financial/overview-service";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 import type { ContractStatus, InstallmentStatus } from "@/lib/financial/types";
 
 export async function GET(request: NextRequest) {
@@ -12,6 +13,8 @@ export async function GET(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.overview.view");
+  if (denied) return denied;
 
   try {
     const { searchParams } = request.nextUrl;

@@ -7,6 +7,7 @@ import {
 } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function GET(
   _request: NextRequest,
@@ -19,6 +20,8 @@ export async function GET(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.contracts.view");
+  if (denied) return denied;
 
   const contract = await prisma.contract.findUnique({
     where: { id: params.id },
@@ -69,6 +72,8 @@ export async function PATCH(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.contracts.edit");
+  if (denied) return denied;
 
   const body = await request.json();
   const input: Record<string, unknown> = {};
@@ -123,6 +128,8 @@ export async function DELETE(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.contracts.delete");
+  if (denied) return denied;
 
   try {
     await deleteContract(params.id);

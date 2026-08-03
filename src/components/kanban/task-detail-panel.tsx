@@ -10,6 +10,7 @@ import type { BoardTask } from "@/hooks/use-kanban";
 import { AvatarGroup } from "@/components/people/avatar-group";
 import { useScheduleEventDialog } from "@/stores/schedule-event-context";
 import { ActivityFeed } from "@/components/activity/activity-feed";
+import { useCan } from "@/hooks/use-permissions";
 
 export function TaskDetailPanel({
   task,
@@ -25,6 +26,7 @@ export function TaskDetailPanel({
   onArchive?: () => void;
 }) {
   const t = useTranslations("kanban.taskDetailPanel");
+  const { can } = useCan();
   const priorityColor = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
   const { openScheduleEvent } = useScheduleEventDialog();
 
@@ -95,17 +97,17 @@ export function TaskDetailPanel({
             <Calendar size={14} />
             {t("scheduleInCalendar")}
           </Button>
-          {onEdit && (
+          {onEdit && can("tasks.edit") && (
             <Button size="sm" variant="outline" onClick={onEdit}>
               {t("edit")}
             </Button>
           )}
-          {onDelete && (
+          {onDelete && can("tasks.delete") && (
             <Button size="sm" variant="outline" className="text-danger hover:text-danger" onClick={onDelete}>
               <Trash2 size={14} />
             </Button>
           )}
-          {onArchive && (
+          {onArchive && can("tasks.edit") && (
             <Button size="sm" variant="outline" onClick={onArchive}>
               <Archive size={14} />
               {t("archive")}

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Search } from "lucide-react";
 import { useClients } from "@/hooks/use-clients";
+import { useCan } from "@/hooks/use-permissions";
 import { FinancialEmptyState } from "@/components/financial/shared/empty-state";
 import { FinancialErrorState } from "@/components/financial/shared/error-state";
 import { Pagination } from "@/components/financial/contracts/pagination";
@@ -21,6 +22,7 @@ export function ClientList() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
   const [page, setPage] = useState(1);
+  const { can } = useCan();
 
   const apiActive: true | false | "all" =
     statusFilter === "active" ? true : statusFilter === "inactive" ? false : "all";
@@ -103,12 +105,14 @@ export function ClientList() {
             ))}
           </div>
         </div>
-        <Link
-          href="/financial/clients/new"
-          className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        >
-          <Plus size={16} aria-hidden="true" /> {t("newClient")}
-        </Link>
+        {can("financial.clients.create") && (
+          <Link
+            href="/financial/clients/new"
+            className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            <Plus size={16} aria-hidden="true" /> {t("newClient")}
+          </Link>
+        )}
       </div>
 
       {data.items.length === 0 ? (

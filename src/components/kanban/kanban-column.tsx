@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { KanbanCard } from "./kanban-card";
 import type { BoardColumn, BoardTask } from "@/hooks/use-kanban";
+import { useCan } from "@/hooks/use-permissions";
 import {
   groupBoardTasks,
   type BoardGroupBy,
@@ -41,6 +42,7 @@ export function KanbanColumn({
   groupBy?: BoardGroupBy;
 }) {
   const t = useTranslations("kanban.column");
+  const { can } = useCan();
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -70,6 +72,7 @@ export function KanbanColumn({
         </div>
         {allowColumnManagement && (
         <div className="flex items-center gap-1">
+          {can("tasks.create") && (
           <button
             onClick={onAddClick}
             className="text-text-secondary hover:text-text-primary transition-colors p-1"
@@ -77,6 +80,7 @@ export function KanbanColumn({
           >
             <Plus size={16} />
           </button>
+          )}
           <div className="relative">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -89,6 +93,7 @@ export function KanbanColumn({
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
                 <div className="absolute right-0 top-full mt-1 z-20 w-36 bg-page-alt border border-border rounded-lg shadow-lg py-1">
+                  {can("projects.edit") && (
                   <button
                     onClick={() => {
                       setMenuOpen(false);
@@ -99,6 +104,8 @@ export function KanbanColumn({
                     <Pencil size={14} />
                     {t("rename")}
                   </button>
+                  )}
+                  {can("projects.edit") && (
                   <button
                     onClick={() => {
                       setMenuOpen(false);
@@ -109,6 +116,7 @@ export function KanbanColumn({
                     <Trash2 size={14} />
                     {t("delete")}
                   </button>
+                  )}
                 </div>
               </>
             )}

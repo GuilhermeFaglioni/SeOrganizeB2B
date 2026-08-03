@@ -7,6 +7,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useContracts, useDeleteContract, type ContractListFilters } from "@/hooks/use-contracts";
 import { useClients } from "@/hooks/use-clients";
 import { useProjects } from "@/hooks/use-projects";
+import { useCan } from "@/hooks/use-permissions";
 import { exportContractsCsv } from "@/hooks/use-financial-exports";
 import { toastSuccess } from "@/lib/toast";
 import { MoneyText } from "@/components/financial/shared/money-text";
@@ -31,6 +32,7 @@ export function ContractList() {
   const { data: clientsData } = useClients({ pageSize: 100 });
   const { data: projects } = useProjects();
   const deleteContract = useDeleteContract();
+  const { can } = useCan();
 
   function handleDelete(contract: { id: string; title: string | null }) {
     if (
@@ -61,12 +63,14 @@ export function ContractList() {
         />
         <div className="flex items-center gap-2">
           <CsvExportButton onExport={() => exportContractsCsv({ search: filters.search, status: filters.status, clientId: filters.clientId, projectId: filters.projectId })} />
-          <Link
-            href="/financial/contracts/new"
-            className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          >
-            <Plus size={16} aria-hidden="true" /> {t("newContract")}
-          </Link>
+          {can("financial.contracts.create") && (
+            <Link
+              href="/financial/contracts/new"
+              className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              <Plus size={16} aria-hidden="true" /> {t("newContract")}
+            </Link>
+          )}
         </div>
       </div>
 
@@ -106,14 +110,16 @@ export function ContractList() {
                   <td className="px-3 py-2 text-text-secondary"><CivilDateText date={contract.startDate} /></td>
                   <td className="px-3 py-2 text-text-secondary"><CivilDateText date={contract.endDate} /></td>
                   <td className="px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(contract)}
-                      aria-label={t("deleteAria", { code: contract.code })}
-                      className="flex min-h-[44px] items-center justify-center rounded-md text-text-secondary hover:text-danger focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                    >
-                      <Trash2 size={16} aria-hidden="true" />
-                    </button>
+                    {can("financial.contracts.delete") && (
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(contract)}
+                        aria-label={t("deleteAria", { code: contract.code })}
+                        className="flex min-h-[44px] items-center justify-center rounded-md text-text-secondary hover:text-danger focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                      >
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

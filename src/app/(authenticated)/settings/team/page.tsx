@@ -4,8 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAreas } from "@/hooks/use-areas";
+import { useAssignRole, useRoles, useTeam } from "@/hooks/use-roles";
+import { useCan } from "@/hooks/use-permissions";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Users } from "lucide-react";
+import { toastSuccess } from "@/lib/toast";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -14,18 +17,15 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return json.data;
 }
 
-interface ProfileWithAreas {
-  id: string;
-  name: string | null;
-  email: string;
-  teamMemberAreas: { areaId: string; area: { id: string; name: string; color: string } }[];
-}
-
 export default function TeamPage() {
   const router = useRouter();
   const t = useTranslations("settings.team");
+  const { can, data: permData } = useCan();
   const { data: areas } = useAreas();
-  const [profiles, setProfiles] = useState<ProfileWithAreas[]>([]);
+  const { data: team } = useTeam();
+  const { data: roles } = useRoles();
+  const assignRole = useAssignRole();
+
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editMap, setEditMap] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
@@ -33,15 +33,24 @@ export default function TeamPage() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
-    fetchJson<ProfileWithAreas[]>("/api/profiles").then((data) => {
-      setProfiles(data || []);
-      const map: Record<string, string[]> = {};
-      for (const p of data || []) {
-        map[p.id] = p.teamMemberAreas.map((m) => m.areaId);
-      }
-      setEditMap(map);
-    });
-  }, []);
+    if (!team) return;
+    const map: Record<string, string[]> = {};
+    for (const p of team) {
+      map[p.id] = p.teamMemberAreas.map((m) => m.areaId);
+    }
+    setEditMap(map);
+  }, [team]);
+
+  if (permData && !can("manage_roles")) {
+    return (
+      <div className="p-6">
+        <p className="text-sm text-text-secondary">{t("noPermission")}</p>
+        <Button variant="outline" className="mt-4" onClick={() => router.push("/settings")}>
+          {t("backToSettings")}
+        </Button>
+      </div>
+    );
+  }
 
   const toggleArea = (profileId: string, areaId: string) => {
     setEditMap((prev) => {
@@ -74,6 +83,13 @@ export default function TeamPage() {
     }
   };
 
+  const handleRoleChange = (profileId: string, roleId: string) => {
+    assignRole.mutate(
+      { userId: profileId, roleId: roleId || null },
+      { onSuccess: () => toastSuccess(t("roleSaved")) }
+    );
+  };
+
   return (
     <div data-testid="team-page" className="p-6 max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
@@ -90,7 +106,7 @@ export default function TeamPage() {
       </div>
 
       <div className="space-y-3">
-        {profiles.map((profile) => (
+        {team?.map((profile) => (
           <div
             key={profile.id}
             className="bg-page-alt border border-border rounded-xl overflow-hidden"
@@ -109,37 +125,63 @@ export default function TeamPage() {
                   </p>
                   <p className="text-xs text-text-secondary">{profile.email}</p>
                 </div>
+                {profile.role && (
+                  <span className="ml-2 rounded bg-bg-secondary px-2 py-0.5 text-xs text-text-secondary">
+                    {profile.role.name}
+                  </span>
+                )}
               </div>
               {expandedId === profile.id ? <ChevronDown size={18} className="text-text-secondary" /> : <ChevronRight size={18} className="text-text-secondary" />}
             </button>
 
             {expandedId === profile.id && (
-              <div className="border-t border-border p-4 space-y-3">
-                <p className="text-sm text-text-secondary">{t("assignLabel")}</p>
-                {areas && areas.length > 0 ? (
-                  <div className="space-y-2">
-                    {areas.map((area: { id: string; name: string; color: string }) => (
-                      <label
-                        key={area.id}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-bg-secondary cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={(editMap[profile.id] || []).includes(area.id)}
-                          onChange={() => toggleArea(profile.id, area.id)}
-                          className="w-4 h-4 rounded border-border text-accent"
-                        />
-                        <span
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: area?.color }}
-                        />
-                        <span className="text-sm text-text-primary">{area.name}</span>
-                      </label>
+              <div className="border-t border-border p-4 space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor={`role-${profile.id}`} className="text-sm text-text-secondary">
+                    {t("roleLabel")}
+                  </label>
+                  <select
+                    id={`role-${profile.id}`}
+                    value={profile.role?.id ?? ""}
+                    onChange={(event) => handleRoleChange(profile.id, event.target.value)}
+                    className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-72"
+                  >
+                    <option value="">{t("noRole")}</option>
+                    {roles?.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
+                      </option>
                     ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-text-secondary">{t("noAreas")}</p>
-                )}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm text-text-secondary">{t("assignLabel")}</p>
+                  {areas && areas.length > 0 ? (
+                    <div className="space-y-2">
+                      {areas.map((area: { id: string; name: string; color: string }) => (
+                        <label
+                          key={area.id}
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-bg-secondary cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={(editMap[profile.id] || []).includes(area.id)}
+                            onChange={() => toggleArea(profile.id, area.id)}
+                            className="w-4 h-4 rounded border-border text-accent"
+                          />
+                          <span
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: area?.color }}
+                          />
+                          <span className="text-sm text-text-primary">{area.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-text-secondary">{t("noAreas")}</p>
+                  )}
+                </div>
                 <Button size="sm" onClick={() => handleSave(profile.id)} disabled={saving}>
                   {saving ? t("saving") : t("save")}
                 </Button>

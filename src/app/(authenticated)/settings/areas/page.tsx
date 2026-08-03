@@ -20,9 +20,11 @@ import {
   useAreaImpact,
 } from "@/hooks/use-areas";
 import { Plus } from "lucide-react";
+import { useCan } from "@/hooks/use-permissions";
 
 export default function SettingsAreasPage() {
   const t = useTranslations("settings.areas");
+  const { can } = useCan();
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -78,10 +80,12 @@ export default function SettingsAreasPage() {
             {t("subtitle")}
           </p>
         </div>
+        {can("areas.create") && (
         <Button onClick={() => setAddOpen(true)}>
           <Plus className="w-4 h-4" aria-hidden="true" />
           {t("addArea")}
         </Button>
+        )}
       </div>
 
       <AreaList
@@ -115,7 +119,7 @@ export default function SettingsAreasPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>{t("cancel")}</Button>
-            <Button onClick={handleEdit} disabled={!editName.trim()}>{t("save")}</Button>
+            <Button onClick={handleEdit} disabled={!editName.trim() || !can("areas.edit")}>{t("save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -173,7 +177,7 @@ export default function SettingsAreasPage() {
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
               {t("cancel")}
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" onClick={handleDelete} disabled={!can("areas.delete")}>
               {t("deleteArea")}
             </Button>
           </DialogFooter>

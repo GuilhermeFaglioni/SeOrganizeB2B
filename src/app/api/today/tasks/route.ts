@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
+import { denyFor } from "@/lib/authz/authz";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -10,6 +11,9 @@ export async function GET() {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "tasks.view");
+  if (denied) return denied;
+
   const endOfToday = new Date();
   endOfToday.setHours(23, 59, 59, 999);
   const tasks = await prisma.task.findMany({

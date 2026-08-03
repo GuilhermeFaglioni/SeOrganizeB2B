@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function GET(
   _request: NextRequest,
@@ -13,6 +14,8 @@ export async function GET(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.clients.view");
+  if (denied) return denied;
 
   const client = await prisma.client.findUnique({
     where: { id: params.id },
@@ -47,6 +50,8 @@ export async function PATCH(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.clients.edit");
+  if (denied) return denied;
 
   const body = await request.json();
 

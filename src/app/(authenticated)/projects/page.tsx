@@ -8,10 +8,12 @@ import { ProjectForm } from "@/components/projects/project-form";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useCan } from "@/hooks/use-permissions";
 
 export default function ProjectsPage() {
   const router = useRouter();
   const t = useTranslations("projects.pages.list");
+  const { can } = useCan();
   const searchParams = useSearchParams();
   const { data: projects } = useProjects();
   const list = (projects ?? []) as ProjectData[];
@@ -30,10 +32,12 @@ export default function ProjectsPage() {
     <div data-testid="projects-page" className="p-6 max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-heading-1 text-text-primary">{t("title")}</h1>
+        {can("projects.create") && (
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="w-4 h-4" aria-hidden="true" />
           {t("newProject")}
         </Button>
+        )}
       </div>
 
       <ProjectGrid

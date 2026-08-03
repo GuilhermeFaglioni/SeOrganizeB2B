@@ -7,6 +7,7 @@ import {
 } from "@/lib/financial/proposals-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 
 function parseUpdateInput(body: Record<string, unknown>) {
   const errors: string[] = [];
@@ -81,6 +82,8 @@ export async function GET(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.proposals.view");
+  if (denied) return denied;
 
   const proposal = await getProposal(params.id);
   if (!proposal) {
@@ -106,6 +109,8 @@ export async function PATCH(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.proposals.edit");
+  if (denied) return denied;
 
   const body = await request.json();
   const { errors, input } = parseUpdateInput(body);
@@ -138,6 +143,8 @@ export async function DELETE(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.proposals.delete");
+  if (denied) return denied;
 
   try {
     await deleteProposal(params.id);

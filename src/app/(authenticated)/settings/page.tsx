@@ -2,9 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useCan } from "@/hooks/use-permissions";
 
 export default function SettingsPage() {
   const t = useTranslations("settings.page");
+  const { can } = useCan();
+
+  const cards = [
+    { key: "profile", permission: true, title: t("profile.title"), description: t("profile.description"), href: "/settings/profile" },
+    { key: "areas", permission: can("areas.view"), title: t("areas.title"), description: t("areas.description"), href: "/settings/areas" },
+    { key: "team", permission: can("manage_roles"), title: t("team.title"), description: t("team.description"), href: "/settings/team" },
+    { key: "workspace", permission: can("manage_roles"), title: t("workspace.title"), description: t("workspace.description"), href: "/settings/workspace" },
+    { key: "roles", permission: can("manage_roles"), title: t("roles.title"), description: t("roles.description"), href: "/settings/roles" },
+  ].filter((card) => card.permission);
+
   return (
     <div data-testid="settings-page" className="p-6 max-w-3xl space-y-6">
       <div>
@@ -15,26 +26,14 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid gap-4">
-        <SettingsCard
-          title={t("profile.title")}
-          description={t("profile.description")}
-          href="/settings/profile"
-        />
-        <SettingsCard
-          title={t("areas.title")}
-          description={t("areas.description")}
-          href="/settings/areas"
-        />
-        <SettingsCard
-          title={t("team.title")}
-          description={t("team.description")}
-          href="/settings/team"
-        />
-        <SettingsCard
-          title={t("workspace.title")}
-          description={t("workspace.description")}
-          href="/settings/workspace"
-        />
+        {cards.map((card) => (
+          <SettingsCard
+            key={card.key}
+            title={card.title}
+            description={card.description}
+            href={card.href}
+          />
+        ))}
       </div>
     </div>
   );

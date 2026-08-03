@@ -15,8 +15,11 @@ model Profile {
   name      String?
   avatarUrl String?  @map("avatar_url")
   locale    String   @default("pt-BR")
+  roleId    String?  @map("role_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
+  role Role? @relation(fields: [roleId], references: [id], onDelete: SetNull)
 
   teamMemberAreas        TeamMemberArea[]
   createdTeamAreas       TeamArea[]              @relation("TeamAreaCreator")
@@ -40,6 +43,21 @@ model Profile {
   proposals              Proposal[]              @relation("ProposalCreator")
 
   @@map("profiles")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  permissions Json     @default("[]")
+  isAdmin     Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  profiles   Profile[]
+  defaultFor WorkspaceSettings[]
+
+  @@index([isAdmin])
+  @@map("roles")
 }
 
 model TeamArea {
@@ -552,11 +570,14 @@ model ProposalItem {
 }
 
 model WorkspaceSettings {
-  id          String   @id @default("default")
-  companyName String?  @map("company_name")
-  logoUrl     String?  @map("logo_url")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id            String   @id @default("default")
+  companyName   String?  @map("company_name")
+  logoUrl       String?  @map("logo_url")
+  defaultRoleId String?  @map("default_role_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  defaultRole Role? @relation(fields: [defaultRoleId], references: [id], onDelete: SetNull)
 
   @@map("workspace_settings")
 }

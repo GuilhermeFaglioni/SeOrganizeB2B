@@ -522,6 +522,13 @@
       "rejectFailed": "Failed to reject proposal",
       "cloneFailed": "Failed to clone proposal",
       "workspaceUpdateFailed": "Failed to save company settings"
+    },
+    "roles": {
+      "createFailed": "Failed to create role",
+      "updateFailed": "Failed to update role",
+      "deleteFailed": "Failed to delete role",
+      "defaultFailed": "Failed to set default role",
+      "assignFailed": "Failed to assign role"
     }
   },
   "today": {
@@ -987,6 +994,10 @@
       "workspace": {
         "title": "Company",
         "description": "Name and logo shown on public proposals"
+      },
+      "roles": {
+        "title": "Roles & permissions",
+        "description": "Create custom roles and define what each one can do"
       }
     },
     "profile": {
@@ -1037,7 +1048,11 @@
       "assignLabel": "Assign team areas:",
       "noAreas": "No areas configured.",
       "saving": "Saving...",
-      "save": "Save"
+      "save": "Save",
+      "roleLabel": "Role",
+      "noRole": "No role",
+      "roleSaved": "Role updated",
+      "noPermission": "You do not have permission to manage the team."
     },
     "workspace": {
       "backToSettings": "Back to Settings",
@@ -1202,6 +1217,73 @@
       "acceptedThanks": "Thank you! Your acceptance was recorded.",
       "acceptFailed": "Failed to record the acceptance",
       "unavailable": "This proposal is not available."
+    }
+  },
+  "roles": {
+    "page": {
+      "title": "Roles & permissions",
+      "subtitle": "Create custom roles and control access to each module and action.",
+      "newRole": "New role",
+      "defaultRoleLabel": "Default role for new users",
+      "defaultRoleHint": "Newly created users without an assigned role automatically receive this role.",
+      "noDefault": "None (no access)",
+      "listAria": "Roles list",
+      "adminBadge": "Admin",
+      "defaultBadge": "Default",
+      "permissionCount": "{count, plural, one {# permission} other {# permissions}}",
+      "userCount": "{count, plural, one {# user} other {# users}}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete the role \"{name}\"? Assigned users will fall back to the default role (or lose access).",
+      "deleted": "Role deleted",
+      "defaultSaved": "Default role updated",
+      "saved": "Role saved",
+      "loadFailed": "Failed to load roles",
+      "retry": "Retry",
+      "backToSettings": "Back to Settings",
+      "noPermission": "You do not have permission to manage roles."
+    },
+    "editor": {
+      "titleCreate": "New role",
+      "titleEdit": "Edit role",
+      "nameLabel": "Role name",
+      "namePlaceholder": "e.g. Finance, Viewer",
+      "permissionsTitle": "Permissions",
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel"
+    },
+    "permissions": {
+      "specialSection": "Special permissions",
+      "modules": {
+        "tasks": "Tasks / Board",
+        "projects": "Projects",
+        "calendar": "Calendar",
+        "documents": "Documents",
+        "financial.overview": "Financial — Overview",
+        "financial.contracts": "Financial — Contracts",
+        "financial.proposals": "Financial — Proposals",
+        "financial.clients": "Financial — Clients",
+        "financial.receivables": "Financial — Receivables",
+        "areas": "Team areas"
+      },
+      "actions": {
+        "view": "View",
+        "create": "Create",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "special": {
+        "financial.contracts.lifecycle": "Contract lifecycle",
+        "financial.contracts.adjustValue": "Adjust contract value",
+        "financial.receivables.markPaid": "Mark installment as paid",
+        "financial.receivables.refund": "Refund installment",
+        "financial.proposals.send": "Send proposal",
+        "financial.proposals.acceptReject": "Accept/reject proposal",
+        "financial.proposals.clone": "Clone proposal",
+        "financial.proposals.manageTemplates": "Manage proposal templates",
+        "manage_roles": "Manage roles & permissions"
+      }
     }
   }
 }
