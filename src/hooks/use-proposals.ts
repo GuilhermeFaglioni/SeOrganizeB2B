@@ -16,6 +16,7 @@ export interface ProposalData {
   id: string;
   code: string;
   token: string;
+  publicSlug: string;
   title: string;
   status: string;
   htmlSnapshot: string;

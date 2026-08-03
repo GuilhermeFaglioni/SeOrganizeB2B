@@ -64,6 +64,11 @@ describe("proposals UI", () => {
     expect(view).toContain("acceptedBy");
   });
 
+  it("copies the friendly public slug while keeping the legacy token fallback", () => {
+    const detail = read("src/components/financial/proposals/proposal-detail.tsx");
+    expect(detail).toContain("proposal.publicSlug ?? proposal.token");
+  });
+
   it("public preview removes the nested document frame and follows content height", () => {
     const preview = read("src/components/financial/proposals/proposal-html-preview.tsx");
     expect(preview).toContain("proposal-preview-height");

@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { FinancialValidationError } from "./lifecycle";
 import { prisma } from "../../../prisma/client";
+import { makeProposalPublicSlug } from "./proposal-slug";
 import { toDecimal } from "./money";
 import {
   renderProposalHtml,
@@ -85,6 +86,7 @@ export async function createProposalDraft(
       data: {
         code,
         token: randomUUID(),
+        publicSlug: makeProposalPublicSlug(input.title),
         title: input.title.trim(),
         clientId: input.clientId,
         templateId: input.templateId ?? null,
@@ -254,9 +256,15 @@ export async function sendProposal(proposalId: string) {
   });
 }
 
-export async function acceptProposal(token: string, name: string) {
+function proposalIdentifierWhere(identifier: string) {
+  return { OR: [{ token: identifier }, { publicSlug: identifier }] };
+}
+
+export async function acceptProposal(identifier: string, name: string) {
   if (!name.trim()) throw new FinancialValidationError("The acceptor name is required");
-  const proposal = await prisma.proposal.findUnique({ where: { token } });
+  const proposal = await prisma.proposal.findFirst({
+    where: proposalIdentifierWhere(identifier),
+  });
   if (!proposal) throw new FinancialValidationError("Proposal not found");
   if (proposal.status === "draft") {
     throw new FinancialValidationError("This proposal is not available");
@@ -320,6 +328,7 @@ export async function cloneProposal(proposalId: string, actorId: string) {
       data: {
         code,
         token: randomUUID(),
+        publicSlug: makeProposalPublicSlug(proposal.title),
         title: proposal.title,
         clientId: proposal.clientId,
         templateId: proposal.templateId,
@@ -409,9 +418,9 @@ export async function listProposals(filters: ProposalListFilters = {}) {
   };
 }
 
-export async function getProposalPublic(token: string) {
-  const proposal = await prisma.proposal.findUnique({
-    where: { token },
+export async function getProposalPublic(identifier: string) {
+  const proposal = await prisma.proposal.findFirst({
+    where: proposalIdentifierWhere(identifier),
     include: { client: { select: { name: true } } },
   });
   if (!proposal) return null;

@@ -503,6 +503,7 @@ model Proposal {
   id             String   @id @default(uuid())
   code           String   @unique
   token          String   @unique
+  publicSlug     String   @unique @map("public_slug")
   title          String
   clientId       String   @map("client_id")
   templateId     String?  @map("template_id")
