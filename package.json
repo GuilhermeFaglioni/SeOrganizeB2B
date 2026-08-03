@@ -1,7 +1,7 @@
 {
   "name": "seorganize-plus",
   "description": "SeOrganize+ — collaborative task, project and calendar management",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
