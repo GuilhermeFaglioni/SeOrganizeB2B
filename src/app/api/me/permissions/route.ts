@@ -8,6 +8,19 @@ export async function GET() {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
-  const effective = await getEffectivePermissions(user.id);
-  return NextResponse.json({ data: effective, error: null });
+  try {
+    const effective = await getEffectivePermissions(user.id);
+    return NextResponse.json({ data: effective, error: null });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: {
+          code: "PERMISSIONS_ERROR",
+          message: error instanceof Error ? error.message : String(error),
+        },
+      },
+      { status: 500 }
+    );
+  }
 }
