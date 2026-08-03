@@ -11,7 +11,7 @@ export interface EffectivePermissions {
 export async function getEffectivePermissions(
   userId: string
 ): Promise<EffectivePermissions> {
-  const profile = await prisma.profile.findUnique({
+  const profile = await prisma.profile.findFirst({
     where: { id: userId },
     select: {
       role: {
