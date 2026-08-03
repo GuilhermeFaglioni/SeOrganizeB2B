@@ -171,6 +171,7 @@
       "sections": "Seções financeiras",
       "overview": "Visão geral",
       "contracts": "Contratos",
+      "proposals": "Propostas",
       "receivables": "Recebíveis",
       "clients": "Clientes"
     },
@@ -1052,9 +1053,6 @@
       "saved": "Configurações salvas"
     }
   },
-  "financial.tabs": {
-    "proposals": "Propostas"
-  },
   "proposals": {
     "statuses": {
       "draft": "Rascunho",
@@ -1188,14 +1186,19 @@
     },
     "public": {
       "for": "Proposta para",
+      "documentLabel": "Proposta personalizada",
+      "preparedFor": "Preparada para",
       "acceptedBanner": "Proposta aceita por {name} em {date}.",
       "rejectedBanner": "Esta proposta foi recusada.",
+      "acceptEyebrow": "Próximo passo",
       "acceptTitle": "Aceitar proposta",
+      "acceptDescription": "Se esta experiência faz sentido para você, confirme abaixo. A partir daqui, transformamos a proposta em um plano de trabalho.",
       "nameLabel": "Seu nome",
       "namePlaceholder": "Digite seu nome",
       "nameRequired": "Informe seu nome para aceitar",
       "accepting": "Confirmando...",
-      "accept": "Aceitar proposta",
+      "accept": "Quero seguir com esta proposta",
+      "acceptConsent": "Ao confirmar, você declara que leu e concorda com as condições apresentadas nesta proposta.",
       "acceptedThanks": "Obrigado! Sua aceitação foi registrada.",
       "acceptFailed": "Falha ao registrar a aceitação",
       "unavailable": "Esta proposta não está disponível."
