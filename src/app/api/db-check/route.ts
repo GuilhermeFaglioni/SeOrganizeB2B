@@ -39,10 +39,16 @@ export async function GET() {
     `;
 
     // Typed path: Prisma routes findUnique/findFirst through DATABASE_URL.
+    // Uses the EXACT query that /api/me/permissions runs (role join on isAdmin).
     let typedOk = true;
     let typedError: string | null = null;
     try {
-      await prisma.role.findFirst({ select: { id: true } });
+      await prisma.profile.findFirst({
+        select: {
+          id: true,
+          role: { select: { id: true, name: true, isAdmin: true, permissions: true } },
+        },
+      });
     } catch (error) {
       typedOk = false;
       typedError = error instanceof Error ? error.message : String(error);
