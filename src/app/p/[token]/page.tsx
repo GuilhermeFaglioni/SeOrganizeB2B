@@ -22,7 +22,11 @@ export default async function PublicProposalPage({
   const proposal = await getProposalPublic(params.token);
 
   if (!proposal || proposal.status === "draft") {
-    return <PublicProposalUnavailable />;
+    return (
+      <PublicLocaleProvider locale="pt-BR">
+        <PublicProposalUnavailable />
+      </PublicLocaleProvider>
+    );
   }
 
   const locale = isAppLocale(proposal.locale) ? proposal.locale : "pt-BR";
