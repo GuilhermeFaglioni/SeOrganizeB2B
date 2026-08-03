@@ -23,12 +23,12 @@ export async function getEffectivePermissions(
   let role = profile?.role ?? null;
 
   if (!role) {
-    const workspace = await prisma.workspaceSettings.findUnique({
+    const workspace = await prisma.workspaceSettings.findFirst({
       where: { id: "default" },
       select: { defaultRoleId: true },
     });
     if (workspace?.defaultRoleId) {
-      role = await prisma.role.findUnique({
+      role = await prisma.role.findFirst({
         where: { id: workspace.defaultRoleId },
         select: { id: true, name: true, isAdmin: true, permissions: true },
       });
