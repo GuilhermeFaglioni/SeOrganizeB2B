@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../prisma/client";
 import { createDefaultColumns } from "../../../../src/lib/defaults";
+import { denyFor } from "@/lib/authz/authz";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -8,6 +9,9 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+
+  const denied = await denyFor(user.id, "projects.view");
+  if (denied) return denied;
 
   const projects = await prisma.project.findMany({
     where: { archived: false },
@@ -26,6 +30,9 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+
+  const denied = await denyFor(user.id, "projects.create");
+  if (denied) return denied;
 
   const body = await request.json();
   const { name, description, areaId } = body;

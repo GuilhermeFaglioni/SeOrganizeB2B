@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { getAuthUrl } from "@/lib/google/oauth";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function GET() {
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+  const denied = await denyFor(user.id, "calendar.view");
+  if (denied) return denied;
 
   const auth = await prisma.calendarAuth.findUnique({
     where: { userId: user.id },
@@ -25,6 +28,8 @@ export async function DELETE() {
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+  const denied = await denyFor(user.id, "calendar.edit");
+  if (denied) return denied;
 
   await prisma.calendarAuth.delete({ where: { userId: user.id } });
 

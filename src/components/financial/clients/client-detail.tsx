@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useClient, useDeactivateClient } from "@/hooks/use-clients";
+import { useCan } from "@/hooks/use-permissions";
 import { toDecimal, sum } from "@/lib/financial/money";
 import { toastSuccess } from "@/lib/toast";
 import { MoneyText } from "@/components/financial/shared/money-text";
@@ -27,6 +28,7 @@ export function ClientDetail({ clientId }: { clientId: string }) {
   const t = useTranslations("financial.clients.detail");
   const { data: client, isLoading, isError, refetch } = useClient(clientId);
   const deactivate = useDeactivateClient();
+  const { can } = useCan();
 
   if (isLoading) return <LoadingState />;
   if (isError || !client) {
@@ -65,12 +67,14 @@ export function ClientDetail({ clientId }: { clientId: string }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/financial/clients/${client.id}/edit`}
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px] focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          >
-            {t("edit")}
-          </Link>
+          {can("financial.clients.edit") && (
+            <Link
+              href={`/financial/clients/${client.id}/edit`}
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px] focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              {t("edit")}
+            </Link>
+          )}
           <Button
             variant="outline"
             onClick={() =>
@@ -78,7 +82,7 @@ export function ClientDetail({ clientId }: { clientId: string }) {
                 onSuccess: () => toastSuccess(t("deactivated")),
               })
             }
-            disabled={!client.active}
+            disabled={!client.active || !can("financial.clients.edit")}
           >
             {client.active ? t("deactivate") : t("inactive")}
           </Button>

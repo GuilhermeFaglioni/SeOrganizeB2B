@@ -11,6 +11,7 @@ import {
 } from "@/lib/google/calendar";
 import { recordActivity } from "@/lib/activity/record";
 import { normalizeAttendeeEmails } from "@/lib/calendar/validation";
+import { denyFor } from "@/lib/authz/authz";
 
 function parseOptionalBool(value: unknown): boolean | undefined {
   if (typeof value === "boolean") return value;
@@ -28,6 +29,8 @@ export async function PATCH(
       { status: 401 },
     );
   }
+  const denied = await denyFor(user.id, "calendar.edit");
+  if (denied) return denied;
   const event = await prisma.calendarEvent.findUnique({
     where: { id: params.id },
     include: { attendees: true },
@@ -293,6 +296,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+  const denied = await denyFor(user.id, "calendar.delete");
+  if (denied) return denied;
 
   const event = await prisma.calendarEvent.findUnique({ where: { id: params.id } });
   if (!event) {

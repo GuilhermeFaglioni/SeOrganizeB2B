@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import { createContractDraft } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 
 const SORT_FIELDS = [
   "code",
@@ -23,6 +24,8 @@ export async function GET(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.contracts.view");
+  if (denied) return denied;
 
   const { searchParams } = request.nextUrl;
   const search = searchParams.get("search")?.trim() || "";
@@ -94,6 +97,8 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.contracts.create");
+  if (denied) return denied;
 
   const body = await request.json();
 

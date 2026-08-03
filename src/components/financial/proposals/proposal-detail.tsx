@@ -11,6 +11,7 @@ import {
   useRejectProposal,
   useSendProposal,
 } from "@/hooks/use-proposals";
+import { useCan } from "@/hooks/use-permissions";
 import { toastSuccess } from "@/lib/toast";
 import { MoneyText } from "@/components/financial/shared/money-text";
 import { CivilDateText } from "@/components/financial/shared/civil-date-text";
@@ -31,6 +32,7 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
   const cloneProposal = useCloneProposal();
   const deleteProposal = useDeleteProposal();
   const rejectProposal = useRejectProposal();
+  const { can } = useCan();
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -124,13 +126,17 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
           <div className="flex flex-wrap gap-2">
             {isDraft && (
               <>
-                <Link
-                  href={`/financial/proposals/${proposal.id}/edit`}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                >
-                  {t("edit")}
-                </Link>
-                <Button onClick={handleSend}>{t("send")}</Button>
+                {can("financial.proposals.edit") && (
+                  <Link
+                    href={`/financial/proposals/${proposal.id}/edit`}
+                    className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  >
+                    {t("edit")}
+                  </Link>
+                )}
+                {can("financial.proposals.send") && (
+                  <Button onClick={handleSend}>{t("send")}</Button>
+                )}
               </>
             )}
             {publicUrl && (
@@ -148,17 +154,21 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
                 </Link>
               </>
             )}
-            {isOpen && (
+            {isOpen && can("financial.proposals.acceptReject") && (
               <Button variant="outline" onClick={() => setRejectOpen((open) => !open)}>
                 {t("reject")}
               </Button>
             )}
-            <Button variant="outline" onClick={handleClone}>
-              {t("clone")}
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 size={16} aria-hidden="true" /> {t("delete")}
-            </Button>
+            {can("financial.proposals.clone") && (
+              <Button variant="outline" onClick={handleClone}>
+                {t("clone")}
+              </Button>
+            )}
+            {can("financial.proposals.delete") && (
+              <Button variant="destructive" onClick={handleDelete}>
+                <Trash2 size={16} aria-hidden="true" /> {t("delete")}
+              </Button>
+            )}
           </div>
         </div>
       </div>

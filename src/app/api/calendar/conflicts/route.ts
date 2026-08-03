@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
+import { denyFor } from "@/lib/authz/authz";
 import { getValidAccessToken } from "@/lib/google/oauth";
 import { GoogleCalendarClient } from "@/lib/google/calendar";
 import { dedupeCalendarEvents } from "@/lib/calendar/normalize";
@@ -15,6 +16,8 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "calendar.view");
+  if (denied) return denied;
   const body = await request.json();
   const proposed = {
     startTime: String(body.startTime || ""),

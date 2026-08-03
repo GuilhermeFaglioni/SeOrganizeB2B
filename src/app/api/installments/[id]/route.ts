@@ -6,6 +6,7 @@ import {
 } from "@/lib/financial/installments-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function PATCH(
   request: NextRequest,
@@ -21,6 +22,8 @@ export async function PATCH(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.receivables.markPaid");
+  if (denied) return denied;
 
   const body = await request.json();
 

@@ -6,6 +6,7 @@ import {
 } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 
 const ACTIONS = [
   "activate",
@@ -30,6 +31,8 @@ export async function POST(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.contracts.lifecycle");
+  if (denied) return denied;
 
   const body = await request.json();
   const action = body.action;

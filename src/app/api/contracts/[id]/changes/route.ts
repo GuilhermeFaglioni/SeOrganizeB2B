@@ -3,6 +3,7 @@ import { getUser } from "@/lib/supabase/server";
 import { applyContractChange } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function POST(
   request: NextRequest,
@@ -18,6 +19,8 @@ export async function POST(
       { status: 401 }
     );
   }
+  const denied = await denyFor(user.id, "financial.contracts.adjustValue");
+  if (denied) return denied;
 
   const body = await request.json();
 

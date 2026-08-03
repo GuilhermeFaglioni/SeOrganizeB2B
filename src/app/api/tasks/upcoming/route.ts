@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
+import { denyFor } from "@/lib/authz/authz";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -13,6 +14,9 @@ export async function GET(request: NextRequest) {
       { status: 401 }
     );
   }
+
+  const denied = await denyFor(user.id, "tasks.view");
+  if (denied) return denied;
 
   const requestedLimit = Number(new URL(request.url).searchParams.get("limit"));
   const limit = Number.isFinite(requestedLimit)

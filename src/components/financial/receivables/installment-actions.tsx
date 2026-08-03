@@ -7,6 +7,7 @@ import {
   useMarkInstallmentPaid,
   useRefundInstallment,
 } from "@/hooks/use-installments";
+import { useCan } from "@/hooks/use-permissions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,6 +32,7 @@ export function InstallmentActions({
   const markPaid = useMarkInstallmentPaid();
   const cancel = useCancelInstallment();
   const refund = useRefundInstallment();
+  const { can } = useCan();
   const [refundOpen, setRefundOpen] = useState(false);
   const [refundAmount, setRefundAmount] = useState("");
   const [refundDate, setRefundDate] = useState("");
@@ -38,17 +40,19 @@ export function InstallmentActions({
   if (installment.status === "pending") {
     return (
       <div className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          onClick={() =>
-            markPaid.mutate({
-              id: installment.id,
-              paidAt: new Date().toISOString().slice(0, 10),
-            })
-          }
-        >
-          {t("markPaid")}
-        </Button>
+        {can("financial.receivables.markPaid") && (
+          <Button
+            size="sm"
+            onClick={() =>
+              markPaid.mutate({
+                id: installment.id,
+                paidAt: new Date().toISOString().slice(0, 10),
+              })
+            }
+          >
+            {t("markPaid")}
+          </Button>
+        )}
         <Button size="sm" variant="outline" onClick={() => cancel.mutate(installment.id)}>
           {t("cancel")}
         </Button>
@@ -59,9 +63,11 @@ export function InstallmentActions({
   if (installment.status === "paid") {
     return (
       <>
-        <Button size="sm" variant="outline" onClick={() => setRefundOpen(true)}>
-          {t("refund")}
-        </Button>
+        {can("financial.receivables.refund") && (
+          <Button size="sm" variant="outline" onClick={() => setRefundOpen(true)}>
+            {t("refund")}
+          </Button>
+        )}
         <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
           <DialogContent>
             <DialogHeader>

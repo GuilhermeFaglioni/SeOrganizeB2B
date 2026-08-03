@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { recordActivity } from "@/lib/activity/record";
+import { denyFor } from "@/lib/authz/authz";
 import { completeRecurringTask } from "@/lib/tasks/complete-recurring-task";
 import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 
@@ -10,6 +11,9 @@ export async function GET(request: NextRequest, { params }: { params: { taskId: 
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+
+  const denied = await denyFor(user.id, "tasks.view");
+  if (denied) return denied;
 
   const task = await prisma.task.findUnique({
     where: { id: params.taskId },
@@ -40,6 +44,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
     if (!user) {
       return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
     }
+
+    const denied = await denyFor(user.id, "tasks.edit");
+    if (denied) return denied;
 
     const task = await prisma.task.findUnique({
       where: { id: params.taskId },
@@ -257,6 +264,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { taskI
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+
+  const denied = await denyFor(user.id, "tasks.delete");
+  if (denied) return denied;
 
   const task = await prisma.task.findUnique({ where: { id: params.taskId } });
   if (!task) {

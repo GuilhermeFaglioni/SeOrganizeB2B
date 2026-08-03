@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
+import { denyFor } from "@/lib/authz/authz";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+  const denied = await denyFor(user.id, "documents.view");
+  if (denied) return denied;
 
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get("project_id");
@@ -30,6 +33,8 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+  const denied = await denyFor(user.id, "documents.create");
+  if (denied) return denied;
 
   const body = await request.json();
   const { title, content, projectId } = body;

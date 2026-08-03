@@ -522,6 +522,13 @@
       "rejectFailed": "Falha ao recusar proposta",
       "cloneFailed": "Falha ao clonar proposta",
       "workspaceUpdateFailed": "Falha ao salvar configurações da empresa"
+    },
+    "roles": {
+      "createFailed": "Falha ao criar role",
+      "updateFailed": "Falha ao atualizar role",
+      "deleteFailed": "Falha ao excluir role",
+      "defaultFailed": "Falha ao definir role padrão",
+      "assignFailed": "Falha ao atribuir role"
     }
   },
   "today": {
@@ -987,6 +994,10 @@
       "workspace": {
         "title": "Empresa",
         "description": "Nome e logo exibidos nas propostas públicas"
+      },
+      "roles": {
+        "title": "Roles e permissões",
+        "description": "Crie roles customizadas e defina o que cada uma pode fazer"
       }
     },
     "profile": {
@@ -1037,7 +1048,11 @@
       "assignLabel": "Atribuir áreas da equipe:",
       "noAreas": "Nenhuma área configurada.",
       "saving": "Salvando...",
-      "save": "Salvar"
+      "save": "Salvar",
+      "roleLabel": "Role",
+      "noRole": "Sem role",
+      "roleSaved": "Role atualizada",
+      "noPermission": "Você não tem permissão para gerenciar a equipe."
     },
     "workspace": {
       "backToSettings": "Voltar para Configurações",
@@ -1202,6 +1217,73 @@
       "acceptedThanks": "Obrigado! Sua aceitação foi registrada.",
       "acceptFailed": "Falha ao registrar a aceitação",
       "unavailable": "Esta proposta não está disponível."
+    }
+  },
+  "roles": {
+    "page": {
+      "title": "Roles e permissões",
+      "subtitle": "Crie roles customizadas e controle o acesso a cada módulo e ação.",
+      "newRole": "Nova role",
+      "defaultRoleLabel": "Role padrão para novos usuários",
+      "defaultRoleHint": "Usuários recém-criados sem role atribuída recebem esta role automaticamente.",
+      "noDefault": "Nenhuma (sem acesso)",
+      "listAria": "Lista de roles",
+      "adminBadge": "Admin",
+      "defaultBadge": "Padrão",
+      "permissionCount": "{count, plural, one {# permissão} other {# permissões}}",
+      "userCount": "{count, plural, one {# usuário} other {# usuários}}",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir a role \"{name}\"? Os usuários atribuídos passarão a usar a role padrão (ou ficarão sem acesso).",
+      "deleted": "Role excluída",
+      "defaultSaved": "Role padrão atualizada",
+      "saved": "Role salva",
+      "loadFailed": "Falha ao carregar roles",
+      "retry": "Tentar novamente",
+      "backToSettings": "Voltar para Configurações",
+      "noPermission": "Você não tem permissão para gerenciar roles."
+    },
+    "editor": {
+      "titleCreate": "Nova role",
+      "titleEdit": "Editar role",
+      "nameLabel": "Nome da role",
+      "namePlaceholder": "Ex.: Financeiro, Visualizador",
+      "permissionsTitle": "Permissões",
+      "save": "Salvar",
+      "saving": "Salvando...",
+      "cancel": "Cancelar"
+    },
+    "permissions": {
+      "specialSection": "Permissões especiais",
+      "modules": {
+        "tasks": "Tarefas / Board",
+        "projects": "Projetos",
+        "calendar": "Calendário",
+        "documents": "Documentos",
+        "financial.overview": "Financeiro — Visão geral",
+        "financial.contracts": "Financeiro — Contratos",
+        "financial.proposals": "Financeiro — Propostas",
+        "financial.clients": "Financeiro — Clientes",
+        "financial.receivables": "Financeiro — Recebíveis",
+        "areas": "Áreas da equipe"
+      },
+      "actions": {
+        "view": "Ver",
+        "create": "Criar",
+        "edit": "Editar",
+        "delete": "Excluir"
+      },
+      "special": {
+        "financial.contracts.lifecycle": "Ciclo de vida de contratos",
+        "financial.contracts.adjustValue": "Ajustar valor de contrato",
+        "financial.receivables.markPaid": "Marcar parcela como paga",
+        "financial.receivables.refund": "Reembolsar parcela",
+        "financial.proposals.send": "Enviar proposta",
+        "financial.proposals.acceptReject": "Aceitar/recusar proposta",
+        "financial.proposals.clone": "Clonar proposta",
+        "financial.proposals.manageTemplates": "Gerenciar templates de proposta",
+        "manage_roles": "Gerenciar roles e permissões"
+      }
     }
   }
 }

@@ -12,6 +12,7 @@ import {
 import { normalizeAttendeeEmails } from "@/lib/calendar/validation";
 import { recordActivity } from "@/lib/activity/record";
 import { sendPushToUsers, buildPushPayload } from "@/lib/push";
+import { denyFor } from "@/lib/authz/authz";
 
 interface ScheduleEventBody {
   title?: string;
@@ -42,6 +43,8 @@ export async function POST(request: NextRequest) {
       { status: 401 },
     );
   }
+  const denied = await denyFor(user.id, "calendar.create");
+  if (denied) return denied;
 
   const body = (await request.json()) as ScheduleEventBody;
   const title = body.title?.trim();

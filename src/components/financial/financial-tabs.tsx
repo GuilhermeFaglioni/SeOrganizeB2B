@@ -4,21 +4,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useCan } from "@/hooks/use-permissions";
 
 const TABS = [
-  { href: "/financial", labelKey: "overview", exact: true },
-  { href: "/financial/contracts", labelKey: "contracts" },
-  { href: "/financial/proposals", labelKey: "proposals" },
-  { href: "/financial/receivables", labelKey: "receivables" },
-  { href: "/financial/clients", labelKey: "clients" },
+  { href: "/financial", labelKey: "overview", exact: true, permission: "financial.overview.view" },
+  { href: "/financial/contracts", labelKey: "contracts", permission: "financial.contracts.view" },
+  { href: "/financial/proposals", labelKey: "proposals", permission: "financial.proposals.view" },
+  { href: "/financial/receivables", labelKey: "receivables", permission: "financial.receivables.view" },
+  { href: "/financial/clients", labelKey: "clients", permission: "financial.clients.view" },
 ];
 
 export function FinancialTabs() {
   const pathname = usePathname();
   const t = useTranslations("financial.tabs");
+  const { can } = useCan();
+  const visibleTabs = TABS.filter((tab) => can(tab.permission));
   return (
     <nav aria-label={t("sections")} className="mb-4 flex flex-wrap gap-1">
-      {TABS.map((tab) => {
+      {visibleTabs.map((tab) => {
         const active = tab.exact
           ? pathname === tab.href
           : pathname.startsWith(tab.href);

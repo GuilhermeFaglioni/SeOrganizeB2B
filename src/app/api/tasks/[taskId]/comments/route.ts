@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { extractMentionProfileIds } from "@/lib/mentions";
+import { denyFor } from "@/lib/authz/authz";
 import { recordActivity } from "@/lib/activity/record";
 import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 
@@ -10,6 +11,9 @@ export async function GET(request: NextRequest, { params }: { params: { taskId: 
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+
+  const denied = await denyFor(user.id, "tasks.view");
+  if (denied) return denied;
 
   const comments = await prisma.comment.findMany({
     where: { taskId: params.taskId },
@@ -34,6 +38,9 @@ export async function POST(request: NextRequest, { params }: { params: { taskId:
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+
+  const denied = await denyFor(user.id, "tasks.view");
+  if (denied) return denied;
 
   const body = await request.json();
   const { content } = body;

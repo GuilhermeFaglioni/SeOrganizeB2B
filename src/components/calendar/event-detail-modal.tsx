@@ -31,6 +31,7 @@ import { useAreas } from "@/hooks/use-areas";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useUpdateCalendarEvent, useDeleteCalendarEvent } from "@/hooks/use-calendar";
+import { useCan } from "@/hooks/use-permissions";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 const NONE = "__none__";
@@ -52,6 +53,7 @@ export function EventDetailModal({
   const { data: projects = [] } = useProjects();
   const { data: areas = [] } = useAreas();
   const t = useTranslations("calendar.eventDetail");
+  const { can } = useCan();
   const [projectId, setProjectId] = useState("");
   const [taskId, setTaskId] = useState(NONE);
   const [areaId, setAreaId] = useState(NONE);
@@ -287,6 +289,7 @@ export function EventDetailModal({
               </>
             ) : (
               <>
+                {can("calendar.delete") && (
                 <Button
                   variant="outline"
                   className="text-danger hover:text-danger"
@@ -294,10 +297,11 @@ export function EventDetailModal({
                 >
                   {t("delete")}
                 </Button>
+                )}
                 <Button variant="outline" onClick={() => onOpenChange(false)}>
                   {t("cancel")}
                 </Button>
-                <Button onClick={saveLinks} disabled={updateEvent.isPending}>
+                <Button onClick={saveLinks} disabled={updateEvent.isPending || !can("calendar.edit")}>
                   {updateEvent.isPending ? t("saving") : t("saveLinks")}
                 </Button>
               </>

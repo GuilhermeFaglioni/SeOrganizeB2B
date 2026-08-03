@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useContract, useDeleteContract } from "@/hooks/use-contracts";
+import { useCan } from "@/hooks/use-permissions";
 import { useMarkInstallmentPaid } from "@/hooks/use-installments";
 import { suggestPlan } from "@/lib/financial/installments";
 import { toDecimal } from "@/lib/financial/money";
@@ -25,6 +26,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
   const { data: contract, isLoading, isError, refetch } = useContract(contractId);
   const markPaid = useMarkInstallmentPaid();
   const deleteContract = useDeleteContract();
+  const { can } = useCan();
   const [changeOpen, setChangeOpen] = useState(false);
 
   function handleDelete() {
@@ -80,7 +82,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
               status={contract.status}
               plan={activationPlan}
             />
-            {(contract.status === "draft" || contract.status === "active") && (
+            {(contract.status === "draft" || contract.status === "active") && can("financial.contracts.edit") && (
               <Link
                 href={`/financial/contracts/${contract.id}/edit`}
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-page hover:text-text-primary min-h-[44px] md:min-h-[36px] focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
@@ -88,14 +90,16 @@ export function ContractDetail({ contractId }: { contractId: string }) {
                 {t("edit")}
               </Link>
             )}
-            {contract.status === "active" && (
+            {contract.status === "active" && can("financial.contracts.adjustValue") && (
               <Button variant="outline" onClick={() => setChangeOpen(true)}>
                 {t("adjustValue")}
               </Button>
             )}
-            <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 size={16} aria-hidden="true" /> {t("delete")}
-            </Button>
+            {can("financial.contracts.delete") && (
+              <Button variant="destructive" onClick={handleDelete}>
+                <Trash2 size={16} aria-hidden="true" /> {t("delete")}
+              </Button>
+            )}
           </div>
         </div>
       </div>

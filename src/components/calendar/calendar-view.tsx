@@ -11,6 +11,7 @@ import { useCalendarEvents } from "@/hooks/use-calendar";
 import { useIsMobile, useIsTablet } from "@/hooks/use-media-query";
 import { CalendarEvent } from "./calendar-event";
 import { toastError } from "@/lib/toast";
+import { useCan } from "@/hooks/use-permissions";
 import { EventDetailModal } from "./event-detail-modal";
 import type { CalendarEventData } from "@/lib/calendar/types";
 
@@ -47,6 +48,7 @@ export function CalendarView({
   onSyncError?: () => void;
 }) {
   const t = useTranslations("calendar.view");
+  const { can } = useCan();
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const calendarRef = useRef<FullCalendar>(null);
@@ -172,8 +174,8 @@ export function CalendarView({
         events={calendarEvents}
         datesSet={handleDatesSet}
         eventClick={handleEventClick}
-        dateClick={(info) => onCreateEvent?.(info.dateStr, info.allDay)}
-        select={(info) => onCreateEvent?.(info.startStr, info.allDay)}
+        dateClick={(info) => can("calendar.create") && onCreateEvent?.(info.dateStr, info.allDay)}
+        select={(info) => can("calendar.create") && onCreateEvent?.(info.startStr, info.allDay)}
         eventContent={(info) => (
           <CalendarEvent
             event={info.event.extendedProps.eventData}

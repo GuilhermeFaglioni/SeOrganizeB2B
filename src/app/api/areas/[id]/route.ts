@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/client";
+import { denyFor } from "@/lib/authz/authz";
 import { getUser } from "@/lib/supabase/server";
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
@@ -7,6 +8,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+
+  const denied = await denyFor(user.id, "areas.edit");
+  if (denied) return denied;
 
   const body = await request.json();
   const { name, color } = body;
@@ -36,6 +40,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+
+  const denied = await denyFor(user.id, "areas.delete");
+  if (denied) return denied;
 
   const area = await prisma.teamArea.findUnique({ where: { id: params.id } });
   if (!area) {

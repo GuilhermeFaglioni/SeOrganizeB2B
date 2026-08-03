@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateTask, useUpdateTask } from "@/hooks/use-tasks";
+import { useCan } from "@/hooks/use-permissions";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { useAreas } from "@/hooks/use-areas";
 import { DEFAULT_PRIORITIES } from "@/lib/constants";
@@ -54,6 +55,7 @@ interface TaskFormProps {
 
 export function TaskForm({ open, onOpenChange, projectId, columnId, task, profiles }: TaskFormProps) {
   const t = useTranslations("kanban.taskForm");
+  const { can } = useCan();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
@@ -284,7 +286,7 @@ export function TaskForm({ open, onOpenChange, projectId, columnId, task, profil
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("cancel")}
             </Button>
-            <Button type="submit" disabled={createTask.isPending || updateTask.isPending}>
+            <Button type="submit" disabled={createTask.isPending || updateTask.isPending || !(isEditing ? can("tasks.edit") : can("tasks.create"))}>
               {isEditing ? t("update") : t("create")}
             </Button>
           </div>
