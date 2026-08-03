@@ -70,4 +70,14 @@ describe("proposals UI", () => {
     expect(preview).toContain("ResizeObserver");
     expect(preview).toContain("border-0");
   });
+
+  it("ships a commercial proposal template with personalization and CTA hooks", () => {
+    const template = read("examples/proposta-seorganize-template.html");
+    expect(template).toContain("hero-kicker");
+    expect(template).toContain("decision-strip");
+    expect(template).toContain("investment-card");
+    expect(template).toContain("acceptance-cta");
+    expect(template).toContain("{{cliente.nome}}");
+    expect(template).toContain("{{proposta.valor_total}}");
+  });
 });
