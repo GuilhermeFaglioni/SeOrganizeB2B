@@ -6,6 +6,7 @@ import { detectVariables } from "@/lib/financial/proposal-variables";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ProposalHtmlPreview } from "@/components/financial/proposals/proposal-html-preview";
 
 interface TemplateEditorProps {
   initialName?: string;
@@ -133,17 +134,17 @@ export function TemplateEditor({
 
         <div className="space-y-2">
           <Label>{t("previewLabel")}</Label>
-          <div className="min-h-[420px] overflow-auto rounded-md border border-border bg-white p-4">
-            {previewError ? (
-              <p role="alert" className="text-sm text-danger">
-                {previewError}
-              </p>
-            ) : preview ? (
-              <div dangerouslySetInnerHTML={{ __html: preview }} />
-            ) : (
+          {previewError ? (
+            <p role="alert" className="text-sm text-danger">
+              {previewError}
+            </p>
+          ) : preview ? (
+            <ProposalHtmlPreview html={preview} className="h-[420px]" />
+          ) : (
+            <div className="min-h-[420px] rounded-md border border-border bg-page p-4">
               <p className="text-sm text-text-muted">{t("previewEmpty")}</p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 

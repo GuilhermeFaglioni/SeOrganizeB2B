@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingState } from "@/components/shared/loading-state";
+import { ProposalHtmlPreview } from "@/components/financial/proposals/proposal-html-preview";
 import { Clipboard, ExternalLink, Trash2 } from "lucide-react";
 
 export function ProposalDetail({ proposalId }: { proposalId: string }) {
@@ -249,10 +250,7 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
       <section className="rounded-xl border border-border bg-page-alt p-4">
         <h2 className="mb-3 text-base font-semibold text-text-primary">{t("previewTitle")}</h2>
         {proposal.htmlSnapshot ? (
-          <div
-            className="prose max-w-none min-h-[200px] overflow-auto rounded-md border border-border bg-white p-4 text-text-primary"
-            dangerouslySetInnerHTML={{ __html: proposal.htmlSnapshot }}
-          />
+          <ProposalHtmlPreview html={proposal.htmlSnapshot} className="h-[500px]" />
         ) : (
           <p className="text-sm text-text-muted">{t("previewEmpty")}</p>
         )}

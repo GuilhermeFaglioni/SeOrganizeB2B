@@ -58,7 +58,7 @@ describe("proposals UI", () => {
 
   it("public view renders the snapshot and accept form", () => {
     const view = read("src/components/financial/proposals/public-proposal.tsx");
-    expect(view).toContain("dangerouslySetInnerHTML");
+    expect(view).toContain("ProposalHtmlPreview");
     expect(view).toContain("/api/p/");
     expect(view).toContain("acceptedBy");
   });

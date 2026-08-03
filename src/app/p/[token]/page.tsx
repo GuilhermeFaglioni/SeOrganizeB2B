@@ -1,19 +1,12 @@
 import type { Metadata } from "next";
-import { NextIntlClientProvider } from "next-intl";
 import { getProposalPublic } from "@/lib/financial/proposals-service";
 import { isAppLocale } from "@/i18n/config";
-import ptBR from "../../../../messages/pt-BR.json";
-import en from "../../../../messages/en.json";
+import { PublicLocaleProvider } from "@/i18n/public-provider";
 import {
   PublicProposalUnavailable,
   PublicProposalView,
   type PublicProposalData,
 } from "@/components/financial/proposals/public-proposal";
-
-const messages: Record<string, typeof ptBR> = {
-  "pt-BR": ptBR,
-  en,
-};
 
 export const metadata: Metadata = {
   title: "Proposta",
@@ -35,11 +28,11 @@ export default async function PublicProposalPage({
   const locale = isAppLocale(proposal.locale) ? proposal.locale : "pt-BR";
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages[locale]}>
+    <PublicLocaleProvider locale={locale}>
       <PublicProposalView
         proposal={proposal as PublicProposalData}
         token={params.token}
       />
-    </NextIntlClientProvider>
+    </PublicLocaleProvider>
   );
 }
