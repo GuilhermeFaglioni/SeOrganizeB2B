@@ -37,8 +37,8 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
 
   const publicUrl = useMemo(
     () =>
-      typeof window !== "undefined" && proposal?.token
-        ? `${window.location.origin}/p/${proposal.token}`
+      typeof window !== "undefined" && proposal
+        ? `${window.location.origin}/p/${proposal.publicSlug ?? proposal.token}`
         : null,
     [proposal]
   );
