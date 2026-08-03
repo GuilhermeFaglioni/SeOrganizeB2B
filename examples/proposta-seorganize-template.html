@@ -1,101 +1,408 @@
 <style>
+  :root {
+    --ink: #10233f;
+    --ink-soft: #2c405c;
+    --muted: #718096;
+    --line: #dce5f0;
+    --paper: #f5f8fc;
+    --blue: #2f6fed;
+    --blue-dark: #1d4ea8;
+    --blue-soft: #eaf1ff;
+    --mint: #d9f4ed;
+    --mint-ink: #176b5c;
+    --white: #ffffff;
+  }
+
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #0f172a; line-height: 1.6; margin: 0; }
-  .proposal { max-width: 780px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-  .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: #ffffff; padding: 36px 44px; }
-  .header-brand { display: flex; align-items: center; gap: 16px; }
-  .header-logo-wrap { background: #ffffff; border-radius: 10px; padding: 8px; display: inline-flex; align-items: center; }
-  .header-title { font-size: 27px; font-weight: 700; margin: 14px 0 4px; letter-spacing: -0.02em; }
-  .header-sub { font-size: 13px; opacity: 0.85; }
-  .header-meta { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.25); font-size: 13px; }
-  .meta-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; margin-bottom: 2px; }
-  .body { padding: 40px 44px 8px; }
-  h2.section { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #1e3a8a; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 2px solid #bfdbfe; }
-  h2.section:first-of-type { margin-top: 0; }
-  .client-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; }
-  .client-block p { margin: 2px 0; font-size: 14px; }
-  .client-name { font-weight: 700; font-size: 15px !important; color: #0f172a; }
-  .muted { color: #64748b; }
-  .lead { font-size: 15px; color: #334155; }
-  .items { margin-top: 6px; }
-  .items table { border-collapse: collapse; width: 100%; font-size: 14px; }
-  .items th { background: #eff6ff; color: #1e3a8a; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
-  .summary { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 22px; margin-top: 18px; }
-  .summary-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-size: 14px; }
-  .summary-row + .summary-row { margin-top: 8px; }
-  .summary-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px; padding-top: 12px; border-top: 2px solid #1e3a8a; font-size: 18px; font-weight: 700; color: #1e3a8a; }
-  .terms { font-size: 13px; color: #475569; }
-  .terms ul { margin: 6px 0 0; padding-left: 18px; }
-  .terms li { margin: 3px 0; }
-  .acceptance { margin: 34px 0 10px; border: 1px dashed #94a3b8; border-radius: 10px; padding: 22px 24px; text-align: center; background: #ffffff; }
-  .acceptance-title { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
-  .acceptance-sub { font-size: 13px; color: #64748b; }
-  .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px; }
-  .sign-line { border-bottom: 1.5px solid #94a3b8; height: 40px; margin-bottom: 6px; }
-  .sign-name { font-size: 13px; color: #475569; text-align: center; }
-  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 44px; font-size: 12px; color: #94a3b8; text-align: center; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .proposal {
+    max-width: 1180px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 24px 80px rgba(16, 35, 63, 0.12);
+  }
+
+  .header {
+    position: relative;
+    overflow: hidden;
+    padding: 64px clamp(28px, 7vw, 96px) 72px;
+    color: var(--white);
+    background:
+      radial-gradient(circle at 84% 14%, rgba(126, 225, 211, 0.28), transparent 25%),
+      radial-gradient(circle at 8% 100%, rgba(47, 111, 237, 0.35), transparent 34%),
+      linear-gradient(135deg, #10233f 0%, #183f78 58%, #245fd1 100%);
+  }
+
+  .header::after {
+    position: absolute;
+    right: -110px;
+    bottom: -170px;
+    width: 380px;
+    height: 380px;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 50%;
+    box-shadow: 0 0 0 28px rgba(255,255,255,0.03), 0 0 0 58px rgba(255,255,255,0.025);
+    content: "";
+  }
+
+  .header-inner { position: relative; z-index: 1; }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+  }
+
+  .header-brand { display: flex; align-items: center; gap: 14px; }
+
+  .header-logo-wrap {
+    display: inline-flex;
+    min-width: 54px;
+    min-height: 54px;
+    align-items: center;
+    justify-content: center;
+    padding: 9px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.96);
+    box-shadow: 0 10px 26px rgba(7, 22, 44, 0.18);
+  }
+
+  .header-logo-wrap img { display: block; max-width: 150px; max-height: 54px; object-fit: contain; }
+
+  .brand-name { font-size: 16px; font-weight: 750; letter-spacing: -0.01em; }
+  .brand-sub { margin-top: 1px; color: rgba(255,255,255,0.7); font-size: 12px; }
+
+  .proposal-label {
+    padding: 8px 12px;
+    border: 1px solid rgba(255,255,255,0.24);
+    border-radius: 999px;
+    color: rgba(255,255,255,0.82);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(230px, 0.65fr);
+    gap: 54px;
+    align-items: end;
+    margin-top: 74px;
+  }
+
+  .hero-kicker {
+    margin: 0 0 14px;
+    color: #9ce8dc;
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .header-title {
+    max-width: 760px;
+    margin: 0;
+    color: var(--white);
+    font-size: clamp(34px, 5vw, 68px);
+    font-weight: 760;
+    letter-spacing: -0.055em;
+    line-height: 1.03;
+  }
+
+  .header-sub {
+    max-width: 600px;
+    margin: 22px 0 0;
+    color: rgba(255,255,255,0.78);
+    font-size: clamp(16px, 2vw, 20px);
+    line-height: 1.55;
+  }
+
+  .hero-note {
+    margin: 28px 0 0;
+    color: rgba(255,255,255,0.64);
+    font-size: 13px;
+  }
+
+  .hero-note strong { color: rgba(255,255,255,0.94); font-weight: 650; }
+
+  .hero-meta {
+    padding: 22px;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 20px;
+    background: rgba(5, 20, 42, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  .meta-item { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.14); font-size: 14px; }
+  .meta-item:first-child { padding-top: 0; }
+  .meta-item:last-child { padding-bottom: 0; border-bottom: 0; }
+  .meta-label { display: block; margin-bottom: 3px; color: rgba(255,255,255,0.55); font-size: 10px; font-weight: 750; letter-spacing: 0.13em; text-transform: uppercase; }
+  .meta-value { color: rgba(255,255,255,0.94); font-weight: 650; }
+
+  .body { padding: 70px clamp(28px, 7vw, 96px) 18px; }
+
+  .section { margin: 0 0 62px; }
+  .section:last-child { margin-bottom: 28px; }
+
+  .section-heading { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; }
+  .section-number { color: var(--blue); font-size: 11px; font-weight: 800; letter-spacing: 0.14em; }
+  h2.section-title { margin: 0; color: var(--ink); font-size: 24px; font-weight: 740; letter-spacing: -0.035em; line-height: 1.2; }
+  .section-intro { max-width: 680px; margin: -8px 0 22px 28px; color: var(--muted); font-size: 14px; }
+
+  .decision-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 72px;
+  }
+
+  .decision-card {
+    min-height: 126px;
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(145deg, #ffffff, #f7faff);
+  }
+
+  .decision-card:first-child { border-color: #bfd2fa; background: linear-gradient(145deg, #f5f8ff, #eaf1ff); }
+  .decision-label { color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: 0.12em; text-transform: uppercase; }
+  .decision-value { display: block; margin-top: 10px; color: var(--ink); font-size: 22px; font-weight: 760; letter-spacing: -0.035em; line-height: 1.2; }
+
+  .client-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fbfcfe;
+  }
+
+  .client-block p { margin: 3px 0; font-size: 14px; }
+  .client-name { color: var(--ink); font-size: 18px !important; font-weight: 740; letter-spacing: -0.02em; }
+  .muted { color: var(--muted); }
+
+  .scope-card {
+    position: relative;
+    overflow: hidden;
+    padding: 30px 32px 32px 38px;
+    border: 1px solid #c7d9fa;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f5f8ff 0%, #eef4ff 100%);
+  }
+
+  .scope-card::before { position: absolute; top: 0; bottom: 0; left: 0; width: 6px; background: var(--blue); content: ""; }
+  .scope-eyebrow { margin: 0 0 12px; color: var(--blue-dark); font-size: 11px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+  .lead { margin: 0; color: var(--ink-soft); font-size: 18px; line-height: 1.75; }
+
+  .items { overflow-x: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 18px; }
+  .items table { width: 100%; border-collapse: collapse; min-width: 520px; color: var(--ink-soft); font-size: 14px; }
+  .items th { padding: 15px 18px; background: #f4f7fc; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-align: left; text-transform: uppercase; }
+  .items td { padding: 17px 18px; border-top: 1px solid var(--line); }
+  .items tr:first-child td { border-top: 0; }
+
+  .investment-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 0.7fr);
+    gap: 30px;
+    align-items: center;
+    margin-top: 18px;
+    padding: 28px 32px;
+    border-radius: 20px;
+    background: var(--ink);
+    color: var(--white);
+  }
+
+  .investment-caption { margin: 0 0 7px; color: #9ce8dc; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+  .investment-copy { margin: 0; color: rgba(255,255,255,0.7); font-size: 14px; }
+  .investment-total { padding-left: 30px; border-left: 1px solid rgba(255,255,255,0.16); text-align: right; }
+  .investment-total-label { display: block; color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .investment-total-value { display: block; margin-top: 6px; color: var(--white); font-size: 32px; font-weight: 780; letter-spacing: -0.05em; }
+
+  .terms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .term-card { padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: #fbfcfe; }
+  .term-label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+  .term-value { color: var(--ink); font-size: 14px; font-weight: 680; line-height: 1.5; }
+  .terms-note { margin: 22px 0 0; color: var(--muted); font-size: 13px; }
+  .terms ul { margin: 14px 0 0; padding-left: 20px; color: var(--ink-soft); font-size: 13px; }
+  .terms li { margin: 9px 0; padding-left: 4px; }
+  .terms li::marker { color: var(--blue); }
+
+  .acceptance {
+    position: relative;
+    margin: 64px 0 28px;
+    padding: 36px 38px;
+    border: 1px solid #b9e5db;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #f0fbf8 0%, #e6f7f2 100%);
+    text-align: center;
+  }
+
+  .acceptance::before { position: absolute; top: 0; left: 15%; width: 70%; height: 3px; border-radius: 99px; background: var(--mint-ink); content: ""; }
+  .acceptance-title { color: var(--ink); font-size: 22px; font-weight: 760; letter-spacing: -0.03em; }
+  .acceptance-sub { max-width: 560px; margin: 8px auto 0; color: var(--mint-ink); font-size: 14px; line-height: 1.65; }
+  .acceptance-cta { display: inline-block; margin-top: 20px; padding: 12px 20px; border-radius: 10px; background: var(--mint-ink); color: var(--white); font-size: 12px; font-weight: 780; letter-spacing: 0.03em; }
+
+  .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 34px; }
+  .sign-line { height: 40px; margin-bottom: 7px; border-bottom: 1px solid #afbdcc; }
+  .sign-name { color: var(--muted); font-size: 12px; text-align: center; }
+
+  .footer { padding: 24px clamp(28px, 7vw, 96px); border-top: 1px solid var(--line); background: #fbfcfe; color: #9aa8b8; font-size: 11px; text-align: center; }
+
+  @media (max-width: 720px) {
+    .header { padding-top: 36px; padding-bottom: 46px; }
+    .header-top, .hero-grid { display: block; }
+    .proposal-label { display: none; }
+    .hero-grid { margin-top: 52px; }
+    .hero-meta { margin-top: 38px; }
+    .decision-strip, .terms-grid { grid-template-columns: 1fr; }
+    .investment-card { grid-template-columns: 1fr; }
+    .investment-total { padding: 18px 0 0; border-top: 1px solid rgba(255,255,255,0.16); border-left: 0; text-align: left; }
+  }
+
+  @media (max-width: 520px) {
+    .client-grid, .sign { grid-template-columns: 1fr; }
+    .scope-card, .investment-card, .acceptance { padding-right: 22px; padding-left: 22px; }
+    .header-title { font-size: 38px; }
+  }
 </style>
 
 <div class="proposal">
-  <div class="header">
-    <div class="header-brand">
-      <div class="header-logo-wrap">{{empresa.logo}}</div>
-      <div>
-        <div style="font-size:15px;font-weight:700;">{{empresa.nome}}</div>
-        <div style="font-size:12px;opacity:.8;">Organize sua empresa com tranquilidade</div>
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-top">
+        <div class="header-brand">
+          <div class="header-logo-wrap">{{empresa.logo}}</div>
+          <div>
+            <div class="brand-name">{{empresa.nome}}</div>
+            <div class="brand-sub">Estratégia clara para fazer acontecer</div>
+          </div>
+        </div>
+        <div class="proposal-label">Proposta personalizada</div>
+      </div>
+
+      <div class="hero-grid">
+        <div>
+          <p class="hero-kicker">Uma proposta pensada para o seu próximo passo</p>
+          <h1 class="header-title">{{proposta.titulo}}</h1>
+          <p class="header-sub">Um plano construído com atenção ao contexto do seu negócio, aos seus objetivos e ao resultado que queremos alcançar juntos.</p>
+          <p class="hero-note">Preparada especialmente para <strong>{{cliente.nome}}</strong>.</p>
+        </div>
+
+        <div class="hero-meta">
+          <div class="meta-item"><span class="meta-label">Nº da proposta</span><span class="meta-value">{{proposta.numero}}</span></div>
+          <div class="meta-item"><span class="meta-label">Emissão</span><span class="meta-value">{{proposta.data}}</span></div>
+          <div class="meta-item"><span class="meta-label">Válida até</span><span class="meta-value">{{proposta.validade}}</span></div>
+        </div>
       </div>
     </div>
-    <h1 class="header-title">{{proposta.titulo}}</h1>
-    <div class="header-sub">Proposta de serviços elaborada com atenção ao seu negócio</div>
-    <div class="header-meta">
-      <div><span class="meta-label">Nº da proposta</span>{{proposta.numero}}</div>
-      <div><span class="meta-label">Emissão</span>{{proposta.data}}</div>
-      <div><span class="meta-label">Validade</span>{{proposta.validade}}</div>
-      <div><span class="meta-label">Preparada para</span>{{cliente.nome}}</div>
-    </div>
-  </div>
+  </header>
 
-  <div class="body">
-    <h2 class="section">Dados do cliente</h2>
-    <div class="client-grid">
-      <div class="client-block">
-        <p class="client-name">{{cliente.nome}}</p>
-        <p class="muted">{{cliente.razao_social}}</p>
-        <p class="muted">{{cliente.cpf_cnpj}}</p>
+  <main class="body">
+    <section class="decision-strip" aria-label="Resumo da proposta">
+      <div class="decision-card">
+        <span class="decision-label">Investimento</span>
+        <strong class="decision-value">{{proposta.valor_total}}</strong>
       </div>
-      <div class="client-block">
-        <p class="muted">{{cliente.email}}</p>
-        <p class="muted">{{cliente.telefone}}</p>
+      <div class="decision-card">
+        <span class="decision-label">Prazo de execução</span>
+        <strong class="decision-value">{{prazo_execucao}}</strong>
       </div>
-    </div>
+      <div class="decision-card">
+        <span class="decision-label">Forma de pagamento</span>
+        <strong class="decision-value">{{condicoes_pagamento}}</strong>
+      </div>
+    </section>
 
-    <h2 class="section">Escopo do projeto</h2>
-    <p class="lead">{{escopo}}</p>
+    <section class="section">
+      <div class="section-heading">
+        <span class="section-number">01</span>
+        <h2 class="section-title">Feito para o seu contexto</h2>
+      </div>
+      <p class="section-intro">Cada detalhe desta proposta foi organizado para tornar a decisão mais simples e o próximo passo mais seguro.</p>
+      <div class="client-grid">
+        <div class="client-block">
+          <p class="client-name">{{cliente.nome}}</p>
+          <p class="muted">{{cliente.razao_social}}</p>
+          <p class="muted">{{cliente.cpf_cnpj}}</p>
+        </div>
+        <div class="client-block">
+          <p class="muted">{{cliente.email}}</p>
+          <p class="muted">{{cliente.telefone}}</p>
+        </div>
+      </div>
+    </section>
 
-    <h2 class="section">Itens da proposta</h2>
-    <div class="items">{{itens}}</div>
-    <div class="summary">
-      <div class="summary-row"><span class="muted">Total da proposta</span><strong>{{proposta.valor_total}}</strong></div>
-      <div class="summary-total"><span>Valor total a investir</span><span>{{proposta.valor_total}}</span></div>
-    </div>
+    <section class="section">
+      <div class="section-heading">
+        <span class="section-number">02</span>
+        <h2 class="section-title">O que vamos construir juntos</h2>
+      </div>
+      <div class="scope-card">
+        <p class="scope-eyebrow">Escopo da experiência</p>
+        <p class="lead">{{escopo}}</p>
+      </div>
+    </section>
 
-    <h2 class="section">Condições comerciais</h2>
-    <div class="terms">
-      <p><strong>Forma de pagamento:</strong> {{condicoes_pagamento}}</p>
-      <p><strong>Prazo de execução:</strong> {{prazo_execucao}}</p>
-      <p><strong>Garantia:</strong> {{garantia}}</p>
-      <p style="margin-top:12px;">Esta proposta segue as condições abaixo:</p>
-      <ul>
-        <li>Valores válidos apenas durante o período indicado no cabeçalho;</li>
-        <li>A emissão dos documentos fiscais ocorre após a confirmação do pagamento;</li>
-        <li>Alterações de escopo após a aprovação serão tratadas em aditivo próprio;</li>
-        <li>A SeOrganize+ assume a responsabilidade pela entrega conforme o escopo acima.</li>
-      </ul>
-    </div>
+    <section class="section">
+      <div class="section-heading">
+        <span class="section-number">03</span>
+        <h2 class="section-title">Entregas que tiram o plano do papel</h2>
+      </div>
+      <div class="items">{{itens}}</div>
+      <div class="investment-card">
+        <div>
+          <p class="investment-caption">Uma decisão com clareza</p>
+          <p class="investment-copy">Tudo o que está descrito acima faz parte deste investimento, com acompanhamento e responsabilidade de ponta a ponta.</p>
+        </div>
+        <div class="investment-total">
+          <span class="investment-total-label">Valor total a investir</span>
+          <strong class="investment-total-value">{{proposta.valor_total}}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <span class="section-number">04</span>
+        <h2 class="section-title">Condições para seguir com tranquilidade</h2>
+      </div>
+      <div class="terms">
+        <div class="terms-grid">
+          <div class="term-card"><span class="term-label">Pagamento</span><span class="term-value">{{condicoes_pagamento}}</span></div>
+          <div class="term-card"><span class="term-label">Execução</span><span class="term-value">{{prazo_execucao}}</span></div>
+          <div class="term-card"><span class="term-label">Garantia</span><span class="term-value">{{garantia}}</span></div>
+        </div>
+        <p class="terms-note">Esta proposta segue alguns combinados importantes:</p>
+        <ul>
+          <li>Valores válidos durante o período indicado no cabeçalho;</li>
+          <li>Documentos fiscais emitidos após a confirmação do pagamento;</li>
+          <li>Alterações de escopo após a aprovação tratadas em aditivo próprio;</li>
+          <li>A {{empresa.nome}} assume a responsabilidade pela entrega conforme o escopo apresentado.</li>
+        </ul>
+      </div>
+    </section>
 
     <div class="acceptance">
-      <div class="acceptance-title">Confirmação de aceite</div>
-      <div class="acceptance-sub">Ao aceitar esta proposta pelo botão abaixo, você concorda com as condições descritas.</div>
+      <div class="acceptance-title">Pronto para dar o próximo passo?</div>
+      <div class="acceptance-sub">Ao aceitar esta proposta, você confirma que este plano faz sentido para o momento do seu negócio. A partir daqui, começamos a construir juntos.</div>
+      <div class="acceptance-cta">Confirmar esta proposta →</div>
     </div>
 
     <div class="sign">
@@ -108,9 +415,9 @@
         <div class="sign-name">{{cliente.nome}}</div>
       </div>
     </div>
-  </div>
+  </main>
 
-  <div class="footer">
-    Documento gerado por {{empresa.nome}} através da SeOrganize+ · {{proposta.numero}} · Emissão {{proposta.data}}
-  </div>
+  <footer class="footer">
+    Preparada por {{empresa.nome}} através da SeOrganize+ · {{proposta.numero}} · Emissão {{proposta.data}}
+  </footer>
 </div>
