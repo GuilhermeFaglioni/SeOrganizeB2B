@@ -38,7 +38,19 @@ export async function GET() {
         (SELECT count(*) FROM roles) AS role_count,
         (SELECT count(*) FROM profiles) AS profile_count
     `;
-    return NextResponse.json({ data: rows[0], error: null });
+    const row = rows[0];
+    return NextResponse.json({
+      data: {
+        db: row.db,
+        user: row.user,
+        roles_table_exists: row.roles_table_exists,
+        has_is_admin: row.has_is_admin,
+        profiles_has_role_id: row.profiles_has_role_id,
+        role_count: Number(row.role_count),
+        profile_count: Number(row.profile_count),
+      },
+      error: null,
+    });
   } catch (error) {
     return NextResponse.json(
       {
