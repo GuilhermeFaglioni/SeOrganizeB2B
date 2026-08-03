@@ -5,6 +5,12 @@ import { ThemeWatcher } from "@/components/theme-watcher";
 import { I18nProvider } from "@/i18n/provider";
 import "./globals.css";
 
+// The whole app renders client-side with next-intl's client provider.
+// Force dynamic rendering so pages are never statically prerendered, which
+// would run useTranslations in a server context without the request config
+// and fail with next-intl ENVIRONMENT_FALLBACK.
+export const dynamic = "force-dynamic";
+
 const geist = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-sans",
