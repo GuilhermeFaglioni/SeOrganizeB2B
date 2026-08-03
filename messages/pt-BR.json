@@ -509,6 +509,18 @@
     "pushNotifications": {
       "vapidKeyNotFound": "Chave pública VAPID não encontrada",
       "invalidSubscription": "Inscrição inválida"
+    },
+    "proposals": {
+      "templateCreateFailed": "Falha ao criar template",
+      "templateUpdateFailed": "Falha ao atualizar template",
+      "templateDeleteFailed": "Falha ao excluir template",
+      "createFailed": "Falha ao criar proposta",
+      "updateFailed": "Falha ao atualizar proposta",
+      "deleteFailed": "Falha ao excluir proposta",
+      "sendFailed": "Falha ao enviar proposta",
+      "rejectFailed": "Falha ao recusar proposta",
+      "cloneFailed": "Falha ao clonar proposta",
+      "workspaceUpdateFailed": "Falha ao salvar configurações da empresa"
     }
   },
   "today": {
@@ -970,6 +982,10 @@
       "team": {
         "title": "Equipe",
         "description": "Veja e gerencie membros da equipe e suas atribuições de área"
+      },
+      "workspace": {
+        "title": "Empresa",
+        "description": "Nome e logo exibidos nas propostas públicas"
       }
     },
     "profile": {
@@ -1021,6 +1037,168 @@
       "noAreas": "Nenhuma área configurada.",
       "saving": "Salvando...",
       "save": "Salvar"
+    },
+    "workspace": {
+      "backToSettings": "Voltar para Configurações",
+      "title": "Empresa",
+      "subtitle": "Nome e logo exibidos no cabeçalho das propostas públicas.",
+      "companyNameLabel": "Nome da empresa",
+      "companyNamePlaceholder": "Sua Empresa LTDA",
+      "companyNameHint": "Usado nas variáveis {{empresa.nome}} e no cabeçalho público.",
+      "logoUrlLabel": "URL do logo",
+      "logoUrlHint": "Usado na variável {{empresa.logo}} e no cabeçalho público.",
+      "saving": "Salvando...",
+      "save": "Salvar",
+      "saved": "Configurações salvas"
+    }
+  },
+  "financial.tabs": {
+    "proposals": "Propostas"
+  },
+  "proposals": {
+    "statuses": {
+      "draft": "Rascunho",
+      "sent": "Enviada",
+      "viewed": "Vista",
+      "accepted": "Aceita",
+      "rejected": "Recusada"
+    },
+    "list": {
+      "searchLabel": "Buscar propostas",
+      "searchPlaceholder": "Buscar por título, código ou cliente",
+      "statusFilterLabel": "Filtrar por status",
+      "allStatuses": "Todos os status",
+      "statuses": {
+        "draft": "Rascunho",
+        "sent": "Enviada",
+        "viewed": "Vista",
+        "accepted": "Aceita",
+        "rejected": "Recusada"
+      },
+      "templates": "Templates",
+      "newProposal": "Nova proposta",
+      "loadFailed": "Falha ao carregar propostas",
+      "emptyTitle": "Nenhuma proposta corresponde aos seus filtros",
+      "tableLabel": "Propostas",
+      "colCode": "Código",
+      "colTitle": "Título",
+      "colClient": "Cliente",
+      "colStatus": "Status",
+      "colValue": "Valor",
+      "colCreated": "Criada",
+      "colActions": "Ações",
+      "deleteAria": "Excluir proposta",
+      "confirmDelete": "Excluir \"{title}\"? Esta ação não pode ser desfeita.",
+      "deleted": "Proposta excluída"
+    },
+    "detail": {
+      "loadFailed": "Falha ao carregar a proposta",
+      "noTemplate": "Sem template",
+      "edit": "Editar",
+      "send": "Enviar",
+      "copyLink": "Copiar link",
+      "viewPublic": "Ver página pública",
+      "reject": "Recusar",
+      "clone": "Clonar",
+      "delete": "Excluir",
+      "rejectReasonLabel": "Motivo da recusa (opcional)",
+      "rejectReasonPlaceholder": "Ex.: preço acima do orçamento",
+      "cancel": "Cancelar",
+      "confirmReject": "Confirmar recusa",
+      "detailsTitle": "Detalhes",
+      "detailsAria": "Detalhes da proposta",
+      "totalValue": "Valor total",
+      "issueDate": "Emissão",
+      "validUntil": "Validade",
+      "viewedAt": "Vista em",
+      "acceptedBy": "Aceita por {name} em {date}",
+      "rejectedAt": "Recusada em {date}",
+      "itemsTitle": "Itens",
+      "itemsAria": "Itens da proposta",
+      "itemName": "Nome",
+      "itemQuantity": "Qtd",
+      "itemPrice": "Preço",
+      "previewTitle": "Pré-visualização",
+      "previewEmpty": "Envie a proposta para gerar a versão final.",
+      "sent": "Proposta enviada",
+      "cloned": "Proposta clonada",
+      "deleted": "Proposta excluída",
+      "rejected": "Proposta recusada",
+      "linkCopied": "Link copiado",
+      "confirmDelete": "Excluir a proposta {code}? Esta ação não pode ser desfeita."
+    },
+    "form": {
+      "previewFailed": "Falha ao gerar a pré-visualização",
+      "dataTitle": "Dados da proposta",
+      "titleLabel": "Título",
+      "titlePlaceholder": "Ex.: Proposta de implantação do sistema",
+      "clientLabel": "Cliente",
+      "selectClient": "Selecione o cliente",
+      "templateLabel": "Template",
+      "selectTemplate": "Selecione o template",
+      "totalValueLabel": "Valor total (BRL)",
+      "issueDateLabel": "Data de emissão",
+      "validUntilLabel": "Validade",
+      "itemsTitle": "Itens",
+      "itemName": "Nome",
+      "itemQuantity": "Qtd",
+      "itemPrice": "Preço",
+      "removeItem": "Remover item",
+      "addItem": "Adicionar item",
+      "variablesTitle": "Variáveis do template",
+      "variablesHint": "Preencha as variáveis personalizadas desta proposta. As variáveis de sistema são preenchidas automaticamente.",
+      "previewTitle": "Pré-visualização",
+      "previewNoTemplate": "Selecione um template para visualizar a proposta.",
+      "saveDraft": "Salvar rascunho",
+      "send": "Salvar e enviar",
+      "draftSaved": "Rascunho salvo",
+      "proposalSent": "Proposta enviada"
+    },
+    "templates": {
+      "title": "Templates de proposta",
+      "subtitle": "Crie modelos HTML com variáveis {{variavel}} para gerar propostas personalizadas.",
+      "newTemplate": "Novo template",
+      "emptyTitle": "Nenhum template criado ainda",
+      "listAria": "Templates de proposta",
+      "editAria": "Editar template",
+      "deleteAria": "Excluir template",
+      "variableCount": "{count, plural, one {# variável} other {# variáveis}}",
+      "createdAt": "Criado em",
+      "useTemplate": "Usar este template",
+      "confirmDelete": "Excluir o template \"{name}\"?",
+      "deleted": "Template excluído",
+      "loadFailed": "Falha ao carregar templates",
+      "saved": "Template salvo",
+      "saveTemplate": "Salvar template",
+      "createTemplate": "Criar template"
+    },
+    "templateEditor": {
+      "nameLabel": "Nome",
+      "namePlaceholder": "Ex.: Proposta padrão de serviços",
+      "htmlLabel": "HTML",
+      "htmlHint": "Use {{variavel}} para valores dinâmicos",
+      "previewLabel": "Pré-visualização",
+      "previewFailed": "Falha ao gerar a pré-visualização",
+      "previewEmpty": "Digite o HTML para ver a pré-visualização.",
+      "variablesTitle": "Variáveis detectadas",
+      "noVariables": "Nenhuma variável detectada no HTML.",
+      "customVar": "personalizada",
+      "systemVar": "sistema",
+      "saving": "Salvando..."
+    },
+    "public": {
+      "for": "Proposta para",
+      "acceptedBanner": "Proposta aceita por {name} em {date}.",
+      "rejectedBanner": "Esta proposta foi recusada.",
+      "acceptTitle": "Aceitar proposta",
+      "nameLabel": "Seu nome",
+      "namePlaceholder": "Digite seu nome",
+      "nameRequired": "Informe seu nome para aceitar",
+      "accepting": "Confirmando...",
+      "accept": "Aceitar proposta",
+      "acceptedThanks": "Obrigado! Sua aceitação foi registrada.",
+      "acceptFailed": "Falha ao registrar a aceitação",
+      "unavailable": "Esta proposta não está disponível."
     }
   }
 }

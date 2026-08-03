@@ -509,6 +509,18 @@
     "pushNotifications": {
       "vapidKeyNotFound": "VAPID public key not found",
       "invalidSubscription": "Invalid subscription"
+    },
+    "proposals": {
+      "templateCreateFailed": "Failed to create template",
+      "templateUpdateFailed": "Failed to update template",
+      "templateDeleteFailed": "Failed to delete template",
+      "createFailed": "Failed to create proposal",
+      "updateFailed": "Failed to update proposal",
+      "deleteFailed": "Failed to delete proposal",
+      "sendFailed": "Failed to send proposal",
+      "rejectFailed": "Failed to reject proposal",
+      "cloneFailed": "Failed to clone proposal",
+      "workspaceUpdateFailed": "Failed to save company settings"
     }
   },
   "today": {
@@ -970,6 +982,10 @@
       "team": {
         "title": "Team",
         "description": "View and manage team members and their area assignments"
+      },
+      "workspace": {
+        "title": "Company",
+        "description": "Name and logo shown on public proposals"
       }
     },
     "profile": {
@@ -1021,6 +1037,168 @@
       "noAreas": "No areas configured.",
       "saving": "Saving...",
       "save": "Save"
+    },
+    "workspace": {
+      "backToSettings": "Back to Settings",
+      "title": "Company",
+      "subtitle": "Name and logo shown in the header of public proposals.",
+      "companyNameLabel": "Company name",
+      "companyNamePlaceholder": "Your Company LLC",
+      "companyNameHint": "Used in the {{empresa.nome}} variable and in the public header.",
+      "logoUrlLabel": "Logo URL",
+      "logoUrlHint": "Used in the {{empresa.logo}} variable and in the public header.",
+      "saving": "Saving...",
+      "save": "Save",
+      "saved": "Settings saved"
+    }
+  },
+  "financial.tabs": {
+    "proposals": "Proposals"
+  },
+  "proposals": {
+    "statuses": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "viewed": "Viewed",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "list": {
+      "searchLabel": "Search proposals",
+      "searchPlaceholder": "Search by title, code or client",
+      "statusFilterLabel": "Filter by status",
+      "allStatuses": "All statuses",
+      "statuses": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "viewed": "Viewed",
+        "accepted": "Accepted",
+        "rejected": "Rejected"
+      },
+      "templates": "Templates",
+      "newProposal": "New proposal",
+      "loadFailed": "Failed to load proposals",
+      "emptyTitle": "No proposals match your filters",
+      "tableLabel": "Proposals",
+      "colCode": "Code",
+      "colTitle": "Title",
+      "colClient": "Client",
+      "colStatus": "Status",
+      "colValue": "Value",
+      "colCreated": "Created",
+      "colActions": "Actions",
+      "deleteAria": "Delete proposal",
+      "confirmDelete": "Delete \"{title}\"? This action cannot be undone.",
+      "deleted": "Proposal deleted"
+    },
+    "detail": {
+      "loadFailed": "Failed to load the proposal",
+      "noTemplate": "No template",
+      "edit": "Edit",
+      "send": "Send",
+      "copyLink": "Copy link",
+      "viewPublic": "View public page",
+      "reject": "Reject",
+      "clone": "Clone",
+      "delete": "Delete",
+      "rejectReasonLabel": "Rejection reason (optional)",
+      "rejectReasonPlaceholder": "e.g. price above budget",
+      "cancel": "Cancel",
+      "confirmReject": "Confirm rejection",
+      "detailsTitle": "Details",
+      "detailsAria": "Proposal details",
+      "totalValue": "Total value",
+      "issueDate": "Issue date",
+      "validUntil": "Valid until",
+      "viewedAt": "Viewed at",
+      "acceptedBy": "Accepted by {name} on {date}",
+      "rejectedAt": "Rejected on {date}",
+      "itemsTitle": "Items",
+      "itemsAria": "Proposal items",
+      "itemName": "Name",
+      "itemQuantity": "Qty",
+      "itemPrice": "Price",
+      "previewTitle": "Preview",
+      "previewEmpty": "Send the proposal to generate the final version.",
+      "sent": "Proposal sent",
+      "cloned": "Proposal cloned",
+      "deleted": "Proposal deleted",
+      "rejected": "Proposal rejected",
+      "linkCopied": "Link copied",
+      "confirmDelete": "Delete proposal {code}? This action cannot be undone."
+    },
+    "form": {
+      "previewFailed": "Failed to generate the preview",
+      "dataTitle": "Proposal data",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. System implementation proposal",
+      "clientLabel": "Client",
+      "selectClient": "Select a client",
+      "templateLabel": "Template",
+      "selectTemplate": "Select a template",
+      "totalValueLabel": "Total value (BRL)",
+      "issueDateLabel": "Issue date",
+      "validUntilLabel": "Valid until",
+      "itemsTitle": "Items",
+      "itemName": "Name",
+      "itemQuantity": "Qty",
+      "itemPrice": "Price",
+      "removeItem": "Remove item",
+      "addItem": "Add item",
+      "variablesTitle": "Template variables",
+      "variablesHint": "Fill in the custom variables for this proposal. System variables are filled automatically.",
+      "previewTitle": "Preview",
+      "previewNoTemplate": "Select a template to preview the proposal.",
+      "saveDraft": "Save draft",
+      "send": "Save and send",
+      "draftSaved": "Draft saved",
+      "proposalSent": "Proposal sent"
+    },
+    "templates": {
+      "title": "Proposal templates",
+      "subtitle": "Create HTML templates with {{variable}} placeholders to generate personalized proposals.",
+      "newTemplate": "New template",
+      "emptyTitle": "No templates created yet",
+      "listAria": "Proposal templates",
+      "editAria": "Edit template",
+      "deleteAria": "Delete template",
+      "variableCount": "{count, plural, one {# variable} other {# variables}}",
+      "createdAt": "Created at",
+      "useTemplate": "Use this template",
+      "confirmDelete": "Delete the template \"{name}\"?",
+      "deleted": "Template deleted",
+      "loadFailed": "Failed to load templates",
+      "saved": "Template saved",
+      "saveTemplate": "Save template",
+      "createTemplate": "Create template"
+    },
+    "templateEditor": {
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Standard services proposal",
+      "htmlLabel": "HTML",
+      "htmlHint": "Use {{variable}} for dynamic values",
+      "previewLabel": "Preview",
+      "previewFailed": "Failed to generate the preview",
+      "previewEmpty": "Type HTML to see the preview.",
+      "variablesTitle": "Detected variables",
+      "noVariables": "No variables detected in the HTML.",
+      "customVar": "custom",
+      "systemVar": "system",
+      "saving": "Saving..."
+    },
+    "public": {
+      "for": "Proposal for",
+      "acceptedBanner": "Proposal accepted by {name} on {date}.",
+      "rejectedBanner": "This proposal was rejected.",
+      "acceptTitle": "Accept proposal",
+      "nameLabel": "Your name",
+      "namePlaceholder": "Type your name",
+      "nameRequired": "Enter your name to accept",
+      "accepting": "Confirming...",
+      "accept": "Accept proposal",
+      "acceptedThanks": "Thank you! Your acceptance was recorded.",
+      "acceptFailed": "Failed to record the acceptance",
+      "unavailable": "This proposal is not available."
     }
   }
 }

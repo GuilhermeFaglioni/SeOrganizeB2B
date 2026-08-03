@@ -30,6 +30,11 @@ export default function SettingsPage() {
           description={t("team.description")}
           href="/settings/team"
         />
+        <SettingsCard
+          title={t("workspace.title")}
+          description={t("workspace.description")}
+          href="/settings/workspace"
+        />
       </div>
     </div>
   );
