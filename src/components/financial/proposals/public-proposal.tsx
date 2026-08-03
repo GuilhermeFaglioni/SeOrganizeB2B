@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ProposalHtmlPreview } from "@/components/financial/proposals/proposal-html-preview";
 
 export interface PublicProposalData {
   status: string;
@@ -131,9 +132,10 @@ export function PublicProposalView({
           </div>
         )}
 
-        <article className="prose max-w-none rounded-xl border border-border bg-white p-6 text-text-primary shadow-sm">
-          <div dangerouslySetInnerHTML={{ __html: proposal.htmlSnapshot }} />
-        </article>
+        <ProposalHtmlPreview
+          html={proposal.htmlSnapshot}
+          className="h-[70vh] min-h-[400px]"
+        />
 
         {canAccept && !submitting && (
           <form

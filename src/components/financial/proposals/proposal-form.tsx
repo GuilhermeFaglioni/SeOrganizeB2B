@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingState } from "@/components/shared/loading-state";
+import { ProposalHtmlPreview } from "@/components/financial/proposals/proposal-html-preview";
 
 interface ItemRow {
   name: string;
@@ -385,9 +386,7 @@ export function ProposalForm({
         ) : previewError ? (
           <p role="alert" className="text-sm text-danger">{previewError}</p>
         ) : (
-          <div className="min-h-[200px] overflow-auto rounded-md border border-border bg-white p-4">
-            <div dangerouslySetInnerHTML={{ __html: preview }} />
-          </div>
+          <ProposalHtmlPreview html={preview} className="h-[400px]" />
         )}
       </section>
 
