@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../prisma/client";
+import { ADMIN_ROLE_ID } from "./permissions";
 
 export interface EffectivePermissions {
   isAdmin: boolean;
@@ -15,7 +16,7 @@ export async function getEffectivePermissions(
     where: { id: userId },
     select: {
       role: {
-        select: { id: true, name: true, isAdmin: true, permissions: true },
+        select: { id: true, name: true, permissions: true },
       },
     },
   });
@@ -23,14 +24,14 @@ export async function getEffectivePermissions(
   let role = profile?.role ?? null;
 
   if (!role) {
-    const workspace = await prisma.workspaceSettings.findUnique({
+    const workspace = await prisma.workspaceSettings.findFirst({
       where: { id: "default" },
       select: { defaultRoleId: true },
     });
     if (workspace?.defaultRoleId) {
-      role = await prisma.role.findUnique({
+      role = await prisma.role.findFirst({
         where: { id: workspace.defaultRoleId },
-        select: { id: true, name: true, isAdmin: true, permissions: true },
+        select: { id: true, name: true, permissions: true },
       });
     }
   }
@@ -39,7 +40,9 @@ export async function getEffectivePermissions(
     return { isAdmin: false, roleId: null, roleName: null, permissions: [] };
   }
 
-  if (role.isAdmin) {
+  // Admin is identified by its fixed role id, avoiding a dependency on the
+  // roles.is_admin column (which may be missing on drifted databases).
+  if (role.id === ADMIN_ROLE_ID) {
     return { isAdmin: true, roleId: role.id, roleName: role.name, permissions: [] };
   }
 
