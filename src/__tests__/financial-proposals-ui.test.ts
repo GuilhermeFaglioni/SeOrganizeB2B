@@ -59,7 +59,15 @@ describe("proposals UI", () => {
   it("public view renders the snapshot and accept form", () => {
     const view = read("src/components/financial/proposals/public-proposal.tsx");
     expect(view).toContain("ProposalHtmlPreview");
+    expect(view).toContain("immersive");
     expect(view).toContain("/api/p/");
     expect(view).toContain("acceptedBy");
+  });
+
+  it("public preview removes the nested document frame and follows content height", () => {
+    const preview = read("src/components/financial/proposals/proposal-html-preview.tsx");
+    expect(preview).toContain("proposal-preview-height");
+    expect(preview).toContain("ResizeObserver");
+    expect(preview).toContain("border-0");
   });
 });

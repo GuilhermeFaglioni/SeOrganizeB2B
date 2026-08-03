@@ -171,6 +171,7 @@
       "sections": "Financial sections",
       "overview": "Overview",
       "contracts": "Contracts",
+      "proposals": "Proposals",
       "receivables": "Receivables",
       "clients": "Clients"
     },
@@ -1052,9 +1053,6 @@
       "saved": "Settings saved"
     }
   },
-  "financial.tabs": {
-    "proposals": "Proposals"
-  },
   "proposals": {
     "statuses": {
       "draft": "Draft",
@@ -1188,14 +1186,19 @@
     },
     "public": {
       "for": "Proposal for",
+      "documentLabel": "Personalized proposal",
+      "preparedFor": "Prepared for",
       "acceptedBanner": "Proposal accepted by {name} on {date}.",
       "rejectedBanner": "This proposal was rejected.",
+      "acceptEyebrow": "Next step",
       "acceptTitle": "Accept proposal",
+      "acceptDescription": "If this experience feels right for you, confirm below. From here, we turn the proposal into a working plan.",
       "nameLabel": "Your name",
       "namePlaceholder": "Type your name",
       "nameRequired": "Enter your name to accept",
       "accepting": "Confirming...",
-      "accept": "Accept proposal",
+      "accept": "Move forward with this proposal",
+      "acceptConsent": "By confirming, you declare that you have read and agree to the terms presented in this proposal.",
       "acceptedThanks": "Thank you! Your acceptance was recorded.",
       "acceptFailed": "Failed to record the acceptance",
       "unavailable": "This proposal is not available."
