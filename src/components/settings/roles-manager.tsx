@@ -19,7 +19,20 @@ import { toastSuccess } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { LoadingState } from "@/components/shared/loading-state";
+import {
+  SettingsBackLink,
+  SettingsHeader,
+  SettingsSection,
+  SettingsShell,
+} from "@/components/settings/settings-shell";
 
 interface EditorState {
   role: RoleData | null;
@@ -56,18 +69,19 @@ export function RolesManager() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-heading-1 text-text-primary">{t("title")}</h1>
-          <p className="text-body-small text-text-secondary mt-1">{t("subtitle")}</p>
-        </div>
-        <Button onClick={() => setEditor({ role: null })}>
+    <SettingsShell testId="roles-page">
+      <SettingsBackLink label={t("backToSettings")} />
+      <SettingsHeader
+        title={t("title")}
+        description={t("subtitle")}
+        action={
+          <Button onClick={() => setEditor({ role: null })}>
           <Plus size={16} aria-hidden="true" /> {t("newRole")}
-        </Button>
-      </div>
+          </Button>
+        }
+      />
 
-      <section className="rounded-xl border border-border bg-page-alt p-4">
+      <SettingsSection>
         <Label htmlFor="default-role">{t("defaultRoleLabel")}</Label>
         <select
           id="default-role"
@@ -89,7 +103,7 @@ export function RolesManager() {
           ))}
         </select>
         <p className="mt-1 text-xs text-text-muted">{t("defaultRoleHint")}</p>
-      </section>
+      </SettingsSection>
 
       <ul className="space-y-3" aria-label={t("listAria")}>
         {data.map((role) => (
@@ -153,7 +167,7 @@ export function RolesManager() {
           }}
         />
       )}
-    </div>
+    </SettingsShell>
   );
 }
 
@@ -202,16 +216,15 @@ function RoleEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-page-alt p-6"
-      >
-        <h2 className="text-lg font-semibold text-text-primary">
-          {role ? t("titleEdit") : t("titleCreate")}
-        </h2>
+    <Dialog open onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-hidden p-0">
+        <form onSubmit={handleSubmit} className="flex max-h-[90vh] flex-col">
+          <DialogHeader className="shrink-0 border-b border-border px-6 py-5 pr-12">
+            <DialogTitle>{role ? t("titleEdit") : t("titleCreate")}</DialogTitle>
+          </DialogHeader>
 
-        <div className="mt-4 space-y-2">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+            <div className="space-y-2">
           <Label htmlFor="role-name">{t("nameLabel")}</Label>
           <Input
             id="role-name"
@@ -220,9 +233,9 @@ function RoleEditor({
             placeholder={t("namePlaceholder")}
             required
           />
-        </div>
+            </div>
 
-        <fieldset className="mt-5">
+            <fieldset className="mt-5">
           <legend className="text-sm font-semibold text-text-primary">
             {t("permissionsTitle")}
           </legend>
@@ -288,17 +301,19 @@ function RoleEditor({
               </div>
             </div>
           </div>
-        </fieldset>
+            </fieldset>
+          </div>
 
-        <div className="mt-6 flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            {t("cancel")}
-          </Button>
-          <Button type="submit" disabled={saving || !name.trim()}>
-            {saving ? t("saving") : t("save")}
-          </Button>
-        </div>
-      </form>
-    </div>
+          <DialogFooter className="shrink-0 border-t border-border px-6 py-4">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" disabled={saving || !name.trim()}>
+              {saving ? t("saving") : t("save")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

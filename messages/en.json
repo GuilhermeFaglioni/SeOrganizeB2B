@@ -1019,6 +1019,7 @@
       "nameUpdateError": "Failed to update name"
     },
     "areas": {
+      "backToSettings": "Back to Settings",
       "createError": "Failed to create area",
       "updateError": "Failed to update area",
       "title": "Team Areas",
@@ -1260,11 +1261,13 @@
         "projects": "Projects",
         "calendar": "Calendar",
         "documents": "Documents",
-        "financial.overview": "Financial — Overview",
-        "financial.contracts": "Financial — Contracts",
-        "financial.proposals": "Financial — Proposals",
-        "financial.clients": "Financial — Clients",
-        "financial.receivables": "Financial — Receivables",
+        "financial": {
+          "overview": "Financial — Overview",
+          "contracts": "Financial — Contracts",
+          "proposals": "Financial — Proposals",
+          "clients": "Financial — Clients",
+          "receivables": "Financial — Receivables"
+        },
         "areas": "Team areas"
       },
       "actions": {
@@ -1274,14 +1277,22 @@
         "delete": "Delete"
       },
       "special": {
-        "financial.contracts.lifecycle": "Contract lifecycle",
-        "financial.contracts.adjustValue": "Adjust contract value",
-        "financial.receivables.markPaid": "Mark installment as paid",
-        "financial.receivables.refund": "Refund installment",
-        "financial.proposals.send": "Send proposal",
-        "financial.proposals.acceptReject": "Accept/reject proposal",
-        "financial.proposals.clone": "Clone proposal",
-        "financial.proposals.manageTemplates": "Manage proposal templates",
+        "financial": {
+          "contracts": {
+            "lifecycle": "Contract lifecycle",
+            "adjustValue": "Adjust contract value"
+          },
+          "receivables": {
+            "markPaid": "Mark installment as paid",
+            "refund": "Refund installment"
+          },
+          "proposals": {
+            "send": "Send proposal",
+            "acceptReject": "Accept/reject proposal",
+            "clone": "Clone proposal",
+            "manageTemplates": "Manage proposal templates"
+          }
+        },
         "manage_roles": "Manage roles & permissions"
       }
     }

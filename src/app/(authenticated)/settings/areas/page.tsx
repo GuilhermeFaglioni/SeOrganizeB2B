@@ -21,6 +21,12 @@ import {
 } from "@/hooks/use-areas";
 import { Plus } from "lucide-react";
 import { useCan } from "@/hooks/use-permissions";
+import {
+  SettingsBackLink,
+  SettingsHeader,
+  SettingsSection,
+  SettingsShell,
+} from "@/components/settings/settings-shell";
 
 export default function SettingsAreasPage() {
   const t = useTranslations("settings.areas");
@@ -72,33 +78,32 @@ export default function SettingsAreasPage() {
   };
 
   return (
-    <div data-testid="areas-settings-page" className="p-6 max-w-3xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-heading-1 text-text-primary">{t("title")}</h1>
-          <p className="text-body-small text-text-secondary mt-1">
-            {t("subtitle")}
-          </p>
-        </div>
-        {can("areas.create") && (
-        <Button onClick={() => setAddOpen(true)}>
-          <Plus className="w-4 h-4" aria-hidden="true" />
-          {t("addArea")}
-        </Button>
-        )}
-      </div>
-
-      <AreaList
-        onEdit={(area) => {
-          setEditArea(area);
-          setEditName(area.name);
-          setEditOpen(true);
-        }}
-        onDelete={(area) => {
-          setDeleteArea(area);
-          setDeleteOpen(true);
-        }}
+    <SettingsShell testId="areas-settings-page">
+      <SettingsBackLink label={t("backToSettings")} />
+      <SettingsHeader
+        title={t("title")}
+        description={t("subtitle")}
+        action={can("areas.create") ? (
+          <Button onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            {t("addArea")}
+          </Button>
+        ) : undefined}
       />
+
+      <SettingsSection>
+        <AreaList
+          onEdit={(area) => {
+            setEditArea(area);
+            setEditName(area.name);
+            setEditOpen(true);
+          }}
+          onDelete={(area) => {
+            setDeleteArea(area);
+            setDeleteOpen(true);
+          }}
+        />
+      </SettingsSection>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent data-testid="edit-area-modal">
@@ -183,6 +188,6 @@ export default function SettingsAreasPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </SettingsShell>
   );
 }

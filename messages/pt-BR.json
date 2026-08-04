@@ -1019,6 +1019,7 @@
       "nameUpdateError": "Falha ao atualizar nome"
     },
     "areas": {
+      "backToSettings": "Voltar para Configurações",
       "createError": "Falha ao criar área",
       "updateError": "Falha ao atualizar área",
       "title": "Áreas da equipe",
@@ -1260,11 +1261,13 @@
         "projects": "Projetos",
         "calendar": "Calendário",
         "documents": "Documentos",
-        "financial.overview": "Financeiro — Visão geral",
-        "financial.contracts": "Financeiro — Contratos",
-        "financial.proposals": "Financeiro — Propostas",
-        "financial.clients": "Financeiro — Clientes",
-        "financial.receivables": "Financeiro — Recebíveis",
+        "financial": {
+          "overview": "Financeiro — Visão geral",
+          "contracts": "Financeiro — Contratos",
+          "proposals": "Financeiro — Propostas",
+          "clients": "Financeiro — Clientes",
+          "receivables": "Financeiro — Recebíveis"
+        },
         "areas": "Áreas da equipe"
       },
       "actions": {
@@ -1274,14 +1277,22 @@
         "delete": "Excluir"
       },
       "special": {
-        "financial.contracts.lifecycle": "Ciclo de vida de contratos",
-        "financial.contracts.adjustValue": "Ajustar valor de contrato",
-        "financial.receivables.markPaid": "Marcar parcela como paga",
-        "financial.receivables.refund": "Reembolsar parcela",
-        "financial.proposals.send": "Enviar proposta",
-        "financial.proposals.acceptReject": "Aceitar/recusar proposta",
-        "financial.proposals.clone": "Clonar proposta",
-        "financial.proposals.manageTemplates": "Gerenciar templates de proposta",
+        "financial": {
+          "contracts": {
+            "lifecycle": "Ciclo de vida de contratos",
+            "adjustValue": "Ajustar valor de contrato"
+          },
+          "receivables": {
+            "markPaid": "Marcar parcela como paga",
+            "refund": "Reembolsar parcela"
+          },
+          "proposals": {
+            "send": "Enviar proposta",
+            "acceptReject": "Aceitar/recusar proposta",
+            "clone": "Clonar proposta",
+            "manageTemplates": "Gerenciar templates de proposta"
+          }
+        },
         "manage_roles": "Gerenciar roles e permissões"
       }
     }

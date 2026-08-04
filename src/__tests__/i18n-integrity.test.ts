@@ -45,6 +45,18 @@ describe("i18n integrity", () => {
     expect(Object.keys(en).filter((key) => key.includes("."))).toEqual([]);
   });
 
+  it("keeps role permission labels nested for dotted permission ids", () => {
+    const ptPermissions = ptBR.roles.permissions;
+    const enPermissions = en.roles.permissions;
+
+    expect(ptPermissions.modules.financial.overview).toBe("Financeiro — Visão geral");
+    expect(enPermissions.modules.financial.overview).toBe("Financial — Overview");
+    expect(ptPermissions.special.financial.contracts.lifecycle).toBe(
+      "Ciclo de vida de contratos"
+    );
+    expect(enPermissions.special.financial.contracts.lifecycle).toBe("Contract lifecycle");
+  });
+
   it("resolves every static translation call in the source", () => {
     const missing: string[] = [];
 
