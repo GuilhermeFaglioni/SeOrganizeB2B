@@ -85,7 +85,7 @@ describe("1.3.6 Settings areas page", () => {
   it("renders settings areas page with correct test id", () => {
     expect(exists("src/app/(authenticated)/settings/areas/page.tsx")).toBe(true);
     const src = read("src/app/(authenticated)/settings/areas/page.tsx");
-    expect(src).toContain('data-testid="areas-settings-page"');
+    expect(src).toContain('testId="areas-settings-page"');
     expect(src).toContain("AreaList");
     expect(src).toContain("area");
   });

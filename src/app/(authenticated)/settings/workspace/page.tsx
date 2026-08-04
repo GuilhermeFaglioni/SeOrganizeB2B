@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   useUpdateWorkspaceSettings,
@@ -12,9 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingState } from "@/components/shared/loading-state";
+import {
+  SettingsBackLink,
+  SettingsHeader,
+  SettingsSection,
+  SettingsShell,
+} from "@/components/settings/settings-shell";
 
 export default function WorkspaceSettingsPage() {
-  const router = useRouter();
   const t = useTranslations("settings.workspace");
   const { data } = useWorkspaceSettings();
   const update = useUpdateWorkspaceSettings();
@@ -41,24 +45,12 @@ export default function WorkspaceSettingsPage() {
   if (!data) return <LoadingState />;
 
   return (
-    <div data-testid="workspace-settings-page" className="p-6 max-w-3xl space-y-6">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => router.push("/settings")}
-          className="text-sm text-text-secondary hover:text-text-primary"
-        >
-          &larr; {t("backToSettings")}
-        </button>
-      </div>
+    <SettingsShell testId="workspace-settings-page">
+      <SettingsBackLink label={t("backToSettings")} />
+      <SettingsHeader title={t("title")} description={t("subtitle")} />
 
-      <div>
-        <h1 className="text-heading-1 text-text-primary">{t("title")}</h1>
-        <p className="text-body-small text-text-secondary mt-1">
-          {t("subtitle")}
-        </p>
-      </div>
-
-      <form onSubmit={handleSave} className="space-y-4 rounded-xl border border-border bg-page-alt p-5">
+      <SettingsSection>
+        <form onSubmit={handleSave} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="company-name">{t("companyNameLabel")}</Label>
           <Input
@@ -82,7 +74,8 @@ export default function WorkspaceSettingsPage() {
         <Button type="submit" disabled={update.isPending}>
           {update.isPending ? t("saving") : t("save")}
         </Button>
-      </form>
-    </div>
+        </form>
+      </SettingsSection>
+    </SettingsShell>
   );
 }

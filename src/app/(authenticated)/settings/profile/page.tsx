@@ -1,16 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/stores/auth-context";
 import { useAreas } from "@/hooks/use-areas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toastError, toastSuccess } from "@/lib/toast";
+import {
+  SettingsBackLink,
+  SettingsHeader,
+  SettingsSection,
+  SettingsShell,
+} from "@/components/settings/settings-shell";
 
 export default function ProfilePage() {
-  const router = useRouter();
   const t = useTranslations("settings.profile");
   const { user, updateUserName } = useAuth();
   const { data: areas } = useAreas();
@@ -63,24 +67,12 @@ export default function ProfilePage() {
   };
 
   return (
-    <div data-testid="profile-page" className="p-6 max-w-3xl space-y-6">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => router.push("/settings")}
-          className="text-sm text-text-secondary hover:text-text-primary"
-        >
-          &larr; {t("backToSettings")}
-        </button>
-      </div>
+    <SettingsShell testId="profile-page">
+      <SettingsBackLink label={t("backToSettings")} />
+      <SettingsHeader title={t("title")} description={t("subtitle")} />
 
-      <div>
-        <h1 className="text-heading-1 text-text-primary">{t("title")}</h1>
-        <p className="text-body-small text-text-secondary mt-1">
-          {t("subtitle")}
-        </p>
-      </div>
-
-      <div className="bg-page-alt border border-border rounded-xl p-6 space-y-4">
+      <SettingsSection>
+        <div className="space-y-4">
         <div className="space-y-2">
           <label className="text-label text-text-secondary">{t("emailLabel")}</label>
           <Input value={user?.email || ""} disabled />
@@ -118,15 +110,11 @@ export default function ProfilePage() {
         }} disabled={saving || !name.trim()}>
           {saving ? t("saving") : t("saveName")}
         </Button>
+        </div>
+      </SettingsSection>
 
-      </div>
-
-      <div className="bg-page-alt border border-border rounded-xl p-6 space-y-4">
-        <h2 className="text-base font-semibold text-text-primary">{t("areasTitle")}</h2>
-        <p className="text-sm text-text-secondary">
-          {t("areasDescription")}
-        </p>
-
+      <SettingsSection title={t("areasTitle")} description={t("areasDescription")}>
+        <div className="space-y-4">
         {areas && areas.length > 0 ? (
           <div className="space-y-2">
             {areas.map((area: { id: string; name: string; color: string }) => (
@@ -155,7 +143,8 @@ export default function ProfilePage() {
         <Button onClick={handleSave} disabled={saving}>
           {saving ? t("saving") : t("save")}
         </Button>
-      </div>
-    </div>
+        </div>
+      </SettingsSection>
+    </SettingsShell>
   );
 }

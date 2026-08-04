@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAreas } from "@/hooks/use-areas";
 import { useAssignRole, useRoles, useTeam } from "@/hooks/use-roles";
@@ -9,6 +8,12 @@ import { useCan } from "@/hooks/use-permissions";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Users } from "lucide-react";
 import { toastSuccess } from "@/lib/toast";
+import {
+  SettingsBackLink,
+  SettingsHeader,
+  SettingsSection,
+  SettingsShell,
+} from "@/components/settings/settings-shell";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -18,7 +23,6 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export default function TeamPage() {
-  const router = useRouter();
   const t = useTranslations("settings.team");
   const { can, data: permData } = useCan();
   const { data: areas } = useAreas();
@@ -43,12 +47,12 @@ export default function TeamPage() {
 
   if (permData && !can("manage_roles")) {
     return (
-      <div className="p-6">
-        <p className="text-sm text-text-secondary">{t("noPermission")}</p>
-        <Button variant="outline" className="mt-4" onClick={() => router.push("/settings")}>
-          {t("backToSettings")}
-        </Button>
-      </div>
+      <SettingsShell testId="team-page">
+        <SettingsBackLink label={t("backToSettings")} />
+        <SettingsSection>
+          <p className="text-sm text-text-secondary">{t("noPermission")}</p>
+        </SettingsSection>
+      </SettingsShell>
     );
   }
 
@@ -91,21 +95,12 @@ export default function TeamPage() {
   };
 
   return (
-    <div data-testid="team-page" className="p-6 max-w-3xl space-y-6">
-      <div className="flex items-center gap-3">
-        <button onClick={() => router.push("/settings")} className="text-sm text-text-secondary hover:text-text-primary">
-          &larr; {t("backToSettings")}
-        </button>
-      </div>
+    <SettingsShell testId="team-page">
+      <SettingsBackLink label={t("backToSettings")} />
+      <SettingsHeader title={t("title")} description={t("subtitle")} />
 
-      <div>
-        <h1 className="text-heading-1 text-text-primary">{t("title")}</h1>
-        <p className="text-body-small text-text-secondary mt-1">
-          {t("subtitle")}
-        </p>
-      </div>
-
-      <div className="space-y-3">
+      <SettingsSection>
+        <div className="space-y-3">
         {team?.map((profile) => (
           <div
             key={profile.id}
@@ -196,6 +191,7 @@ export default function TeamPage() {
           {message}
         </p>
       )}
-    </div>
+      </SettingsSection>
+    </SettingsShell>
   );
 }
