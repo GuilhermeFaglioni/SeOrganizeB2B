@@ -26,6 +26,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LoadingState } from "@/components/shared/loading-state";
 import {
   SettingsBackLink,
@@ -33,6 +40,8 @@ import {
   SettingsSection,
   SettingsShell,
 } from "@/components/settings/settings-shell";
+
+const NO_DEFAULT_VALUE = "none";
 
 interface EditorState {
   role: RoleData | null;
@@ -83,25 +92,26 @@ export function RolesManager() {
 
       <SettingsSection>
         <Label htmlFor="default-role">{t("defaultRoleLabel")}</Label>
-        <select
-          id="default-role"
-          value={
-            data.find((role) => role.isDefault)?.id ?? ""
-          }
-          onChange={(event) => {
-            setDefaultRole.mutate(event.target.value || null, {
+        <Select
+          value={data.find((role) => role.isDefault)?.id ?? NO_DEFAULT_VALUE}
+          onValueChange={(value) => {
+            setDefaultRole.mutate(value === NO_DEFAULT_VALUE ? null : value, {
               onSuccess: () => toastSuccess(t("defaultSaved")),
             });
           }}
-          className="mt-1 w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-72"
         >
-          <option value="">{t("noDefault")}</option>
-          {nonAdminRoles.map((role) => (
-            <option key={role.id} value={role.id}>
-              {role.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger id="default-role" className="mt-1 sm:w-72">
+            <SelectValue placeholder={t("noDefault")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NO_DEFAULT_VALUE}>{t("noDefault")}</SelectItem>
+            {nonAdminRoles.map((role) => (
+              <SelectItem key={role.id} value={role.id}>
+                {role.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <p className="mt-1 text-xs text-text-muted">{t("defaultRoleHint")}</p>
       </SettingsSection>
 
