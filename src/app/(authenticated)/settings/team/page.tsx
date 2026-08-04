@@ -6,6 +6,13 @@ import { useAreas } from "@/hooks/use-areas";
 import { useAssignRole, useRoles, useTeam } from "@/hooks/use-roles";
 import { useCan } from "@/hooks/use-permissions";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ChevronDown, ChevronRight, Users } from "lucide-react";
 import { toastSuccess } from "@/lib/toast";
 import {
@@ -14,6 +21,8 @@ import {
   SettingsSection,
   SettingsShell,
 } from "@/components/settings/settings-shell";
+
+const NO_ROLE_VALUE = "none";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -89,7 +98,10 @@ export default function TeamPage() {
 
   const handleRoleChange = (profileId: string, roleId: string) => {
     assignRole.mutate(
-      { userId: profileId, roleId: roleId || null },
+      {
+        userId: profileId,
+        roleId: roleId === NO_ROLE_VALUE ? null : roleId,
+      },
       { onSuccess: () => toastSuccess(t("roleSaved")) }
     );
   };
@@ -135,19 +147,22 @@ export default function TeamPage() {
                   <label htmlFor={`role-${profile.id}`} className="text-sm text-text-secondary">
                     {t("roleLabel")}
                   </label>
-                  <select
-                    id={`role-${profile.id}`}
-                    value={profile.role?.id ?? ""}
-                    onChange={(event) => handleRoleChange(profile.id, event.target.value)}
-                    className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-72"
+                  <Select
+                    value={profile.role?.id ?? NO_ROLE_VALUE}
+                    onValueChange={(value) => handleRoleChange(profile.id, value)}
                   >
-                    <option value="">{t("noRole")}</option>
-                    {roles?.map((role) => (
-                      <option key={role.id} value={role.id}>
-                        {role.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger id={`role-${profile.id}`} className="sm:w-72">
+                      <SelectValue placeholder={t("noRole")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_ROLE_VALUE}>{t("noRole")}</SelectItem>
+                      {roles?.map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
