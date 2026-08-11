@@ -101,6 +101,10 @@
           "cancelled": "Cancelled"
         },
         "noPlan": "No plan",
+        "assignPlan": "Assign plan",
+        "selectPlan": "Select plan…",
+        "planAssigned": "Plan updated successfully.",
+        "planAssignFailed": "Failed to assign plan.",
         "usageUsers": "users",
         "usageTasks": "tasks",
         "usageProjects": "projects",

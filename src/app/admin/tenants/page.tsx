@@ -3,11 +3,20 @@
 import { useTranslations } from "next-intl";
 import { Building2 } from "lucide-react";
 import { useAdminTenants, useDeleteTenant, useUpdateTenant } from "@/hooks/use-admin-tenants";
+import { useAdminPlans } from "@/hooks/use-admin-plans";
 import type { AdminTenant } from "@/hooks/use-admin-tenants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
+import { toastSuccess } from "@/lib/toast";
 
 function statusVariant(status: AdminTenant["status"]) {
   switch (status) {
@@ -25,8 +34,19 @@ function statusVariant(status: AdminTenant["status"]) {
 export default function AdminTenantsPage() {
   const t = useTranslations("admin.pages.tenants");
   const { data: tenants, isLoading, isError } = useAdminTenants();
+  const { data: plans } = useAdminPlans();
   const updateTenant = useUpdateTenant();
   const deleteTenant = useDeleteTenant();
+
+  function handleAssignPlan(tenantId: string, planId: string) {
+    updateTenant.mutate(
+      { id: tenantId, planId },
+      {
+        onSuccess: () => toastSuccess(t("planAssigned")),
+        onError: () => undefined,
+      }
+    );
+  }
 
   if (isLoading) {
     return (
@@ -85,8 +105,34 @@ export default function AdminTenantsPage() {
                     {t(`status.${tenant.status}`)}
                   </Badge>
                 </td>
-                <td className="px-4 py-3 text-text-secondary">
-                  {tenant.plan?.name ?? t("noPlan")}
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-text-secondary">
+                      {tenant.plan?.name ?? t("noPlan")}
+                    </span>
+                    <Select
+                      value={tenant.plan?.id ?? undefined}
+                      onValueChange={(planId) =>
+                        handleAssignPlan(tenant.id, planId)
+                      }
+                    >
+                      <SelectTrigger
+                        className="h-8 w-40"
+                        aria-label={t("assignPlan")}
+                      >
+                        <SelectValue placeholder={t("selectPlan")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(plans ?? [])
+                          .filter((plan) => plan.isActive)
+                          .map((plan) => (
+                            <SelectItem key={plan.id} value={plan.id}>
+                              {plan.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
                   {tenant.usage.users} {t("usageUsers")} · {tenant.usage.tasks}{" "}

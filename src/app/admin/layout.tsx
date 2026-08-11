@@ -3,6 +3,7 @@ import { getUser } from "@/lib/supabase/server";
 import { getSuperAdminStatus } from "@/lib/admin/super-admin";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
 import { AdminAccessDenied } from "@/components/admin/admin-access-denied";
+import { AdminProviders } from "@/components/admin/admin-providers";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +23,11 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex h-[100dvh] min-h-[100dvh] overflow-hidden">
-      <AdminSidebar />
-      <main className="min-h-0 flex-1 overflow-auto bg-page">{children}</main>
-    </div>
+    <AdminProviders>
+      <div className="flex h-[100dvh] min-h-[100dvh] overflow-hidden">
+        <AdminSidebar />
+        <main className="min-h-0 flex-1 overflow-auto bg-page">{children}</main>
+      </div>
+    </AdminProviders>
   );
 }
