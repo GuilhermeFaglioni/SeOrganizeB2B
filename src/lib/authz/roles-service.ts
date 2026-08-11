@@ -1,4 +1,4 @@
-import { prisma } from "../../../prisma/client";
+import { prisma, withTenant } from "../../../prisma/client";
 import { sanitizePermissions } from "./permissions";
 import { DEFAULT_WORKSPACE_ID } from "../tenant";
 
@@ -10,59 +10,66 @@ export interface RoleInput {
 }
 
 export async function listRoles() {
-  const roles = await prisma.role.findMany({
-    where: { tenantId: DEFAULT_WORKSPACE_ID },
-    include: { _count: { select: { profiles: true } } },
-    orderBy: [{ isAdmin: "desc" }, { name: "asc" }],
+  return withTenant(DEFAULT_WORKSPACE_ID, async () => {
+    const roles = await prisma.role.findMany({
+      where: { tenantId: DEFAULT_WORKSPACE_ID },
+      include: { _count: { select: { profiles: true } } },
+      orderBy: [{ isAdmin: "desc" }, { name: "asc" }],
+    });
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: DEFAULT_WORKSPACE_ID },
+      select: { defaultRoleId: true },
+    });
+    return roles.map((role) => ({
+      id: role.id,
+      name: role.name,
+      tenantId: role.tenantId,
+      permissions: role.permissions as string[],
+      isAdmin: role.isAdmin,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+      userCount: role._count.profiles,
+      isDefault: workspace?.defaultRoleId === role.id,
+    }));
   });
-  const workspace = await prisma.workspace.findUnique({
-    where: { id: DEFAULT_WORKSPACE_ID },
-    select: { defaultRoleId: true },
-  });
-  return roles.map((role) => ({
-    id: role.id,
-    name: role.name,
-    tenantId: role.tenantId,
-    permissions: role.permissions as string[],
-    isAdmin: role.isAdmin,
-    createdAt: role.createdAt,
-    updatedAt: role.updatedAt,
-    userCount: role._count.profiles,
-    isDefault: workspace?.defaultRoleId === role.id,
-  }));
 }
 
 export async function getRole(roleId: string) {
-  const role = await prisma.role.findUnique({
-    where: { id: roleId },
-    include: { _count: { select: { profiles: true } } },
+  return withTenant(DEFAULT_WORKSPACE_ID, async () => {
+    const role = await prisma.role.findUnique({
+      where: { id: roleId },
+      include: { _count: { select: { profiles: true } } },
+    });
+    if (!role) return null;
+    return {
+      id: role.id,
+      name: role.name,
+      tenantId: role.tenantId,
+      permissions: role.permissions as string[],
+      isAdmin: role.isAdmin,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+      userCount: role._count.profiles,
+    };
   });
-  if (!role) return null;
-  return {
-    id: role.id,
-    name: role.name,
-    tenantId: role.tenantId,
-    permissions: role.permissions as string[],
-    isAdmin: role.isAdmin,
-    createdAt: role.createdAt,
-    updatedAt: role.updatedAt,
-    userCount: role._count.profiles,
-  };
 }
 
 export async function createRole(input: RoleInput) {
   if (!input.name || !input.name.trim()) {
     throw new RoleValidationError("A role name is required");
   }
+  const name = input.name.trim();
   const permissions = sanitizePermissions(input.permissions);
   try {
-    return await prisma.role.create({
-      data: {
-        name: input.name.trim(),
-        permissions,
-        tenantId: DEFAULT_WORKSPACE_ID,
-      },
-    });
+    return await withTenant(DEFAULT_WORKSPACE_ID, () =>
+      prisma.role.create({
+        data: {
+          name,
+          permissions,
+          tenantId: DEFAULT_WORKSPACE_ID,
+        },
+      })
+    );
   } catch (error) {
     if (isUniqueViolation(error)) {
       throw new RoleValidationError("A role with this name already exists");
@@ -72,76 +79,82 @@ export async function createRole(input: RoleInput) {
 }
 
 export async function updateRole(roleId: string, input: RoleInput) {
-  const role = await prisma.role.findUnique({ where: { id: roleId } });
-  if (!role) throw new RoleValidationError("Role not found");
-  if (role.isAdmin) {
-    throw new RoleValidationError("The Admin role cannot be edited");
-  }
-
-  const data: { name?: string; permissions?: string[] } = {};
-  if (input.name !== undefined) {
-    if (!input.name.trim()) throw new RoleValidationError("A role name is required");
-    data.name = input.name.trim();
-  }
-  if (input.permissions !== undefined) {
-    data.permissions = sanitizePermissions(input.permissions);
-  }
-  if (data.name === undefined && data.permissions === undefined) {
-    throw new RoleValidationError("Nothing to update");
-  }
-
-  try {
-    return await prisma.role.update({
-      where: { id: roleId },
-      data: {
-        name: data.name,
-        permissions:
-          data.permissions ?? (role.permissions as string[]),
-      },
-    });
-  } catch (error) {
-    if (isUniqueViolation(error)) {
-      throw new RoleValidationError("A role with this name already exists");
-    }
-    throw error;
-  }
-}
-
-export async function deleteRole(roleId: string) {
-  const role = await prisma.role.findUnique({ where: { id: roleId } });
-  if (!role) throw new RoleValidationError("Role not found");
-  if (role.isAdmin) {
-    throw new RoleValidationError("The Admin role cannot be deleted");
-  }
-  const workspace = await prisma.workspace.findUnique({
-    where: { id: DEFAULT_WORKSPACE_ID },
-    select: { defaultRoleId: true },
-  });
-  if (workspace?.defaultRoleId === roleId) {
-    throw new RoleValidationError(
-      "This role is the default for new users. Choose another default role before deleting it."
-    );
-  }
-  await prisma.role.delete({ where: { id: roleId } });
-}
-
-export async function setDefaultRole(roleId: string | null) {
-  if (roleId) {
+  return withTenant(DEFAULT_WORKSPACE_ID, async () => {
     const role = await prisma.role.findUnique({ where: { id: roleId } });
     if (!role) throw new RoleValidationError("Role not found");
     if (role.isAdmin) {
-      throw new RoleValidationError("The Admin role cannot be the default role");
+      throw new RoleValidationError("The Admin role cannot be edited");
     }
-  }
-  return prisma.workspace.upsert({
-    where: { id: DEFAULT_WORKSPACE_ID },
-    update: { defaultRoleId: roleId },
-    create: {
-      id: DEFAULT_WORKSPACE_ID,
-      name: "Default",
-      slug: "default",
-      defaultRoleId: roleId,
-    },
+
+    const data: { name?: string; permissions?: string[] } = {};
+    if (input.name !== undefined) {
+      if (!input.name.trim()) throw new RoleValidationError("A role name is required");
+      data.name = input.name.trim();
+    }
+    if (input.permissions !== undefined) {
+      data.permissions = sanitizePermissions(input.permissions);
+    }
+    if (data.name === undefined && data.permissions === undefined) {
+      throw new RoleValidationError("Nothing to update");
+    }
+
+    try {
+      return await prisma.role.update({
+        where: { id: roleId },
+        data: {
+          name: data.name,
+          permissions:
+            data.permissions ?? (role.permissions as string[]),
+        },
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new RoleValidationError("A role with this name already exists");
+      }
+      throw error;
+    }
+  });
+}
+
+export async function deleteRole(roleId: string) {
+  return withTenant(DEFAULT_WORKSPACE_ID, async () => {
+    const role = await prisma.role.findUnique({ where: { id: roleId } });
+    if (!role) throw new RoleValidationError("Role not found");
+    if (role.isAdmin) {
+      throw new RoleValidationError("The Admin role cannot be deleted");
+    }
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: DEFAULT_WORKSPACE_ID },
+      select: { defaultRoleId: true },
+    });
+    if (workspace?.defaultRoleId === roleId) {
+      throw new RoleValidationError(
+        "This role is the default for new users. Choose another default role before deleting it."
+      );
+    }
+    await prisma.role.delete({ where: { id: roleId } });
+  });
+}
+
+export async function setDefaultRole(roleId: string | null) {
+  return withTenant(DEFAULT_WORKSPACE_ID, async () => {
+    if (roleId) {
+      const role = await prisma.role.findUnique({ where: { id: roleId } });
+      if (!role) throw new RoleValidationError("Role not found");
+      if (role.isAdmin) {
+        throw new RoleValidationError("The Admin role cannot be the default role");
+      }
+    }
+    return prisma.workspace.upsert({
+      where: { id: DEFAULT_WORKSPACE_ID },
+      update: { defaultRoleId: roleId },
+      create: {
+        id: DEFAULT_WORKSPACE_ID,
+        name: "Default",
+        slug: "default",
+        defaultRoleId: roleId,
+      },
+    });
   });
 }
 

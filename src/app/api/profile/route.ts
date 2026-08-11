@@ -3,6 +3,7 @@ import { prisma } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAppLocale } from "@/i18n/config";
+import { DEFAULT_WORKSPACE_ID } from "@/lib/tenant";
 
 export async function GET() {
   const user = await getUser();
@@ -17,6 +18,7 @@ export async function GET() {
       id: user.id,
       email: user.email || "Sistema",
       name: user.user_metadata?.full_name || user.email || "Sistema",
+      tenant: { connect: { id: DEFAULT_WORKSPACE_ID } },
     },
   });
 

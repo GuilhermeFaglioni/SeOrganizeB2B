@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import {
   deleteContract,
@@ -8,6 +8,8 @@ import {
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function GET(
   _request: NextRequest,
@@ -23,30 +25,35 @@ export async function GET(
   const denied = await denyFor(user.id, "financial.contracts.view");
   if (denied) return denied;
 
-  const contract = await prisma.contract.findUnique({
-    where: { id: params.id },
-    include: {
-      client: true,
-      owner: { select: { id: true, name: true, email: true } },
-      predecessor: {
-        select: { id: true, code: true, title: true, status: true },
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const contract = await withTenant(ctx.tenantId, () =>
+    prisma.contract.findUnique({
+      where: { id: params.id },
+      include: {
+        client: true,
+        owner: { select: { id: true, name: true, email: true } },
+        predecessor: {
+          select: { id: true, code: true, title: true, status: true },
+        },
+        successors: {
+          select: { id: true, code: true, title: true, status: true },
+        },
+        items: { orderBy: { position: "asc" } },
+        projects: { include: { project: { select: { id: true, name: true } } } },
+        installments: { orderBy: { dueDate: "asc" } },
+        changes: {
+          orderBy: { effectiveDate: "desc" },
+          include: { actor: { select: { id: true, name: true, email: true } } },
+        },
+        audits: {
+          orderBy: { createdAt: "desc" },
+          include: { actor: { select: { id: true, name: true, email: true } } },
+        },
       },
-      successors: {
-        select: { id: true, code: true, title: true, status: true },
-      },
-      items: { orderBy: { position: "asc" } },
-      projects: { include: { project: { select: { id: true, name: true } } } },
-      installments: { orderBy: { dueDate: "asc" } },
-      changes: {
-        orderBy: { effectiveDate: "desc" },
-        include: { actor: { select: { id: true, name: true, email: true } } },
-      },
-      audits: {
-        orderBy: { createdAt: "desc" },
-        include: { actor: { select: { id: true, name: true, email: true } } },
-      },
-    },
-  });
+    })
+  );
 
   if (!contract) {
     return NextResponse.json(
@@ -74,6 +81,9 @@ export async function PATCH(
   }
   const denied = await denyFor(user.id, "financial.contracts.edit");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const body = await request.json();
   const input: Record<string, unknown> = {};
@@ -110,7 +120,9 @@ export async function PATCH(
   if (body.projectIds !== undefined) input.projectIds = body.projectIds;
 
   try {
-    const contract = await updateContract(params.id, input, user.id);
+    const contract = await withTenant(ctx.tenantId, () =>
+      updateContract(params.id, input, user.id)
+    );
     return NextResponse.json({ data: contract, error: null });
   } catch (error) {
     return mapFinancialError(error);
@@ -131,8 +143,11 @@ export async function DELETE(
   const denied = await denyFor(user.id, "financial.contracts.delete");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   try {
-    await deleteContract(params.id);
+    await withTenant(ctx.tenantId, () => deleteContract(params.id));
     return NextResponse.json({ data: null, error: null });
   } catch (error) {
     return mapFinancialError(error);

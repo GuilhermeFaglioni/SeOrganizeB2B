@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function PATCH(
   _request: Request,
@@ -14,10 +16,15 @@ export async function PATCH(
     );
   }
 
-  const result = await prisma.notification.updateMany({
-    where: { id: params.id, recipientId: user.id },
-    data: { readAt: new Date() },
-  });
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const result = await withTenant(ctx.tenantId, () =>
+    prisma.notification.updateMany({
+      where: { id: params.id, recipientId: user.id },
+      data: { readAt: new Date() },
+    })
+  );
   if (result.count === 0) {
     return NextResponse.json(
       {

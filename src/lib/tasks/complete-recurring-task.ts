@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { nextRecurrenceDate, type RecurrenceType } from "@/lib/recurrence";
 import { recordActivity } from "@/lib/activity/record";
+import { requireTenantId } from "../../../prisma/client";
 
 interface RecurringTask {
   id: string;
@@ -67,10 +68,12 @@ export async function completeRecurringTask(
       recurrenceType: task.recurrenceType,
       recurrenceInterval: interval,
       recurrenceSeriesId: seriesId,
+      tenantId: requireTenantId("tasks.complete-recurring"),
       assignees: {
         create: task.assignees.map(({ profileId }) => ({
           profileId,
           assignedBy: actorId,
+          tenantId: requireTenantId("tasks.complete-recurring"),
         })),
       },
     },

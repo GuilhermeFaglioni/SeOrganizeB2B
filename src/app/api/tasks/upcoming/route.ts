@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../prisma/client";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -18,6 +20,9 @@ export async function GET(request: NextRequest) {
   const denied = await denyFor(user.id, "tasks.view");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   const requestedLimit = Number(new URL(request.url).searchParams.get("limit"));
   const limit = Number.isFinite(requestedLimit)
     ? Math.min(Math.max(requestedLimit, 1), 50)
@@ -25,26 +30,28 @@ export async function GET(request: NextRequest) {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
-  const tasks = await prisma.task.findMany({
-    where: {
-      archived: false,
-      dueDate: { gte: startOfToday },
-      assignees: { some: { profileId: user.id } },
-    },
-    orderBy: { dueDate: "asc" },
-    take: limit,
-    include: {
-      project: { select: { id: true, name: true } },
-      area: { select: { id: true, name: true, color: true } },
-      assignees: {
-        include: {
-          profile: {
-            select: { id: true, name: true, email: true, avatarUrl: true },
+  const tasks = await withTenant(ctx.tenantId, () =>
+    prisma.task.findMany({
+      where: {
+        archived: false,
+        dueDate: { gte: startOfToday },
+        assignees: { some: { profileId: user.id } },
+      },
+      orderBy: { dueDate: "asc" },
+      take: limit,
+      include: {
+        project: { select: { id: true, name: true } },
+        area: { select: { id: true, name: true, color: true } },
+        assignees: {
+          include: {
+            profile: {
+              select: { id: true, name: true, email: true, avatarUrl: true },
+            },
           },
         },
       },
-    },
-  });
+    })
+  );
 
   return NextResponse.json({ data: tasks, error: null });
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { withTenant } from "../../../../prisma/client";
 import {
   createProposalTemplate,
   listProposalTemplates,
@@ -7,6 +8,8 @@ import {
 import { sanitizeProposalHtml } from "@/lib/financial/proposals";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function GET() {
   const user = await getUser();
@@ -19,7 +22,12 @@ export async function GET() {
   const denied = await denyFor(user.id, "financial.proposals.view");
   if (denied) return denied;
 
-  const templates = await listProposalTemplates();
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const templates = await withTenant(ctx.tenantId, () =>
+    listProposalTemplates()
+  );
   return NextResponse.json({ data: templates, error: null });
 }
 
@@ -33,6 +41,9 @@ export async function POST(request: NextRequest) {
   }
   const denied = await denyFor(user.id, "financial.proposals.manageTemplates");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const body = await request.json();
   if (typeof body.name !== "string" || !body.name.trim()) {
@@ -55,12 +66,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const template = await createProposalTemplate(
-      {
-        name: body.name,
-        html: sanitizeProposalHtml(body.html),
-      },
-      user.id
+    const template = await withTenant(ctx.tenantId, () =>
+      createProposalTemplate(
+        {
+          name: body.name,
+          html: sanitizeProposalHtml(body.html),
+        },
+        user.id
+      )
     );
     return NextResponse.json({ data: template, error: null }, { status: 201 });
   } catch (error) {

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { withTenant } from "../../../../../../prisma/client";
 import { sendProposal } from "@/lib/financial/proposals-service";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function POST(
   _request: NextRequest,
@@ -18,8 +21,13 @@ export async function POST(
   const denied = await denyFor(user.id, "financial.proposals.send");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   try {
-    const proposal = await sendProposal(params.id);
+    const proposal = await withTenant(ctx.tenantId, () =>
+      sendProposal(params.id)
+    );
     return NextResponse.json({ data: proposal, error: null });
   } catch (error) {
     return mapFinancialError(error);

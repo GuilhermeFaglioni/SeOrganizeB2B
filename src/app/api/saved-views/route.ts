@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { prisma } from "../../../../prisma/client";
+import { prisma, withTenant } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function GET() {
   const user = await getUser();
@@ -11,11 +13,16 @@ export async function GET() {
       { status: 401 }
     );
   }
-  const views = await prisma.savedView.findMany({
-    where: { userId: user.id, scope: "board" },
-    orderBy: { name: "asc" },
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  return withTenant(ctx.tenantId, async () => {
+    const views = await prisma.savedView.findMany({
+      where: { userId: user.id, scope: "board" },
+      orderBy: { name: "asc" },
+    });
+    return NextResponse.json({ data: views, error: null });
   });
-  return NextResponse.json({ data: views, error: null });
 }
 
 export async function POST(request: NextRequest) {
@@ -26,6 +33,9 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   const body = await request.json();
   const name = typeof body.name === "string" ? body.name.trim() : "";
   if (
@@ -45,14 +55,17 @@ export async function POST(request: NextRequest) {
     );
   }
   try {
-    const view = await prisma.savedView.create({
-      data: {
-        userId: user.id,
-        name,
-        scope: "board",
-        filters: body.filters,
-      },
-    });
+    const view = await withTenant(ctx.tenantId, () =>
+      prisma.savedView.create({
+        data: {
+          userId: user.id,
+          name,
+          scope: "board",
+          filters: body.filters,
+          tenantId: ctx.tenantId!,
+        },
+      })
+    );
     return NextResponse.json({ data: view, error: null }, { status: 201 });
   } catch (error) {
     if (

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { prisma } from "../../../../prisma/client";
+import { prisma, withTenant } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { todayCivilDate } from "@/lib/financial/civil-date";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -15,6 +17,9 @@ export async function GET(request: NextRequest) {
   }
   const denied = await denyFor(user.id, "financial.receivables.view");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const { searchParams } = request.nextUrl;
   const status = searchParams.get("status") || "";
@@ -38,35 +43,37 @@ export async function GET(request: NextRequest) {
         : {}),
   };
 
-  const [items, total] = await Promise.all([
-    prisma.installment.findMany({
-      where,
-      include: {
-        contract: {
-          include: { client: { select: { name: true } } },
+  return withTenant(ctx.tenantId, async () => {
+    const [items, total] = await Promise.all([
+      prisma.installment.findMany({
+        where,
+        include: {
+          contract: {
+            include: { client: { select: { name: true } } },
+          },
         },
+        orderBy: { dueDate: "asc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.installment.count({ where }),
+    ]);
+
+    const itemsWithDisplayStatus = items.map((item) => ({
+      ...item,
+      displayStatus:
+        item.status === "pending" && item.dueDate < today ? "overdue" : item.status,
+    }));
+
+    return NextResponse.json({
+      data: {
+        items: itemsWithDisplayStatus,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
       },
-      orderBy: { dueDate: "asc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.installment.count({ where }),
-  ]);
-
-  const itemsWithDisplayStatus = items.map((item) => ({
-    ...item,
-    displayStatus:
-      item.status === "pending" && item.dueDate < today ? "overdue" : item.status,
-  }));
-
-  return NextResponse.json({
-    data: {
-      items: itemsWithDisplayStatus,
-      total,
-      page,
-      pageSize,
-      totalPages: Math.max(1, Math.ceil(total / pageSize)),
-    },
-    error: null,
+      error: null,
+    });
   });
 }

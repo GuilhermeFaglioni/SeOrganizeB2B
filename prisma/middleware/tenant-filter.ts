@@ -31,6 +31,20 @@ export function getTenantId(): string | null {
 }
 
 /**
+ * Returns the active tenantId for code that must fill in a `tenantId` on data
+ * the middleware cannot inject itself (nested creates, `createMany` rows).
+ * Fails loudly when no tenant context is active instead of silently writing
+ * NULL tenant rows.
+ */
+export function requireTenantId(context: string): string {
+  const tenantId = storage.getStore()?.tenantId ?? null;
+  if (!tenantId) {
+    throw new TenantContextRequiredError(context, "tenant-required");
+  }
+  return tenantId;
+}
+
+/**
  * Runs `fn` with the given tenantId visible to the Prisma middleware.
  *
  * IMPORTANT: `fn` may be sync or async — it is awaited inside the tenant

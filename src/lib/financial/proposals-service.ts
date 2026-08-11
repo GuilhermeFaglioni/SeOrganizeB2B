@@ -1,7 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { FinancialValidationError } from "./lifecycle";
-import { prisma } from "../../../prisma/client";
+import {
+  prisma,
+  requireTenantId,
+  withTenantBypass,
+} from "../../../prisma/client";
 import { makeProposalPublicSlug } from "./proposal-slug";
 import { toDecimal } from "./money";
 import {
@@ -98,6 +102,7 @@ export async function createProposalDraft(
         issueDate: input.issueDate ?? null,
         validUntil: input.validUntil ?? null,
         locale,
+        tenantId: requireTenantId("financial.proposals"),
         items: input.items?.length
           ? {
               create: input.items.map((item, index) => ({
@@ -106,6 +111,7 @@ export async function createProposalDraft(
                 quantity: item.quantity ? toDecimal(item.quantity) : null,
                 price: item.price ? toDecimal(item.price) : null,
                 position: item.position ?? index,
+                tenantId: requireTenantId("financial.proposals"),
               })),
             }
           : undefined,
@@ -161,6 +167,7 @@ export async function updateProposalDraft(
             quantity: item.quantity ? toDecimal(item.quantity) : null,
             price: item.price ? toDecimal(item.price) : null,
             position: item.position ?? index,
+            tenantId: requireTenantId("financial.proposals"),
           })),
         });
       }
@@ -262,29 +269,31 @@ function proposalIdentifierWhere(identifier: string) {
 
 export async function acceptProposal(identifier: string, name: string) {
   if (!name.trim()) throw new FinancialValidationError("The acceptor name is required");
-  const proposal = await prisma.proposal.findFirst({
-    where: proposalIdentifierWhere(identifier),
-  });
-  if (!proposal) throw new FinancialValidationError("Proposal not found");
-  if (proposal.status === "draft") {
-    throw new FinancialValidationError("This proposal is not available");
-  }
-  if (proposal.status === "accepted") {
-    throw new FinancialValidationError("This proposal has already been accepted");
-  }
-  if (proposal.status === "rejected") {
-    throw new FinancialValidationError("This proposal has been rejected");
-  }
+  return withTenantBypass(async () => {
+    const proposal = await prisma.proposal.findFirst({
+      where: proposalIdentifierWhere(identifier),
+    });
+    if (!proposal) throw new FinancialValidationError("Proposal not found");
+    if (proposal.status === "draft") {
+      throw new FinancialValidationError("This proposal is not available");
+    }
+    if (proposal.status === "accepted") {
+      throw new FinancialValidationError("This proposal has already been accepted");
+    }
+    if (proposal.status === "rejected") {
+      throw new FinancialValidationError("This proposal has been rejected");
+    }
 
-  const today = new Date().toISOString().slice(0, 10);
-  return prisma.proposal.update({
-    where: { id: proposal.id },
-    data: {
-      status: "accepted",
-      acceptedAt: today,
-      acceptedByName: name.trim(),
-      viewedAt: proposal.viewedAt ?? today,
-    },
+    const today = new Date().toISOString().slice(0, 10);
+    return prisma.proposal.update({
+      where: { id: proposal.id },
+      data: {
+        status: "accepted",
+        acceptedAt: today,
+        acceptedByName: name.trim(),
+        viewedAt: proposal.viewedAt ?? today,
+      },
+    });
   });
 }
 
@@ -340,6 +349,7 @@ export async function cloneProposal(proposalId: string, actorId: string) {
         issueDate: proposal.issueDate,
         validUntil: proposal.validUntil,
         locale: proposal.locale,
+        tenantId: requireTenantId("financial.proposals"),
         items: proposal.items.length
           ? {
               create: proposal.items.map((item) => ({
@@ -348,6 +358,7 @@ export async function cloneProposal(proposalId: string, actorId: string) {
                 quantity: item.quantity,
                 price: item.price,
                 position: item.position,
+                tenantId: requireTenantId("financial.proposals"),
               })),
             }
           : undefined,
@@ -419,42 +430,44 @@ export async function listProposals(filters: ProposalListFilters = {}) {
 }
 
 export async function getProposalPublic(identifier: string) {
-  const proposal = await prisma.proposal.findFirst({
-    where: proposalIdentifierWhere(identifier),
-    include: { client: { select: { name: true } } },
-  });
-  if (!proposal) return null;
+  return withTenantBypass(async () => {
+    const proposal = await prisma.proposal.findFirst({
+      where: proposalIdentifierWhere(identifier),
+      include: { client: { select: { name: true } } },
+    });
+    if (!proposal) return null;
 
-  if (proposal.status === "draft") {
-    return { status: "draft" as const };
-  }
-
-  const workspace = await prisma.workspace.findUnique({
-    where: { id: proposal.tenantId },
-  });
-
-  if (proposal.status !== "rejected" && proposal.status !== "accepted") {
-    const today = new Date().toISOString().slice(0, 10);
-    if (!proposal.viewedAt) {
-      await prisma.proposal.update({
-        where: { id: proposal.id },
-        data: { viewedAt: today, status: "viewed" },
-      });
+    if (proposal.status === "draft") {
+      return { status: "draft" as const };
     }
-  }
 
-  return {
-    status: proposal.status,
-    htmlSnapshot: proposal.htmlSnapshot,
-    title: proposal.title,
-    code: proposal.code,
-    clientName: proposal.client?.name ?? "",
-    companyName: workspace?.companyName ?? null,
-    logoUrl: workspace?.logoUrl ?? null,
-    acceptedAt: proposal.acceptedAt,
-    acceptedByName: proposal.acceptedByName,
-    rejectedAt: proposal.rejectedAt,
-    rejectedReason: proposal.rejectedReason,
-    locale: proposal.locale,
-  };
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: proposal.tenantId },
+    });
+
+    if (proposal.status !== "rejected" && proposal.status !== "accepted") {
+      const today = new Date().toISOString().slice(0, 10);
+      if (!proposal.viewedAt) {
+        await prisma.proposal.update({
+          where: { id: proposal.id },
+          data: { viewedAt: today, status: "viewed" },
+        });
+      }
+    }
+
+    return {
+      status: proposal.status,
+      htmlSnapshot: proposal.htmlSnapshot,
+      title: proposal.title,
+      code: proposal.code,
+      clientName: proposal.client?.name ?? "",
+      companyName: workspace?.companyName ?? null,
+      logoUrl: workspace?.logoUrl ?? null,
+      acceptedAt: proposal.acceptedAt,
+      acceptedByName: proposal.acceptedByName,
+      rejectedAt: proposal.rejectedAt,
+      rejectedReason: proposal.rejectedReason,
+      locale: proposal.locale,
+    };
+  });
 }

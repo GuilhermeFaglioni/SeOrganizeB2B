@@ -1,4 +1,4 @@
-import { prisma } from "../../../prisma/client";
+import { prisma, withTenant } from "../../../prisma/client";
 import { allPermissions, MODULES } from "./permissions";
 
 export interface WorkspaceSetup {
@@ -46,23 +46,25 @@ function memberPermissions(): string[] {
 export async function seedWorkspaceRoles(
   workspaceId: string
 ): Promise<{ adminRoleId: string; memberRoleId: string }> {
-  const adminRole = await prisma.role.create({
-    data: {
-      name: "Admin",
-      permissions: allPermissions(),
-      isAdmin: true,
-      tenantId: workspaceId,
-    },
+  return withTenant(workspaceId, async () => {
+    const adminRole = await prisma.role.create({
+      data: {
+        name: "Admin",
+        permissions: allPermissions(),
+        isAdmin: true,
+        tenantId: workspaceId,
+      },
+    });
+    const memberRole = await prisma.role.create({
+      data: {
+        name: "Member",
+        permissions: memberPermissions(),
+        isAdmin: false,
+        tenantId: workspaceId,
+      },
+    });
+    return { adminRoleId: adminRole.id, memberRoleId: memberRole.id };
   });
-  const memberRole = await prisma.role.create({
-    data: {
-      name: "Member",
-      permissions: memberPermissions(),
-      isAdmin: false,
-      tenantId: workspaceId,
-    },
-  });
-  return { adminRoleId: adminRole.id, memberRoleId: memberRole.id };
 }
 
 export async function createWorkspaceForUser(

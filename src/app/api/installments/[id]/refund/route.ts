@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { withTenant } from "../../../../../../prisma/client";
 import { refundInstallment } from "@/lib/financial/installments-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function POST(
   request: NextRequest,
@@ -21,6 +24,9 @@ export async function POST(
   }
   const denied = await denyFor(user.id, "financial.receivables.refund");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const body = await request.json();
 
@@ -54,11 +60,13 @@ export async function POST(
   }
 
   try {
-    const refund = await refundInstallment(
-      params.id,
-      body.refundAmount,
-      refundDate,
-      user.id
+    const refund = await withTenant(ctx.tenantId, () =>
+      refundInstallment(
+        params.id,
+        body.refundAmount,
+        refundDate,
+        user.id
+      )
     );
     return NextResponse.json({ data: refund, error: null }, { status: 201 });
   } catch (error) {

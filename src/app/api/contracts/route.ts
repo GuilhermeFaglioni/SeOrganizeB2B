@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../prisma/client";
+import { prisma, withTenant } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { createContractDraft } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 const SORT_FIELDS = [
   "code",
@@ -26,6 +28,9 @@ export async function GET(request: NextRequest) {
   }
   const denied = await denyFor(user.id, "financial.contracts.view");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const { searchParams } = request.nextUrl;
   const search = searchParams.get("search")?.trim() || "";
@@ -63,29 +68,31 @@ export async function GET(request: NextRequest) {
       : {}),
   };
 
-  const [items, total] = await Promise.all([
-    prisma.contract.findMany({
-      where,
-      include: {
-        client: { select: { id: true, name: true } },
-        _count: { select: { installments: true } },
-      },
-      orderBy: { [sortBy]: sortDir },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.contract.count({ where }),
-  ]);
+  return withTenant(ctx.tenantId, async () => {
+    const [items, total] = await Promise.all([
+      prisma.contract.findMany({
+        where,
+        include: {
+          client: { select: { id: true, name: true } },
+          _count: { select: { installments: true } },
+        },
+        orderBy: { [sortBy]: sortDir },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.contract.count({ where }),
+    ]);
 
-  return NextResponse.json({
-    data: {
-      items,
-      total,
-      page,
-      pageSize,
-      totalPages: Math.max(1, Math.ceil(total / pageSize)),
-    },
-    error: null,
+    return NextResponse.json({
+      data: {
+        items,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      },
+      error: null,
+    });
   });
 }
 
@@ -99,6 +106,9 @@ export async function POST(request: NextRequest) {
   }
   const denied = await denyFor(user.id, "financial.contracts.create");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const body = await request.json();
 
@@ -180,23 +190,25 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const contract = await createContractDraft(
-      {
-        title: body.title,
-        clientId: body.clientId,
-        ownerId: body.ownerId ?? null,
-        durationType: body.durationType,
-        officialValue: String(body.officialValue),
-        startDate: body.startDate,
-        endDate: body.endDate ?? null,
-        billingFrequency: body.billingFrequency ?? null,
-        paymentMethod: body.paymentMethod ?? "pix",
-        documentUrl: body.documentUrl ?? null,
-        notes: body.notes ?? null,
-        items: body.items ?? [],
-        projectIds: body.projectIds ?? [],
-      },
-      user.id
+    const contract = await withTenant(ctx.tenantId, () =>
+      createContractDraft(
+        {
+          title: body.title,
+          clientId: body.clientId,
+          ownerId: body.ownerId ?? null,
+          durationType: body.durationType,
+          officialValue: String(body.officialValue),
+          startDate: body.startDate,
+          endDate: body.endDate ?? null,
+          billingFrequency: body.billingFrequency ?? null,
+          paymentMethod: body.paymentMethod ?? "pix",
+          documentUrl: body.documentUrl ?? null,
+          notes: body.notes ?? null,
+          items: body.items ?? [],
+          projectIds: body.projectIds ?? [],
+        },
+        user.id
+      )
     );
     return NextResponse.json({ data: contract, error: null }, { status: 201 });
   } catch (error) {

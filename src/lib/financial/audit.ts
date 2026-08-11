@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { requireTenantId } from "../../../prisma/client";
 
 export interface FinancialAuditInput {
   contractId: string;
@@ -25,6 +26,7 @@ export async function recordFinancialAudit(
         ? { afterValue: input.afterValue }
         : {}),
       ...(input.reason ? { reason: input.reason } : {}),
+      tenantId: requireTenantId("financial.audit"),
     },
   });
 }

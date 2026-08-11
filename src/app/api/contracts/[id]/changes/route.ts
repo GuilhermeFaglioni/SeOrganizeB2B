@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { withTenant } from "../../../../../../prisma/client";
 import { applyContractChange } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function POST(
   request: NextRequest,
@@ -21,6 +24,9 @@ export async function POST(
   }
   const denied = await denyFor(user.id, "financial.contracts.adjustValue");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const body = await request.json();
 
@@ -74,18 +80,20 @@ export async function POST(
   }
 
   try {
-    const result = await applyContractChange(
-      params.id,
-      {
-        type: body.type,
-        delta: body.delta,
-        effectiveDate: body.effectiveDate,
-        description: body.description ?? undefined,
-        reason: body.reason ?? undefined,
-        strategy: body.strategy,
-        confirm: body.confirm === true,
-      },
-      user.id
+    const result = await withTenant(ctx.tenantId, () =>
+      applyContractChange(
+        params.id,
+        {
+          type: body.type,
+          delta: body.delta,
+          effectiveDate: body.effectiveDate,
+          description: body.description ?? undefined,
+          reason: body.reason ?? undefined,
+          strategy: body.strategy,
+          confirm: body.confirm === true,
+        },
+        user.id
+      )
     );
     return NextResponse.json({ data: result, error: null });
   } catch (error) {

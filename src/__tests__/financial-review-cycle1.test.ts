@@ -177,6 +177,10 @@ vi.mock("../../prisma/client", () => ({
       async (fn: (tx: typeof mockTx) => Promise<unknown>) => fn(mockTx)
     ),
   },
+  withTenant: (_tenantId: string, fn: () => unknown) => fn(),
+  withTenantBypass: (fn: () => unknown) => fn(),
+  requireTenantId: () => "tenant-1",
+  getTenantId: () => "tenant-1",
 }));
 
 const tx = mockTx;
@@ -286,8 +290,8 @@ describe("B4: updateContract persists items and projects", () => {
     });
     expect(tx.contractProject.createMany).toHaveBeenCalledWith({
       data: [
-        { contractId: "ctr-1", projectId: "proj-a" },
-        { contractId: "ctr-1", projectId: "proj-b" },
+        { contractId: "ctr-1", projectId: "proj-a", tenantId: "tenant-1" },
+        { contractId: "ctr-1", projectId: "proj-b", tenantId: "tenant-1" },
       ],
     });
 

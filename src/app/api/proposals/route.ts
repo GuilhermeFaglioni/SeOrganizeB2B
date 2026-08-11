@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { withTenant } from "../../../../prisma/client";
 import {
   createProposalDraft,
   listProposals,
@@ -7,6 +8,8 @@ import {
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 const SORT_FIELDS = ["code", "title", "status", "totalValue", "createdAt", "client"] as const;
 
@@ -96,20 +99,25 @@ export async function GET(request: NextRequest) {
   const denied = await denyFor(user.id, "financial.proposals.view");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   const { searchParams } = request.nextUrl;
   const sortByRaw = searchParams.get("sortBy") || "createdAt";
   const sortBy = (SORT_FIELDS as readonly string[]).includes(sortByRaw)
     ? sortByRaw
     : "createdAt";
 
-  const result = await listProposals({
-    search: searchParams.get("search")?.trim() || undefined,
-    status: searchParams.get("status") || undefined,
-    page: Number(searchParams.get("page") || "1") || 1,
-    pageSize: Number(searchParams.get("pageSize") || "25") || 25,
-    sortBy,
-    sortDir: searchParams.get("sortDir") === "asc" ? "asc" : "desc",
-  });
+  const result = await withTenant(ctx.tenantId, () =>
+    listProposals({
+      search: searchParams.get("search")?.trim() || undefined,
+      status: searchParams.get("status") || undefined,
+      page: Number(searchParams.get("page") || "1") || 1,
+      pageSize: Number(searchParams.get("pageSize") || "25") || 25,
+      sortBy,
+      sortDir: searchParams.get("sortDir") === "asc" ? "asc" : "desc",
+    })
+  );
 
   return NextResponse.json({ data: result, error: null });
 }
@@ -125,6 +133,9 @@ export async function POST(request: NextRequest) {
   const denied = await denyFor(user.id, "financial.proposals.create");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   const body = await request.json();
   const { errors, input } = parseProposalInput(body);
   if (errors.length > 0) {
@@ -138,7 +149,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const proposal = await createProposalDraft(input, user.id);
+    const proposal = await withTenant(ctx.tenantId, () =>
+      createProposalDraft(input, user.id)
+    );
     return NextResponse.json({ data: proposal, error: null }, { status: 201 });
   } catch (error) {
     return mapFinancialError(error);

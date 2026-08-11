@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { withTenant } from "../../../../../prisma/client";
 import {
   deleteProposal,
   getProposal,
@@ -8,6 +9,8 @@ import {
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 function parseUpdateInput(body: Record<string, unknown>) {
   const errors: string[] = [];
@@ -85,7 +88,10 @@ export async function GET(
   const denied = await denyFor(user.id, "financial.proposals.view");
   if (denied) return denied;
 
-  const proposal = await getProposal(params.id);
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const proposal = await withTenant(ctx.tenantId, () => getProposal(params.id));
   if (!proposal) {
     return NextResponse.json(
       {
@@ -112,6 +118,9 @@ export async function PATCH(
   const denied = await denyFor(user.id, "financial.proposals.edit");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   const body = await request.json();
   const { errors, input } = parseUpdateInput(body);
   if (errors.length > 0) {
@@ -125,7 +134,9 @@ export async function PATCH(
   }
 
   try {
-    const proposal = await updateProposalDraft(params.id, input as never);
+    const proposal = await withTenant(ctx.tenantId, () =>
+      updateProposalDraft(params.id, input as never)
+    );
     return NextResponse.json({ data: proposal, error: null });
   } catch (error) {
     return mapFinancialError(error);
@@ -146,8 +157,11 @@ export async function DELETE(
   const denied = await denyFor(user.id, "financial.proposals.delete");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   try {
-    await deleteProposal(params.id);
+    await withTenant(ctx.tenantId, () => deleteProposal(params.id));
     return NextResponse.json({ data: null, error: null });
   } catch (error) {
     return mapFinancialError(error);

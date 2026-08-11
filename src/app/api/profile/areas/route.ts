@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function GET() {
   const user = await getUser();
@@ -30,24 +32,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   const body = await request.json();
   const { areaIds } = body as { areaIds: string[] };
 
-  await prisma.teamMemberArea.deleteMany({ where: { userId: user.id } });
+  return withTenant(ctx.tenantId, async () => {
+    await prisma.teamMemberArea.deleteMany({ where: { userId: user.id } });
 
-  if (areaIds.length > 0) {
-    await prisma.teamMemberArea.createMany({
-      data: areaIds.map((areaId) => ({
-        userId: user.id,
-        areaId,
-      })),
+    if (areaIds.length > 0) {
+      await prisma.teamMemberArea.createMany({
+        data: areaIds.map((areaId) => ({
+          userId: user.id,
+          areaId,
+          tenantId: ctx.tenantId!,
+        })),
+      });
+    }
+
+    const memberships = await prisma.teamMemberArea.findMany({
+      where: { userId: user.id },
+      include: { area: { select: { id: true, name: true, color: true } } },
     });
-  }
 
-  const memberships = await prisma.teamMemberArea.findMany({
-    where: { userId: user.id },
-    include: { area: { select: { id: true, name: true, color: true } } },
+    return NextResponse.json({ data: memberships, error: null });
   });
-
-  return NextResponse.json({ data: memberships, error: null });
 }

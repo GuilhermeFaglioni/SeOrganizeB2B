@@ -35,6 +35,10 @@ vi.mock("../../prisma/client", () => ({
     role: { create: mocks.mockRoleCreate },
     plan: { findFirst: mocks.mockPlanFindFirst },
   },
+  withTenant: (_tenantId: string, fn: () => unknown) => fn(),
+  withTenantBypass: (fn: () => unknown) => fn(),
+  requireTenantId: () => "tenant-1",
+  getTenantId: () => "tenant-1",
 }));
 
 import { GET } from "../app/auth/callback/route";

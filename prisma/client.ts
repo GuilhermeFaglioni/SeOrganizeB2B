@@ -34,6 +34,8 @@ if (process.env.NODE_ENV !== "production") {
 export {
   TENANT_CONTEXT_REQUIRED,
   TenantContextRequiredError,
+  getTenantId,
+  requireTenantId,
   tenantFilter,
   withTenant,
   withTenantBypass,

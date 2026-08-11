@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import {
   getValidAccessToken,
@@ -16,6 +16,8 @@ import type {
 } from "@/lib/calendar/types";
 import { POST as createScheduledEvent } from "../schedule/route";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -30,6 +32,9 @@ export async function GET(request: NextRequest) {
   }
   const denied = await denyFor(user.id, "calendar.view");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const { searchParams } = new URL(request.url);
   const timeMin =
@@ -57,109 +62,111 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const [localEvents, calendarAuth] = await Promise.all([
-    prisma.calendarEvent.findMany({
-      where: {
-        userId: user.id,
-        startTime: { lt: rangeEnd },
-        endTime: { gt: rangeStart },
-      },
-      orderBy: { startTime: "asc" },
-      include: {
-        task: {
-          select: {
-            id: true,
-            title: true,
-            project: { select: { id: true, name: true } },
+  return withTenant(ctx.tenantId, async () => {
+    const [localEvents, calendarAuth] = await Promise.all([
+      prisma.calendarEvent.findMany({
+        where: {
+          userId: user.id,
+          startTime: { lt: rangeEnd },
+          endTime: { gt: rangeStart },
+        },
+        orderBy: { startTime: "asc" },
+        include: {
+          task: {
+            select: {
+              id: true,
+              title: true,
+              project: { select: { id: true, name: true } },
+            },
+          },
+          area: { select: { id: true, name: true, color: true } },
+          attendees: true,
+        },
+      }),
+      prisma.calendarAuth.findUnique({
+        where: { userId: user.id },
+        select: { id: true, googleEmail: true },
+      }),
+    ]);
+
+    const normalizedLocal: CalendarEventData[] = localEvents.map((event) => ({
+      id: event.id,
+      googleId: event.googleId,
+      title: event.title,
+      description: event.description,
+      startTime: event.startTime.toISOString(),
+      endTime: event.endTime.toISOString(),
+      allDay: event.allDay,
+      timeZone: event.timeZone,
+      color: event.color,
+      source: event.source === "google" ? "google" : "local",
+      task: event.task,
+      area: event.area,
+      attendees: event.attendees.map((attendee) => ({
+        id: attendee.id,
+        profileId: attendee.profileId,
+        email: attendee.email,
+        displayName: attendee.displayName,
+        responseStatus:
+          attendee.responseStatus as CalendarResponseStatus,
+        organizer: attendee.organizer,
+      })),
+    }));
+
+    if (!calendarAuth) {
+      return NextResponse.json({
+        data: {
+          events: normalizedLocal,
+          connection: { connected: false, email: null },
+        },
+        error: null,
+      });
+    }
+
+    try {
+      const accessToken = await getValidAccessToken(user.id);
+      const googleEvents = await new GoogleCalendarClient(
+        accessToken,
+      ).fetchEvents(timeMin, timeMax);
+
+      await prisma.calendarAuth.updateMany({
+        where: { userId: user.id },
+        data: { lastSyncAt: new Date() },
+      });
+
+      return NextResponse.json({
+        data: {
+          events: dedupeCalendarEvents([...googleEvents, ...normalizedLocal]),
+          connection: {
+            connected: true,
+            email: calendarAuth.googleEmail,
           },
         },
-        area: { select: { id: true, name: true, color: true } },
-        attendees: true,
-      },
-    }),
-    prisma.calendarAuth.findUnique({
-      where: { userId: user.id },
-      select: { id: true, googleEmail: true },
-    }),
-  ]);
-
-  const normalizedLocal: CalendarEventData[] = localEvents.map((event) => ({
-    id: event.id,
-    googleId: event.googleId,
-    title: event.title,
-    description: event.description,
-    startTime: event.startTime.toISOString(),
-    endTime: event.endTime.toISOString(),
-    allDay: event.allDay,
-    timeZone: event.timeZone,
-    color: event.color,
-    source: event.source === "google" ? "google" : "local",
-    task: event.task,
-    area: event.area,
-    attendees: event.attendees.map((attendee) => ({
-      id: attendee.id,
-      profileId: attendee.profileId,
-      email: attendee.email,
-      displayName: attendee.displayName,
-      responseStatus:
-        attendee.responseStatus as CalendarResponseStatus,
-      organizer: attendee.organizer,
-    })),
-  }));
-
-  if (!calendarAuth) {
-    return NextResponse.json({
-      data: {
-        events: normalizedLocal,
-        connection: { connected: false, email: null },
-      },
-      error: null,
-    });
-  }
-
-  try {
-    const accessToken = await getValidAccessToken(user.id);
-    const googleEvents = await new GoogleCalendarClient(
-      accessToken,
-    ).fetchEvents(timeMin, timeMax);
-
-    await prisma.calendarAuth.updateMany({
-      where: { userId: user.id },
-      data: { lastSyncAt: new Date() },
-    });
-
-    return NextResponse.json({
-      data: {
-        events: dedupeCalendarEvents([...googleEvents, ...normalizedLocal]),
-        connection: {
-          connected: true,
-          email: calendarAuth.googleEmail,
+        error: null,
+      });
+    } catch (error) {
+      console.error("Google Calendar fetch failed:", error);
+      const code =
+        error instanceof GoogleAuthError
+          ? error.code
+          : error instanceof GoogleCalendarError && error.status === 401
+            ? "GOOGLE_AUTH_EXPIRED"
+            : "GOOGLE_API_ERROR";
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            code,
+            message:
+              error instanceof Error
+                ? error.message
+                : "Could not load Google Calendar",
+          },
         },
-      },
-      error: null,
-    });
-  } catch (error) {
-    console.error("Google Calendar fetch failed:", error);
-    const code =
-      error instanceof GoogleAuthError
-        ? error.code
-        : error instanceof GoogleCalendarError && error.status === 401
-          ? "GOOGLE_AUTH_EXPIRED"
-          : "GOOGLE_API_ERROR";
-    return NextResponse.json(
-      {
-        data: null,
-        error: {
-          code,
-          message:
-            error instanceof Error
-              ? error.message
-              : "Could not load Google Calendar",
-        },
-      },
-      { status: 502 },
-    );
-  }
+        { status: 502 },
+      );
+    }
+  });
 }
 
 export async function POST(request: NextRequest) {
