@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 
@@ -52,7 +53,14 @@ export default function AdminPlansPage() {
           <tbody>
             {plans.map((plan) => (
               <tr key={plan.id} className="border-b border-border">
-                <td className="py-2 pr-4 text-text-primary">{plan.name}</td>
+                <td className="py-2 pr-4 text-text-primary">
+                  <Link
+                    href={`/admin/plans/${plan.id}`}
+                    className="font-medium text-text-primary hover:text-accent hover:underline"
+                  >
+                    {plan.name}
+                  </Link>
+                </td>
                 <td className="py-2 pr-4 text-text-secondary">
                   {plan.allowedModules.length > 0
                     ? plan.allowedModules.join(", ")

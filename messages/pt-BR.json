@@ -132,7 +132,32 @@
       },
       "planDetail": {
         "title": "Detalhes do plano",
-        "comingSoon": "Os detalhes do plano serão habilitados em breve."
+        "backToPlans": "Voltar para planos",
+        "limitsTitle": "Limites do plano",
+        "resource": "Recurso",
+        "limit": "Limite",
+        "behavior": "Comportamento",
+        "actions": "Ações",
+        "addLimit": "Adicionar limite",
+        "save": "Salvar",
+        "cancel": "Cancelar",
+        "edit": "Editar",
+        "delete": "Excluir",
+        "empty": "Nenhum limite configurado para este plano ainda.",
+        "loadFailed": "Não foi possível carregar os limites do plano.",
+        "createLimitFailed": "Não foi possível criar o limite.",
+        "updateLimitFailed": "Não foi possível atualizar o limite.",
+        "deleteLimitFailed": "Não foi possível excluir o limite.",
+        "resources": {
+          "users": "Usuários",
+          "tasks": "Tarefas",
+          "projects": "Projetos",
+          "contracts": "Contratos"
+        },
+        "behaviors": {
+          "hard": "Rígido",
+          "warning": "Aviso"
+        }
       },
       "billing": {
         "title": "Visão geral de cobrança",

@@ -132,7 +132,32 @@
       },
       "planDetail": {
         "title": "Plan details",
-        "comingSoon": "Plan details will be enabled soon."
+        "backToPlans": "Back to plans",
+        "limitsTitle": "Plan limits",
+        "resource": "Resource",
+        "limit": "Limit",
+        "behavior": "Behavior",
+        "actions": "Actions",
+        "addLimit": "Add limit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete",
+        "empty": "No limits configured for this plan yet.",
+        "loadFailed": "Failed to load plan limits.",
+        "createLimitFailed": "Failed to create limit.",
+        "updateLimitFailed": "Failed to update limit.",
+        "deleteLimitFailed": "Failed to delete limit.",
+        "resources": {
+          "users": "Users",
+          "tasks": "Tasks",
+          "projects": "Projects",
+          "contracts": "Contracts"
+        },
+        "behaviors": {
+          "hard": "Hard",
+          "warning": "Warning"
+        }
       },
       "billing": {
         "title": "Billing overview",
