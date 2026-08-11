@@ -44,6 +44,7 @@ vi.mock("@/lib/authz/authz", () => ({
   }),
   can: vi.fn().mockResolvedValue(true),
   hasPermission: vi.fn().mockReturnValue(true),
+  canViewResource: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({

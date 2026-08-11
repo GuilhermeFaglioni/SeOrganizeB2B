@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma, withTenant } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
@@ -64,15 +65,18 @@ export async function GET(request: NextRequest) {
   };
 
   return withTenant(ctx.tenantId, async () => {
+    // Clients have no area/project linkage, so area/project scope falls back to
+    // tenant-level filtering (see scope-filter.ts).
+    const scopedWhere = await applyScopeFilter(user.id, ctx.tenantId, "client", where);
     const [items, total] = await Promise.all([
       prisma.client.findMany({
-        where,
+        where: scopedWhere,
         orderBy: { name: "asc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: { _count: { select: { contracts: true } } },
       }),
-      prisma.client.count({ where }),
+      prisma.client.count({ where: scopedWhere }),
     ]);
 
     return NextResponse.json({

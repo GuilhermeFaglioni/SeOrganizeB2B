@@ -8,6 +8,7 @@ import {
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
@@ -117,6 +118,10 @@ export async function GET(request: NextRequest) {
     ? sortByRaw
     : "createdAt";
 
+  // Proposals have no area/project linkage, so area/project scope falls back to
+  // tenant-level filtering (see scope-filter.ts).
+  const scopeWhere = await applyScopeFilter(user.id, ctx.tenantId, "proposal", {});
+
   const result = await withTenant(ctx.tenantId, () =>
     listProposals({
       search: searchParams.get("search")?.trim() || undefined,
@@ -125,6 +130,7 @@ export async function GET(request: NextRequest) {
       pageSize: Number(searchParams.get("pageSize") || "25") || 25,
       sortBy,
       sortDir: searchParams.get("sortDir") === "asc" ? "asc" : "desc",
+      where: scopeWhere,
     })
   );
 

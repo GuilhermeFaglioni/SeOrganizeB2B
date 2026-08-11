@@ -4,6 +4,7 @@ import { prisma, withTenant } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { todayCivilDate } from "@/lib/financial/civil-date";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate } from "@/lib/middleware/feature-gating";
@@ -53,9 +54,12 @@ export async function GET(request: NextRequest) {
   };
 
   return withTenant(ctx.tenantId, async () => {
+    // Receivables have no area/project linkage, so area/project scope falls back
+    // to tenant-level filtering (see scope-filter.ts).
+    const scopedWhere = await applyScopeFilter(user.id, ctx.tenantId, "receivable", where);
     const [items, total] = await Promise.all([
       prisma.installment.findMany({
-        where,
+        where: scopedWhere,
         include: {
           contract: {
             include: { client: { select: { name: true } } },
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
-      prisma.installment.count({ where }),
+      prisma.installment.count({ where: scopedWhere }),
     ]);
 
     const itemsWithDisplayStatus = items.map((item) => ({

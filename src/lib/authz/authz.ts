@@ -169,7 +169,25 @@ const ENTITY_TYPE_RESOURCE: Record<string, string> = {
   project: "projects",
   document: "documents",
   area: "areas",
+  contract: "financial.contracts",
+  client: "financial.clients",
+  proposal: "financial.proposals",
+  receivable: "financial.receivables",
+  overview: "financial.overview",
 };
+
+/**
+ * Financial entities have no `areaId`/`projectId` in the schema, so area/project
+ * scopes cannot be resolved for them. Access is granted whenever the user holds
+ * the module's `view` permission (tenant-level scope).
+ */
+const TENANT_SCOPED_ENTITY_TYPES: ReadonlySet<string> = new Set([
+  "contract",
+  "client",
+  "proposal",
+  "receivable",
+  "overview",
+]);
 
 /**
  * Area memberships for a user, scoped to their tenant via `team_member_areas`.
@@ -303,6 +321,9 @@ export async function canViewResource(
     (p) => p.resource === resource && p.action === "view"
   );
   if (!permission) return false;
+  // Financial entities have no area/project linkage in the schema, so the view
+  // permission alone grants access (tenant-level scope).
+  if (TENANT_SCOPED_ENTITY_TYPES.has(entityType)) return true;
   const { tenantId } = effective;
   if (permission.scope === "all") return true;
   if (permission.scope === "area") {

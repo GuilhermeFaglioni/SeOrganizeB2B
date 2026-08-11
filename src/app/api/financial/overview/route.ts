@@ -4,6 +4,7 @@ import { withTenant } from "../../../../../prisma/client";
 import { computeOverview } from "@/lib/financial/overview-service";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate } from "@/lib/middleware/feature-gating";
@@ -48,8 +49,16 @@ export async function GET(request: NextRequest) {
     const installmentStatus = (searchParams.get("installmentStatus") ||
       undefined) as InstallmentStatus | undefined;
 
-    const data = await withTenant(ctx.tenantId, () =>
-      computeOverview({
+    const data = await withTenant(ctx.tenantId, async () => {
+      // Financial overview has no area/project linkage, so area/project scope
+      // falls back to tenant-level filtering (see scope-filter.ts).
+      const scopeWhere = await applyScopeFilter(
+        user.id,
+        ctx.tenantId,
+        "overview",
+        {}
+      );
+      return computeOverview({
         period,
         from,
         to,
@@ -57,8 +66,9 @@ export async function GET(request: NextRequest) {
         contractStatus,
         projectId,
         installmentStatus,
-      })
-    );
+        contractWhere: scopeWhere,
+      });
+    });
 
     return NextResponse.json({ data, error: null });
   } catch (error) {

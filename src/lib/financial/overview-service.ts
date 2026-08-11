@@ -24,6 +24,7 @@ export interface OverviewFilters {
   contractStatus?: ContractStatus;
   projectId?: string;
   installmentStatus?: InstallmentStatus;
+  contractWhere?: Prisma.ContractWhereInput;
 }
 
 export interface OverviewData {
@@ -80,6 +81,7 @@ export async function computeOverview(
     await extendRecurringHorizons(tx);
 
     const contractWhere: Prisma.ContractWhereInput = {
+      ...(filters.contractWhere ?? {}),
       ...(filters.clientId ? { clientId: filters.clientId } : {}),
       ...(filters.contractStatus ? { status: filters.contractStatus } : {}),
       ...(filters.projectId ? { projects: { some: { projectId: filters.projectId } } } : {}),

@@ -53,6 +53,7 @@ export interface ProposalListFilters {
   pageSize?: number;
   sortBy?: string;
   sortDir?: string;
+  where?: Prisma.ProposalWhereInput;
 }
 
 const PROPOSAL_INCLUDE = {
@@ -392,7 +393,7 @@ export async function listProposals(filters: ProposalListFilters = {}) {
   const sortBy = filters.sortBy ?? "createdAt";
   const sortDir = filters.sortDir === "asc" ? "asc" : "desc";
 
-  const where: Prisma.ProposalWhereInput = {};
+  const where: Prisma.ProposalWhereInput = { ...(filters.where ?? {}) };
   if (filters.status && isProposalStatus(filters.status)) {
     where.status = filters.status;
   }

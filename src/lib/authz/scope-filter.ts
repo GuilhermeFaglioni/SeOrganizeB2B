@@ -9,7 +9,12 @@ export type ScopedEntityType =
   | "task"
   | "project"
   | "document"
-  | "calendarEvent";
+  | "calendarEvent"
+  | "contract"
+  | "client"
+  | "proposal"
+  | "receivable"
+  | "overview";
 
 export type ScopeFilterWhere = Record<string, unknown>;
 
@@ -18,7 +23,28 @@ const ENTITY_RESOURCE: Record<ScopedEntityType, string> = {
   project: "projects",
   document: "documents",
   calendarEvent: "calendar",
+  contract: "financial.contracts",
+  client: "financial.clients",
+  proposal: "financial.proposals",
+  receivable: "financial.receivables",
+  overview: "financial.overview",
 };
+
+/**
+ * Financial entities (contracts/clients/proposals/receivables/overview) have no
+ * `areaId`/`projectId` in the schema, so area/project scopes cannot be applied
+ * to them. Their scope filter falls back to tenant-level filtering (the tenant
+ * middleware already scopes rows by tenant).
+ */
+const TENANT_SCOPED_ENTITIES: ReadonlySet<ScopedEntityType> = new Set<
+  ScopedEntityType
+>([
+  "contract",
+  "client",
+  "proposal",
+  "receivable",
+  "overview",
+]);
 
 /**
  * Resolves the effective scope a user is granted for an entity type, based on
@@ -49,6 +75,9 @@ export async function getUserScope(
  *   tasks/documents match through their `project.areaId`.
  * - `project`: tasks/documents match `projectId` in the user's project
  *   memberships.
+ * - Financial entities (contracts/clients/proposals/receivables/overview):
+ *   area/project scopes fall back to tenant-level filtering because they have
+ *   no area/project linkage in the schema.
  *
  * An empty membership list produces `{ in: [] }`, which matches nothing.
  */
@@ -60,6 +89,12 @@ export async function applyScopeFilter(
 ): Promise<ScopeFilterWhere> {
   const scope = await getUserScope(userId, tenantId, entityType);
   if (scope === "all") return baseWhere;
+  if (TENANT_SCOPED_ENTITIES.has(entityType)) {
+    // Financial entities have no area/project linkage in the schema, so an
+    // area/project scope falls back to tenant-level filtering. The scoped RBAC
+    // (area/project) primarily applies to tasks/projects/documents/calendar.
+    return baseWhere;
+  }
   if (scope === "area") {
     const areaIds = await getUserAreaIds(userId, tenantId);
     if (entityType === "task" || entityType === "document") {

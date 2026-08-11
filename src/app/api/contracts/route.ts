@@ -5,6 +5,7 @@ import { createContractDraft } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
@@ -78,9 +79,12 @@ export async function GET(request: NextRequest) {
   };
 
   return withTenant(ctx.tenantId, async () => {
+    // Contracts have no area/project linkage, so area/project scope falls back
+    // to tenant-level filtering (see scope-filter.ts).
+    const scopedWhere = await applyScopeFilter(user.id, ctx.tenantId, "contract", where);
     const [items, total] = await Promise.all([
       prisma.contract.findMany({
-        where,
+        where: scopedWhere,
         include: {
           client: { select: { id: true, name: true } },
           _count: { select: { installments: true } },
@@ -89,7 +93,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
-      prisma.contract.count({ where }),
+      prisma.contract.count({ where: scopedWhere }),
     ]);
 
     return NextResponse.json({
