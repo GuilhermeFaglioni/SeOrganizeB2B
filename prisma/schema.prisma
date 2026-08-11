@@ -49,18 +49,21 @@ model Profile {
 }
 
 model Role {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  permissions Json     @default("[]")
-  isAdmin     Boolean  @default(false) @map("is_admin")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id          String    @id @default(uuid())
+  name        String    @unique
+  permissions Json      @default("[]")
+  isAdmin     Boolean   @default(false) @map("is_admin")
+  tenantId    String?   @map("tenant_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
+  tenant     Workspace? @relation("RoleTenant", fields: [tenantId], references: [id], onDelete: SetNull)
   profiles   Profile[]
   defaultFor WorkspaceSettings[]
   workspaces Workspace[]
 
   @@index([isAdmin])
+  @@index([tenantId])
   @@map("roles")
 }
 
@@ -83,6 +86,7 @@ model Workspace {
   plan        Plan?   @relation(fields: [planId], references: [id], onDelete: SetNull)
 
   profiles Profile[]
+  roles    Role[]      @relation("RoleTenant")
 
   @@map("workspaces")
 }

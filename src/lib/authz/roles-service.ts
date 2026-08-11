@@ -20,6 +20,7 @@ export async function listRoles() {
   return roles.map((role) => ({
     id: role.id,
     name: role.name,
+    tenantId: role.tenantId,
     permissions: role.permissions as string[],
     isAdmin: role.isAdmin,
     createdAt: role.createdAt,
@@ -38,6 +39,7 @@ export async function getRole(roleId: string) {
   return {
     id: role.id,
     name: role.name,
+    tenantId: role.tenantId,
     permissions: role.permissions as string[],
     isAdmin: role.isAdmin,
     createdAt: role.createdAt,
