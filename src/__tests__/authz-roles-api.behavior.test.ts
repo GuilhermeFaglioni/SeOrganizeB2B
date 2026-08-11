@@ -81,13 +81,18 @@ describe("roles API", () => {
     vi.clearAllMocks();
   });
 
-  it("lists roles for a manager", async () => {
+  it("lists roles for a manager scoped to their tenant", async () => {
     mocks.mockRoleFindMany.mockResolvedValue([
       { id: "r1", name: "Editor", permissions: ["tasks.view"], isAdmin: false, createdAt: "", updatedAt: "", _count: { profiles: 1 } },
     ]);
     mocks.mockWorkspaceFindUnique.mockResolvedValue({ defaultRoleId: "r1" });
     const res = await listRolesGET();
     expect(res.status).toBe(200);
+    expect(mocks.mockRoleFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ tenantId: "tenant-1" }),
+      })
+    );
     const json = await res.json();
     expect(json.data[0].name).toBe("Editor");
     expect(json.data[0].isDefault).toBe(true);
@@ -115,6 +120,7 @@ describe("roles API", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           name: "Financeiro",
+          tenantId: "tenant-1",
           permissions: [
             { resource: "financial.contracts", action: "view", scope: "all" },
           ],

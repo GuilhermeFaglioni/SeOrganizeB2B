@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { denyFor } from "@/lib/authz/authz";
-import { mapRoleError } from "@/lib/authz/http";
+import { mapRoleError, noWorkspaceResponse } from "@/lib/authz/http";
 import { setDefaultRole } from "@/lib/authz/roles-service";
+import { getTenantContext } from "@/lib/authz/tenant-context";
 
 export async function PATCH(request: Request) {
   const user = await getUser();
@@ -11,6 +12,9 @@ export async function PATCH(request: Request) {
   }
   const denied = await denyFor(user.id, "manage_roles");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const body = await request.json();
   const roleId = body.roleId === null || body.roleId === undefined ? null : String(body.roleId);
@@ -22,7 +26,7 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const settings = await setDefaultRole(roleId);
+    const settings = await setDefaultRole(roleId, ctx.tenantId);
     return NextResponse.json({ data: settings, error: null });
   } catch (error) {
     return mapRoleError(error);
