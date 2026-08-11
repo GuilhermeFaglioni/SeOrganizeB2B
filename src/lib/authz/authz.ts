@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma, withTenant } from "../../../prisma/client";
+import { prisma, withTenant, withTenantBypass } from "../../../prisma/client";
 import { isWorkspaceAccessBlocked } from "../tenant";
 import {
   normalizePermissions,
@@ -162,6 +162,164 @@ export async function can(
 ): Promise<boolean> {
   const effective = await getEffectivePermissions(userId);
   return hasPermission(effective, permission);
+}
+
+const ENTITY_TYPE_RESOURCE: Record<string, string> = {
+  task: "tasks",
+  project: "projects",
+  document: "documents",
+  area: "areas",
+};
+
+/**
+ * Area memberships for a user, scoped to their tenant via `team_member_areas`.
+ */
+export async function getUserAreaIds(
+  userId: string,
+  tenantId: string | null
+): Promise<string[]> {
+  if (!tenantId) return [];
+  const rows = await withTenant(tenantId, () =>
+    prisma.teamMemberArea.findMany({
+      where: { userId },
+      select: { areaId: true },
+    })
+  );
+  return rows.map((row) => row.areaId);
+}
+
+/**
+ * Project memberships for a user via `project_members`. The join table has no
+ * `tenantId` column, so it bypasses the tenant filter and is scoped through the
+ * `project` relation instead.
+ */
+export async function getUserProjectIds(
+  userId: string,
+  tenantId: string | null
+): Promise<string[]> {
+  if (!tenantId) return [];
+  const rows = await withTenantBypass(() =>
+    prisma.projectMember.findMany({
+      where: { profileId: userId, project: { tenantId } },
+      select: { projectId: true },
+    })
+  );
+  return rows.map((row) => row.projectId);
+}
+
+async function resolveAreaId(
+  entityType: string,
+  entityId: string,
+  tenantId: string | null
+): Promise<string | null> {
+  if (!tenantId) return null;
+  switch (entityType) {
+    case "area":
+      return entityId;
+    case "project":
+      return (
+        (await withTenant(tenantId, () =>
+          prisma.project.findUnique({
+            where: { id: entityId },
+            select: { areaId: true },
+          })
+        ))?.areaId ?? null
+      );
+    case "task":
+      return (
+        (await withTenant(tenantId, () =>
+          prisma.task.findUnique({
+            where: { id: entityId },
+            select: { project: { select: { areaId: true } } },
+          })
+        ))?.project?.areaId ?? null
+      );
+    case "document":
+      return (
+        (await withTenant(tenantId, () =>
+          prisma.document.findUnique({
+            where: { id: entityId },
+            select: { project: { select: { areaId: true } } },
+          })
+        ))?.project?.areaId ?? null
+      );
+    default:
+      return null;
+  }
+}
+
+async function resolveProjectId(
+  entityType: string,
+  entityId: string,
+  tenantId: string | null
+): Promise<string | null> {
+  if (!tenantId) return null;
+  switch (entityType) {
+    case "project":
+      return entityId;
+    case "task":
+      return (
+        (await withTenant(tenantId, () =>
+          prisma.task.findUnique({
+            where: { id: entityId },
+            select: { projectId: true },
+          })
+        ))?.projectId ?? null
+      );
+    case "document":
+      return (
+        (await withTenant(tenantId, () =>
+          prisma.document.findUnique({
+            where: { id: entityId },
+            select: { projectId: true },
+          })
+        ))?.projectId ?? null
+      );
+    default:
+      return null;
+  }
+}
+
+/**
+ * Verifies whether a user can view a specific resource, honouring the scope of
+ * their `view` permission for the resource's module.
+ *
+ * - `all`: permission alone grants access.
+ * - `area`: the resource's area must be one of the user's `team_member_areas`.
+ * - `project`: the resource's project must be one of the user's `project_members`.
+ * - No `view` permission (or an unknown entity type): denied.
+ * - Admin bypass: `isAdmin` users can view everything.
+ */
+export async function canViewResource(
+  userId: string,
+  entityType: string,
+  entityId: string
+): Promise<boolean> {
+  const effective = await getEffectivePermissions(userId);
+  if (effective.isAdmin) return true;
+  const resource = ENTITY_TYPE_RESOURCE[entityType];
+  if (!resource) return false;
+  const permission = effective.permissions.find(
+    (p) => p.resource === resource && p.action === "view"
+  );
+  if (!permission) return false;
+  const { tenantId } = effective;
+  if (permission.scope === "all") return true;
+  if (permission.scope === "area") {
+    const [areaIds, areaId] = await Promise.all([
+      getUserAreaIds(userId, tenantId),
+      resolveAreaId(entityType, entityId, tenantId),
+    ]);
+    return areaId !== null && areaIds.includes(areaId);
+  }
+  if (permission.scope === "project") {
+    const [projectIds, projectId] = await Promise.all([
+      getUserProjectIds(userId, tenantId),
+      resolveProjectId(entityType, entityId, tenantId),
+    ]);
+    return projectId !== null && projectIds.includes(projectId);
+  }
+  return false;
 }
 
 export async function denyFor(
