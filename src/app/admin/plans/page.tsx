@@ -1,46 +1,152 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Plus } from "lucide-react";
+import { useAdminPlans, useCreatePlan } from "@/hooks/use-admin-plans";
+import type { AdminPlan } from "@/hooks/use-admin-plans";
+import { ALL_MODULES } from "@/lib/module-gating";
 import { Badge } from "@/components/ui/badge";
-
-interface AdminPlan {
-  id: string;
-  name: string;
-  stripePriceId: string | null;
-  allowedModules: string[];
-  isDefault: boolean;
-  isActive: boolean;
-}
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { EmptyState } from "@/components/shared/empty-state";
+import { toastSuccess, toastError } from "@/lib/toast";
 
 export default function AdminPlansPage() {
   const t = useTranslations("admin.pages.plans");
-  const [plans, setPlans] = useState<AdminPlan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const { data: plans, isLoading, isError } = useAdminPlans();
+  const createPlan = useCreatePlan();
 
-  useEffect(() => {
-    fetch("/api/admin/plans")
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("failed"))))
-      .then((json) => {
-        setPlans(json.data ?? []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
-  }, []);
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState("");
+  const [stripePriceId, setStripePriceId] = useState("");
+  const [modules, setModules] = useState<string[]>([]);
+  const [isDefault, setIsDefault] = useState(false);
+
+  function toggleModule(module: string) {
+    setModules((current) =>
+      current.includes(module)
+        ? current.filter((item) => item !== module)
+        : [...current, module]
+    );
+  }
+
+  function resetForm() {
+    setName("");
+    setStripePriceId("");
+    setModules([]);
+    setIsDefault(false);
+    setShowForm(false);
+  }
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!name.trim()) return;
+    createPlan.mutate(
+      {
+        name: name.trim(),
+        stripePriceId: stripePriceId.trim() || null,
+        allowedModules: modules,
+        isDefault,
+      },
+      {
+        onSuccess: () => {
+          toastSuccess(t("createSuccess"));
+          resetForm();
+        },
+        onError: () => toastError(t("createFailed")),
+      }
+    );
+  }
 
   return (
     <div data-testid="admin-plans-page" className="p-6">
-      <h1 className="text-heading-1 font-semibold text-text-primary">
-        {t("title")}
-      </h1>
-      {loading && <p className="mt-4 text-body-small text-text-secondary">{t("loading")}</p>}
-      {error && <p className="mt-4 text-body-small text-danger">{t("error")}</p>}
-      {!loading && !error && (
+      <div className="flex items-center justify-between">
+        <h1 className="text-heading-1 font-semibold text-text-primary">
+          {t("title")}
+        </h1>
+        <Button onClick={() => setShowForm((value) => !value)}>
+          <Plus className="mr-2 h-4 w-4" />
+          {t("createPlan")}
+        </Button>
+      </div>
+
+      {showForm && (
+        <form
+          onSubmit={submit}
+          className="mt-6 space-y-4 rounded-lg border border-border p-4"
+          data-testid="create-plan-form"
+        >
+          <h2 className="text-heading-2 font-semibold text-text-primary">
+            {t("createTitle")}
+          </h2>
+          <div className="space-y-1.5">
+            <Label htmlFor="plan-name">{t("name")}</Label>
+            <Input
+              id="plan-name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="plan-stripe-price">{t("stripePriceId")}</Label>
+            <Input
+              id="plan-stripe-price"
+              value={stripePriceId}
+              onChange={(event) => setStripePriceId(event.target.value)}
+              placeholder="price_..."
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t("modules")}</Label>
+            <div className="flex flex-wrap gap-2">
+              {ALL_MODULES.map((module) => (
+                <label
+                  key={module}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-sm"
+                >
+                  <Checkbox
+                    checked={modules.includes(module)}
+                    onCheckedChange={() => toggleModule(module)}
+                  />
+                  {module}
+                </label>
+              ))}
+            </div>
+          </div>
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <Checkbox
+              checked={isDefault}
+              onCheckedChange={(checked) => setIsDefault(Boolean(checked))}
+            />
+            {t("setAsDefault")}
+          </label>
+          <div className="flex items-center gap-2">
+            <Button
+              type="submit"
+              disabled={createPlan.isPending || !name.trim()}
+            >
+              {t("create")}
+            </Button>
+            <Button type="button" variant="outline" onClick={resetForm}>
+              {t("cancel")}
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {isLoading && <p className="mt-4 text-body-small text-text-secondary">{t("loading")}</p>}
+      {isError && <p className="mt-4 text-body-small text-danger">{t("error")}</p>}
+      {!isLoading && !isError && (!plans || plans.length === 0) && (
+        <div className="mt-6">
+          <EmptyState icon={Plus} title={t("title")} description={t("empty")} />
+        </div>
+      )}
+      {!isLoading && !isError && plans && plans.length > 0 && (
         <table className="mt-6 w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-text-secondary">
@@ -51,7 +157,7 @@ export default function AdminPlansPage() {
             </tr>
           </thead>
           <tbody>
-            {plans.map((plan) => (
+            {plans.map((plan: AdminPlan) => (
               <tr key={plan.id} className="border-b border-border">
                 <td className="py-2 pr-4 text-text-primary">
                   <Link
