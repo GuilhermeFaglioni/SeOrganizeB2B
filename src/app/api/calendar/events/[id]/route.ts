@@ -14,6 +14,7 @@ import { normalizeAttendeeEmails } from "@/lib/calendar/validation";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 function parseOptionalBool(value: unknown): boolean | undefined {
   if (typeof value === "boolean") return value;
@@ -35,6 +36,14 @@ export async function PATCH(
   if (denied) return denied;
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/calendar/events/[id]",
+    method: "PATCH",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   return withTenant(ctx.tenantId, async () => {
     const event = await prisma.calendarEvent.findUnique({
@@ -295,7 +304,10 @@ export async function PATCH(
       });
       return result;
     });
-    return NextResponse.json({ data: updated, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: updated, error: null }),
+      gate.warning
+    );
   });
 }
 
@@ -309,6 +321,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/calendar/events/[id]",
+    method: "DELETE",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   return withTenant(ctx.tenantId, async () => {
     const event = await prisma.calendarEvent.findUnique({ where: { id: params.id } });
@@ -351,6 +371,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     await prisma.calendarEvent.delete({ where: { id: params.id } });
 
-    return NextResponse.json({ data: { id: params.id }, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: { id: params.id }, error: null }),
+      gate.warning
+    );
   });
 }

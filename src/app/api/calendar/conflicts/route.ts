@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate } from "@/lib/middleware/feature-gating";
 import { getValidAccessToken } from "@/lib/google/oauth";
 import { GoogleCalendarClient } from "@/lib/google/calendar";
 import { dedupeCalendarEvents } from "@/lib/calendar/normalize";
@@ -23,6 +24,14 @@ export async function POST(request: NextRequest) {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/calendar/conflicts",
+    method: "POST",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const body = await request.json();
   const proposed = {

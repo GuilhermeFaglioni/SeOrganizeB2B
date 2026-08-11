@@ -7,6 +7,7 @@ import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 const SORT_FIELDS = [
   "code",
@@ -31,6 +32,14 @@ export async function GET(request: NextRequest) {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/contracts",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const { searchParams } = request.nextUrl;
   const search = searchParams.get("search")?.trim() || "";
@@ -109,6 +118,14 @@ export async function POST(request: NextRequest) {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/contracts",
+    method: "POST",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const body = await request.json();
 
@@ -210,7 +227,10 @@ export async function POST(request: NextRequest) {
         user.id
       )
     );
-    return NextResponse.json({ data: contract, error: null }, { status: 201 });
+    return withFeatureWarning(
+      NextResponse.json({ data: contract, error: null }, { status: 201 }),
+      gate.warning
+    );
   } catch (error) {
     return mapFinancialError(error);
   }

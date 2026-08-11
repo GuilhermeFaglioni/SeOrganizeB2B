@@ -11,6 +11,7 @@ import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 function parseUpdateInput(body: Record<string, unknown>) {
   const errors: string[] = [];
@@ -91,6 +92,14 @@ export async function GET(
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/proposals/[id]",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const proposal = await withTenant(ctx.tenantId, () => getProposal(params.id));
   if (!proposal) {
     return NextResponse.json(
@@ -121,6 +130,14 @@ export async function PATCH(
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/proposals/[id]",
+    method: "PATCH",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { errors, input } = parseUpdateInput(body);
   if (errors.length > 0) {
@@ -137,7 +154,10 @@ export async function PATCH(
     const proposal = await withTenant(ctx.tenantId, () =>
       updateProposalDraft(params.id, input as never)
     );
-    return NextResponse.json({ data: proposal, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: proposal, error: null }),
+      gate.warning
+    );
   } catch (error) {
     return mapFinancialError(error);
   }
@@ -159,6 +179,14 @@ export async function DELETE(
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/proposals/[id]",
+    method: "DELETE",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   try {
     await withTenant(ctx.tenantId, () => deleteProposal(params.id));

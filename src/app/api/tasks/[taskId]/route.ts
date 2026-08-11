@@ -5,6 +5,7 @@ import { recordActivity } from "@/lib/activity/record";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 import { completeRecurringTask } from "@/lib/tasks/complete-recurring-task";
 import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 
@@ -19,6 +20,14 @@ export async function GET(request: NextRequest, { params }: { params: { taskId: 
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/tasks/[taskId]",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const task = await withTenant(ctx.tenantId, () =>
     prisma.task.findUnique({
@@ -57,6 +66,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
 
     const ctx = await getTenantContext(user.id);
     if (!ctx.tenantId) return noWorkspaceResponse();
+
+    const gate = await applyFeatureGate({
+      userId: user.id,
+      pathname: "/api/tasks/[taskId]",
+      method: "PATCH",
+      tenantContext: ctx,
+    });
+    if (gate.response) return gate.response;
 
     return withTenant(ctx.tenantId, async () => {
       const task = await prisma.task.findUnique({
@@ -264,7 +281,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
         }
       }
 
-      return NextResponse.json({ data: updated, error: null });
+      return withFeatureWarning(
+        NextResponse.json({ data: updated, error: null }),
+        gate.warning
+      );
     });
   } catch (error) {
     console.error("PATCH task error:", error);
@@ -284,6 +304,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { taskI
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/tasks/[taskId]",
+    method: "DELETE",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   return withTenant(ctx.tenantId, async () => {
     const task = await prisma.task.findUnique({ where: { id: params.taskId } });
     if (!task) {
@@ -302,6 +330,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { taskI
       await tx.task.delete({ where: { id: params.taskId } });
     });
 
-    return NextResponse.json({ data: { id: params.taskId }, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: { id: params.taskId }, error: null }),
+      gate.warning
+    );
   });
 }

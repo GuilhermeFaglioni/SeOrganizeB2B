@@ -10,6 +10,7 @@ import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 const SORT_FIELDS = ["code", "title", "status", "totalValue", "createdAt", "client"] as const;
 
@@ -102,6 +103,14 @@ export async function GET(request: NextRequest) {
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/proposals",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const { searchParams } = request.nextUrl;
   const sortByRaw = searchParams.get("sortBy") || "createdAt";
   const sortBy = (SORT_FIELDS as readonly string[]).includes(sortByRaw)
@@ -136,6 +145,14 @@ export async function POST(request: NextRequest) {
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/proposals",
+    method: "POST",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { errors, input } = parseProposalInput(body);
   if (errors.length > 0) {
@@ -152,7 +169,10 @@ export async function POST(request: NextRequest) {
     const proposal = await withTenant(ctx.tenantId, () =>
       createProposalDraft(input, user.id)
     );
-    return NextResponse.json({ data: proposal, error: null }, { status: 201 });
+    return withFeatureWarning(
+      NextResponse.json({ data: proposal, error: null }, { status: 201 }),
+      gate.warning
+    );
   } catch (error) {
     return mapFinancialError(error);
   }

@@ -3,6 +3,7 @@ import { prisma, withTenant } from "../../../../../prisma/client";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest, { params }: { params: { projectId: string } }) {
@@ -16,6 +17,14 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/projects/[projectId]",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const project = await withTenant(ctx.tenantId, () =>
     prisma.project.findUnique({
@@ -91,6 +100,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { projec
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/projects/[projectId]",
+    method: "PATCH",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { name, description, areaId } = body;
 
@@ -114,7 +131,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { projec
       data: { ...(name !== undefined && { name }), ...(description !== undefined && { description }), ...(areaId !== undefined && { areaId }) },
     });
 
-    return NextResponse.json({ data: updated, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: updated, error: null }),
+      gate.warning
+    );
   });
 }
 
@@ -130,6 +150,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { proje
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/projects/[projectId]",
+    method: "DELETE",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   return withTenant(ctx.tenantId, async () => {
     const project = await prisma.project.findFirst({
       where: { id: params.projectId, tenantId: ctx.tenantId! },
@@ -143,6 +171,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { proje
       data: { archived: true },
     });
 
-    return NextResponse.json({ data: { id: params.projectId }, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: { id: params.projectId }, error: null }),
+      gate.warning
+    );
   });
 }

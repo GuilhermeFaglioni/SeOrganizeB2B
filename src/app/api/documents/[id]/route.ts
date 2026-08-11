@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const user = await getUser();
@@ -15,6 +16,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/documents/[id]",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const doc = await withTenant(ctx.tenantId, () =>
     prisma.document.findUnique({
@@ -43,6 +52,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/documents/[id]",
+    method: "PATCH",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   return withTenant(ctx.tenantId, async () => {
     const doc = await prisma.document.findUnique({ where: { id: params.id } });
     if (!doc) {
@@ -65,7 +82,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       },
     });
 
-    return NextResponse.json({ data: updated, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: updated, error: null }),
+      gate.warning
+    );
   });
 }
 
@@ -80,6 +100,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/documents/[id]",
+    method: "DELETE",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   return withTenant(ctx.tenantId, async () => {
     const doc = await prisma.document.findUnique({ where: { id: params.id } });
     if (!doc) {
@@ -88,6 +116,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     await prisma.document.delete({ where: { id: params.id } });
 
-    return NextResponse.json({ data: { id: params.id }, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: { id: params.id }, error: null }),
+      gate.warning
+    );
   });
 }

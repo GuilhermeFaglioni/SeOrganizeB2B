@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 export async function GET(
   _request: NextRequest,
@@ -21,6 +22,14 @@ export async function GET(
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/clients/[id]",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const client = await withTenant(ctx.tenantId, () =>
     prisma.client.findUnique({
@@ -63,6 +72,14 @@ export async function PATCH(
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/clients/[id]",
+    method: "PATCH",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
 
   if (body.name !== undefined) {
@@ -89,7 +106,10 @@ export async function PATCH(
         },
       })
     );
-    return NextResponse.json({ data: client, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: client, error: null }),
+      gate.warning
+    );
   } catch (error) {
     if ((error as { code?: string }).code === "P2002") {
       return NextResponse.json(

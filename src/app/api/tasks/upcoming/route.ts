@@ -3,6 +3,7 @@ import { prisma, withTenant } from "../../../../../prisma/client";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate } from "@/lib/middleware/feature-gating";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -22,6 +23,14 @@ export async function GET(request: NextRequest) {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/tasks/upcoming",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const requestedLimit = Number(new URL(request.url).searchParams.get("limit"));
   const limit = Number.isFinite(requestedLimit)

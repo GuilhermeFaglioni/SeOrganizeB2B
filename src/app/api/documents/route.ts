@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -15,6 +16,14 @@ export async function GET(request: NextRequest) {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/documents",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get("project_id");
@@ -46,6 +55,14 @@ export async function POST(request: NextRequest) {
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/documents",
+    method: "POST",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { title, content, projectId } = body;
 
@@ -68,5 +85,8 @@ export async function POST(request: NextRequest) {
     })
   );
 
-  return NextResponse.json({ data: document, error: null }, { status: 201 });
+  return withFeatureWarning(
+    NextResponse.json({ data: document, error: null }, { status: 201 }),
+    gate.warning
+  );
 }

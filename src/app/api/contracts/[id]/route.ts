@@ -10,6 +10,7 @@ import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 export async function GET(
   _request: NextRequest,
@@ -27,6 +28,14 @@ export async function GET(
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/contracts/[id]",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const contract = await withTenant(ctx.tenantId, () =>
     prisma.contract.findUnique({
@@ -85,6 +94,14 @@ export async function PATCH(
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/contracts/[id]",
+    method: "PATCH",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const input: Record<string, unknown> = {};
   for (const field of [
@@ -123,7 +140,10 @@ export async function PATCH(
     const contract = await withTenant(ctx.tenantId, () =>
       updateContract(params.id, input, user.id)
     );
-    return NextResponse.json({ data: contract, error: null });
+    return withFeatureWarning(
+      NextResponse.json({ data: contract, error: null }),
+      gate.warning
+    );
   } catch (error) {
     return mapFinancialError(error);
   }
@@ -145,6 +165,14 @@ export async function DELETE(
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/contracts/[id]",
+    method: "DELETE",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   try {
     await withTenant(ctx.tenantId, () => deleteContract(params.id));

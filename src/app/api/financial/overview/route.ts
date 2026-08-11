@@ -6,6 +6,7 @@ import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate } from "@/lib/middleware/feature-gating";
 import type { ContractStatus, InstallmentStatus } from "@/lib/financial/types";
 
 export async function GET(request: NextRequest) {
@@ -21,6 +22,14 @@ export async function GET(request: NextRequest) {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/financial/overview",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   try {
     const { searchParams } = request.nextUrl;

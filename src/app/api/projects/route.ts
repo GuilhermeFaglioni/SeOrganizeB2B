@@ -4,6 +4,7 @@ import { createDefaultColumns } from "../../../../src/lib/defaults";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -17,6 +18,14 @@ export async function GET() {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/projects",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   return withTenant(ctx.tenantId, async () => {
     const projects = await prisma.project.findMany({
@@ -44,6 +53,14 @@ export async function POST(request: NextRequest) {
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/projects",
+    method: "POST",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { name, description, areaId } = body;
 
@@ -69,6 +86,9 @@ export async function POST(request: NextRequest) {
 
     await createDefaultColumns(project.id, ctx.tenantId!);
 
-    return NextResponse.json({ data: project, error: null }, { status: 201 });
+    return withFeatureWarning(
+      NextResponse.json({ data: project, error: null }, { status: 201 }),
+      gate.warning
+    );
   });
 }

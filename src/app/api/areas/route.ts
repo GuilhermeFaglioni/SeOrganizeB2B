@@ -3,6 +3,7 @@ import { prisma, withTenant } from "../../../../prisma/client";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -16,6 +17,14 @@ export async function GET() {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/areas",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   return withTenant(ctx.tenantId, async () => {
     const areas = await prisma.teamArea.findMany({
@@ -41,6 +50,14 @@ export async function POST(request: NextRequest) {
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/areas",
+    method: "POST",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { name, color } = body;
 
@@ -65,6 +82,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ data: area, error: null }, { status: 201 });
+    return withFeatureWarning(
+      NextResponse.json({ data: area, error: null }, { status: 201 }),
+      gate.warning
+    );
   });
 }

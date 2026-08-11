@@ -6,6 +6,7 @@ import { todayCivilDate } from "@/lib/financial/civil-date";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate } from "@/lib/middleware/feature-gating";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -20,6 +21,14 @@ export async function GET(request: NextRequest) {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/receivables",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const { searchParams } = request.nextUrl;
   const status = searchParams.get("status") || "";
