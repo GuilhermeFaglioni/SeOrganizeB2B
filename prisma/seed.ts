@@ -15,6 +15,21 @@ async function main() {
   await prisma.teamArea.deleteMany();
   await prisma.profile.deleteMany();
 
+  const starterPlan = await prisma.plan.findFirst({
+    where: { name: "Starter" },
+  });
+
+  if (!starterPlan) {
+    await prisma.plan.create({
+      data: {
+        name: "Starter",
+        allowedModules: ["tasks", "projects", "calendar", "documents"],
+        isDefault: true,
+        isActive: true,
+      },
+    });
+  }
+
   await prisma.profile.create({
     data: {
       id: seedUserId,

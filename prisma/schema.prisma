@@ -77,8 +77,24 @@ model Workspace {
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
   defaultRole Role? @relation(fields: [defaultRoleId], references: [id], onDelete: SetNull)
+  plan        Plan?   @relation(fields: [planId], references: [id], onDelete: SetNull)
 
   @@map("workspaces")
+}
+
+model Plan {
+  id             String   @id @default(uuid())
+  name           String
+  stripePriceId  String?  @map("stripe_price_id")
+  allowedModules Json     @default("[]")
+  isDefault      Boolean  @default(false) @map("is_default")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  workspaces Workspace[]
+
+  @@map("plans")
 }
 
 model TeamArea {

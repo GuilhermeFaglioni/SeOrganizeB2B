@@ -55,6 +55,29 @@ describe("prisma seed", () => {
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
     );
   });
+
+  it("creates a Starter plan with the expected modules and isDefault", () => {
+    const seedSource = readFileSync(
+      resolve(__dirname, "../seed.ts"),
+      "utf-8"
+    );
+
+    expect(seedSource).toContain("prisma.plan.findFirst");
+    expect(seedSource).toContain('where: { name: "Starter" }');
+    expect(seedSource).toContain('name: "Starter"');
+
+    const starter = seedSource.match(
+      /name: "Starter"[\s\S]*?allowedModules: \[([^\]]*)\]/
+    );
+
+    expect(starter).not.toBeNull();
+    expect(starter![1]).toContain('"tasks"');
+    expect(starter![1]).toContain('"projects"');
+    expect(starter![1]).toContain('"calendar"');
+    expect(starter![1]).toContain('"documents"');
+    expect(seedSource).toContain("isDefault: true");
+    expect(seedSource).toContain("isActive: true");
+  });
 });
 
 describe("default-columns utility", () => {
