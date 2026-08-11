@@ -16,10 +16,12 @@ model Profile {
   avatarUrl String?  @map("avatar_url")
   locale    String   @default("pt-BR")
   roleId    String?  @map("role_id")
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  role Role? @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  role   Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  tenant Workspace @relation(fields: [tenantId], references: [id])
 
   teamMemberAreas        TeamMemberArea[]
   createdTeamAreas       TeamArea[]              @relation("TeamAreaCreator")
@@ -42,6 +44,7 @@ model Profile {
   proposalTemplates      ProposalTemplate[]      @relation("ProposalTemplateCreator")
   proposals              Proposal[]              @relation("ProposalCreator")
 
+  @@index([tenantId])
   @@map("profiles")
 }
 
@@ -78,6 +81,8 @@ model Workspace {
 
   defaultRole Role? @relation(fields: [defaultRoleId], references: [id], onDelete: SetNull)
   plan        Plan?   @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  profiles Profile[]
 
   @@map("workspaces")
 }
