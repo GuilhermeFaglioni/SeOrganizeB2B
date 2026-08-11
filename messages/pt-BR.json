@@ -93,7 +93,8 @@
       "accountExists": "Já existe uma conta com este e-mail.",
       "accountCreated": "Conta criada! Verifique seu e-mail para confirmar.",
       "createAccountFailed": "Falha ao criar conta",
-      "checkingAuth": "Verificando autenticação..."
+      "checkingAuth": "Verificando autenticação...",
+      "checkingWorkspace": "Verificando workspace..."
     }
   },
   "notifications": {
@@ -1295,6 +1296,18 @@
         },
         "manage_roles": "Gerenciar roles e permissões"
       }
+    }
+  },
+  "billing": {
+    "gracePeriod": {
+      "message": "Seu período de carência termina em {date}."
+    },
+    "expiration": {
+      "message": "Seu workspace foi cancelado. Modo somente leitura ativo até {date}."
+    },
+    "expired": {
+      "title": "Seu workspace expirou",
+      "message": "Seu acesso foi encerrado. Entre em contato para reativar seu workspace."
     }
   }
 }

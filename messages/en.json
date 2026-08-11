@@ -93,7 +93,8 @@
       "accountExists": "An account with this email already exists.",
       "accountCreated": "Account created! Check your email to confirm your account.",
       "createAccountFailed": "Failed to create account",
-      "checkingAuth": "Checking authentication..."
+      "checkingAuth": "Checking authentication...",
+      "checkingWorkspace": "Checking workspace..."
     }
   },
   "notifications": {
@@ -1295,6 +1296,18 @@
         },
         "manage_roles": "Manage roles & permissions"
       }
+    }
+  },
+  "billing": {
+    "gracePeriod": {
+      "message": "Your grace period ends on {date}."
+    },
+    "expiration": {
+      "message": "Your workspace has been cancelled. Read-only mode is active until {date}."
+    },
+    "expired": {
+      "title": "Your workspace has expired",
+      "message": "Your access has been ended. Contact us to reactivate your workspace."
     }
   }
 }
