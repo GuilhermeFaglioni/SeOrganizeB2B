@@ -55,9 +55,30 @@ model Role {
 
   profiles   Profile[]
   defaultFor WorkspaceSettings[]
+  workspaces Workspace[]
 
   @@index([isAdmin])
   @@map("roles")
+}
+
+model Workspace {
+  id                String    @id @default(uuid())
+  name              String
+  slug              String    @unique
+  logoUrl           String?   @map("logo_url")
+  companyName       String?   @map("company_name")
+  defaultRoleId     String?   @map("default_role_id")
+  stripeCustomerId  String?   @map("stripe_customer_id")
+  planId            String?   @map("plan_id")
+  status            String    @default("active")
+  gracePeriodEndsAt DateTime? @map("grace_period_ends_at")
+  cancelledAt       DateTime? @map("cancelled_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  defaultRole Role? @relation(fields: [defaultRoleId], references: [id], onDelete: SetNull)
+
+  @@map("workspaces")
 }
 
 model TeamArea {
