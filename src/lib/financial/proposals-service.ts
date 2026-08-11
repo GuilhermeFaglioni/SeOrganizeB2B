@@ -231,8 +231,8 @@ export async function sendProposal(proposalId: string) {
 
   const variables = (proposal.variables ?? {}) as Record<string, string>;
   const systemValues = await buildSystemValues(proposal, proposal.locale);
-  const workspace = await prisma.workspaceSettings.findUnique({
-    where: { id: "default" },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: proposal.tenantId },
   });
 
   const snapshot = renderProposalHtml(templateHtml, {
@@ -429,8 +429,8 @@ export async function getProposalPublic(identifier: string) {
     return { status: "draft" as const };
   }
 
-  const workspace = await prisma.workspaceSettings.findUnique({
-    where: { id: "default" },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: proposal.tenantId },
   });
 
   if (proposal.status !== "rejected" && proposal.status !== "accepted") {

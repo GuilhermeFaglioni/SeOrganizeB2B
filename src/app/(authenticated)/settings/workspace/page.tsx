@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
-  useUpdateWorkspaceSettings,
-  useWorkspaceSettings,
+  useUpdateWorkspace,
+  useWorkspace,
 } from "@/hooks/use-proposals";
 import { toastSuccess } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,10 @@ import {
   SettingsShell,
 } from "@/components/settings/settings-shell";
 
-export default function WorkspaceSettingsPage() {
+export default function WorkspacePage() {
   const t = useTranslations("settings.workspace");
-  const { data } = useWorkspaceSettings();
-  const update = useUpdateWorkspaceSettings();
+  const { data } = useWorkspace();
+  const update = useUpdateWorkspace();
   const [companyName, setCompanyName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const hydrated = useRef(false);

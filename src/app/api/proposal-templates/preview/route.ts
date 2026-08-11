@@ -7,6 +7,7 @@ import {
 } from "@/lib/financial/proposals";
 import { isAppLocale } from "@/i18n/config";
 import { denyFor } from "@/lib/authz/authz";
+import { DEFAULT_WORKSPACE_ID } from "@/lib/tenant";
 
 export async function POST(request: NextRequest) {
   const user = await getUser();
@@ -30,8 +31,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const workspace = await prisma.workspaceSettings.findUnique({
-    where: { id: "default" },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: DEFAULT_WORKSPACE_ID },
   });
 
   const values: Record<string, string> =

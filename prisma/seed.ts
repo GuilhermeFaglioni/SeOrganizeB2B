@@ -1,8 +1,10 @@
 import { prisma } from "./client";
 import { createDefaultColumns } from "../src/lib/defaults";
+import { DEFAULT_WORKSPACE_ID } from "../src/lib/tenant";
 
 async function main() {
   const seedUserId = "00000000-0000-0000-0000-000000000001";
+  const adminRoleId = "00000000-0000-0000-0000-000000000001";
 
   await prisma.task.deleteMany();
   await prisma.comment.deleteMany();
@@ -14,6 +16,28 @@ async function main() {
   await prisma.teamMemberArea.deleteMany();
   await prisma.teamArea.deleteMany();
   await prisma.profile.deleteMany();
+
+  const defaultWorkspace = await prisma.workspace.upsert({
+    where: { id: DEFAULT_WORKSPACE_ID },
+    update: {},
+    create: {
+      id: DEFAULT_WORKSPACE_ID,
+      name: "Default",
+      slug: "default",
+    },
+  });
+
+  const adminRole = await prisma.role.upsert({
+    where: { id: adminRoleId },
+    update: {},
+    create: {
+      id: adminRoleId,
+      name: "Admin",
+      permissions: [],
+      isAdmin: true,
+      tenantId: defaultWorkspace.id,
+    },
+  });
 
   let starterPlan = await prisma.plan.findFirst({
     where: { name: "Starter" },
@@ -53,6 +77,8 @@ async function main() {
       id: seedUserId,
       email: "seed@seorganizeb2b.com",
       name: "Seed User",
+      tenantId: defaultWorkspace.id,
+      roleId: adminRole.id,
     },
   });
 
@@ -61,6 +87,7 @@ async function main() {
       name: "Sales",
       color: "#3b82f6",
       createdBy: seedUserId,
+      tenantId: defaultWorkspace.id,
     },
   });
 
@@ -69,6 +96,7 @@ async function main() {
       name: "Engineering",
       color: "#10b981",
       createdBy: seedUserId,
+      tenantId: defaultWorkspace.id,
     },
   });
 
@@ -77,6 +105,7 @@ async function main() {
       name: "Marketing",
       color: "#f97316",
       createdBy: seedUserId,
+      tenantId: defaultWorkspace.id,
     },
   });
 
@@ -86,6 +115,7 @@ async function main() {
       description: "Client onboarding pipeline and collateral",
       areaId: salesArea.id,
       createdBy: seedUserId,
+      tenantId: defaultWorkspace.id,
     },
   });
 
@@ -95,11 +125,12 @@ async function main() {
       description: "New product release planning and execution",
       areaId: engineeringArea.id,
       createdBy: seedUserId,
+      tenantId: defaultWorkspace.id,
     },
   });
 
-  await createDefaultColumns(project1.id);
-  await createDefaultColumns(project2.id);
+  await createDefaultColumns(project1.id, defaultWorkspace.id);
+  await createDefaultColumns(project2.id, defaultWorkspace.id);
 
   const columns1 = await prisma.projectColumn.findMany({
     where: { projectId: project1.id },
@@ -119,6 +150,7 @@ async function main() {
         columnId: columns1[0].id,
         priority: "high",
         createdBy: seedUserId,
+        tenantId: defaultWorkspace.id,
       },
       {
         title: "Design onboarding flow",
@@ -126,6 +158,7 @@ async function main() {
         columnId: columns1[0].id,
         priority: "medium",
         createdBy: seedUserId,
+        tenantId: defaultWorkspace.id,
       },
       {
         title: "Set up client CRM record",
@@ -133,6 +166,7 @@ async function main() {
         columnId: columns1[1].id,
         priority: "urgent",
         createdBy: seedUserId,
+        tenantId: defaultWorkspace.id,
       },
       {
         title: "Finalize feature list for Q3",
@@ -140,6 +174,7 @@ async function main() {
         columnId: columns2[0].id,
         priority: "high",
         createdBy: seedUserId,
+        tenantId: defaultWorkspace.id,
       },
       {
         title: "Prepare beta launch checklist",
@@ -147,6 +182,7 @@ async function main() {
         columnId: columns2[0].id,
         priority: "medium",
         createdBy: seedUserId,
+        tenantId: defaultWorkspace.id,
       },
     ],
   });

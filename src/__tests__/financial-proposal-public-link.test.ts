@@ -12,7 +12,7 @@ vi.mock("../../prisma/client", () => ({
       findFirst: mocks.proposalFindFirst,
       update: mocks.proposalUpdate,
     },
-    workspaceSettings: {
+    workspace: {
       findUnique: mocks.workspaceFindUnique,
     },
   },

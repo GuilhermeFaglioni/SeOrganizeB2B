@@ -50,19 +50,19 @@ model Profile {
 }
 
 model Role {
-  id          String    @id @default(uuid())
-  name        String    @unique
-  permissions Json      @default("[]")
-  isAdmin     Boolean   @default(false) @map("is_admin")
-  tenantId    String?   @map("tenant_id")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  name        String
+  permissions Json     @default("[]")
+  isAdmin     Boolean  @default(false) @map("is_admin")
+  tenantId    String   @map("tenant_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  tenant     Workspace? @relation("RoleTenant", fields: [tenantId], references: [id], onDelete: SetNull)
+  tenant     Workspace  @relation("RoleTenant", fields: [tenantId], references: [id])
   profiles   Profile[]
-  defaultFor WorkspaceSettings[]
   workspaces Workspace[]
 
+  @@unique([name, tenantId])
   @@index([isAdmin])
   @@index([tenantId])
   @@map("roles")
@@ -752,15 +752,3 @@ model ProposalItem {
   @@map("proposal_items")
 }
 
-model WorkspaceSettings {
-  id            String   @id @default("default")
-  companyName   String?  @map("company_name")
-  logoUrl       String?  @map("logo_url")
-  defaultRoleId String?  @map("default_role_id")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  defaultRole Role? @relation(fields: [defaultRoleId], references: [id], onDelete: SetNull)
-
-  @@map("workspace_settings")
-}

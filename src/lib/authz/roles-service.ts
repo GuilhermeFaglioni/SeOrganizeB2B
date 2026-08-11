@@ -1,5 +1,6 @@
 import { prisma } from "../../../prisma/client";
 import { sanitizePermissions } from "./permissions";
+import { DEFAULT_WORKSPACE_ID } from "../tenant";
 
 export class RoleValidationError extends Error {}
 
@@ -10,11 +11,12 @@ export interface RoleInput {
 
 export async function listRoles() {
   const roles = await prisma.role.findMany({
+    where: { tenantId: DEFAULT_WORKSPACE_ID },
     include: { _count: { select: { profiles: true } } },
     orderBy: [{ isAdmin: "desc" }, { name: "asc" }],
   });
-  const workspace = await prisma.workspaceSettings.findUnique({
-    where: { id: "default" },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: DEFAULT_WORKSPACE_ID },
     select: { defaultRoleId: true },
   });
   return roles.map((role) => ({
@@ -55,7 +57,11 @@ export async function createRole(input: RoleInput) {
   const permissions = sanitizePermissions(input.permissions);
   try {
     return await prisma.role.create({
-      data: { name: input.name.trim(), permissions },
+      data: {
+        name: input.name.trim(),
+        permissions,
+        tenantId: DEFAULT_WORKSPACE_ID,
+      },
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -107,8 +113,8 @@ export async function deleteRole(roleId: string) {
   if (role.isAdmin) {
     throw new RoleValidationError("The Admin role cannot be deleted");
   }
-  const workspace = await prisma.workspaceSettings.findUnique({
-    where: { id: "default" },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: DEFAULT_WORKSPACE_ID },
     select: { defaultRoleId: true },
   });
   if (workspace?.defaultRoleId === roleId) {
@@ -127,10 +133,15 @@ export async function setDefaultRole(roleId: string | null) {
       throw new RoleValidationError("The Admin role cannot be the default role");
     }
   }
-  return prisma.workspaceSettings.upsert({
-    where: { id: "default" },
+  return prisma.workspace.upsert({
+    where: { id: DEFAULT_WORKSPACE_ID },
     update: { defaultRoleId: roleId },
-    create: { id: "default", defaultRoleId: roleId },
+    create: {
+      id: DEFAULT_WORKSPACE_ID,
+      name: "Default",
+      slug: "default",
+      defaultRoleId: roleId,
+    },
   });
 }
 

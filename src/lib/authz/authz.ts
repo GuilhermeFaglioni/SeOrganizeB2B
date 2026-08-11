@@ -27,31 +27,32 @@ export async function getEffectivePermissions(
     },
   });
 
-  const roleApplies = (role: { tenantId: string | null } | null) =>
-    role !== null &&
-    (role.tenantId === null || role.tenantId === profile?.tenantId);
+  const roleApplies = (role: { tenantId: string } | null) =>
+    role !== null && role.tenantId === profile?.tenantId;
 
   let role = profile?.role ?? null;
   if (role && !roleApplies(role)) role = null;
 
   if (!role) {
-    const workspace = await prisma.workspaceSettings.findFirst({
-      where: { id: "default" },
-      select: { defaultRoleId: true },
-    });
-    if (workspace?.defaultRoleId) {
-      const fallback = await prisma.role.findFirst({
-        where: { id: workspace.defaultRoleId },
-        select: {
-          id: true,
-          name: true,
-          isAdmin: true,
-          permissions: true,
-          tenantId: true,
-        },
+    if (profile?.tenantId) {
+      const workspace = await prisma.workspace.findUnique({
+        where: { id: profile.tenantId },
+        select: { defaultRoleId: true },
       });
-      if (fallback && roleApplies(fallback)) {
-        role = fallback;
+      if (workspace?.defaultRoleId) {
+        const fallback = await prisma.role.findFirst({
+          where: { id: workspace.defaultRoleId, tenantId: profile.tenantId },
+          select: {
+            id: true,
+            name: true,
+            isAdmin: true,
+            permissions: true,
+            tenantId: true,
+          },
+        });
+        if (fallback && roleApplies(fallback)) {
+          role = fallback;
+        }
       }
     }
   }

@@ -35,7 +35,7 @@ vi.mock("../../prisma/client", () => ({
       update: mocks.mockRoleUpdate,
       delete: mocks.mockRoleDelete,
     },
-    workspaceSettings: {
+    workspace: {
       findUnique: mocks.mockWorkspaceFindUnique,
       upsert: mocks.mockWorkspaceUpsert,
     },
