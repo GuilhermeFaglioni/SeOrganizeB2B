@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { prisma, withTenant } from "../../../../../../prisma/client";
-import { denyFor, getEffectivePermissions } from "@/lib/authz/authz";
-import { mapRoleError } from "@/lib/authz/http";
-import { assignRole } from "@/lib/authz/roles-service";
+import { denyFor } from "@/lib/authz/authz";
+import { mapRoleError, noWorkspaceResponse } from "@/lib/authz/http";
 import { getTenantContext } from "@/lib/authz/tenant-context";
-import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function PATCH(
   request: Request,
@@ -21,35 +19,47 @@ export async function PATCH(
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+  if (!ctx.isAdmin) {
+    return NextResponse.json(
+      { data: null, error: { code: "FORBIDDEN", message: "Only admins can assign roles" } },
+      { status: 403 }
+    );
+  }
 
   const body = await request.json();
   const roleId = body.roleId === null || body.roleId === undefined ? null : String(body.roleId);
 
-  // Assigning the Admin role is reserved for admins.
+  const target = await withTenant(ctx.tenantId, () =>
+    prisma.profile.findUnique({
+      where: { id: params.id },
+      select: { id: true, tenantId: true },
+    })
+  );
+  if (!target || target.tenantId !== ctx.tenantId) {
+    return NextResponse.json(
+      { data: null, error: { code: "NOT_FOUND", message: "Profile not found" } },
+      { status: 404 }
+    );
+  }
+
   if (roleId) {
-    const target = await withTenant(ctx.tenantId, () =>
+    const role = await withTenant(ctx.tenantId, () =>
       prisma.role.findUnique({ where: { id: roleId } })
     );
-    if (!target) {
+    if (!role || role.tenantId !== ctx.tenantId) {
       return NextResponse.json(
         { data: null, error: { code: "VALIDATION_ERROR", message: "Role not found" } },
         { status: 400 }
       );
     }
-    if (target.isAdmin) {
-      const effective = await getEffectivePermissions(user.id);
-      if (!effective.isAdmin) {
-        return NextResponse.json(
-          { data: null, error: { code: "FORBIDDEN", message: "Only admins can assign the Admin role" } },
-          { status: 403 }
-        );
-      }
-    }
   }
 
   try {
     const profile = await withTenant(ctx.tenantId, () =>
-      assignRole(params.id, roleId)
+      prisma.profile.update({
+        where: { id: params.id },
+        data: { roleId },
+      })
     );
     return NextResponse.json({ data: profile, error: null });
   } catch (error) {

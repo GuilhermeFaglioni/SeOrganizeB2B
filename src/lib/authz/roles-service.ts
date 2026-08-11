@@ -167,16 +167,24 @@ export async function setDefaultRole(roleId: string | null, tenantId: string) {
   });
 }
 
-export async function assignRole(userId: string, roleId: string | null) {
-  if (roleId) {
-    const role = await prisma.role.findUnique({ where: { id: roleId } });
-    if (!role) throw new RoleValidationError("Role not found");
-  }
+export async function assignRole(
+  userId: string,
+  roleId: string | null,
+  tenantId: string
+) {
   const profile = await prisma.profile.findUnique({
     where: { id: userId },
-    select: { id: true },
+    select: { id: true, tenantId: true },
   });
-  if (!profile) throw new RoleValidationError("User not found");
+  if (!profile || profile.tenantId !== tenantId) {
+    throw new RoleValidationError("User not found");
+  }
+  if (roleId) {
+    const role = await prisma.role.findUnique({ where: { id: roleId } });
+    if (!role || role.tenantId !== tenantId) {
+      throw new RoleValidationError("Role not found");
+    }
+  }
 
   return prisma.profile.update({
     where: { id: userId },
