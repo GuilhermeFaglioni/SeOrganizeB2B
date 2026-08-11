@@ -20,6 +20,7 @@ import { APP_NAME } from "@/lib/constants";
 import { useIsTablet, useIsMobile } from "@/hooks/use-media-query";
 import { useAuth } from "@/stores/auth-context";
 import { useCan, hasFinancialView } from "@/hooks/use-permissions";
+import { useAllowedModules } from "@/hooks/use-allowed-modules";
 import { motion } from "motion/react";
 
 function isRouteActive(pathname: string, href: string) {
@@ -41,14 +42,15 @@ export function Sidebar({
   const { signOut, user } = useAuth();
   const t = useTranslations("layout.sidebar");
   const { can, data } = useCan();
+  const { isModuleAllowed, isAnyFinancialAllowed } = useAllowedModules();
 
   const navItems = [
-    { href: "/", label: t("today"), icon: SunMedium, testId: "nav-today", visible: can("tasks.view") },
-    { href: "/board", label: t("board"), icon: LayoutDashboard, testId: "nav-board", visible: can("tasks.view") },
-    { href: "/projects", label: t("projects"), icon: FolderKanban, testId: "nav-projects", visible: can("projects.view") },
-    { href: "/calendar", label: t("calendar"), icon: Calendar, testId: "nav-calendar", visible: can("calendar.view") },
-    { href: "/documents", label: t("documents"), icon: FileText, testId: "nav-documents", visible: can("documents.view") },
-    { href: "/financial", label: t("financial"), icon: Wallet, testId: "nav-financial", visible: hasFinancialView(data?.permissions ?? []) || Boolean(data?.isAdmin) },
+    { href: "/", label: t("today"), icon: SunMedium, testId: "nav-today", visible: can("tasks.view") && isModuleAllowed("tasks") },
+    { href: "/board", label: t("board"), icon: LayoutDashboard, testId: "nav-board", visible: can("tasks.view") && isModuleAllowed("tasks") },
+    { href: "/projects", label: t("projects"), icon: FolderKanban, testId: "nav-projects", visible: can("projects.view") && isModuleAllowed("projects") },
+    { href: "/calendar", label: t("calendar"), icon: Calendar, testId: "nav-calendar", visible: can("calendar.view") && isModuleAllowed("calendar") },
+    { href: "/documents", label: t("documents"), icon: FileText, testId: "nav-documents", visible: can("documents.view") && isModuleAllowed("documents") },
+    { href: "/financial", label: t("financial"), icon: Wallet, testId: "nav-financial", visible: (hasFinancialView(data?.permissions ?? []) || Boolean(data?.isAdmin)) && isAnyFinancialAllowed() },
     { href: "/settings", label: t("settings"), icon: Settings, testId: "nav-settings", visible: true },
   ].filter((item) => item.visible);
 

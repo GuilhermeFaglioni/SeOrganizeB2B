@@ -50,6 +50,7 @@
       "calendar": "Calendário",
       "projects": "Projetos",
       "settings": "Configurações",
+      "upgrade": "Upgrade necessário",
       "all": "Todas as tarefas",
       "board": "Board",
       "actions": {
@@ -1359,6 +1360,31 @@
     "expired": {
       "title": "Seu workspace expirou",
       "message": "Seu acesso foi encerrado. Entre em contato para reativar seu workspace."
+    }
+  },
+  "upgrade": {
+    "title": "Upgrade necessário",
+    "description": "O módulo \"{module}\" não está incluído no seu plano atual. Faça upgrade para desbloquear.",
+    "plansTitle": "Planos disponíveis",
+    "modulesCount": "módulos",
+    "upgrade": "Fazer upgrade",
+    "upgrading": "Processando...",
+    "noPlans": "Nenhum plano disponível no momento.",
+    "checkoutFailed": "Não foi possível iniciar o checkout. Tente novamente.",
+    "backToApp": "Voltar para o aplicativo",
+    "moduleNames": {
+      "tasks": "Tarefas / Board",
+      "board": "Board",
+      "projects": "Projetos",
+      "calendar": "Calendário",
+      "documents": "Documentos",
+      "financial": "Financeiro",
+      "financial.overview": "Financeiro — Visão geral",
+      "financial.contracts": "Financeiro — Contratos",
+      "financial.proposals": "Financeiro — Propostas",
+      "financial.clients": "Financeiro — Clientes",
+      "financial.receivables": "Financeiro — Recebíveis",
+      "areas": "Áreas da equipe"
     }
   }
 }

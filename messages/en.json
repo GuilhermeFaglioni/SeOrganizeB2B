@@ -50,6 +50,7 @@
       "calendar": "Calendar",
       "projects": "Projects",
       "settings": "Settings",
+      "upgrade": "Upgrade required",
       "all": "All tasks",
       "board": "Board",
       "actions": {
@@ -1359,6 +1360,31 @@
     "expired": {
       "title": "Your workspace has expired",
       "message": "Your access has been ended. Contact us to reactivate your workspace."
+    }
+  },
+  "upgrade": {
+    "title": "Upgrade required",
+    "description": "The \"{module}\" module is not included in your current plan. Upgrade to unlock it.",
+    "plansTitle": "Available plans",
+    "modulesCount": "modules",
+    "upgrade": "Upgrade",
+    "upgrading": "Processing...",
+    "noPlans": "No plans available at the moment.",
+    "checkoutFailed": "Could not start checkout. Please try again.",
+    "backToApp": "Back to the app",
+    "moduleNames": {
+      "tasks": "Tasks / Board",
+      "board": "Board",
+      "projects": "Projects",
+      "calendar": "Calendar",
+      "documents": "Documents",
+      "financial": "Financial",
+      "financial.overview": "Financial — Overview",
+      "financial.contracts": "Financial — Contracts",
+      "financial.proposals": "Financial — Proposals",
+      "financial.clients": "Financial — Clients",
+      "financial.receivables": "Financial — Receivables",
+      "areas": "Team areas"
     }
   }
 }
