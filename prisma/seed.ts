@@ -1,4 +1,4 @@
-import { prisma } from "./client";
+import { prisma, withTenantBypass } from "./client";
 import { createDefaultColumns } from "../src/lib/defaults";
 import { DEFAULT_WORKSPACE_ID } from "../src/lib/tenant";
 
@@ -190,7 +190,7 @@ async function main() {
   console.log("Seeded: 3 areas, 2 projects, 5 tasks");
 }
 
-main()
+withTenantBypass(main)
   .catch((e) => {
     console.error(e);
     process.exit(1);
