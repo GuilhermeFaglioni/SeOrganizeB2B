@@ -87,7 +87,30 @@
       },
       "tenants": {
         "title": "Tenants",
-        "comingSoon": "Tenant management will be enabled soon."
+        "empty": "No tenants registered yet.",
+        "loadFailed": "Failed to load tenants.",
+        "name": "Name",
+        "slug": "Slug",
+        "status": "Status",
+        "plan": "Plan",
+        "usage": "Usage",
+        "actions": "Actions",
+        "status": {
+          "active": "Active",
+          "grace_period": "Grace period",
+          "cancelled": "Cancelled"
+        },
+        "noPlan": "No plan",
+        "usageUsers": "users",
+        "usageTasks": "tasks",
+        "usageProjects": "projects",
+        "activate": "Activate",
+        "gracePeriod": "Grace",
+        "cancel": "Cancel",
+        "extendGrace": "Extend grace",
+        "delete": "Delete",
+        "updateFailed": "Failed to update tenant.",
+        "deleteFailed": "Failed to delete tenant."
       },
       "tenantDetail": {
         "title": "Tenant details",
@@ -95,7 +118,17 @@
       },
       "plans": {
         "title": "Plans",
-        "comingSoon": "Plan management will be enabled soon."
+        "comingSoon": "Plan management will be enabled soon.",
+        "loading": "Loading plans…",
+        "error": "Failed to load plans.",
+        "name": "Name",
+        "modules": "Modules",
+        "default": "Default",
+        "status": "Status",
+        "yes": "Yes",
+        "no": "No",
+        "active": "Active",
+        "inactive": "Inactive"
       },
       "planDetail": {
         "title": "Plan details",
@@ -1360,6 +1393,23 @@
     "expired": {
       "title": "Your workspace has expired",
       "message": "Your access has been ended. Contact us to reactivate your workspace."
+    },
+    "upgradeBanner": {
+      "message": "You are about to reach the {resource} limit of your plan.",
+      "usage": "Current usage: {used} of {limit}",
+      "upgrade": "Upgrade",
+      "upgrading": "Redirecting...",
+      "checkoutFailed": "Could not start checkout. Please try again.",
+      "resources": {
+        "users": "users",
+        "tasks": "tasks",
+        "projects": "projects",
+        "contracts": "contracts",
+        "clients": "clients",
+        "proposals": "proposals",
+        "documents": "documents",
+        "calendarEvents": "calendar events"
+      }
     }
   },
   "upgrade": {

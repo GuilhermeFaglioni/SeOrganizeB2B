@@ -7,6 +7,7 @@ import { useAuth } from "@/stores/auth-context";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { WorkspaceProvider } from "@/stores/workspace-context";
 import { GracePeriodBanner } from "@/components/billing/grace-period-banner";
+import { UpgradeBanner } from "@/components/billing/upgrade-banner";
 import { ExpirationBanner } from "@/components/billing/expiration-banner";
 import { LoadingState } from "@/components/shared/loading-state";
 import { getWorkspaceAccessMode } from "@/lib/workspace/access";
@@ -57,6 +58,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       readOnly={readOnly}
     >
       {mode === "grace" && <GracePeriodBanner />}
+      {<UpgradeBanner />}
       {mode === "readonly" && <ExpirationBanner />}
       {children}
     </WorkspaceProvider>

@@ -87,7 +87,30 @@
       },
       "tenants": {
         "title": "Tenants",
-        "comingSoon": "A gestão de tenants será habilitada em breve."
+        "empty": "Nenhum tenant cadastrado ainda.",
+        "loadFailed": "Não foi possível carregar os tenants.",
+        "name": "Nome",
+        "slug": "Slug",
+        "status": "Status",
+        "plan": "Plano",
+        "usage": "Uso",
+        "actions": "Ações",
+        "status": {
+          "active": "Ativo",
+          "grace_period": "Período de graça",
+          "cancelled": "Cancelado"
+        },
+        "noPlan": "Sem plano",
+        "usageUsers": "usuários",
+        "usageTasks": "tarefas",
+        "usageProjects": "projetos",
+        "activate": "Ativar",
+        "gracePeriod": "Graça",
+        "cancel": "Cancelar",
+        "extendGrace": "Estender graça",
+        "delete": "Excluir",
+        "updateFailed": "Não foi possível atualizar o tenant.",
+        "deleteFailed": "Não foi possível excluir o tenant."
       },
       "tenantDetail": {
         "title": "Detalhes do tenant",
@@ -95,7 +118,17 @@
       },
       "plans": {
         "title": "Planos",
-        "comingSoon": "A gestão de planos será habilitada em breve."
+        "comingSoon": "A gestão de planos será habilitada em breve.",
+        "loading": "Carregando planos…",
+        "error": "Falha ao carregar os planos.",
+        "name": "Nome",
+        "modules": "Módulos",
+        "default": "Padrão",
+        "status": "Status",
+        "yes": "Sim",
+        "no": "Não",
+        "active": "Ativo",
+        "inactive": "Inativo"
       },
       "planDetail": {
         "title": "Detalhes do plano",
@@ -1360,6 +1393,23 @@
     "expired": {
       "title": "Seu workspace expirou",
       "message": "Seu acesso foi encerrado. Entre em contato para reativar seu workspace."
+    },
+    "upgradeBanner": {
+      "message": "Você está quase atingindo o limite de {resource} do seu plano.",
+      "usage": "Uso atual: {used} de {limit}",
+      "upgrade": "Fazer Upgrade",
+      "upgrading": "Redirecionando...",
+      "checkoutFailed": "Não foi possível iniciar o checkout. Tente novamente.",
+      "resources": {
+        "users": "usuários",
+        "tasks": "tarefas",
+        "projects": "projetos",
+        "contracts": "contratos",
+        "clients": "clientes",
+        "proposals": "propostas",
+        "documents": "documentos",
+        "calendarEvents": "eventos de calendário"
+      }
     }
   },
   "upgrade": {
