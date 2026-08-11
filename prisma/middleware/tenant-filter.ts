@@ -55,9 +55,17 @@ export async function withTenantBypass<T>(fn: () => T | Promise<T>): Promise<T> 
  *  - Workspace -> the tenant table itself
  *  - Plan      -> global catalog
  *  - PlanLimit -> global catalog
+ *  - Invite    -> has NO tenantId column; scoped by workspaceId (the tenant
+ *                 itself), so it must not receive a tenantId filter either.
  * Everything else with a `tenantId` column is tenant-scoped.
  */
-const EXEMPT_MODELS = new Set(["Profile", "Workspace", "Plan", "PlanLimit"]);
+const EXEMPT_MODELS = new Set([
+  "Profile",
+  "Workspace",
+  "Plan",
+  "PlanLimit",
+  "Invite",
+]);
 
 /**
  * Actions that can read/write rows scoped to a tenant. `createMany` /

@@ -61,6 +61,7 @@ model Role {
   tenant     Workspace  @relation("RoleTenant", fields: [tenantId], references: [id])
   profiles   Profile[]
   workspaces Workspace[]
+  invites    Invite[]
 
   @@unique([name, tenantId])
   @@index([isAdmin])
@@ -115,8 +116,29 @@ model Workspace {
   proposalTemplates     ProposalTemplate[]
   proposals             Proposal[]
   proposalItems         ProposalItem[]
+  invites               Invite[]
 
   @@map("workspaces")
+}
+
+model Invite {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  email       String
+  roleId      String?   @map("role_id")
+  token       String    @unique
+  status      String    @default("pending")
+  expiresAt   DateTime  @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  role      Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([email])
+  @@map("invites")
 }
 
 model Plan {

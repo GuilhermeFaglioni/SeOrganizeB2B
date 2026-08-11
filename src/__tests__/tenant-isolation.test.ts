@@ -212,6 +212,7 @@ describe("tenantFilter — exempt models are never touched", () => {
     "Workspace",
     "Plan",
     "PlanLimit",
+    "Invite",
   ];
 
   for (const model of exemptModels) {
