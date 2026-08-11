@@ -53,16 +53,16 @@ async function requireSuperAdmin(): Promise<GateResult> {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { planId: string } }
+  { params }: { params: { id: string } }
 ) {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
 
-  const plan = await prisma.plan.findUnique({ where: { id: params.planId } });
+  const plan = await prisma.plan.findUnique({ where: { id: params.id } });
   if (!plan) return notFoundResponse();
 
   const limits = await prisma.planLimit.findMany({
-    where: { planId: params.planId },
+    where: { planId: params.id },
     orderBy: { createdAt: "asc" },
   });
 
@@ -71,7 +71,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { planId: string } }
+  { params }: { params: { id: string } }
 ) {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
@@ -107,12 +107,12 @@ export async function POST(
     return validationErrorResponse("behavior must be one of: hard, warning");
   }
 
-  const plan = await prisma.plan.findUnique({ where: { id: params.planId } });
+  const plan = await prisma.plan.findUnique({ where: { id: params.id } });
   if (!plan) return notFoundResponse();
 
   const planLimit = await prisma.planLimit.create({
     data: {
-      planId: params.planId,
+      planId: params.id,
       resource: resource as LimitResource,
       limit,
       behavior: behavior as LimitBehavior,

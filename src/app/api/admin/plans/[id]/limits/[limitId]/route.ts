@@ -54,13 +54,13 @@ async function requireSuperAdmin(): Promise<GateResult> {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { planId: string; limitId: string } }
+  { params }: { params: { id: string; limitId: string } }
 ) {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
 
   const planLimit = await prisma.planLimit.findFirst({
-    where: { id: params.limitId, planId: params.planId },
+    where: { id: params.limitId, planId: params.id },
   });
   if (!planLimit) return notFoundResponse();
 
@@ -69,7 +69,7 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { planId: string; limitId: string } }
+  { params }: { params: { id: string; limitId: string } }
 ) {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
@@ -117,7 +117,7 @@ export async function PATCH(
   }
 
   const existing = await prisma.planLimit.findFirst({
-    where: { id: params.limitId, planId: params.planId },
+    where: { id: params.limitId, planId: params.id },
   });
   if (!existing) return notFoundResponse();
 
@@ -131,13 +131,13 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { planId: string; limitId: string } }
+  { params }: { params: { id: string; limitId: string } }
 ) {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
 
   const existing = await prisma.planLimit.findFirst({
-    where: { id: params.limitId, planId: params.planId },
+    where: { id: params.limitId, planId: params.id },
   });
   if (!existing) return notFoundResponse();
 

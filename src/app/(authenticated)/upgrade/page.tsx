@@ -3,26 +3,11 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
 import { fetchJson } from "@/lib/financial/http";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/shared/loading-state";
 import { APP_NAME } from "@/lib/constants";
-
-export interface PlanOption {
-  id: string;
-  name: string;
-  allowedModules: string[];
-  stripePriceId: string | null;
-}
-
-export function usePlans() {
-  return useQuery<PlanOption[]>({
-    queryKey: ["plans"],
-    queryFn: () => fetchJson<PlanOption[]>("/api/plans"),
-    staleTime: 60 * 1000,
-  });
-}
+import { usePlans } from "@/hooks/use-plans";
 
 export default function UpgradePage() {
   const t = useTranslations("upgrade");

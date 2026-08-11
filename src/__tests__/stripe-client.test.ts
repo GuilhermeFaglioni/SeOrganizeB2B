@@ -12,19 +12,40 @@ describe("stripe client", () => {
     vi.resetModules();
 
     const { default: Stripe } = await import("stripe");
-    const { stripe } = await import("../lib/stripe");
+    const { getStripe } = await import("../lib/stripe");
 
-    expect(stripe).toBeInstanceOf(Stripe);
-    expect(stripe.getApiField("version")).toBe(STRIPE_API_VERSION);
-    expect(stripe.getApiField("version")).toBe("2024-12-18.acacia");
+    const client = getStripe();
+    expect(client).toBeInstanceOf(Stripe);
+    expect(client.getApiField("version")).toBe(STRIPE_API_VERSION);
+    expect(client.getApiField("version")).toBe("2024-12-18.acacia");
   });
 
-  it("throws a clear error when STRIPE_SECRET_KEY is missing", async () => {
+  it("reuses the same singleton across calls", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_123");
+    vi.resetModules();
+
+    const { getStripe } = await import("../lib/stripe");
+
+    expect(getStripe()).toBe(getStripe());
+  });
+
+  it("throws a clear error when STRIPE_SECRET_KEY is missing at first use", async () => {
     vi.stubEnv("STRIPE_SECRET_KEY", "");
     vi.resetModules();
 
-    await expect(import("../lib/stripe")).rejects.toThrow(
-      "STRIPE_SECRET_KEY is not set",
-    );
+    const { getStripe } = await import("../lib/stripe");
+
+    expect(() => getStripe()).toThrow("STRIPE_SECRET_KEY is not set");
+  });
+
+  it("exports a lazy stripe proxy that initializes on property access", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_123");
+    vi.resetModules();
+
+    const { stripe } = await import("../lib/stripe");
+
+    expect(stripe).toBeDefined();
+    // Accessing a property triggers lazy initialization against the client.
+    expect(typeof stripe.checkout).toBe("object");
   });
 });

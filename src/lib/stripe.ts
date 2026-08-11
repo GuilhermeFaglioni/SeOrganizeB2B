@@ -12,7 +12,26 @@ export function getStripeSecretKey(): string {
   return secretKey;
 }
 
-export const stripe = new Stripe(getStripeSecretKey(), {
-  // @ts-expect-error pinned API version predates the SDK's latest-version type
-  apiVersion: STRIPE_API_VERSION,
+function createStripeClient(): Stripe {
+  return new Stripe(getStripeSecretKey(), {
+    // @ts-expect-error pinned API version predates the SDK's latest-version type
+    apiVersion: STRIPE_API_VERSION,
+  });
+}
+
+let stripeClient: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (!stripeClient) {
+    stripeClient = createStripeClient();
+  }
+  return stripeClient;
+}
+
+export const stripe: Stripe = new Proxy({} as Stripe, {
+  get(_target, prop: string | symbol) {
+    const client = getStripe();
+    const value = (client as unknown as Record<string | symbol, unknown>)[prop];
+    return typeof value === "function" ? value.bind(client) : value;
+  },
 });

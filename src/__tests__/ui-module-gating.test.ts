@@ -104,10 +104,12 @@ describe("upgrade page and route gating", () => {
 
   it("lists plans and starts a Stripe checkout", () => {
     const page = read("src/app/(authenticated)/upgrade/page.tsx");
-    expect(page).toContain("/api/plans");
+    const plansHook = read("src/hooks/use-plans.ts");
     expect(page).toContain("/api/stripe/checkout");
     expect(page).toContain("priceId");
     expect(page).toContain("window.location.href");
+    expect(plansHook).toContain("/api/plans");
+    expect(plansHook).toContain("usePlans");
   });
 
   it("gates the financial layout when no financial module is available", () => {
