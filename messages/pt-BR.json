@@ -66,6 +66,55 @@
       "title": "Alterar idioma"
     }
   },
+  "admin": {
+    "sidebar": {
+      "label": "Admin",
+      "navigation": "Navegação do painel administrativo",
+      "dashboard": "Dashboard",
+      "tenants": "Tenants",
+      "plans": "Planos",
+      "billing": "Cobrança",
+      "support": "Suporte"
+    },
+    "pages": {
+      "dashboard": {
+        "title": "Dashboard do admin",
+        "metricsLabel": "Métricas da plataforma",
+        "totalWorkspaces": "Total de workspaces",
+        "totalProfiles": "Total de perfis",
+        "totalPlans": "Total de planos"
+      },
+      "tenants": {
+        "title": "Tenants",
+        "comingSoon": "A gestão de tenants será habilitada em breve."
+      },
+      "tenantDetail": {
+        "title": "Detalhes do tenant",
+        "comingSoon": "Os detalhes do tenant serão habilitados em breve."
+      },
+      "plans": {
+        "title": "Planos",
+        "comingSoon": "A gestão de planos será habilitada em breve."
+      },
+      "planDetail": {
+        "title": "Detalhes do plano",
+        "comingSoon": "Os detalhes do plano serão habilitados em breve."
+      },
+      "billing": {
+        "title": "Visão geral de cobrança",
+        "comingSoon": "A visão geral de cobrança será habilitada em breve."
+      },
+      "support": {
+        "title": "Tickets de suporte",
+        "comingSoon": "O gerenciamento de tickets de suporte será habilitado em breve."
+      }
+    },
+    "forbidden": {
+      "title": "Acesso negado",
+      "description": "Você não tem permissão para acessar o painel administrativo.",
+      "backToApp": "Voltar para o aplicativo"
+    }
+  },
   "auth": {
     "login": {
       "subtitle": "Organizador interno da empresa",
@@ -1300,7 +1349,9 @@
   },
   "billing": {
     "gracePeriod": {
-      "message": "Seu período de carência termina em {date}."
+      "message": "Seu período de carência termina em {date}.",
+      "updatePayment": "Atualizar Pagamento",
+      "portalFailed": "Não foi possível abrir o portal de pagamento"
     },
     "expiration": {
       "message": "Seu workspace foi cancelado. Modo somente leitura ativo até {date}."

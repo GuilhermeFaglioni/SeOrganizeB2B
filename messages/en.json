@@ -66,6 +66,55 @@
       "title": "Change language"
     }
   },
+  "admin": {
+    "sidebar": {
+      "label": "Admin",
+      "navigation": "Admin navigation",
+      "dashboard": "Dashboard",
+      "tenants": "Tenants",
+      "plans": "Plans",
+      "billing": "Billing",
+      "support": "Support"
+    },
+    "pages": {
+      "dashboard": {
+        "title": "Admin dashboard",
+        "metricsLabel": "Platform metrics",
+        "totalWorkspaces": "Total workspaces",
+        "totalProfiles": "Total profiles",
+        "totalPlans": "Total plans"
+      },
+      "tenants": {
+        "title": "Tenants",
+        "comingSoon": "Tenant management will be enabled soon."
+      },
+      "tenantDetail": {
+        "title": "Tenant details",
+        "comingSoon": "Tenant details will be enabled soon."
+      },
+      "plans": {
+        "title": "Plans",
+        "comingSoon": "Plan management will be enabled soon."
+      },
+      "planDetail": {
+        "title": "Plan details",
+        "comingSoon": "Plan details will be enabled soon."
+      },
+      "billing": {
+        "title": "Billing overview",
+        "comingSoon": "The billing overview will be enabled soon."
+      },
+      "support": {
+        "title": "Support tickets",
+        "comingSoon": "Support ticket management will be enabled soon."
+      }
+    },
+    "forbidden": {
+      "title": "Access denied",
+      "description": "You do not have permission to access the admin panel.",
+      "backToApp": "Back to the app"
+    }
+  },
   "auth": {
     "login": {
       "subtitle": "Internal Company Organizer",
@@ -1300,7 +1349,9 @@
   },
   "billing": {
     "gracePeriod": {
-      "message": "Your grace period ends on {date}."
+      "message": "Your grace period ends on {date}.",
+      "updatePayment": "Update Payment",
+      "portalFailed": "Could not open the payment portal"
     },
     "expiration": {
       "message": "Your workspace has been cancelled. Read-only mode is active until {date}."

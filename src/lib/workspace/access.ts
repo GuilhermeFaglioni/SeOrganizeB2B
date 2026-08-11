@@ -1,4 +1,5 @@
 import type { WorkspaceData } from "@/hooks/use-workspace";
+import { isGracePeriodExpired } from "./grace-period";
 
 export type WorkspaceAccessMode = "active" | "grace" | "readonly" | "expired";
 
@@ -9,7 +10,9 @@ export function getWorkspaceAccessMode(
   workspace: WorkspaceData | null | undefined,
 ): WorkspaceAccessMode {
   if (!workspace) return "active";
-  if (workspace.status === "grace_period") return "grace";
+  if (workspace.status === "grace_period") {
+    return isGracePeriodExpired(workspace) ? "expired" : "grace";
+  }
   if (workspace.status === "cancelled") {
     const endsAt = workspace.gracePeriodEndsAt
       ? new Date(workspace.gracePeriodEndsAt).getTime()
