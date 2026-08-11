@@ -7,6 +7,13 @@ const migration = readFileSync(
   resolve(__dirname, "../migrations/20260811151935_add_workspaces/migration.sql"),
   "utf-8"
 );
+const deletedAtMigration = readFileSync(
+  resolve(
+    __dirname,
+    "../migrations/20260811175650_add_workspace_deleted_at/migration.sql"
+  ),
+  "utf-8"
+);
 
 describe("workspaces schema contract", () => {
   it("defines a unique slug on the Workspace model", () => {
@@ -45,6 +52,13 @@ describe("workspaces schema contract", () => {
       'gracePeriodEndsAt DateTime? @map("grace_period_ends_at")'
     );
     expect(workspace).toContain('cancelledAt       DateTime? @map("cancelled_at")');
+  });
+
+  it("supports soft delete via a nullable deletedAt column", () => {
+    const workspace = schema.match(/model Workspace \{([\s\S]*?)\n\}/)?.[1];
+
+    expect(workspace).toContain('deletedAt         DateTime? @map("deleted_at")');
+    expect(deletedAtMigration).toContain('"deleted_at" TIMESTAMP(3)');
   });
 
   it("maps the model to the workspaces table", () => {

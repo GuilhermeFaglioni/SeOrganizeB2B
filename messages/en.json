@@ -91,7 +91,7 @@
         "loadFailed": "Failed to load tenants.",
         "name": "Name",
         "slug": "Slug",
-        "status": "Status",
+        "statusLabel": "Status",
         "plan": "Plan",
         "usage": "Usage",
         "actions": "Actions",

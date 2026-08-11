@@ -91,7 +91,7 @@
         "loadFailed": "Não foi possível carregar os tenants.",
         "name": "Nome",
         "slug": "Slug",
-        "status": "Status",
+        "statusLabel": "Status",
         "plan": "Plano",
         "usage": "Uso",
         "actions": "Ações",
