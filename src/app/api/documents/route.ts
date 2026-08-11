@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma, withTenant } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
@@ -28,10 +29,10 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get("project_id");
 
-  const where: Record<string, unknown> = {};
-  if (projectId) where.projectId = projectId;
-
   return withTenant(ctx.tenantId, async () => {
+    const where = await applyScopeFilter(user.id, ctx.tenantId, "document", {
+      ...(projectId ? { projectId } : {}),
+    });
     const documents = await prisma.document.findMany({
       where,
       orderBy: { updatedAt: "desc" },

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma, withTenant } from "../../../../prisma/client";
 import { createDefaultColumns } from "../../../../src/lib/defaults";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
@@ -28,8 +29,11 @@ export async function GET() {
   if (gate.response) return gate.response;
 
   return withTenant(ctx.tenantId, async () => {
+    const where = await applyScopeFilter(user.id, ctx.tenantId, "project", {
+      archived: false,
+    });
     const projects = await prisma.project.findMany({
-      where: { archived: false },
+      where,
       orderBy: { createdAt: "desc" },
       include: {
         area: true,

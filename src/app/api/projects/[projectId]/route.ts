@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, withTenant } from "../../../../../prisma/client";
-import { denyFor } from "@/lib/authz/authz";
+import { denyFor, canViewResource } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
@@ -44,6 +44,10 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
   );
 
   if (!project) {
+    return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Project not found" } }, { status: 404 });
+  }
+
+  if (!(await canViewResource(user.id, "project", params.projectId))) {
     return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Project not found" } }, { status: 404 });
   }
 

@@ -16,6 +16,7 @@ import type {
 } from "@/lib/calendar/types";
 import { POST as createScheduledEvent } from "../schedule/route";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate } from "@/lib/middleware/feature-gating";
@@ -72,13 +73,19 @@ export async function GET(request: NextRequest) {
   }
 
   return withTenant(ctx.tenantId, async () => {
+    const where = await applyScopeFilter(
+      user.id,
+      ctx.tenantId,
+      "calendarEvent",
+      {
+        userId: user.id,
+        startTime: { lt: rangeEnd },
+        endTime: { gt: rangeStart },
+      }
+    );
     const [localEvents, calendarAuth] = await Promise.all([
       prisma.calendarEvent.findMany({
-        where: {
-          userId: user.id,
-          startTime: { lt: rangeEnd },
-          endTime: { gt: rangeStart },
-        },
+        where,
         orderBy: { startTime: "asc" },
         include: {
           task: {

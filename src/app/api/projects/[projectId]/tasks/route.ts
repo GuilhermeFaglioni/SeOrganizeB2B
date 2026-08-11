@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma, withTenant } from "../../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
@@ -33,14 +34,15 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
   const areaId = searchParams.get("area_id");
   const assigneeId = searchParams.get("assignee_id");
 
-  const where: Record<string, unknown> = { projectId: params.projectId };
-  if (columnId) where.columnId = columnId;
-  if (areaId) where.areaId = areaId;
-  if (assigneeId) {
-    where.assignees = { some: { profileId: assigneeId } };
-  }
-
   return withTenant(ctx.tenantId, async () => {
+    const where = await applyScopeFilter(user.id, ctx.tenantId, "task", {
+      projectId: params.projectId,
+      ...(columnId ? { columnId } : {}),
+      ...(areaId ? { areaId } : {}),
+      ...(assigneeId
+        ? { assignees: { some: { profileId: assigneeId } } }
+        : {}),
+    });
     const tasks = await prisma.task.findMany({
       where,
       orderBy: { position: "asc" },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, withTenant } from "../../../../../prisma/client";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate } from "@/lib/middleware/feature-gating";
@@ -39,13 +40,15 @@ export async function GET(request: NextRequest) {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
+  const where = await applyScopeFilter(user.id, ctx.tenantId, "task", {
+    archived: false,
+    dueDate: { gte: startOfToday },
+    assignees: { some: { profileId: user.id } },
+  });
+
   const tasks = await withTenant(ctx.tenantId, () =>
     prisma.task.findMany({
-      where: {
-        archived: false,
-        dueDate: { gte: startOfToday },
-        assignees: { some: { profileId: user.id } },
-      },
+      where,
       orderBy: { dueDate: "asc" },
       take: limit,
       include: {
