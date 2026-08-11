@@ -121,6 +121,7 @@
         "comingSoon": "Plan management will be enabled soon.",
         "loading": "Loading plans…",
         "error": "Failed to load plans.",
+        "empty": "No plans registered yet.",
         "name": "Name",
         "modules": "Modules",
         "default": "Default",
@@ -128,7 +129,15 @@
         "yes": "Yes",
         "no": "No",
         "active": "Active",
-        "inactive": "Inactive"
+        "inactive": "Inactive",
+        "createPlan": "Create plan",
+        "createTitle": "New plan",
+        "stripePriceId": "Stripe Price ID",
+        "setAsDefault": "Set as default",
+        "create": "Create",
+        "cancel": "Cancel",
+        "createFailed": "Failed to create plan.",
+        "createSuccess": "Plan created successfully."
       },
       "planDetail": {
         "title": "Plan details",

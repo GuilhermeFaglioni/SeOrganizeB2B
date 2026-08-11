@@ -121,6 +121,7 @@
         "comingSoon": "A gestão de planos será habilitada em breve.",
         "loading": "Carregando planos…",
         "error": "Falha ao carregar os planos.",
+        "empty": "Nenhum plano cadastrado ainda.",
         "name": "Nome",
         "modules": "Módulos",
         "default": "Padrão",
@@ -128,7 +129,15 @@
         "yes": "Sim",
         "no": "Não",
         "active": "Ativo",
-        "inactive": "Inativo"
+        "inactive": "Inativo",
+        "createPlan": "Criar plano",
+        "createTitle": "Novo plano",
+        "stripePriceId": "Stripe Price ID",
+        "setAsDefault": "Definir como padrão",
+        "create": "Criar",
+        "cancel": "Cancelar",
+        "createFailed": "Não foi possível criar o plano.",
+        "createSuccess": "Plano criado com sucesso."
       },
       "planDetail": {
         "title": "Detalhes do plano",
