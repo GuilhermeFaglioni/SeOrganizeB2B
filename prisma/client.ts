@@ -1,8 +1,13 @@
 import { PrismaClient } from "@prisma/client";
+import { tenantFilter } from "./middleware/tenant-filter";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
+
+const TENANT_FILTER_INSTALLED = Symbol.for(
+  "seorganize.prisma.tenantFilterInstalled"
+);
 
 function getDatabaseUrl(): string {
   const baseUrl = process.env.DATABASE_URL!;
@@ -17,6 +22,21 @@ export const prisma =
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 
+if (!(prisma as unknown as Record<symbol, boolean>)[TENANT_FILTER_INSTALLED]) {
+  prisma.$use(tenantFilter);
+  (prisma as unknown as Record<symbol, boolean>)[TENANT_FILTER_INSTALLED] = true;
+}
+
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
+
+export {
+  TENANT_CONTEXT_REQUIRED,
+  TenantContextRequiredError,
+  getTenantId,
+  requireTenantId,
+  tenantFilter,
+  withTenant,
+  withTenantBypass,
+} from "./middleware/tenant-filter";

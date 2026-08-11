@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { withTenant } from "../../../../../../prisma/client";
 import {
   activateContract,
   applyLifecycleAction,
@@ -7,6 +8,8 @@ import {
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 const ACTIONS = [
   "activate",
@@ -33,6 +36,9 @@ export async function POST(
   }
   const denied = await denyFor(user.id, "financial.contracts.lifecycle");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const body = await request.json();
   const action = body.action;
@@ -91,7 +97,9 @@ export async function POST(
           );
         }
       }
-      const contract = await activateContract(params.id, plan, user.id);
+      const contract = await withTenant(ctx.tenantId, () =>
+        activateContract(params.id, plan, user.id)
+      );
       return NextResponse.json({ data: contract, error: null });
     }
 
@@ -111,14 +119,16 @@ export async function POST(
       );
     }
 
-    const contract = await applyLifecycleAction(
-      params.id,
-      action,
-      {
-        effectiveDate: body.effectiveDate ?? undefined,
-        retainedInstallmentIds: body.retainedInstallmentIds ?? [],
-      },
-      user.id
+    const contract = await withTenant(ctx.tenantId, () =>
+      applyLifecycleAction(
+        params.id,
+        action,
+        {
+          effectiveDate: body.effectiveDate ?? undefined,
+          retainedInstallmentIds: body.retainedInstallmentIds ?? [],
+        },
+        user.id
+      )
     );
     return NextResponse.json({ data: contract, error: null });
   } catch (error) {

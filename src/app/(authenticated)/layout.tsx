@@ -7,6 +7,7 @@ import { useState } from "react";
 import { AuthProvider } from "@/stores/auth-context";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { AppLayout } from "@/components/layout/app-layout";
+import { ModuleGate } from "@/components/layout/module-gate";
 import { Toaster } from "@/components/ui/toaster";
 import { NotificationToastWatcher } from "@/components/notifications/notification-toast-watcher";
 import { ScheduleEventProvider } from "@/stores/schedule-event-context";
@@ -32,7 +33,9 @@ export default function AuthenticatedLayout({
         <AuthGate>
           <ScheduleEventProvider>
             <QuickCaptureProvider>
-              <AppLayout>{children}</AppLayout>
+              <AppLayout>
+                <ModuleGate>{children}</ModuleGate>
+              </AppLayout>
             </QuickCaptureProvider>
           </ScheduleEventProvider>
           <NotificationToastWatcher />

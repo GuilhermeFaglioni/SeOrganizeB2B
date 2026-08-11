@@ -16,10 +16,12 @@ model Profile {
   avatarUrl String?  @map("avatar_url")
   locale    String   @default("pt-BR")
   roleId    String?  @map("role_id")
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  role Role? @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  role   Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  tenant Workspace @relation(fields: [tenantId], references: [id])
 
   teamMemberAreas        TeamMemberArea[]
   createdTeamAreas       TeamArea[]              @relation("TeamAreaCreator")
@@ -41,23 +43,150 @@ model Profile {
   contractAudits         ContractAudit[]         @relation("ContractAuditActor")
   proposalTemplates      ProposalTemplate[]      @relation("ProposalTemplateCreator")
   proposals              Proposal[]              @relation("ProposalCreator")
+  projectMembers         ProjectMember[]
 
+  @@index([tenantId])
   @@map("profiles")
 }
 
 model Role {
   id          String   @id @default(uuid())
-  name        String   @unique
+  name        String
   permissions Json     @default("[]")
   isAdmin     Boolean  @default(false) @map("is_admin")
+  tenantId    String   @map("tenant_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  tenant     Workspace  @relation("RoleTenant", fields: [tenantId], references: [id])
   profiles   Profile[]
-  defaultFor WorkspaceSettings[]
+  workspaces Workspace[]
+  invites    Invite[]
 
+  @@unique([name, tenantId])
   @@index([isAdmin])
+  @@index([tenantId])
   @@map("roles")
+}
+
+model Workspace {
+  id                String    @id @default(uuid())
+  name              String
+  slug              String    @unique
+  logoUrl           String?   @map("logo_url")
+  companyName       String?   @map("company_name")
+  defaultRoleId     String?   @map("default_role_id")
+  stripeCustomerId  String?   @map("stripe_customer_id")
+  planId            String?   @map("plan_id")
+  status            String    @default("active")
+  gracePeriodEndsAt DateTime? @map("grace_period_ends_at")
+  cancelledAt       DateTime? @map("cancelled_at")
+  deletedAt         DateTime? @map("deleted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  defaultRole Role? @relation(fields: [defaultRoleId], references: [id], onDelete: SetNull)
+  plan        Plan?   @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  profiles Profile[]
+  roles    Role[]      @relation("RoleTenant")
+
+  teamAreas             TeamArea[]
+  teamMemberAreas       TeamMemberArea[]
+  projects              Project[]
+  projectColumns        ProjectColumn[]
+  tasks                 Task[]
+  taskAssignees         TaskAssignee[]
+  comments              Comment[]
+  commentMentions       CommentMention[]
+  documents             Document[]
+  calendarAuths         CalendarAuth[]
+  calendarEvents        CalendarEvent[]
+  calendarEventAttendees CalendarEventAttendee[]
+  activities            Activity[]
+  notifications         Notification[]
+  pushSubscriptions     PushSubscription[]
+  savedViews            SavedView[]
+  clients               Client[]
+  contracts             Contract[]
+  contractItems         ContractItem[]
+  contractProjects      ContractProject[]
+  installments          Installment[]
+  contractChanges       ContractChange[]
+  contractAudits        ContractAudit[]
+  proposalTemplates     ProposalTemplate[]
+  proposals             Proposal[]
+  proposalItems         ProposalItem[]
+  invites               Invite[]
+  readOnlyAccesses      ReadOnlyAccess[]
+
+  @@map("workspaces")
+}
+
+model Invite {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  email       String
+  roleId      String?   @map("role_id")
+  token       String    @unique
+  status      String    @default("pending")
+  expiresAt   DateTime  @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  role      Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([email])
+  @@map("invites")
+}
+
+model ReadOnlyAccess {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  workspaceId String    @map("workspace_id")
+  email       String
+  expiresAt   DateTime  @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  usedAt      DateTime? @map("used_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("read_only_accesses")
+}
+
+model Plan {
+  id             String   @id @default(uuid())
+  name           String
+  stripePriceId  String?  @map("stripe_price_id")
+  allowedModules Json     @default("[]")
+  isDefault      Boolean  @default(false) @map("is_default")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  workspaces Workspace[]
+  planLimits PlanLimit[]
+
+  @@map("plans")
+}
+
+model PlanLimit {
+  id        String   @id @default(uuid())
+  planId    String   @map("plan_id")
+  resource  String
+  limit     Int
+  behavior  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@map("plan_limits")
 }
 
 model TeamArea {
@@ -65,27 +194,33 @@ model TeamArea {
   name      String   @unique
   color     String   @default("#3b82f6")
   createdBy String   @map("created_by")
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   creator        Profile          @relation("TeamAreaCreator", fields: [createdBy], references: [id])
+  tenant         Workspace        @relation(fields: [tenantId], references: [id])
   memberAreas    TeamMemberArea[]
   projects       Project[]
   tasks          Task[]
   calendarEvents CalendarEvent[]
 
+  @@index([tenantId])
   @@map("team_areas")
 }
 
 model TeamMemberArea {
-  id     String @id @default(uuid())
-  userId String @map("user_id")
-  areaId String @map("area_id")
+  id       String @id @default(uuid())
+  userId   String @map("user_id")
+  areaId   String @map("area_id")
+  tenantId String @map("tenant_id")
 
-  user Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  area TeamArea @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  user   Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  area   TeamArea @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  tenant Workspace @relation(fields: [tenantId], references: [id])
 
   @@unique([userId, areaId])
+  @@index([tenantId])
   @@map("team_member_areas")
 }
 
@@ -95,19 +230,37 @@ model Project {
   description String?
   areaId      String?  @map("area_id")
   createdBy   String   @map("created_by")
+  tenantId    String   @map("tenant_id")
   archived    Boolean  @default(false)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   area             TeamArea?         @relation(fields: [areaId], references: [id])
   creator          Profile           @relation("ProjectCreator", fields: [createdBy], references: [id])
+  tenant           Workspace         @relation(fields: [tenantId], references: [id])
   columns          ProjectColumn[]
   tasks            Task[]
   documents        Document[]
   contractProjects ContractProject[]
+  projectMembers   ProjectMember[]
 
   @@index([areaId])
+  @@index([tenantId])
   @@map("projects")
+}
+
+model ProjectMember {
+  projectId           String   @map("project_id")
+  profileId           String   @map("profile_id")
+  autoAssignedByArea  Boolean  @default(false) @map("auto_assigned_by_area")
+  joinedAt            DateTime @default(now()) @map("joined_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, profileId])
+  @@index([profileId])
+  @@map("project_members")
 }
 
 model ProjectColumn {
@@ -117,14 +270,17 @@ model ProjectColumn {
   position       Int
   color          String?
   completesTasks Boolean  @default(false) @map("completes_tasks")
+  tenantId       String   @map("tenant_id")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenant  Workspace @relation(fields: [tenantId], references: [id])
   tasks   Task[]
 
   @@unique([projectId, name])
   @@index([projectId])
+  @@index([tenantId])
   @@map("project_columns")
 }
 
@@ -139,6 +295,7 @@ model Task {
   dueDate               DateTime? @map("due_date")
   position              Float     @default(0)
   createdBy             String    @map("created_by")
+  tenantId              String    @map("tenant_id")
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
   archived              Boolean   @default(false)
@@ -152,6 +309,7 @@ model Task {
   column         ProjectColumn   @relation(fields: [columnId], references: [id], onDelete: Restrict)
   area           TeamArea?       @relation(fields: [areaId], references: [id])
   creator        Profile         @relation("TaskCreator", fields: [createdBy], references: [id])
+  tenant         Workspace       @relation(fields: [tenantId], references: [id])
   assignees      TaskAssignee[]
   comments       Comment[]
   calendarEvents CalendarEvent[]
@@ -162,6 +320,7 @@ model Task {
   @@index([areaId])
   @@index([dueDate])
   @@index([projectId, columnId, position])
+  @@index([tenantId])
   @@map("tasks")
 }
 
@@ -169,13 +328,16 @@ model TaskAssignee {
   taskId     String   @map("task_id")
   profileId  String   @map("profile_id")
   assignedBy String   @map("assigned_by")
+  tenantId   String   @map("tenant_id")
   assignedAt DateTime @default(now()) @map("assigned_at")
 
-  task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  profile Profile @relation("AssignedTasks", fields: [profileId], references: [id], onDelete: Cascade)
+  task    Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  profile Profile    @relation("AssignedTasks", fields: [profileId], references: [id], onDelete: Cascade)
+  tenant  Workspace  @relation(fields: [tenantId], references: [id])
 
   @@id([taskId, profileId])
   @@index([profileId])
+  @@index([tenantId])
   @@map("task_assignees")
 }
 
@@ -184,13 +346,16 @@ model Comment {
   taskId    String   @map("task_id")
   authorId  String   @map("author_id")
   content   String
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
 
   task     Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
   author   Profile          @relation(fields: [authorId], references: [id])
+  tenant   Workspace        @relation(fields: [tenantId], references: [id])
   mentions CommentMention[]
 
   @@index([taskId])
+  @@index([tenantId])
   @@map("comments")
 }
 
@@ -203,15 +368,18 @@ model Activity {
   entityId   String   @map("entity_id")
   summary    String
   metadata   Json?
+  tenantId   String   @map("tenant_id")
   createdAt  DateTime @default(now()) @map("created_at")
 
   actor         Profile?       @relation("ActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
   task          Task?          @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  tenant        Workspace      @relation(fields: [tenantId], references: [id])
   notifications Notification[]
 
   @@index([actorId, createdAt])
   @@index([taskId, createdAt])
   @@index([entityType, entityId])
+  @@index([tenantId])
   @@map("activities")
 }
 
@@ -219,27 +387,33 @@ model Notification {
   id          String    @id @default(uuid())
   recipientId String    @map("recipient_id")
   activityId  String    @map("activity_id")
+  tenantId    String    @map("tenant_id")
   readAt      DateTime? @map("read_at")
   createdAt   DateTime  @default(now()) @map("created_at")
 
   recipient Profile  @relation(fields: [recipientId], references: [id], onDelete: Cascade)
   activity  Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  tenant    Workspace @relation(fields: [tenantId], references: [id])
 
   @@unique([recipientId, activityId])
   @@index([recipientId, readAt, createdAt])
+  @@index([tenantId])
   @@map("notifications")
 }
 
 model CommentMention {
   commentId String   @map("comment_id")
   profileId String   @map("profile_id")
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  comment Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  profile Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  tenant  Workspace @relation(fields: [tenantId], references: [id])
 
   @@id([commentId, profileId])
   @@index([profileId])
+  @@index([tenantId])
   @@map("comment_mentions")
 }
 
@@ -249,12 +423,15 @@ model PushSubscription {
   endpoint  String
   p256dh    String
   auth      String
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  tenant  Workspace @relation(fields: [tenantId], references: [id])
 
   @@unique([endpoint])
   @@index([profileId])
+  @@index([tenantId])
   @@map("push_subscriptions")
 }
 
@@ -264,13 +441,16 @@ model SavedView {
   name      String
   scope     String
   filters   Json
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Workspace @relation(fields: [tenantId], references: [id])
 
   @@unique([userId, scope, name])
   @@index([userId, scope])
+  @@index([tenantId])
   @@map("saved_views")
 }
 
@@ -280,14 +460,17 @@ model Document {
   content   String   @default("")
   projectId String?  @map("project_id")
   createdBy String   @map("created_by")
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  project Project? @relation(fields: [projectId], references: [id])
-  creator Profile  @relation(fields: [createdBy], references: [id])
+  project Project?  @relation(fields: [projectId], references: [id])
+  creator Profile   @relation(fields: [createdBy], references: [id])
+  tenant  Workspace @relation(fields: [tenantId], references: [id])
 
   @@index([projectId])
   @@index([createdBy])
+  @@index([tenantId])
   @@map("documents")
 }
 
@@ -299,11 +482,14 @@ model CalendarAuth {
   expiresAt    DateTime  @map("expires_at")
   googleEmail  String?   @map("google_email")
   lastSyncAt   DateTime? @map("last_sync_at")
+  tenantId     String    @map("tenant_id")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Workspace @relation(fields: [tenantId], references: [id])
 
+  @@index([tenantId])
   @@map("calendar_auth")
 }
 
@@ -323,17 +509,20 @@ model CalendarEvent {
   color       String?
   source      String    @default("google")
   syncedAt    DateTime? @map("synced_at")
+  tenantId    String    @map("tenant_id")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   user      Profile                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   task      Task?                   @relation(fields: [taskId], references: [id])
   area      TeamArea?               @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  tenant    Workspace               @relation(fields: [tenantId], references: [id])
   attendees CalendarEventAttendee[]
 
   @@index([userId, startTime])
   @@index([taskId])
   @@index([areaId])
+  @@index([tenantId])
   @@map("calendar_events")
 }
 
@@ -345,14 +534,17 @@ model CalendarEventAttendee {
   displayName    String?  @map("display_name")
   responseStatus String   @default("needsAction") @map("response_status")
   organizer      Boolean  @default(false)
+  tenantId       String   @map("tenant_id")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   event   CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
   profile Profile?      @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  tenant  Workspace     @relation(fields: [tenantId], references: [id])
 
   @@unique([eventId, email])
   @@index([profileId])
+  @@index([tenantId])
   @@map("calendar_event_attendees")
 }
 
@@ -365,14 +557,17 @@ model Client {
   phone     String?
   notes     String?
   active    Boolean  @default(true)
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   contracts Contract[]
   proposals Proposal[]
+  tenant    Workspace @relation(fields: [tenantId], references: [id])
 
   @@unique([cpfCnpj])
   @@index([active])
+  @@index([tenantId])
   @@map("clients")
 }
 
@@ -392,11 +587,13 @@ model Contract {
   documentUrl      String?  @map("document_url")
   notes            String?
   predecessorId    String?  @map("predecessor_id")
+  tenantId         String   @map("tenant_id")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   client       Client?           @relation(fields: [clientId], references: [id], onDelete: Restrict)
   owner        Profile?          @relation("ContractOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  tenant       Workspace         @relation(fields: [tenantId], references: [id])
   items        ContractItem[]
   projects     ContractProject[]
   installments Installment[]
@@ -408,6 +605,7 @@ model Contract {
   @@index([clientId])
   @@index([status])
   @@index([startDate])
+  @@index([tenantId])
   @@map("contracts")
 }
 
@@ -420,24 +618,30 @@ model ContractItem {
   unit        String?
   price       Decimal? @db.Decimal(14, 2)
   position    Int      @default(0)
+  tenantId    String   @map("tenant_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contract Contract   @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  tenant   Workspace  @relation(fields: [tenantId], references: [id])
 
   @@index([contractId])
+  @@index([tenantId])
   @@map("contract_items")
 }
 
 model ContractProject {
   contractId String @map("contract_id")
   projectId  String @map("project_id")
+  tenantId   String @map("tenant_id")
 
-  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contract Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenant   Workspace @relation(fields: [tenantId], references: [id])
 
   @@id([contractId, projectId])
   @@index([projectId])
+  @@index([tenantId])
   @@map("contract_projects")
 }
 
@@ -451,17 +655,20 @@ model Installment {
   paidAt         String?  @map("paid_at")
   refundOfId     String?  @map("refund_of_id")
   cycleKey       String?  @map("cycle_key")
+  tenantId       String   @map("tenant_id")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   contract Contract      @relation(fields: [contractId], references: [id], onDelete: Cascade)
   refundOf Installment?  @relation("InstallmentRefund", fields: [refundOfId], references: [id], onDelete: SetNull)
   refunds  Installment[] @relation("InstallmentRefund")
+  tenant   Workspace     @relation(fields: [tenantId], references: [id])
 
   @@unique([contractId, cycleKey])
   @@index([contractId, status])
   @@index([dueDate])
   @@index([refundOfId])
+  @@index([tenantId])
   @@map("installments")
 }
 
@@ -476,12 +683,15 @@ model ContractChange {
   newValue      Decimal  @map("new_value") @db.Decimal(14, 2)
   reason        String?
   actorId       String   @map("actor_id")
+  tenantId      String   @map("tenant_id")
   createdAt     DateTime @default(now()) @map("created_at")
 
-  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  actor    Profile  @relation("ContractChangeActor", fields: [actorId], references: [id], onDelete: Restrict)
+  contract Contract   @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  actor    Profile    @relation("ContractChangeActor", fields: [actorId], references: [id], onDelete: Restrict)
+  tenant   Workspace  @relation(fields: [tenantId], references: [id])
 
   @@index([contractId, effectiveDate])
+  @@index([tenantId])
   @@map("contract_changes")
 }
 
@@ -493,12 +703,15 @@ model ContractAudit {
   beforeValue Json?    @map("before_value")
   afterValue  Json?    @map("after_value")
   reason      String?
+  tenantId    String   @map("tenant_id")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  actor    Profile? @relation("ContractAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  contract Contract   @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  actor    Profile?   @relation("ContractAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  tenant   Workspace  @relation(fields: [tenantId], references: [id])
 
   @@index([contractId, createdAt])
+  @@index([tenantId])
   @@map("contract_audits")
 }
 
@@ -507,13 +720,16 @@ model ProposalTemplate {
   name      String
   html      String   @default("")
   createdBy String   @map("created_by")
+  tenantId  String   @map("tenant_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   creator   Profile    @relation("ProposalTemplateCreator", fields: [createdBy], references: [id])
+  tenant    Workspace  @relation(fields: [tenantId], references: [id])
   proposals Proposal[]
 
   @@index([createdBy])
+  @@index([tenantId])
   @@map("proposal_templates")
 }
 
@@ -538,17 +754,20 @@ model Proposal {
   acceptedByName String?  @map("accepted_by_name")
   rejectedAt     String?  @map("rejected_at")
   rejectedReason String?  @map("rejected_reason")
+  tenantId       String   @map("tenant_id")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   client   Client?           @relation(fields: [clientId], references: [id], onDelete: Restrict)
   template ProposalTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   creator  Profile           @relation("ProposalCreator", fields: [createdBy], references: [id])
+  tenant   Workspace         @relation(fields: [tenantId], references: [id])
   items    ProposalItem[]
 
   @@index([clientId])
   @@index([createdBy])
   @@index([status])
+  @@index([tenantId])
   @@map("proposals")
 }
 
@@ -560,24 +779,15 @@ model ProposalItem {
   quantity    Decimal? @db.Decimal(14, 4)
   price       Decimal? @db.Decimal(14, 2)
   position    Int      @default(0)
+  tenantId    String   @map("tenant_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposal Proposal  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  tenant   Workspace @relation(fields: [tenantId], references: [id])
 
   @@index([proposalId])
+  @@index([tenantId])
   @@map("proposal_items")
 }
 
-model WorkspaceSettings {
-  id            String   @id @default("default")
-  companyName   String?  @map("company_name")
-  logoUrl       String?  @map("logo_url")
-  defaultRoleId String?  @map("default_role_id")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  defaultRole Role? @relation(fields: [defaultRoleId], references: [id], onDelete: SetNull)
-
-  @@map("workspace_settings")
-}

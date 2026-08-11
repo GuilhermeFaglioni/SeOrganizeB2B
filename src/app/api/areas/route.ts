@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../prisma/client";
+import { prisma, withTenant } from "../../../../prisma/client";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -12,14 +15,27 @@ export async function GET() {
   const denied = await denyFor(user.id, "areas.view");
   if (denied) return denied;
 
-  const areas = await prisma.teamArea.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      _count: { select: { tasks: true, memberAreas: true } },
-    },
-  });
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
-  return NextResponse.json({ data: areas, error: null });
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/areas",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
+  return withTenant(ctx.tenantId, async () => {
+    const areas = await prisma.teamArea.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        _count: { select: { tasks: true, memberAreas: true } },
+      },
+    });
+
+    return NextResponse.json({ data: areas, error: null });
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -31,6 +47,17 @@ export async function POST(request: NextRequest) {
   const denied = await denyFor(user.id, "areas.create");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/areas",
+    method: "POST",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { name, color } = body;
 
@@ -38,18 +65,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ data: null, error: { code: "VALIDATION_ERROR", message: "Name is required" } }, { status: 400 });
   }
 
-  const existing = await prisma.teamArea.findUnique({ where: { name } });
-  if (existing) {
-    return NextResponse.json({ data: null, error: { code: "CONFLICT", message: "Area name already exists" } }, { status: 409 });
-  }
+  return withTenant(ctx.tenantId, async () => {
+    const existing = await prisma.teamArea.findFirst({
+      where: { name, tenantId: ctx.tenantId! },
+    });
+    if (existing) {
+      return NextResponse.json({ data: null, error: { code: "CONFLICT", message: "Area name already exists" } }, { status: 409 });
+    }
 
-  const area = await prisma.teamArea.create({
-    data: {
-      name,
-      color: color || "#3b82f6",
-      createdBy: user.id,
-    },
+    const area = await prisma.teamArea.create({
+      data: {
+        name,
+        color: color || "#3b82f6",
+        createdBy: user.id,
+        tenantId: ctx.tenantId!,
+      },
+    });
+
+    return withFeatureWarning(
+      NextResponse.json({ data: area, error: null }, { status: 201 }),
+      gate.warning
+    );
   });
-
-  return NextResponse.json({ data: area, error: null }, { status: 201 });
 }

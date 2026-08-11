@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "../../../prisma/client";
+import { prisma, requireTenantId } from "../../../prisma/client";
 import { contractCode } from "./contract-code";
 import {
   FinancialConflictError,
@@ -82,6 +82,7 @@ export async function createContractDraft(
         paymentMethod: input.paymentMethod,
         documentUrl: input.documentUrl ?? null,
         notes: input.notes ?? null,
+        tenantId: requireTenantId("financial.contracts"),
         items: input.items?.length
           ? {
               create: input.items.map((item) => ({
@@ -91,11 +92,17 @@ export async function createContractDraft(
                 unit: item.unit ?? null,
                 price: item.price ? toDecimal(item.price) : null,
                 position: item.position,
+                tenantId: requireTenantId("financial.contracts"),
               })),
             }
           : undefined,
         projects: input.projectIds?.length
-          ? { create: input.projectIds.map((projectId) => ({ projectId })) }
+          ? {
+              create: input.projectIds.map((projectId) => ({
+                projectId,
+                tenantId: requireTenantId("financial.contracts"),
+              })),
+            }
           : undefined,
       },
       include: { client: true, items: true, projects: true },
@@ -184,6 +191,7 @@ export async function updateContract(
             unit: item.unit ?? null,
             price: item.price ? toDecimal(item.price) : null,
             position: item.position,
+            tenantId: requireTenantId("financial.contracts"),
           })),
         });
       }
@@ -225,6 +233,7 @@ export async function updateContract(
           data: input.projectIds.map((projectId) => ({
             contractId,
             projectId,
+            tenantId: requireTenantId("financial.contracts"),
           })),
         });
       }
@@ -353,6 +362,7 @@ export async function activateContract(
           contract.durationType === "openEnded"
             ? item.dueDate.slice(0, 7)
             : null,
+        tenantId: requireTenantId("financial.contracts"),
       })),
     });
 
@@ -424,6 +434,7 @@ export async function applyLifecycleAction(
           documentUrl: contract.documentUrl,
           notes: contract.notes,
           predecessorId: contract.id,
+          tenantId: requireTenantId("financial.contracts"),
           items: {
             create: contract.items.map((item) => ({
               name: item.name,
@@ -432,11 +443,13 @@ export async function applyLifecycleAction(
               unit: item.unit,
               price: item.price,
               position: item.position,
+              tenantId: requireTenantId("financial.contracts"),
             })),
           },
           projects: {
             create: contract.projects.map((project) => ({
               projectId: project.projectId,
+              tenantId: requireTenantId("financial.contracts"),
             })),
           },
         },
@@ -573,6 +586,7 @@ export async function applyContractChange(
           paymentMethod: contract.paymentMethod,
           status: "pending",
           cycleKey: null,
+          tenantId: requireTenantId("financial.contracts"),
         },
       });
     }
@@ -599,6 +613,7 @@ export async function applyContractChange(
         newValue,
         reason: input.reason ?? null,
         actorId,
+        tenantId: requireTenantId("financial.contracts"),
       },
     });
 

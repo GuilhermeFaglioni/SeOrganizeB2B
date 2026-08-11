@@ -1,5 +1,6 @@
 import { FinancialValidationError } from "./lifecycle";
 import { prisma } from "../../../prisma/client";
+import { DEFAULT_WORKSPACE_ID } from "../tenant";
 
 export interface WorkspaceSettingsInput {
   companyName?: string;
@@ -7,12 +8,12 @@ export interface WorkspaceSettingsInput {
 }
 
 export async function getWorkspaceSettings() {
-  const settings = await prisma.workspaceSettings.findUnique({
-    where: { id: "default" },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: DEFAULT_WORKSPACE_ID },
   });
-  if (settings) return settings;
-  return prisma.workspaceSettings.create({
-    data: { id: "default" },
+  if (workspace) return workspace;
+  return prisma.workspace.create({
+    data: { id: DEFAULT_WORKSPACE_ID, name: "Default", slug: "default" },
   });
 }
 
@@ -23,9 +24,14 @@ export async function updateWorkspaceSettings(input: WorkspaceSettingsInput) {
   if (!data.companyName && data.logoUrl === undefined) {
     throw new FinancialValidationError("Nothing to update");
   }
-  return prisma.workspaceSettings.upsert({
-    where: { id: "default" },
+  return prisma.workspace.upsert({
+    where: { id: DEFAULT_WORKSPACE_ID },
     update: data,
-    create: { id: "default", ...data },
+    create: {
+      id: DEFAULT_WORKSPACE_ID,
+      name: "Default",
+      slug: "default",
+      ...data,
+    },
   });
 }

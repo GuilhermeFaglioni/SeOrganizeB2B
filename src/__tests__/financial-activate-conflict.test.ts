@@ -25,6 +25,10 @@ vi.mock("../../prisma/client", () => ({
       async (fn: (tx: typeof mockTx) => Promise<unknown>) => fn(mockTx)
     ),
   },
+  withTenant: (_tenantId: string, fn: () => unknown) => fn(),
+  withTenantBypass: (fn: () => unknown) => fn(),
+  requireTenantId: () => "tenant-1",
+  getTenantId: () => "tenant-1",
 }));
 
 import { activateContract } from "../lib/financial/contracts-service";

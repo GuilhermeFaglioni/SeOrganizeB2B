@@ -24,16 +24,11 @@ const statements = [
   `CREATE UNIQUE INDEX IF NOT EXISTS "roles_name_key" ON "roles"("name")`,
   `CREATE INDEX IF NOT EXISTS "roles_is_admin_idx" ON "roles"("is_admin")`,
   `ALTER TABLE "profiles" ADD COLUMN IF NOT EXISTS "role_id" TEXT`,
-  `ALTER TABLE "workspace_settings" ADD COLUMN IF NOT EXISTS "default_role_id" TEXT`,
   `DO $$
    BEGIN
      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_role_id_fkey') THEN
        ALTER TABLE "profiles" ADD CONSTRAINT "profiles_role_id_fkey"
          FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-     END IF;
-     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'workspace_settings_default_role_id_fkey') THEN
-       ALTER TABLE "workspace_settings" ADD CONSTRAINT "workspace_settings_default_role_id_fkey"
-         FOREIGN KEY ("default_role_id") REFERENCES "roles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
      END IF;
    END $$`,
   `INSERT INTO "roles" ("id", "name", "permissions", "is_admin", "created_at", "updated_at")

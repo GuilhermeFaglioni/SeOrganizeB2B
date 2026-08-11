@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { withTenant } from "../../../../../prisma/client";
 import {
   deleteProposalTemplate,
   getProposalTemplate,
@@ -8,6 +9,8 @@ import {
 import { sanitizeProposalHtml } from "@/lib/financial/proposals";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function GET(
   _request: NextRequest,
@@ -23,7 +26,12 @@ export async function GET(
   const denied = await denyFor(user.id, "financial.proposals.view");
   if (denied) return denied;
 
-  const template = await getProposalTemplate(params.id);
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const template = await withTenant(ctx.tenantId, () =>
+    getProposalTemplate(params.id)
+  );
   if (!template) {
     return NextResponse.json(
       {
@@ -50,13 +58,18 @@ export async function PATCH(
   const denied = await denyFor(user.id, "financial.proposals.manageTemplates");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   const body = await request.json();
   const input: { name?: string; html?: string } = {};
   if (body.name !== undefined) input.name = String(body.name);
   if (body.html !== undefined) input.html = sanitizeProposalHtml(String(body.html));
 
   try {
-    const template = await updateProposalTemplate(params.id, input);
+    const template = await withTenant(ctx.tenantId, () =>
+      updateProposalTemplate(params.id, input)
+    );
     return NextResponse.json({ data: template, error: null });
   } catch (error) {
     return mapFinancialError(error);
@@ -77,8 +90,11 @@ export async function DELETE(
   const denied = await denyFor(user.id, "financial.proposals.manageTemplates");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   try {
-    await deleteProposalTemplate(params.id);
+    await withTenant(ctx.tenantId, () => deleteProposalTemplate(params.id));
     return NextResponse.json({ data: null, error: null });
   } catch (error) {
     return mapFinancialError(error);

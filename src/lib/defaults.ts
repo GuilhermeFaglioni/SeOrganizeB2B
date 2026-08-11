@@ -1,4 +1,5 @@
 import { prisma } from "../../prisma/client";
+import { DEFAULT_WORKSPACE_ID } from "./tenant";
 
 const DEFAULT_COLUMNS = [
   { name: "To Do", position: 0, completesTasks: false },
@@ -6,7 +7,10 @@ const DEFAULT_COLUMNS = [
   { name: "Done", position: 2, completesTasks: true },
 ] as const;
 
-export async function createDefaultColumns(projectId: string) {
+export async function createDefaultColumns(
+  projectId: string,
+  tenantId: string = DEFAULT_WORKSPACE_ID
+) {
   for (const col of DEFAULT_COLUMNS) {
     await prisma.projectColumn.create({
       data: {
@@ -14,6 +18,7 @@ export async function createDefaultColumns(projectId: string) {
         name: col.name,
         position: col.position,
         completesTasks: col.completesTasks,
+        tenantId,
       },
     });
   }

@@ -12,10 +12,14 @@ vi.mock("../../prisma/client", () => ({
       findFirst: mocks.proposalFindFirst,
       update: mocks.proposalUpdate,
     },
-    workspaceSettings: {
+    workspace: {
       findUnique: mocks.workspaceFindUnique,
     },
   },
+  withTenant: (_tenantId: string, fn: () => unknown) => fn(),
+  withTenantBypass: (fn: () => unknown) => fn(),
+  requireTenantId: () => "tenant-1",
+  getTenantId: () => "tenant-1",
 }));
 
 import {

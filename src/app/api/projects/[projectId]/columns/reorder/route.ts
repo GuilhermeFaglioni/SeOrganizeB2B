@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../../../prisma/client";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 import { getUser } from "@/lib/supabase/server";
 import { reindexColumns } from "@/lib/reorder";
 
@@ -13,6 +15,9 @@ export async function PUT(request: NextRequest) {
   const denied = await denyFor(user.id, "projects.edit");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
   const body = await request.json();
   const { orderedIds } = body;
 
@@ -22,12 +27,14 @@ export async function PUT(request: NextRequest) {
 
   const updates = reindexColumns(orderedIds);
 
-  const results = await prisma.$transaction(
-    updates.map(({ id, position }) =>
-      prisma.projectColumn.update({
-        where: { id },
-        data: { position },
-      })
+  const results = await withTenant(ctx.tenantId, () =>
+    prisma.$transaction(
+      updates.map(({ id, position }) =>
+        prisma.projectColumn.update({
+          where: { id },
+          data: { position },
+        })
+      )
     )
   );
 

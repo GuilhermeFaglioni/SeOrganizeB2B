@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "../../../prisma/client";
+import { prisma, requireTenantId } from "../../../prisma/client";
 import { addMonthsCivil, compareCivil, todayCivilDate } from "./civil-date";
 import { FinancialConflictError, FinancialValidationError } from "./lifecycle";
 import { recordFinancialAudit } from "./audit";
@@ -115,6 +115,7 @@ export async function refundInstallment(
         paidAt: refundDate,
         refundOfId: installmentId,
         cycleKey: null,
+        tenantId: requireTenantId("financial.installments"),
       },
     });
     await recordFinancialAudit(tx, {
@@ -176,6 +177,7 @@ export async function extendRecurringHorizons(
               paymentMethod: contract.paymentMethod,
               status: "pending",
               cycleKey,
+              tenantId: requireTenantId("financial.installments"),
             },
           });
           created += 1;

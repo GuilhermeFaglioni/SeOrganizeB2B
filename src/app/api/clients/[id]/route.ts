@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
-import { denyFor } from "@/lib/authz/authz";
+import { denyFor, canViewResource } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 export async function GET(
   _request: NextRequest,
@@ -17,19 +20,41 @@ export async function GET(
   const denied = await denyFor(user.id, "financial.clients.view");
   if (denied) return denied;
 
-  const client = await prisma.client.findUnique({
-    where: { id: params.id },
-    include: {
-      contracts: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          _count: { select: { projects: true } },
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/clients/[id]",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
+  const client = await withTenant(ctx.tenantId, () =>
+    prisma.client.findUnique({
+      where: { id: params.id },
+      include: {
+        contracts: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            _count: { select: { projects: true } },
+          },
         },
       },
-    },
-  });
+    })
+  );
 
   if (!client) {
+    return NextResponse.json(
+      { data: null, error: { code: "NOT_FOUND", message: "Client not found" } },
+      { status: 404 }
+    );
+  }
+
+  // Clients have no area/project linkage, so access is granted by the view
+  // permission (tenant-level scope) already enforced via denyFor above.
+  if (!(await canViewResource(user.id, "client", params.id))) {
     return NextResponse.json(
       { data: null, error: { code: "NOT_FOUND", message: "Client not found" } },
       { status: 404 }
@@ -53,6 +78,17 @@ export async function PATCH(
   const denied = await denyFor(user.id, "financial.clients.edit");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/clients/[id]",
+    method: "PATCH",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
 
   if (body.name !== undefined) {
@@ -65,19 +101,24 @@ export async function PATCH(
   }
 
   try {
-    const client = await prisma.client.update({
-      where: { id: params.id },
-      data: {
-        name: body.name !== undefined ? body.name.trim() : undefined,
-        legalName: body.legalName !== undefined ? body.legalName : undefined,
-        cpfCnpj: body.cpfCnpj !== undefined ? body.cpfCnpj || null : undefined,
-        email: body.email !== undefined ? body.email || null : undefined,
-        phone: body.phone !== undefined ? body.phone || null : undefined,
-        notes: body.notes !== undefined ? body.notes || null : undefined,
-        active: body.active !== undefined ? body.active : undefined,
-      },
-    });
-    return NextResponse.json({ data: client, error: null });
+    const client = await withTenant(ctx.tenantId, () =>
+      prisma.client.update({
+        where: { id: params.id },
+        data: {
+          name: body.name !== undefined ? body.name.trim() : undefined,
+          legalName: body.legalName !== undefined ? body.legalName : undefined,
+          cpfCnpj: body.cpfCnpj !== undefined ? body.cpfCnpj || null : undefined,
+          email: body.email !== undefined ? body.email || null : undefined,
+          phone: body.phone !== undefined ? body.phone || null : undefined,
+          notes: body.notes !== undefined ? body.notes || null : undefined,
+          active: body.active !== undefined ? body.active : undefined,
+        },
+      })
+    );
+    return withFeatureWarning(
+      NextResponse.json({ data: client, error: null }),
+      gate.warning
+    );
   } catch (error) {
     if ((error as { code?: string }).code === "P2002") {
       return NextResponse.json(

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
-import { denyFor } from "@/lib/authz/authz";
+import { prisma, withTenant } from "../../../../../prisma/client";
+import { denyFor, canViewResource } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 import { getUser } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest, { params }: { params: { projectId: string } }) {
@@ -12,46 +15,67 @@ export async function GET(request: NextRequest, { params }: { params: { projectI
   const denied = await denyFor(user.id, "projects.view");
   if (denied) return denied;
 
-  const project = await prisma.project.findUnique({
-    where: { id: params.projectId },
-    include: {
-      area: true,
-      _count: { select: { tasks: true, documents: true } },
-      columns: {
-        include: {
-          _count: { select: { tasks: true } },
-        },
-        orderBy: { position: "asc" },
-      },
-      creator: { select: { id: true, name: true, email: true } },
-    },
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/projects/[projectId]",
+    method: "GET",
+    tenantContext: ctx,
   });
+  if (gate.response) return gate.response;
+
+  const project = await withTenant(ctx.tenantId, () =>
+    prisma.project.findUnique({
+      where: { id: params.projectId },
+      include: {
+        area: true,
+        _count: { select: { tasks: true, documents: true } },
+        columns: {
+          include: {
+            _count: { select: { tasks: true } },
+          },
+          orderBy: { position: "asc" },
+        },
+        creator: { select: { id: true, name: true, email: true } },
+      },
+    })
+  );
 
   if (!project) {
+    return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Project not found" } }, { status: 404 });
+  }
+
+  if (!(await canViewResource(user.id, "project", params.projectId))) {
     return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Project not found" } }, { status: 404 });
   }
 
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const [overdueCount, archivedCount, thisWeekCount] = await Promise.all([
-    prisma.task.count({
-      where: { projectId: params.projectId, archived: false, dueDate: { lt: todayStart } },
-    }),
-    prisma.task.count({
-      where: { projectId: params.projectId, archived: true },
-    }),
-    prisma.task.count({
-      where: {
-        projectId: params.projectId,
-        archived: false,
-        dueDate: {
-          gte: todayStart,
-          lt: new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000),
-        },
-      },
-    }),
-  ]);
+  const [overdueCount, archivedCount, thisWeekCount] = await withTenant(
+    ctx.tenantId,
+    () =>
+      Promise.all([
+        prisma.task.count({
+          where: { projectId: params.projectId, archived: false, dueDate: { lt: todayStart } },
+        }),
+        prisma.task.count({
+          where: { projectId: params.projectId, archived: true },
+        }),
+        prisma.task.count({
+          where: {
+            projectId: params.projectId,
+            archived: false,
+            dueDate: {
+              gte: todayStart,
+              lt: new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000),
+            },
+          },
+        }),
+      ])
+  );
 
   const data = {
     ...project,
@@ -77,27 +101,45 @@ export async function PATCH(request: NextRequest, { params }: { params: { projec
   const denied = await denyFor(user.id, "projects.edit");
   if (denied) return denied;
 
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/projects/[projectId]",
+    method: "PATCH",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const body = await request.json();
   const { name, description, areaId } = body;
 
-  const project = await prisma.project.findUnique({ where: { id: params.projectId } });
-  if (!project) {
-    return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Project not found" } }, { status: 404 });
-  }
-
-  if (name && name !== project.name) {
-    const existing = await prisma.project.findFirst({ where: { name, archived: false, id: { not: params.projectId } } });
-    if (existing) {
-      return NextResponse.json({ data: null, error: { code: "CONFLICT", message: "Project name already exists" } }, { status: 409 });
+  return withTenant(ctx.tenantId, async () => {
+    const project = await prisma.project.findFirst({
+      where: { id: params.projectId, tenantId: ctx.tenantId! },
+    });
+    if (!project) {
+      return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Project not found" } }, { status: 404 });
     }
-  }
 
-  const updated = await prisma.project.update({
-    where: { id: params.projectId },
-    data: { ...(name !== undefined && { name }), ...(description !== undefined && { description }), ...(areaId !== undefined && { areaId }) },
+    if (name && name !== project.name) {
+      const existing = await prisma.project.findFirst({ where: { name, archived: false, id: { not: params.projectId }, tenantId: ctx.tenantId! } });
+      if (existing) {
+        return NextResponse.json({ data: null, error: { code: "CONFLICT", message: "Project name already exists" } }, { status: 409 });
+      }
+    }
+
+    const updated = await prisma.project.update({
+      where: { id: params.projectId },
+      data: { ...(name !== undefined && { name }), ...(description !== undefined && { description }), ...(areaId !== undefined && { areaId }) },
+    });
+
+    return withFeatureWarning(
+      NextResponse.json({ data: updated, error: null }),
+      gate.warning
+    );
   });
-
-  return NextResponse.json({ data: updated, error: null });
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { projectId: string } }) {
@@ -109,15 +151,33 @@ export async function DELETE(request: NextRequest, { params }: { params: { proje
   const denied = await denyFor(user.id, "projects.delete");
   if (denied) return denied;
 
-  const project = await prisma.project.findUnique({ where: { id: params.projectId } });
-  if (!project) {
-    return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Project not found" } }, { status: 404 });
-  }
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
-  await prisma.project.update({
-    where: { id: params.projectId },
-    data: { archived: true },
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/projects/[projectId]",
+    method: "DELETE",
+    tenantContext: ctx,
   });
+  if (gate.response) return gate.response;
 
-  return NextResponse.json({ data: { id: params.projectId }, error: null });
+  return withTenant(ctx.tenantId, async () => {
+    const project = await prisma.project.findFirst({
+      where: { id: params.projectId, tenantId: ctx.tenantId! },
+    });
+    if (!project) {
+      return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Project not found" } }, { status: 404 });
+    }
+
+    await prisma.project.update({
+      where: { id: params.projectId },
+      data: { archived: true },
+    });
+
+    return withFeatureWarning(
+      NextResponse.json({ data: { id: params.projectId }, error: null }),
+      gate.warning
+    );
+  });
 }

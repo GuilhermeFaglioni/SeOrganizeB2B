@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
 import { RoleValidationError } from "./roles-service";
 
+export function noWorkspaceResponse(): NextResponse {
+  return NextResponse.json(
+    {
+      data: null,
+      error: {
+        code: "NO_WORKSPACE",
+        message: "No workspace associated with this account",
+      },
+    },
+    { status: 400 }
+  );
+}
+
 export function mapRoleError(error: unknown): NextResponse {
   if (error instanceof RoleValidationError) {
     return NextResponse.json(

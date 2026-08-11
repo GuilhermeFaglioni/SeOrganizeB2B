@@ -56,7 +56,7 @@ export interface ProposalListFilters {
   [key: string]: string | number | undefined;
 }
 
-export interface WorkspaceSettingsData {
+export interface WorkspaceData {
   id: string;
   companyName: string | null;
   logoUrl: string | null;
@@ -251,14 +251,14 @@ export function useCloneProposal() {
   });
 }
 
-export function useWorkspaceSettings() {
-  return useQuery<WorkspaceSettingsData>({
-    queryKey: ["workspace-settings"],
-    queryFn: () => fetchJson<WorkspaceSettingsData>("/api/settings/workspace"),
+export function useWorkspace() {
+  return useQuery<WorkspaceData>({
+    queryKey: ["workspace"],
+    queryFn: () => fetchJson<WorkspaceData>("/api/settings/workspace"),
   });
 }
 
-export function useUpdateWorkspaceSettings() {
+export function useUpdateWorkspace() {
   const t = useTranslations("hooks.proposals");
   const queryClient = useQueryClient();
   return useMutation({
@@ -269,7 +269,7 @@ export function useUpdateWorkspaceSettings() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workspace-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["workspace"] });
     },
     onError: () => toastError(t("workspaceUpdateFailed")),
   });

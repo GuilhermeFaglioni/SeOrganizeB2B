@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import {
   getValidAccessToken,
@@ -13,6 +13,9 @@ import { normalizeAttendeeEmails } from "@/lib/calendar/validation";
 import { recordActivity } from "@/lib/activity/record";
 import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 
 interface ScheduleEventBody {
   title?: string;
@@ -45,6 +48,17 @@ export async function POST(request: NextRequest) {
   }
   const denied = await denyFor(user.id, "calendar.create");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/calendar/schedule",
+    method: "POST",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const body = (await request.json()) as ScheduleEventBody;
   const title = body.title?.trim();
@@ -85,184 +99,192 @@ export async function POST(request: NextRequest) {
   const profileIds = Array.from(
     new Set((body.profileIds ?? []).filter(Boolean)),
   );
-  const profiles = await prisma.profile.findMany({
-    where: { id: { in: profileIds } },
-    select: { id: true, email: true, name: true },
-  });
-  if (body.areaId) {
-    const area = await prisma.teamArea.findUnique({
-      where: { id: body.areaId },
-      select: { id: true },
+
+  return withTenant(ctx.tenantId, async () => {
+    const profiles = await prisma.profile.findMany({
+      where: { id: { in: profileIds }, tenantId: ctx.tenantId! },
+      select: { id: true, email: true, name: true },
     });
-    if (!area) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: { code: "VALIDATION_ERROR", message: "Team area not found" },
-        },
-        { status: 400 },
-      );
-    }
-  }
-  if (profiles.length !== profileIds.length) {
-    return NextResponse.json(
-      {
-        data: null,
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "One or more attendees do not exist",
-        },
-      },
-      { status: 400 },
-    );
-  }
-
-  let attendeeEmails: string[];
-  try {
-    attendeeEmails = normalizeAttendeeEmails([
-      ...(body.attendeeEmails ?? []),
-      ...profiles.map((profile) => profile.email),
-    ]);
-  } catch (error) {
-    return NextResponse.json(
-      {
-        data: null,
-        error: {
-          code: "VALIDATION_ERROR",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Invalid attendee email",
-        },
-      },
-      { status: 400 },
-    );
-  }
-
-  const calendarAuth = await prisma.calendarAuth.findUnique({
-    where: { userId: user.id },
-    select: { id: true },
-  });
-  let googleId: string | null = null;
-  let googleEtag: string | null = null;
-
-  if (calendarAuth) {
-    try {
-      const accessToken = await getValidAccessToken(user.id);
-      const client = new GoogleCalendarClient(accessToken);
-      const result = await client.createEvent({
-        summary: title,
-        description: body.description?.trim() || undefined,
-        start: allDay
-          ? { date: body.startTime }
-          : {
-              dateTime: body.startTime,
-              timeZone: body.timeZone,
-            },
-        end: allDay
-          ? { date: body.endTime }
-          : {
-              dateTime: body.endTime,
-              timeZone: body.timeZone,
-            },
-        attendees: attendeeEmails.map((email) => ({ email })),
+    if (body.areaId) {
+      const area = await prisma.teamArea.findUnique({
+        where: { id: body.areaId },
+        select: { id: true },
       });
-      googleId = result.id;
-      googleEtag = result.etag;
-    } catch (error) {
-      console.error("Google Calendar create failed:", error);
-      const code =
-        error instanceof GoogleAuthError
-          ? error.code
-          : error instanceof GoogleCalendarError && error.status === 401
-            ? "GOOGLE_AUTH_EXPIRED"
-            : "GOOGLE_API_ERROR";
+      if (!area) {
+        return NextResponse.json(
+          {
+            data: null,
+            error: { code: "VALIDATION_ERROR", message: "Team area not found" },
+          },
+          { status: 400 },
+        );
+      }
+    }
+    if (profiles.length !== profileIds.length) {
       return NextResponse.json(
         {
           data: null,
           error: {
-            code,
+            code: "VALIDATION_ERROR",
+            message: "One or more attendees do not exist",
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    let attendeeEmails: string[];
+    try {
+      attendeeEmails = normalizeAttendeeEmails([
+        ...(body.attendeeEmails ?? []),
+        ...profiles.map((profile) => profile.email),
+      ]);
+    } catch (error) {
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            code: "VALIDATION_ERROR",
             message:
               error instanceof Error
                 ? error.message
-                : "Could not create Google Calendar event",
+                : "Invalid attendee email",
           },
         },
-        { status: 502 },
+        { status: 400 },
       );
     }
-  }
 
-  const profileByEmail = new Map(
-    profiles.map((profile) => [profile.email.toLowerCase(), profile]),
-  );
-  const transactionResult = await prisma.$transaction(async (tx) => {
-    const created = await tx.calendarEvent.create({
-      data: {
-      userId: user.id,
-      taskId: body.taskId || null,
-      areaId: body.areaId || null,
-      googleId,
-      title,
-      description: body.description?.trim() || null,
-      startTime,
-      endTime,
-      allDay,
-      timeZone: body.timeZone || null,
-      color: body.color || null,
-      etag: googleEtag,
-      source: googleId ? "google" : "local",
-      syncedAt: googleId ? new Date() : null,
-      attendees: {
-        create: attendeeEmails.map((email) => {
-          const profile = profileByEmail.get(email);
-          return {
-            email,
-            profileId: profile?.id ?? null,
-            displayName: profile?.name ?? null,
-          };
-        }),
-      },
-      },
-      include: {
-        task: {
-          select: {
-            id: true,
-            title: true,
-            project: { select: { id: true, name: true } },
+    const calendarAuth = await prisma.calendarAuth.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+    let googleId: string | null = null;
+    let googleEtag: string | null = null;
+
+    if (calendarAuth) {
+      try {
+        const accessToken = await getValidAccessToken(user.id);
+        const client = new GoogleCalendarClient(accessToken);
+        const result = await client.createEvent({
+          summary: title,
+          description: body.description?.trim() || undefined,
+          start: allDay
+            ? { date: body.startTime }
+            : {
+                dateTime: body.startTime,
+                timeZone: body.timeZone,
+              },
+          end: allDay
+            ? { date: body.endTime }
+            : {
+                dateTime: body.endTime,
+                timeZone: body.timeZone,
+              },
+          attendees: attendeeEmails.map((email) => ({ email })),
+        });
+        googleId = result.id;
+        googleEtag = result.etag;
+      } catch (error) {
+        console.error("Google Calendar create failed:", error);
+        const code =
+          error instanceof GoogleAuthError
+            ? error.code
+            : error instanceof GoogleCalendarError && error.status === 401
+              ? "GOOGLE_AUTH_EXPIRED"
+              : "GOOGLE_API_ERROR";
+        return NextResponse.json(
+          {
+            data: null,
+            error: {
+              code,
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Could not create Google Calendar event",
+            },
           },
-        },
-        area: { select: { id: true, name: true, color: true } },
-        attendees: true,
-      },
-    });
-    const activityResult = await recordActivity(tx, {
-      actorId: user.id,
-      taskId: body.taskId || null,
-      type: "calendar.scheduled",
-      entityType: "calendar_event",
-      entityId: created.id,
-      summary: `Agendou "${created.title}"`,
-      notifyProfileIds: profileIds,
-    });
-    return { created, activityResult };
-  });
-
-  const { created: event, activityResult } = transactionResult;
-
-  // Send push notifications after transaction commits
-  if (activityResult && activityResult.notifiedProfileIds.length > 0) {
-    const pushPayload = buildPushPayload({
-      activityType: "calendar.scheduled",
-      summary: `Agendou "${event.title}"`,
-      actorName: user.email || "Sistema",
-      entityType: "calendar_event",
-      entityId: event.id,
-    });
-    if (pushPayload) {
-      await sendPushToUsers(activityResult.notifiedProfileIds, pushPayload);
+          { status: 502 },
+        );
+      }
     }
-  }
 
-  return NextResponse.json({ data: event, error: null }, { status: 201 });
+    const profileByEmail = new Map(
+      profiles.map((profile) => [profile.email.toLowerCase(), profile]),
+    );
+    const transactionResult = await prisma.$transaction(async (tx) => {
+      const created = await tx.calendarEvent.create({
+        data: {
+        userId: user.id,
+        taskId: body.taskId || null,
+        areaId: body.areaId || null,
+        googleId,
+        title,
+        description: body.description?.trim() || null,
+        startTime,
+        endTime,
+        allDay,
+        timeZone: body.timeZone || null,
+        color: body.color || null,
+        etag: googleEtag,
+        source: googleId ? "google" : "local",
+        syncedAt: googleId ? new Date() : null,
+        tenantId: ctx.tenantId!,
+        attendees: {
+          create: attendeeEmails.map((email) => {
+            const profile = profileByEmail.get(email);
+            return {
+              email,
+              profileId: profile?.id ?? null,
+              displayName: profile?.name ?? null,
+              tenantId: ctx.tenantId!,
+            };
+          }),
+        },
+        },
+        include: {
+          task: {
+            select: {
+              id: true,
+              title: true,
+              project: { select: { id: true, name: true } },
+            },
+          },
+          area: { select: { id: true, name: true, color: true } },
+          attendees: true,
+        },
+      });
+      const activityResult = await recordActivity(tx, {
+        actorId: user.id,
+        taskId: body.taskId || null,
+        type: "calendar.scheduled",
+        entityType: "calendar_event",
+        entityId: created.id,
+        summary: `Agendou "${created.title}"`,
+        notifyProfileIds: profileIds,
+      });
+      return { created, activityResult };
+    });
+
+    const { created: event, activityResult } = transactionResult;
+
+    // Send push notifications after transaction commits
+    if (activityResult && activityResult.notifiedProfileIds.length > 0) {
+      const pushPayload = buildPushPayload({
+        activityType: "calendar.scheduled",
+        summary: `Agendou "${event.title}"`,
+        actorName: user.email || "Sistema",
+        entityType: "calendar_event",
+        entityId: event.id,
+      });
+      if (pushPayload) {
+        await sendPushToUsers(activityResult.notifiedProfileIds, pushPayload);
+      }
+    }
+
+    return withFeatureWarning(
+      NextResponse.json({ data: event, error: null }, { status: 201 }),
+      gate.warning
+    );
+  });
 }

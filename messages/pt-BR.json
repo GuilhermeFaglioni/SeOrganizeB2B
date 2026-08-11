@@ -50,6 +50,7 @@
       "calendar": "Calendário",
       "projects": "Projetos",
       "settings": "Configurações",
+      "upgrade": "Upgrade necessário",
       "all": "Todas as tarefas",
       "board": "Board",
       "actions": {
@@ -64,6 +65,113 @@
     "localeSwitcher": {
       "label": "Idioma",
       "title": "Alterar idioma"
+    }
+  },
+  "admin": {
+    "sidebar": {
+      "label": "Admin",
+      "navigation": "Navegação do painel administrativo",
+      "dashboard": "Dashboard",
+      "tenants": "Tenants",
+      "plans": "Planos",
+      "billing": "Cobrança",
+      "support": "Suporte"
+    },
+    "pages": {
+      "dashboard": {
+        "title": "Dashboard do admin",
+        "metricsLabel": "Métricas da plataforma",
+        "totalWorkspaces": "Total de workspaces",
+        "totalProfiles": "Total de perfis",
+        "totalPlans": "Total de planos"
+      },
+      "tenants": {
+        "title": "Tenants",
+        "empty": "Nenhum tenant cadastrado ainda.",
+        "loadFailed": "Não foi possível carregar os tenants.",
+        "name": "Nome",
+        "slug": "Slug",
+        "statusLabel": "Status",
+        "plan": "Plano",
+        "usage": "Uso",
+        "actions": "Ações",
+        "status": {
+          "active": "Ativo",
+          "grace_period": "Período de graça",
+          "cancelled": "Cancelado"
+        },
+        "noPlan": "Sem plano",
+        "usageUsers": "usuários",
+        "usageTasks": "tarefas",
+        "usageProjects": "projetos",
+        "activate": "Ativar",
+        "gracePeriod": "Graça",
+        "cancel": "Cancelar",
+        "extendGrace": "Estender graça",
+        "delete": "Excluir",
+        "updateFailed": "Não foi possível atualizar o tenant.",
+        "deleteFailed": "Não foi possível excluir o tenant."
+      },
+      "tenantDetail": {
+        "title": "Detalhes do tenant",
+        "comingSoon": "Os detalhes do tenant serão habilitados em breve."
+      },
+      "plans": {
+        "title": "Planos",
+        "comingSoon": "A gestão de planos será habilitada em breve.",
+        "loading": "Carregando planos…",
+        "error": "Falha ao carregar os planos.",
+        "name": "Nome",
+        "modules": "Módulos",
+        "default": "Padrão",
+        "status": "Status",
+        "yes": "Sim",
+        "no": "Não",
+        "active": "Ativo",
+        "inactive": "Inativo"
+      },
+      "planDetail": {
+        "title": "Detalhes do plano",
+        "backToPlans": "Voltar para planos",
+        "limitsTitle": "Limites do plano",
+        "resource": "Recurso",
+        "limit": "Limite",
+        "behavior": "Comportamento",
+        "actions": "Ações",
+        "addLimit": "Adicionar limite",
+        "save": "Salvar",
+        "cancel": "Cancelar",
+        "edit": "Editar",
+        "delete": "Excluir",
+        "empty": "Nenhum limite configurado para este plano ainda.",
+        "loadFailed": "Não foi possível carregar os limites do plano.",
+        "createLimitFailed": "Não foi possível criar o limite.",
+        "updateLimitFailed": "Não foi possível atualizar o limite.",
+        "deleteLimitFailed": "Não foi possível excluir o limite.",
+        "resources": {
+          "users": "Usuários",
+          "tasks": "Tarefas",
+          "projects": "Projetos",
+          "contracts": "Contratos"
+        },
+        "behaviors": {
+          "hard": "Rígido",
+          "warning": "Aviso"
+        }
+      },
+      "billing": {
+        "title": "Visão geral de cobrança",
+        "comingSoon": "A visão geral de cobrança será habilitada em breve."
+      },
+      "support": {
+        "title": "Tickets de suporte",
+        "comingSoon": "O gerenciamento de tickets de suporte será habilitado em breve."
+      }
+    },
+    "forbidden": {
+      "title": "Acesso negado",
+      "description": "Você não tem permissão para acessar o painel administrativo.",
+      "backToApp": "Voltar para o aplicativo"
     }
   },
   "auth": {
@@ -93,7 +201,8 @@
       "accountExists": "Já existe uma conta com este e-mail.",
       "accountCreated": "Conta criada! Verifique seu e-mail para confirmar.",
       "createAccountFailed": "Falha ao criar conta",
-      "checkingAuth": "Verificando autenticação..."
+      "checkingAuth": "Verificando autenticação...",
+      "checkingWorkspace": "Verificando workspace..."
     }
   },
   "notifications": {
@@ -1242,17 +1351,32 @@
       "loadFailed": "Falha ao carregar roles",
       "retry": "Tentar novamente",
       "backToSettings": "Voltar para Configurações",
-      "noPermission": "Você não tem permissão para gerenciar roles."
+      "noPermission": "Você não tem permissão para gerenciar roles.",
+      "view": "Ver"
     },
     "editor": {
       "titleCreate": "Nova role",
       "titleEdit": "Editar role",
+      "titleView": "Ver role",
       "nameLabel": "Nome da role",
       "namePlaceholder": "Ex.: Financeiro, Visualizador",
       "permissionsTitle": "Permissões",
+      "scopeLabel": "Alcance",
+      "scope": {
+        "all": "Tudo",
+        "area": "Área",
+        "project": "Projeto"
+      },
+      "previewTitle": "Pré-visualização",
+      "previewHint": "Recursos visíveis com esta role. O alcance define a abrangência do acesso.",
+      "previewAria": "Recursos visíveis com esta role",
+      "previewEmpty": "Nenhum recurso selecionado",
+      "adminLocked": "A role Admin é fixa e não pode ser editada.",
+      "nameExists": "Já existe uma role com este nome neste workspace.",
       "save": "Salvar",
       "saving": "Salvando...",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "close": "Fechar"
     },
     "permissions": {
       "specialSection": "Permissões especiais",
@@ -1295,6 +1419,62 @@
         },
         "manage_roles": "Gerenciar roles e permissões"
       }
+    }
+  },
+  "billing": {
+    "gracePeriod": {
+      "message": "Seu período de carência termina em {date}.",
+      "updatePayment": "Atualizar Pagamento",
+      "portalFailed": "Não foi possível abrir o portal de pagamento"
+    },
+    "expiration": {
+      "message": "Seu workspace foi cancelado. Modo somente leitura ativo até {date}."
+    },
+    "expired": {
+      "title": "Seu workspace expirou",
+      "message": "Seu acesso foi encerrado. Entre em contato para reativar seu workspace."
+    },
+    "upgradeBanner": {
+      "message": "Você está quase atingindo o limite de {resource} do seu plano.",
+      "usage": "Uso atual: {used} de {limit}",
+      "upgrade": "Fazer Upgrade",
+      "upgrading": "Redirecionando...",
+      "checkoutFailed": "Não foi possível iniciar o checkout. Tente novamente.",
+      "resources": {
+        "users": "usuários",
+        "tasks": "tarefas",
+        "projects": "projetos",
+        "contracts": "contratos",
+        "clients": "clientes",
+        "proposals": "propostas",
+        "documents": "documentos",
+        "calendarEvents": "eventos de calendário"
+      }
+    }
+  },
+  "upgrade": {
+    "title": "Upgrade necessário",
+    "description": "O módulo \"{module}\" não está incluído no seu plano atual. Faça upgrade para desbloquear.",
+    "plansTitle": "Planos disponíveis",
+    "modulesCount": "módulos",
+    "upgrade": "Fazer upgrade",
+    "upgrading": "Processando...",
+    "noPlans": "Nenhum plano disponível no momento.",
+    "checkoutFailed": "Não foi possível iniciar o checkout. Tente novamente.",
+    "backToApp": "Voltar para o aplicativo",
+    "moduleNames": {
+      "tasks": "Tarefas / Board",
+      "board": "Board",
+      "projects": "Projetos",
+      "calendar": "Calendário",
+      "documents": "Documentos",
+      "financial": "Financeiro",
+      "financial.overview": "Financeiro — Visão geral",
+      "financial.contracts": "Financeiro — Contratos",
+      "financial.proposals": "Financeiro — Propostas",
+      "financial.clients": "Financeiro — Clientes",
+      "financial.receivables": "Financeiro — Recebíveis",
+      "areas": "Áreas da equipe"
     }
   }
 }

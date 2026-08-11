@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function DELETE(request: NextRequest) {
   const user = await getUser();
@@ -10,6 +12,9 @@ export async function DELETE(request: NextRequest) {
       { status: 401 }
     );
   }
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const body = await request.json();
   const { endpoint } = body;
@@ -24,9 +29,11 @@ export async function DELETE(request: NextRequest) {
     );
   }
 
-  await prisma.pushSubscription.deleteMany({
-    where: { endpoint, profileId: user.id },
-  });
+  await withTenant(ctx.tenantId, () =>
+    prisma.pushSubscription.deleteMany({
+      where: { endpoint, profileId: user.id },
+    })
+  );
 
   return NextResponse.json({ data: { success: true }, error: null });
 }

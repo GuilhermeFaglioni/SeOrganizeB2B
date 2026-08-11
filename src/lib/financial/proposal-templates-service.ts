@@ -1,5 +1,5 @@
 import { FinancialValidationError } from "./lifecycle";
-import { prisma } from "../../../prisma/client";
+import { prisma, requireTenantId } from "../../../prisma/client";
 
 export interface TemplateInput {
   name: string;
@@ -32,6 +32,7 @@ export async function createProposalTemplate(
       name: input.name.trim(),
       html: input.html,
       createdBy: actorId,
+      tenantId: requireTenantId("financial.proposal-templates"),
     },
   });
 }

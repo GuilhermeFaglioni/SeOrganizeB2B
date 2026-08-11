@@ -35,7 +35,7 @@ vi.mock("../../prisma/client", () => ({
       update: mocks.mockRoleUpdate,
       delete: mocks.mockRoleDelete,
     },
-    workspaceSettings: {
+    workspace: {
       findUnique: mocks.mockWorkspaceFindUnique,
       upsert: mocks.mockWorkspaceUpsert,
     },
@@ -44,8 +44,23 @@ vi.mock("../../prisma/client", () => ({
       update: mocks.mockProfileUpdate,
     },
   },
+  withTenant: (_tenantId: string, fn: () => unknown) => fn(),
+  withTenantBypass: (fn: () => unknown) => fn(),
+  requireTenantId: () => "tenant-1",
+  getTenantId: () => "tenant-1",
 }));
 
+vi.mock("@/lib/authz/tenant-context", () => ({
+  getTenantContext: vi.fn().mockResolvedValue({
+    tenantId: "tenant-1",
+    workspaceStatus: "active",
+    gracePeriodEndsAt: null,
+    cancelledAt: null,
+    isAdmin: true,
+  }),
+}));
+
+import { getTenantContext } from "@/lib/authz/tenant-context";
 import { GET as listRolesGET, POST as createRolePOST } from "../app/api/roles/route";
 import { PATCH as setDefaultPATCH } from "../app/api/roles/default/route";
 import { PATCH as assignRolePATCH } from "../app/api/profiles/[id]/role/route";
@@ -67,13 +82,18 @@ describe("roles API", () => {
     vi.clearAllMocks();
   });
 
-  it("lists roles for a manager", async () => {
+  it("lists roles for a manager scoped to their tenant", async () => {
     mocks.mockRoleFindMany.mockResolvedValue([
       { id: "r1", name: "Editor", permissions: ["tasks.view"], isAdmin: false, createdAt: "", updatedAt: "", _count: { profiles: 1 } },
     ]);
     mocks.mockWorkspaceFindUnique.mockResolvedValue({ defaultRoleId: "r1" });
     const res = await listRolesGET();
     expect(res.status).toBe(200);
+    expect(mocks.mockRoleFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ tenantId: "tenant-1" }),
+      })
+    );
     const json = await res.json();
     expect(json.data[0].name).toBe("Editor");
     expect(json.data[0].isDefault).toBe(true);
@@ -101,7 +121,10 @@ describe("roles API", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           name: "Financeiro",
-          permissions: ["financial.contracts.view"],
+          tenantId: "tenant-1",
+          permissions: [
+            { resource: "financial.contracts", action: "view", scope: "all" },
+          ],
         }),
       })
     );
@@ -117,40 +140,46 @@ describe("roles API", () => {
     expect(mocks.mockWorkspaceUpsert).toHaveBeenCalled();
   });
 
-  it("rejects assigning the Admin role by a non-admin", async () => {
-    mocks.mockRoleFindUnique.mockResolvedValue({
-      id: "admin",
-      name: "Admin",
-      isAdmin: true,
-    });
-    mocks.mockGetEffectivePermissions.mockResolvedValue({
+  it("rejects assigning a role by a non-tenant-admin", async () => {
+    vi.mocked(getTenantContext).mockResolvedValue({
+      tenantId: "tenant-1",
+      workspaceStatus: "active",
+      gracePeriodEndsAt: null,
+      cancelledAt: null,
       isAdmin: false,
-      roleId: "r1",
-      roleName: "Editor",
-      permissions: ["manage_roles"],
     });
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/u1/role", { roleId: "admin" }),
       { params: { id: "u1" } }
     );
     expect(res.status).toBe(403);
+    expect(mocks.mockProfileFindUnique).not.toHaveBeenCalled();
     expect(mocks.mockProfileUpdate).not.toHaveBeenCalled();
   });
 
   it("allows an admin to assign the Admin role", async () => {
+    vi.mocked(getTenantContext).mockResolvedValue({
+      tenantId: "tenant-1",
+      workspaceStatus: "active",
+      gracePeriodEndsAt: null,
+      cancelledAt: null,
+      isAdmin: true,
+    });
     mocks.mockRoleFindUnique.mockResolvedValue({
       id: "admin",
       name: "Admin",
       isAdmin: true,
+      tenantId: "tenant-1",
     });
-    mocks.mockGetEffectivePermissions.mockResolvedValue({
-      isAdmin: true,
+    mocks.mockProfileFindUnique.mockResolvedValue({
+      id: "u1",
+      tenantId: "tenant-1",
+    });
+    mocks.mockProfileUpdate.mockResolvedValue({
+      id: "u1",
       roleId: "admin",
-      roleName: "Admin",
-      permissions: [],
+      tenantId: "tenant-1",
     });
-    mocks.mockProfileFindUnique.mockResolvedValue({ id: "u1" });
-    mocks.mockProfileUpdate.mockResolvedValue({ id: "u1", roleId: "admin" });
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/u1/role", { roleId: "admin" }),
       { params: { id: "u1" } }

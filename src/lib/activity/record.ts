@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { requireTenantId } from "../../../prisma/client";
 import type { RecordActivityInput } from "./types";
 
 interface RecordActivityResult {
@@ -19,6 +20,7 @@ export async function recordActivity(
       entityId: input.entityId,
       summary: input.summary,
       metadata: input.metadata,
+      tenantId: requireTenantId("activity.record"),
     },
   });
 
@@ -34,6 +36,7 @@ export async function recordActivity(
       data: recipients.map((recipientId) => ({
         recipientId,
         activityId: activity.id,
+        tenantId: requireTenantId("activity.record"),
       })),
       skipDuplicates: true,
     });

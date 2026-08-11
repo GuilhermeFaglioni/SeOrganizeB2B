@@ -39,9 +39,11 @@ export function AppLayout({ children, title }: AppLayoutProps) {
           ? { title: t("projects"), action: t("actions.projects") }
           : pathname.startsWith("/settings")
             ? { title: t("settings"), action: null }
-            : pathname.startsWith("/all")
-              ? { title: t("all"), action: t("actions.all") }
-              : { title: t("board"), action: t("actions.board") };
+            : pathname.startsWith("/upgrade")
+              ? { title: t("upgrade"), action: null }
+              : pathname.startsWith("/all")
+                ? { title: t("all"), action: t("actions.all") }
+                : { title: t("board"), action: t("actions.board") };
 
   const handleNewClick = async () => {
     if (pathname === "/" || pathname.startsWith("/board")) {

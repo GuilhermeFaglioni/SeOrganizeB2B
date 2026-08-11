@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { toDecimal } from "@/lib/financial/money";
 import {
@@ -10,6 +10,8 @@ import {
   moneyCell,
 } from "@/lib/financial/csv";
 import { denyFor } from "@/lib/authz/authz";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -21,6 +23,9 @@ export async function GET(request: NextRequest) {
   }
   const denied = await denyFor(user.id, "financial.contracts.view");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
 
   const { searchParams } = request.nextUrl;
   const search = searchParams.get("search")?.trim() || "";
@@ -47,14 +52,16 @@ export async function GET(request: NextRequest) {
       : {}),
   };
 
-  const contracts = await prisma.contract.findMany({
-    where,
-    include: {
-      client: { select: { name: true } },
-      owner: { select: { name: true } },
-    },
-    orderBy: { code: "asc" },
-  });
+  const contracts = await withTenant(ctx.tenantId, () =>
+    prisma.contract.findMany({
+      where,
+      include: {
+        client: { select: { name: true } },
+        owner: { select: { name: true } },
+      },
+      orderBy: { code: "asc" },
+    })
+  );
 
   const rows = [
     [...CONTRACTS_CSV_HEADERS],

@@ -50,6 +50,7 @@
       "calendar": "Calendar",
       "projects": "Projects",
       "settings": "Settings",
+      "upgrade": "Upgrade required",
       "all": "All tasks",
       "board": "Board",
       "actions": {
@@ -64,6 +65,113 @@
     "localeSwitcher": {
       "label": "Language",
       "title": "Change language"
+    }
+  },
+  "admin": {
+    "sidebar": {
+      "label": "Admin",
+      "navigation": "Admin navigation",
+      "dashboard": "Dashboard",
+      "tenants": "Tenants",
+      "plans": "Plans",
+      "billing": "Billing",
+      "support": "Support"
+    },
+    "pages": {
+      "dashboard": {
+        "title": "Admin dashboard",
+        "metricsLabel": "Platform metrics",
+        "totalWorkspaces": "Total workspaces",
+        "totalProfiles": "Total profiles",
+        "totalPlans": "Total plans"
+      },
+      "tenants": {
+        "title": "Tenants",
+        "empty": "No tenants registered yet.",
+        "loadFailed": "Failed to load tenants.",
+        "name": "Name",
+        "slug": "Slug",
+        "statusLabel": "Status",
+        "plan": "Plan",
+        "usage": "Usage",
+        "actions": "Actions",
+        "status": {
+          "active": "Active",
+          "grace_period": "Grace period",
+          "cancelled": "Cancelled"
+        },
+        "noPlan": "No plan",
+        "usageUsers": "users",
+        "usageTasks": "tasks",
+        "usageProjects": "projects",
+        "activate": "Activate",
+        "gracePeriod": "Grace",
+        "cancel": "Cancel",
+        "extendGrace": "Extend grace",
+        "delete": "Delete",
+        "updateFailed": "Failed to update tenant.",
+        "deleteFailed": "Failed to delete tenant."
+      },
+      "tenantDetail": {
+        "title": "Tenant details",
+        "comingSoon": "Tenant details will be enabled soon."
+      },
+      "plans": {
+        "title": "Plans",
+        "comingSoon": "Plan management will be enabled soon.",
+        "loading": "Loading plans…",
+        "error": "Failed to load plans.",
+        "name": "Name",
+        "modules": "Modules",
+        "default": "Default",
+        "status": "Status",
+        "yes": "Yes",
+        "no": "No",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "planDetail": {
+        "title": "Plan details",
+        "backToPlans": "Back to plans",
+        "limitsTitle": "Plan limits",
+        "resource": "Resource",
+        "limit": "Limit",
+        "behavior": "Behavior",
+        "actions": "Actions",
+        "addLimit": "Add limit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete",
+        "empty": "No limits configured for this plan yet.",
+        "loadFailed": "Failed to load plan limits.",
+        "createLimitFailed": "Failed to create limit.",
+        "updateLimitFailed": "Failed to update limit.",
+        "deleteLimitFailed": "Failed to delete limit.",
+        "resources": {
+          "users": "Users",
+          "tasks": "Tasks",
+          "projects": "Projects",
+          "contracts": "Contracts"
+        },
+        "behaviors": {
+          "hard": "Hard",
+          "warning": "Warning"
+        }
+      },
+      "billing": {
+        "title": "Billing overview",
+        "comingSoon": "The billing overview will be enabled soon."
+      },
+      "support": {
+        "title": "Support tickets",
+        "comingSoon": "Support ticket management will be enabled soon."
+      }
+    },
+    "forbidden": {
+      "title": "Access denied",
+      "description": "You do not have permission to access the admin panel.",
+      "backToApp": "Back to the app"
     }
   },
   "auth": {
@@ -93,7 +201,8 @@
       "accountExists": "An account with this email already exists.",
       "accountCreated": "Account created! Check your email to confirm your account.",
       "createAccountFailed": "Failed to create account",
-      "checkingAuth": "Checking authentication..."
+      "checkingAuth": "Checking authentication...",
+      "checkingWorkspace": "Checking workspace..."
     }
   },
   "notifications": {
@@ -1242,17 +1351,32 @@
       "loadFailed": "Failed to load roles",
       "retry": "Retry",
       "backToSettings": "Back to Settings",
-      "noPermission": "You do not have permission to manage roles."
+      "noPermission": "You do not have permission to manage roles.",
+      "view": "View"
     },
     "editor": {
       "titleCreate": "New role",
       "titleEdit": "Edit role",
+      "titleView": "View role",
       "nameLabel": "Role name",
       "namePlaceholder": "e.g. Finance, Viewer",
       "permissionsTitle": "Permissions",
+      "scopeLabel": "Scope",
+      "scope": {
+        "all": "All",
+        "area": "Area",
+        "project": "Project"
+      },
+      "previewTitle": "Preview",
+      "previewHint": "Resources visible with this role. The scope defines the breadth of access.",
+      "previewAria": "Resources visible with this role",
+      "previewEmpty": "No resources selected",
+      "adminLocked": "The Admin role is fixed and cannot be edited.",
+      "nameExists": "A role with this name already exists in this workspace.",
       "save": "Save",
       "saving": "Saving...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "close": "Close"
     },
     "permissions": {
       "specialSection": "Special permissions",
@@ -1295,6 +1419,62 @@
         },
         "manage_roles": "Manage roles & permissions"
       }
+    }
+  },
+  "billing": {
+    "gracePeriod": {
+      "message": "Your grace period ends on {date}.",
+      "updatePayment": "Update Payment",
+      "portalFailed": "Could not open the payment portal"
+    },
+    "expiration": {
+      "message": "Your workspace has been cancelled. Read-only mode is active until {date}."
+    },
+    "expired": {
+      "title": "Your workspace has expired",
+      "message": "Your access has been ended. Contact us to reactivate your workspace."
+    },
+    "upgradeBanner": {
+      "message": "You are about to reach the {resource} limit of your plan.",
+      "usage": "Current usage: {used} of {limit}",
+      "upgrade": "Upgrade",
+      "upgrading": "Redirecting...",
+      "checkoutFailed": "Could not start checkout. Please try again.",
+      "resources": {
+        "users": "users",
+        "tasks": "tasks",
+        "projects": "projects",
+        "contracts": "contracts",
+        "clients": "clients",
+        "proposals": "proposals",
+        "documents": "documents",
+        "calendarEvents": "calendar events"
+      }
+    }
+  },
+  "upgrade": {
+    "title": "Upgrade required",
+    "description": "The \"{module}\" module is not included in your current plan. Upgrade to unlock it.",
+    "plansTitle": "Available plans",
+    "modulesCount": "modules",
+    "upgrade": "Upgrade",
+    "upgrading": "Processing...",
+    "noPlans": "No plans available at the moment.",
+    "checkoutFailed": "Could not start checkout. Please try again.",
+    "backToApp": "Back to the app",
+    "moduleNames": {
+      "tasks": "Tasks / Board",
+      "board": "Board",
+      "projects": "Projects",
+      "calendar": "Calendar",
+      "documents": "Documents",
+      "financial": "Financial",
+      "financial.overview": "Financial — Overview",
+      "financial.contracts": "Financial — Contracts",
+      "financial.proposals": "Financial — Proposals",
+      "financial.clients": "Financial — Clients",
+      "financial.receivables": "Financial — Receivables",
+      "areas": "Team areas"
     }
   }
 }

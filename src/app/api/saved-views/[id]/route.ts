@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/client";
+import { prisma, withTenant } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
 
 export async function DELETE(
   _request: Request,
@@ -13,9 +15,15 @@ export async function DELETE(
       { status: 401 }
     );
   }
-  const result = await prisma.savedView.deleteMany({
-    where: { id: params.id, userId: user.id },
-  });
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const result = await withTenant(ctx.tenantId, () =>
+    prisma.savedView.deleteMany({
+      where: { id: params.id, userId: user.id },
+    })
+  );
   if (!result.count) {
     return NextResponse.json(
       { data: null, error: { code: "NOT_FOUND", message: "View not found" } },

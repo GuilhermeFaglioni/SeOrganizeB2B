@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { withTenant } from "../../../../../prisma/client";
 import { computeOverview } from "@/lib/financial/overview-service";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
+import { applyScopeFilter } from "@/lib/authz/scope-filter";
+import { getTenantContext } from "@/lib/authz/tenant-context";
+import { noWorkspaceResponse } from "@/lib/authz/http";
+import { applyFeatureGate } from "@/lib/middleware/feature-gating";
 import type { ContractStatus, InstallmentStatus } from "@/lib/financial/types";
 
 export async function GET(request: NextRequest) {
@@ -15,6 +20,17 @@ export async function GET(request: NextRequest) {
   }
   const denied = await denyFor(user.id, "financial.overview.view");
   if (denied) return denied;
+
+  const ctx = await getTenantContext(user.id);
+  if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/financial/overview",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   try {
     const { searchParams } = request.nextUrl;
@@ -33,14 +49,25 @@ export async function GET(request: NextRequest) {
     const installmentStatus = (searchParams.get("installmentStatus") ||
       undefined) as InstallmentStatus | undefined;
 
-    const data = await computeOverview({
-      period,
-      from,
-      to,
-      clientId,
-      contractStatus,
-      projectId,
-      installmentStatus,
+    const data = await withTenant(ctx.tenantId, async () => {
+      // Financial overview has no area/project linkage, so area/project scope
+      // falls back to tenant-level filtering (see scope-filter.ts).
+      const scopeWhere = await applyScopeFilter(
+        user.id,
+        ctx.tenantId,
+        "overview",
+        {}
+      );
+      return computeOverview({
+        period,
+        from,
+        to,
+        clientId,
+        contractStatus,
+        projectId,
+        installmentStatus,
+        contractWhere: scopeWhere,
+      });
     });
 
     return NextResponse.json({ data, error: null });

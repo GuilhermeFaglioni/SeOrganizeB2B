@@ -15,6 +15,20 @@ const { mockPrisma } = vi.hoisted(() => ({
 
 vi.mock("../../prisma/client", () => ({
   prisma: mockPrisma,
+  withTenant: (_tenantId: string, fn: () => unknown) => fn(),
+  withTenantBypass: (fn: () => unknown) => fn(),
+  requireTenantId: () => "tenant-1",
+  getTenantId: () => "tenant-1",
+}));
+
+vi.mock("@/lib/authz/tenant-context", () => ({
+  getTenantContext: vi.fn().mockResolvedValue({
+    tenantId: "tenant-1",
+    workspaceStatus: "active",
+    gracePeriodEndsAt: null,
+    cancelledAt: null,
+    isAdmin: true,
+  }),
 }));
 
 vi.mock("@/lib/authz/authz", () => ({
@@ -27,6 +41,7 @@ vi.mock("@/lib/authz/authz", () => ({
   }),
   can: vi.fn().mockResolvedValue(true),
   hasPermission: vi.fn().mockReturnValue(true),
+  canViewResource: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({

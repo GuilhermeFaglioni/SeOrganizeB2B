@@ -40,7 +40,10 @@ describe("permission catalog", () => {
       42,
       "financial.receivables.refund",
     ]);
-    expect(cleaned).toEqual(["tasks.view", "financial.receivables.refund"]);
+    expect(cleaned).toEqual([
+      { resource: "tasks", action: "view", scope: "all" },
+      { resource: "financial.receivables", action: "refund", scope: "all" },
+    ]);
   });
 
   it("detects financial view from a permission list", () => {

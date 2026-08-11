@@ -69,6 +69,6 @@ describe("roles and permissioning UI", () => {
     const schema = read("prisma/schema.prisma");
     expect(schema).toContain("model Role {");
     expect(schema).toContain("roleId    String?  @map(\"role_id\")");
-    expect(schema).toContain("defaultRoleId String?  @map(\"default_role_id\")");
+    expect(schema).toContain("defaultRoleId     String?   @map(\"default_role_id\")");
   });
 });
