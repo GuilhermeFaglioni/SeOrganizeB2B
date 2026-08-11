@@ -78,6 +78,24 @@ describe("prisma seed", () => {
     expect(seedSource).toContain("isDefault: true");
     expect(seedSource).toContain("isActive: true");
   });
+
+  it("creates Starter plan limits for users, tasks, and projects", () => {
+    const seedSource = readFileSync(
+      resolve(__dirname, "../seed.ts"),
+      "utf-8"
+    );
+
+    expect(seedSource).toContain("prisma.planLimit.findFirst");
+    expect(seedSource).toContain("prisma.planLimit.create");
+
+    expect(seedSource).toContain('{ resource: "users", limit: 5, behavior: "hard" }');
+    expect(seedSource).toContain(
+      '{ resource: "tasks", limit: 100, behavior: "warning" }'
+    );
+    expect(seedSource).toContain(
+      '{ resource: "projects", limit: 10, behavior: "hard" }'
+    );
+  });
 });
 
 describe("default-columns utility", () => {

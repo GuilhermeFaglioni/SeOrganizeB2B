@@ -15,12 +15,12 @@ async function main() {
   await prisma.teamArea.deleteMany();
   await prisma.profile.deleteMany();
 
-  const starterPlan = await prisma.plan.findFirst({
+  let starterPlan = await prisma.plan.findFirst({
     where: { name: "Starter" },
   });
 
   if (!starterPlan) {
-    await prisma.plan.create({
+    starterPlan = await prisma.plan.create({
       data: {
         name: "Starter",
         allowedModules: ["tasks", "projects", "calendar", "documents"],
@@ -28,6 +28,24 @@ async function main() {
         isActive: true,
       },
     });
+  }
+
+  const starterLimits = [
+    { resource: "users", limit: 5, behavior: "hard" },
+    { resource: "tasks", limit: 100, behavior: "warning" },
+    { resource: "projects", limit: 10, behavior: "hard" },
+  ];
+
+  for (const { resource, limit, behavior } of starterLimits) {
+    const existing = await prisma.planLimit.findFirst({
+      where: { planId: starterPlan.id, resource },
+    });
+
+    if (!existing) {
+      await prisma.planLimit.create({
+        data: { planId: starterPlan.id, resource, limit, behavior },
+      });
+    }
   }
 
   await prisma.profile.create({

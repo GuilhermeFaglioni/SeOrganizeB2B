@@ -93,8 +93,24 @@ model Plan {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   workspaces Workspace[]
+  planLimits PlanLimit[]
 
   @@map("plans")
+}
+
+model PlanLimit {
+  id        String   @id @default(uuid())
+  planId    String   @map("plan_id")
+  resource  String
+  limit     Int
+  behavior  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@map("plan_limits")
 }
 
 model TeamArea {
