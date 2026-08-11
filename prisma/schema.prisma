@@ -118,6 +118,7 @@ model Workspace {
   proposals             Proposal[]
   proposalItems         ProposalItem[]
   invites               Invite[]
+  readOnlyAccesses      ReadOnlyAccess[]
 
   @@map("workspaces")
 }
@@ -140,6 +141,21 @@ model Invite {
   @@index([workspaceId])
   @@index([email])
   @@map("invites")
+}
+
+model ReadOnlyAccess {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  workspaceId String    @map("workspace_id")
+  email       String
+  expiresAt   DateTime  @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  usedAt      DateTime? @map("used_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("read_only_accesses")
 }
 
 model Plan {

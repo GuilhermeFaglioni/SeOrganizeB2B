@@ -71,6 +71,7 @@ export async function withTenantBypass<T>(fn: () => T | Promise<T>): Promise<T> 
  *  - PlanLimit -> global catalog
  *  - Invite    -> has NO tenantId column; scoped by workspaceId (the tenant
  *                 itself), so it must not receive a tenantId filter either.
+ *  - ReadOnlyAccess -> has NO tenantId column; scoped by its bearer token.
  * Everything else with a `tenantId` column is tenant-scoped.
  */
 const EXEMPT_MODELS = new Set([
@@ -79,6 +80,7 @@ const EXEMPT_MODELS = new Set([
   "Plan",
   "PlanLimit",
   "Invite",
+  "ReadOnlyAccess",
 ]);
 
 /**
