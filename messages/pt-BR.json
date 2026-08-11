@@ -101,10 +101,6 @@
           "cancelled": "Cancelado"
         },
         "noPlan": "Sem plano",
-        "assignPlan": "Atribuir plano",
-        "selectPlan": "Selecionar plano…",
-        "planAssigned": "Plano atualizado com sucesso.",
-        "planAssignFailed": "Não foi possível atribuir o plano.",
         "usageUsers": "usuários",
         "usageTasks": "tarefas",
         "usageProjects": "projetos",
