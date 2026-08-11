@@ -1,5 +1,10 @@
 import { prisma, withTenant } from "../../../prisma/client";
-import { allPermissions, MODULES } from "./permissions";
+import type { Prisma } from "@prisma/client";
+import {
+  allScopedPermissions,
+  MODULES,
+  type ScopedPermission,
+} from "./permissions";
 
 export interface WorkspaceSetup {
   id: string;
@@ -33,11 +38,11 @@ export async function generateUniqueSlug(
 
 const MEMBER_MODULES = ["tasks", "projects", "calendar", "documents", "areas"];
 
-function memberPermissions(): string[] {
-  const permissions: string[] = [];
-  for (const key of MEMBER_MODULES) {
-    for (const action of MODULES[key]) {
-      permissions.push(`${key}.${action}`);
+function memberPermissions(): ScopedPermission[] {
+  const permissions: ScopedPermission[] = [];
+  for (const moduleName of MEMBER_MODULES) {
+    for (const action of MODULES[moduleName]) {
+      permissions.push({ resource: moduleName, action, scope: "area" });
     }
   }
   return permissions;
@@ -50,7 +55,7 @@ export async function seedWorkspaceRoles(
     const adminRole = await prisma.role.create({
       data: {
         name: "Admin",
-        permissions: allPermissions(),
+        permissions: allScopedPermissions() as unknown as Prisma.InputJsonValue,
         isAdmin: true,
         tenantId: workspaceId,
       },
@@ -58,7 +63,7 @@ export async function seedWorkspaceRoles(
     const memberRole = await prisma.role.create({
       data: {
         name: "Member",
-        permissions: memberPermissions(),
+        permissions: memberPermissions() as unknown as Prisma.InputJsonValue,
         isAdmin: false,
         tenantId: workspaceId,
       },

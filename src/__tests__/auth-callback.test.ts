@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { allPermissions, MODULES } from "@/lib/authz/permissions";
+import { allScopedPermissions, MODULES } from "@/lib/authz/permissions";
 
 const mocks = vi.hoisted(() => ({
   mockExchangeCodeForSession: vi.fn(),
@@ -54,7 +54,11 @@ const makeCallbackRequest = () =>
 
 const MEMBER_MODULES = ["tasks", "projects", "calendar", "documents", "areas"];
 const expectedMemberPermissions = MEMBER_MODULES.flatMap((module) =>
-  MODULES[module].map((action) => `${module}.${action}`)
+  MODULES[module].map((action) => ({
+    resource: module,
+    action,
+    scope: "area",
+  }))
 );
 
 describe("GET /auth/callback", () => {
@@ -182,7 +186,7 @@ describe("GET /auth/callback", () => {
         data: expect.objectContaining({
           name: "Admin",
           isAdmin: true,
-          permissions: allPermissions(),
+          permissions: allScopedPermissions(),
           tenantId: "ws-1",
         }),
       })

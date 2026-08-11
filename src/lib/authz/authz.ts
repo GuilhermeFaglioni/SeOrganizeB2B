@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma, withTenant } from "../../../prisma/client";
 import { isWorkspaceAccessBlocked } from "../tenant";
+import {
+  normalizePermissions,
+  permissionKey,
+  type PermissionScope,
+  type ScopedPermission,
+} from "./permissions";
 
 export interface EffectivePermissions {
   tenantId: string | null;
   isAdmin: boolean;
   roleId: string | null;
   roleName: string | null;
-  permissions: string[];
+  permissions: ScopedPermission[];
+}
+
+export interface PermissionRequest {
+  resource: string;
+  action: string;
+  scope?: PermissionScope;
 }
 
 export async function getEffectivePermissions(
@@ -87,16 +99,61 @@ export async function getEffectivePermissions(
     isAdmin: false,
     roleId: role.id,
     roleName: role.name,
-    permissions: (role.permissions ?? []) as string[],
+    permissions: normalizePermissions(role.permissions),
   };
+}
+
+function scopeCovers(
+  granted: PermissionScope,
+  requested: PermissionScope
+): boolean {
+  if (granted === "all") return true;
+  if (granted === "area") return requested === "area" || requested === "project";
+  return requested === "project";
+}
+
+function hasPermissionSync(
+  effective: EffectivePermissions,
+  permissionOrRequest: string | PermissionRequest
+): boolean {
+  if (effective.isAdmin) return true;
+  const permissions = effective.permissions;
+  if (typeof permissionOrRequest === "string") {
+    return permissions.some(
+      (permission) => permissionKey(permission) === permissionOrRequest
+    );
+  }
+  const { resource, action, scope = "all" } = permissionOrRequest;
+  return permissions.some(
+    (permission) =>
+      permission.resource === resource &&
+      permission.action === action &&
+      scopeCovers(permission.scope, scope)
+  );
 }
 
 export function hasPermission(
   effective: EffectivePermissions,
   permission: string
-): boolean {
-  if (effective.isAdmin) return true;
-  return effective.permissions.includes(permission);
+): boolean;
+export function hasPermission(
+  effective: EffectivePermissions,
+  request: PermissionRequest
+): boolean;
+export function hasPermission(
+  userId: string,
+  request: PermissionRequest
+): Promise<boolean>;
+export function hasPermission(
+  effectiveOrUserId: EffectivePermissions | string,
+  permissionOrRequest: string | PermissionRequest
+): boolean | Promise<boolean> {
+  if (typeof effectiveOrUserId === "string") {
+    return getEffectivePermissions(effectiveOrUserId).then((effective) =>
+      hasPermission(effective, permissionOrRequest as PermissionRequest)
+    );
+  }
+  return hasPermissionSync(effectiveOrUserId, permissionOrRequest);
 }
 
 export async function can(

@@ -1,12 +1,17 @@
 import { prisma, withTenant } from "../../../prisma/client";
-import { sanitizePermissions } from "./permissions";
+import type { Prisma } from "@prisma/client";
+import {
+  normalizePermissions,
+  sanitizePermissions,
+  type ScopedPermission,
+} from "./permissions";
 import { DEFAULT_WORKSPACE_ID } from "../tenant";
 
 export class RoleValidationError extends Error {}
 
 export interface RoleInput {
   name?: string;
-  permissions?: string[];
+  permissions?: ScopedPermission[];
 }
 
 export async function listRoles() {
@@ -24,7 +29,7 @@ export async function listRoles() {
       id: role.id,
       name: role.name,
       tenantId: role.tenantId,
-      permissions: role.permissions as string[],
+      permissions: normalizePermissions(role.permissions),
       isAdmin: role.isAdmin,
       createdAt: role.createdAt,
       updatedAt: role.updatedAt,
@@ -45,7 +50,7 @@ export async function getRole(roleId: string) {
       id: role.id,
       name: role.name,
       tenantId: role.tenantId,
-      permissions: role.permissions as string[],
+      permissions: normalizePermissions(role.permissions),
       isAdmin: role.isAdmin,
       createdAt: role.createdAt,
       updatedAt: role.updatedAt,
@@ -65,7 +70,7 @@ export async function createRole(input: RoleInput) {
       prisma.role.create({
         data: {
           name,
-          permissions,
+          permissions: permissions as unknown as Prisma.InputJsonValue,
           tenantId: DEFAULT_WORKSPACE_ID,
         },
       })
@@ -86,7 +91,7 @@ export async function updateRole(roleId: string, input: RoleInput) {
       throw new RoleValidationError("The Admin role cannot be edited");
     }
 
-    const data: { name?: string; permissions?: string[] } = {};
+    const data: { name?: string; permissions?: ScopedPermission[] } = {};
     if (input.name !== undefined) {
       if (!input.name.trim()) throw new RoleValidationError("A role name is required");
       data.name = input.name.trim();
@@ -103,8 +108,9 @@ export async function updateRole(roleId: string, input: RoleInput) {
         where: { id: roleId },
         data: {
           name: data.name,
-          permissions:
-            data.permissions ?? (role.permissions as string[]),
+          permissions: (
+            data.permissions ?? normalizePermissions(role.permissions)
+          ) as unknown as Prisma.InputJsonValue,
         },
       });
     } catch (error) {

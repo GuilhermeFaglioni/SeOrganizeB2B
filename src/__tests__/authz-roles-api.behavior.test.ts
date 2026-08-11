@@ -115,7 +115,9 @@ describe("roles API", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           name: "Financeiro",
-          permissions: ["financial.contracts.view"],
+          permissions: [
+            { resource: "financial.contracts", action: "view", scope: "all" },
+          ],
         }),
       })
     );

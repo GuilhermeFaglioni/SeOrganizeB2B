@@ -1,12 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchJson } from "@/lib/financial/http";
-import { hasFinancialView } from "@/lib/authz/permissions";
+import {
+  hasFinancialView,
+  permissionKey,
+  type ScopedPermission,
+} from "@/lib/authz/permissions";
 
 export interface PermissionsData {
   isAdmin: boolean;
   roleId: string | null;
   roleName: string | null;
-  permissions: string[];
+  permissions: ScopedPermission[];
 }
 
 export function usePermissions() {
@@ -22,7 +26,9 @@ export function useCan() {
   const can = (permission: string) => {
     if (!data) return false;
     if (data.isAdmin) return true;
-    return data.permissions.includes(permission);
+    return data.permissions.some(
+      (item) => permissionKey(item) === permission
+    );
   };
   return { can, data };
 }

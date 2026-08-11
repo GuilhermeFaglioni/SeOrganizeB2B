@@ -7,6 +7,7 @@ import {
   getRole,
   updateRole,
 } from "@/lib/authz/roles-service";
+import type { ScopedPermission } from "@/lib/authz/permissions";
 
 export async function GET(
   _request: Request,
@@ -41,7 +42,7 @@ export async function PATCH(
   if (denied) return denied;
 
   const body = await request.json();
-  const input: { name?: string; permissions?: string[] } = {};
+  const input: { name?: string; permissions?: ScopedPermission[] } = {};
   if (body.name !== undefined) input.name = String(body.name);
   if (body.permissions !== undefined) input.permissions = body.permissions;
 
