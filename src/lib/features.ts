@@ -163,3 +163,40 @@ export async function checkLimit(
     behavior: planLimit.behavior === "hard" ? "hard" : "warning",
   };
 }
+
+export interface WorkspaceUsage {
+  users: number;
+  tasks: number;
+  projects: number;
+  contracts: number;
+  clients: number;
+  proposals: number;
+  documents: number;
+  calendarEvents: number;
+}
+
+export async function countWorkspaceUsage(
+  workspaceId: string
+): Promise<WorkspaceUsage> {
+  const [users, tasks, projects, contracts, clients, proposals, documents, calendarEvents] =
+    await Promise.all([
+      RESOURCE_COUNTERS.users(workspaceId),
+      RESOURCE_COUNTERS.tasks(workspaceId),
+      RESOURCE_COUNTERS.projects(workspaceId),
+      RESOURCE_COUNTERS.contracts(workspaceId),
+      RESOURCE_COUNTERS.clients(workspaceId),
+      RESOURCE_COUNTERS.proposals(workspaceId),
+      RESOURCE_COUNTERS.documents(workspaceId),
+      RESOURCE_COUNTERS.calendarEvents(workspaceId),
+    ]);
+  return {
+    users,
+    tasks,
+    projects,
+    contracts,
+    clients,
+    proposals,
+    documents,
+    calendarEvents,
+  };
+}
