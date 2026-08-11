@@ -1351,17 +1351,32 @@
       "loadFailed": "Falha ao carregar roles",
       "retry": "Tentar novamente",
       "backToSettings": "Voltar para Configurações",
-      "noPermission": "Você não tem permissão para gerenciar roles."
+      "noPermission": "Você não tem permissão para gerenciar roles.",
+      "view": "Ver"
     },
     "editor": {
       "titleCreate": "Nova role",
       "titleEdit": "Editar role",
+      "titleView": "Ver role",
       "nameLabel": "Nome da role",
       "namePlaceholder": "Ex.: Financeiro, Visualizador",
       "permissionsTitle": "Permissões",
+      "scopeLabel": "Alcance",
+      "scope": {
+        "all": "Tudo",
+        "area": "Área",
+        "project": "Projeto"
+      },
+      "previewTitle": "Pré-visualização",
+      "previewHint": "Recursos visíveis com esta role. O alcance define a abrangência do acesso.",
+      "previewAria": "Recursos visíveis com esta role",
+      "previewEmpty": "Nenhum recurso selecionado",
+      "adminLocked": "A role Admin é fixa e não pode ser editada.",
+      "nameExists": "Já existe uma role com este nome neste workspace.",
       "save": "Salvar",
       "saving": "Salvando...",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "close": "Fechar"
     },
     "permissions": {
       "specialSection": "Permissões especiais",

@@ -1351,17 +1351,32 @@
       "loadFailed": "Failed to load roles",
       "retry": "Retry",
       "backToSettings": "Back to Settings",
-      "noPermission": "You do not have permission to manage roles."
+      "noPermission": "You do not have permission to manage roles.",
+      "view": "View"
     },
     "editor": {
       "titleCreate": "New role",
       "titleEdit": "Edit role",
+      "titleView": "View role",
       "nameLabel": "Role name",
       "namePlaceholder": "e.g. Finance, Viewer",
       "permissionsTitle": "Permissions",
+      "scopeLabel": "Scope",
+      "scope": {
+        "all": "All",
+        "area": "Area",
+        "project": "Project"
+      },
+      "previewTitle": "Preview",
+      "previewHint": "Resources visible with this role. The scope defines the breadth of access.",
+      "previewAria": "Resources visible with this role",
+      "previewEmpty": "No resources selected",
+      "adminLocked": "The Admin role is fixed and cannot be edited.",
+      "nameExists": "A role with this name already exists in this workspace.",
       "save": "Save",
       "saving": "Saving...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "close": "Close"
     },
     "permissions": {
       "specialSection": "Special permissions",

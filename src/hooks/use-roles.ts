@@ -2,11 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toastError } from "@/lib/toast";
 import { fetchJson } from "@/lib/financial/http";
+import type { ScopedPermission } from "@/lib/authz/permissions";
 
 export interface RoleData {
   id: string;
   name: string;
-  permissions: string[];
+  permissions: ScopedPermission[];
   isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
@@ -42,7 +43,7 @@ export function useCreateRole() {
   const t = useTranslations("hooks.roles");
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; permissions: string[] }) =>
+    mutationFn: (data: { name: string; permissions: ScopedPermission[] }) =>
       fetchJson("/api/roles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,7 +66,7 @@ export function useUpdateRole() {
     }: {
       id: string;
       name?: string;
-      permissions?: string[];
+      permissions?: ScopedPermission[];
     }) =>
       fetchJson(`/api/roles/${id}`, {
         method: "PATCH",
