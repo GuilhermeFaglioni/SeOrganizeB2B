@@ -97,3 +97,29 @@ export async function createWorkspaceForUser(
 
   return { id: workspace.id, ...roles };
 }
+
+export interface ProfileWithWorkspaceInput {
+  id: string;
+  email: string;
+  name: string;
+}
+
+/**
+ * Creates a brand-new profile backed by a fresh (locked) workspace, with the
+ * user as that workspace's Admin. This is the single source of truth for
+ * onboarding: never connect a new user to a shared/default workspace.
+ */
+export async function createProfileWithWorkspace(
+  input: ProfileWithWorkspaceInput
+) {
+  const workspace = await createWorkspaceForUser(input.name, input.email);
+  return prisma.profile.create({
+    data: {
+      id: input.id,
+      email: input.email,
+      name: input.name,
+      tenantId: workspace.id,
+      roleId: workspace.adminRoleId,
+    },
+  });
+}

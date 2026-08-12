@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "../../../../prisma/client";
-import { createWorkspaceForUser } from "@/lib/authz/workspace-setup";
+import { createProfileWithWorkspace } from "@/lib/authz/workspace-setup";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -28,16 +28,7 @@ export async function GET(request: NextRequest) {
         data: { email, name },
       });
     } else {
-      const workspace = await createWorkspaceForUser(name, email);
-      await prisma.profile.create({
-        data: {
-          id: user.id,
-          email,
-          name,
-          tenantId: workspace.id,
-          roleId: workspace.adminRoleId,
-        },
-      });
+      await createProfileWithWorkspace({ id: user.id, email, name });
     }
   }
 

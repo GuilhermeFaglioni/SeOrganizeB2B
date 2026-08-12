@@ -3,7 +3,7 @@ import { prisma } from "../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAppLocale } from "@/i18n/config";
-import { DEFAULT_WORKSPACE_ID } from "@/lib/tenant";
+import { createProfileWithWorkspace } from "@/lib/authz/workspace-setup";
 
 export async function GET() {
   const user = await getUser();
@@ -11,16 +11,13 @@ export async function GET() {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
-  const profile = await prisma.profile.upsert({
-    where: { id: user.id },
-    update: { email: user.email || "Sistema" },
-    create: {
-      id: user.id,
-      email: user.email || "Sistema",
-      name: user.user_metadata?.full_name || user.email || "Sistema",
-      tenant: { connect: { id: DEFAULT_WORKSPACE_ID } },
-    },
-  });
+  const email = user.email || "Sistema";
+  const name = user.user_metadata?.full_name || user.email || "Sistema";
+
+  const existing = await prisma.profile.findUnique({ where: { id: user.id } });
+  const profile = existing
+    ? await prisma.profile.update({ where: { id: user.id }, data: { email } })
+    : await createProfileWithWorkspace({ id: user.id, email, name });
 
   return NextResponse.json({ data: profile, error: null });
 }
