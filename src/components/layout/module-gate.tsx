@@ -18,7 +18,7 @@ export function ModuleGate({ children }: { children: React.ReactNode }) {
         ? !isAnyFinancialAllowed()
         : !isModuleAllowed(moduleName);
     if (blocked) {
-      router.replace(`/upgrade?module=${encodeURIComponent(moduleName)}`);
+      router.replace(`/plans?module=${encodeURIComponent(moduleName)}`);
     }
   }, [pathname, isModuleAllowed, isAnyFinancialAllowed, router]);
 

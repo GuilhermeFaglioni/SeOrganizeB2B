@@ -29,7 +29,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   }, [pathname]);
 
   const pageMeta =
-    pathname === "/"
+    pathname === "/app"
       ? { title: t("today"), action: t("actions.today") }
       : pathname.startsWith("/documents")
       ? { title: t("documents"), action: t("actions.documents") }
@@ -37,16 +37,18 @@ export function AppLayout({ children, title }: AppLayoutProps) {
         ? { title: t("calendar"), action: t("actions.calendar") }
         : pathname.startsWith("/projects")
           ? { title: t("projects"), action: t("actions.projects") }
-          : pathname.startsWith("/settings")
-            ? { title: t("settings"), action: null }
-            : pathname.startsWith("/upgrade")
-              ? { title: t("upgrade"), action: null }
-              : pathname.startsWith("/all")
-                ? { title: t("all"), action: t("actions.all") }
-                : { title: t("board"), action: t("actions.board") };
+          : pathname.startsWith("/plans")
+            ? { title: t("plans"), action: null }
+            : pathname.startsWith("/settings")
+              ? { title: t("settings"), action: null }
+              : pathname.startsWith("/upgrade")
+                ? { title: t("upgrade"), action: null }
+                : pathname.startsWith("/all")
+                  ? { title: t("all"), action: t("actions.all") }
+                  : { title: t("board"), action: t("actions.board") };
 
   const handleNewClick = async () => {
-    if (pathname === "/" || pathname.startsWith("/board")) {
+    if (pathname === "/app" || pathname.startsWith("/board")) {
       openQuickCapture();
     } else if (pathname.startsWith("/calendar")) {
       openScheduleEvent();

@@ -14,7 +14,7 @@ describe("Hoje cockpit", () => {
   });
 
   it("composes tasks, agenda, activity, and unread count", () => {
-    const page = read("src/app/(authenticated)/page.tsx");
+    const page = read("src/app/(authenticated)/app/page.tsx");
     expect(page).toContain("TodayTasks");
     expect(page).toContain("TodayAgenda");
     expect(page).toContain("TodayActivity");
@@ -23,7 +23,7 @@ describe("Hoje cockpit", () => {
 
   it("mounts Hoje first in sidebar", () => {
     expect(read("src/components/layout/sidebar.tsx")).toContain(
-      '{ href: "/", label: t("today")'
+      '{ href: "/app", label: t("today")'
     );
   });
 });

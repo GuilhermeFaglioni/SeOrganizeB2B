@@ -40,14 +40,13 @@ describe("module gating helpers", () => {
     expect(isModuleAllowedForWorkspace(undefined, "projects")).toBe(true);
   });
 
-  it("allows every module when the workspace has no plan data", () => {
-    const noPlan = workspace([]);
-    expect(allowedModulesForWorkspace(noPlan)).toHaveLength(
-      allowedModulesForWorkspace(undefined).length
-    );
-    expect(isModuleAllowedForWorkspace(noPlan, "tasks")).toBe(true);
-    expect(isModuleAllowedForWorkspace(noPlan, "financial.contracts")).toBe(
-      true
+  it("blocks every module when the workspace plan allows none", () => {
+    const locked = workspace([]);
+    expect(allowedModulesForWorkspace(locked)).toEqual([]);
+    expect(isModuleAllowedForWorkspace(locked, "tasks")).toBe(false);
+    expect(isModuleAllowedForWorkspace(locked, "projects")).toBe(false);
+    expect(isModuleAllowedForWorkspace(locked, "financial.contracts")).toBe(
+      false
     );
   });
 
@@ -64,11 +63,12 @@ describe("module gating helpers", () => {
     expect(
       hasAnyFinancialModule(workspace(["tasks", "financial.contracts"]))
     ).toBe(true);
-    expect(hasAnyFinancialModule(workspace([]))).toBe(true);
+    expect(hasAnyFinancialModule(workspace([]))).toBe(false);
   });
 
   it("maps page paths to modules", () => {
     expect(moduleForPagePath("/")).toBe("tasks");
+    expect(moduleForPagePath("/app")).toBe("tasks");
     expect(moduleForPagePath("/board")).toBe("tasks");
     expect(moduleForPagePath("/board/proj_1")).toBe("tasks");
     expect(moduleForPagePath("/projects")).toBe("projects");
@@ -77,6 +77,7 @@ describe("module gating helpers", () => {
     expect(moduleForPagePath("/financial/contracts")).toBe("financial");
     expect(moduleForPagePath("/settings")).toBeNull();
     expect(moduleForPagePath("/upgrade")).toBeNull();
+    expect(moduleForPagePath("/plans")).toBeNull();
   });
 });
 
@@ -98,7 +99,7 @@ describe("upgrade page and route gating", () => {
     const layout = read("src/app/(authenticated)/layout.tsx");
     expect(layout).toContain("ModuleGate");
     const gate = read("src/components/layout/module-gate.tsx");
-    expect(gate).toContain("/upgrade?module=");
+    expect(gate).toContain("/plans?module=");
     expect(gate).toContain("moduleForPagePath");
   });
 
@@ -116,7 +117,7 @@ describe("upgrade page and route gating", () => {
     const layout = read("src/app/(authenticated)/financial/layout.tsx");
     expect(layout).toContain("useAllowedModules");
     expect(layout).toContain("isAnyFinancialAllowed");
-    expect(layout).toContain("/upgrade?module=financial");
+    expect(layout).toContain("/plans?module=financial");
   });
 
   it("exposes the allowed modules hook", () => {

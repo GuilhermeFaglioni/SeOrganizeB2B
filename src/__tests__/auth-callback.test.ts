@@ -85,7 +85,6 @@ describe("GET /auth/callback", () => {
 
   it("creates a workspace, default roles and links the profile on first login", async () => {
     mocks.mockProfileFindUnique.mockResolvedValue(null);
-    mocks.mockPlanFindFirst.mockResolvedValue({ id: "plan-1", isDefault: true });
     mocks.mockWorkspaceFindUnique.mockResolvedValue(null);
     mocks.mockWorkspaceCreate.mockResolvedValue({
       id: "ws-1",
@@ -104,10 +103,10 @@ describe("GET /auth/callback", () => {
     const res = await GET(makeCallbackRequest());
 
     expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toBe("http://localhost:3000/");
+    expect(res.headers.get("location")).toBe("http://localhost:3000/app");
 
     expect(mocks.mockWorkspaceCreate).toHaveBeenCalledWith({
-      data: { name: "João Silva", slug: "joao-silva", planId: "plan-1" },
+      data: { name: "João Silva", slug: "joao-silva", planId: null },
     });
     expect(mocks.mockWorkspaceUpdate).toHaveBeenCalledWith({
       where: { id: "ws-1" },

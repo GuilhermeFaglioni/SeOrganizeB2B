@@ -11,6 +11,7 @@ import {
   FileText,
   Settings,
   Wallet,
+  CreditCard,
   X,
   LogOut,
   User as UserIcon,
@@ -24,7 +25,7 @@ import { useAllowedModules } from "@/hooks/use-allowed-modules";
 import { motion } from "motion/react";
 
 function isRouteActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 }
 
 interface SidebarProps {
@@ -45,12 +46,13 @@ export function Sidebar({
   const { isModuleAllowed, isAnyFinancialAllowed } = useAllowedModules();
 
   const navItems = [
-    { href: "/", label: t("today"), icon: SunMedium, testId: "nav-today", visible: can("tasks.view") && isModuleAllowed("tasks") },
+    { href: "/app", label: t("today"), icon: SunMedium, testId: "nav-today", visible: can("tasks.view") && isModuleAllowed("tasks") },
     { href: "/board", label: t("board"), icon: LayoutDashboard, testId: "nav-board", visible: can("tasks.view") && isModuleAllowed("tasks") },
     { href: "/projects", label: t("projects"), icon: FolderKanban, testId: "nav-projects", visible: can("projects.view") && isModuleAllowed("projects") },
     { href: "/calendar", label: t("calendar"), icon: Calendar, testId: "nav-calendar", visible: can("calendar.view") && isModuleAllowed("calendar") },
     { href: "/documents", label: t("documents"), icon: FileText, testId: "nav-documents", visible: can("documents.view") && isModuleAllowed("documents") },
     { href: "/financial", label: t("financial"), icon: Wallet, testId: "nav-financial", visible: (hasFinancialView(data?.permissions ?? []) || Boolean(data?.isAdmin)) && isAnyFinancialAllowed() },
+    { href: "/plans", label: t("plans"), icon: CreditCard, testId: "nav-plans", visible: true },
     { href: "/settings", label: t("settings"), icon: Settings, testId: "nav-settings", visible: true },
   ].filter((item) => item.visible);
 

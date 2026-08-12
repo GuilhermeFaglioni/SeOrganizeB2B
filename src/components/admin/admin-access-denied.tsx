@@ -23,7 +23,7 @@ export function AdminAccessDenied() {
         {t("description")}
       </p>
       <Button asChild className="mt-6">
-        <Link href="/">{t("backToApp")}</Link>
+        <Link href="/app">{t("backToApp")}</Link>
       </Button>
     </div>
   );

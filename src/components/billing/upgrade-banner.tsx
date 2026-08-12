@@ -1,35 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
 import { useWorkspaceContext } from "@/stores/workspace-context";
 import { Button } from "@/components/ui/button";
-import { fetchJson } from "@/lib/financial/http";
-import { toastError } from "@/lib/toast";
 import { warningLimits } from "@/lib/workspace/limits";
-
-interface PlanOption {
-  id: string;
-  name: string;
-  allowedModules: string[];
-  stripePriceId: string | null;
-}
 
 export function UpgradeBanner() {
   const t = useTranslations("billing.upgradeBanner");
+  const router = useRouter();
   const { workspace } = useWorkspaceContext();
-  const { data: plans } = useQuery<PlanOption[]>({
-    queryKey: ["plans"],
-    queryFn: () => fetchJson<PlanOption[]>("/api/plans"),
-    staleTime: 60 * 1000,
-  });
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const warnings = warningLimits(workspace?.features.limits);
-  const currentPlanId = workspace?.plan?.id;
-  const priceId =
-    plans?.find((plan) => plan.id === currentPlanId)?.stripePriceId ?? null;
 
   if (warnings.length === 0) return null;
 
@@ -38,20 +22,9 @@ export function UpgradeBanner() {
     ? t(`resources.${resource}`)
     : resource;
 
-  async function handleUpgrade() {
-    if (!priceId) return;
+  function handleUpgrade() {
     setIsRedirecting(true);
-    try {
-      const { url } = await fetchJson<{ url: string }>("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      window.location.href = url;
-    } catch {
-      toastError(t("checkoutFailed"));
-      setIsRedirecting(false);
-    }
+    router.push("/plans");
   }
 
   return (
@@ -70,7 +43,7 @@ export function UpgradeBanner() {
         variant="outline"
         className="border-info text-info hover:bg-info-bg hover:text-info"
         onClick={handleUpgrade}
-        disabled={isRedirecting || !priceId}
+        disabled={isRedirecting}
       >
         {isRedirecting ? t("upgrading") : t("upgrade")}
       </Button>

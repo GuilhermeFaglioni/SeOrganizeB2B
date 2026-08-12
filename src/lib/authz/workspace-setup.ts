@@ -78,15 +78,13 @@ export async function createWorkspaceForUser(
 ): Promise<WorkspaceSetup> {
   const slug = await generateUniqueSlug(name, email);
   const workspaceName = name ?? (email.split("@")[0] || "My Workspace");
-  const defaultPlan = await prisma.plan.findFirst({
-    where: { isDefault: true, isActive: true },
-  });
 
   const workspace = await prisma.workspace.create({
     data: {
       name: workspaceName,
       slug,
-      planId: defaultPlan?.id ?? null,
+      // New workspaces start locked: no plan until the owner pays via /plans.
+      planId: null,
     },
   });
 

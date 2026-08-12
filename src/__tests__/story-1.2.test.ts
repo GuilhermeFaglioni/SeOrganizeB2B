@@ -102,8 +102,8 @@ describe("1.2.8 Authenticated route group", () => {
 });
 
 describe("1.2.9 Authenticated root", () => {
-  it("(authenticated)/page.tsx renders the Today cockpit", () => {
-    const src = read("src/app/(authenticated)/page.tsx");
+  it("(authenticated)/app/page.tsx renders the Today cockpit", () => {
+    const src = read("src/app/(authenticated)/app/page.tsx");
     expect(src).toContain('data-testid="today-page"');
     expect(src).toContain("TodayTasks");
     expect(src).toContain("TodayAgenda");
