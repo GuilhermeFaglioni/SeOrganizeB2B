@@ -1485,5 +1485,24 @@
       "financial.receivables": "Financial — Receivables",
       "areas": "Team areas"
     }
+  },
+  "testCheckout": {
+    "title": "Subscribe to SeOrganize+",
+    "description": "Pick a plan and subscribe in minutes with the embedded checkout.",
+    "plansTitle": "Available plans",
+    "modulesCount": "modules",
+    "subscribe": "Subscribe",
+    "noPlans": "No plans available at the moment.",
+    "missingKey": "Stripe is not configured (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is missing).",
+    "checkoutFailed": "Could not start checkout. Please try again.",
+    "back": "Back",
+    "selectedPlan": "Subscribing: {plan}",
+    "return": {
+      "success": "Payment completed successfully!",
+      "successDescription": "Your subscription is now active. You can close this page.",
+      "notComplete": "Payment not completed",
+      "notCompleteDescription": "Your payment has not been processed yet. Go back and try again.",
+      "missingSession": "Could not find the payment session."
+    }
   }
 }
