@@ -96,9 +96,10 @@ export function TestCheckoutLanding({
       if (result.error) {
         setCheckoutError(result.error.message ?? t("checkoutFailed"));
       }
-      // If no error and no redirect, payment succeeded
-      if (!result.error && result.paymentIntent?.status === "succeeded") {
-        window.location.href = "/test-checkout/return";
+      // If no error and no redirect, navigate to the return page with the
+      // payment intent so it can resolve the final status server-side.
+      if (!result.error && result.paymentIntent) {
+        window.location.href = `/test-checkout/return?payment_intent=${result.paymentIntent.id}`;
       }
     } catch (error) {
       setCheckoutError(

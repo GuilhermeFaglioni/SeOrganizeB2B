@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { getSuperAdminStatus } from "@/lib/admin/super-admin";
+import { isStripePriceId } from "@/lib/stripe-price-id";
 import { prisma } from "../../../../../prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -90,6 +91,15 @@ export async function POST(request: Request) {
     typeof stripePriceId !== "string"
   ) {
     return validationErrorResponse("stripePriceId must be a string");
+  }
+  if (
+    typeof stripePriceId === "string" &&
+    stripePriceId !== "" &&
+    !isStripePriceId(stripePriceId)
+  ) {
+    return validationErrorResponse(
+      "stripePriceId must be a Stripe Price ID (price_…), not a Product ID (prod_…)"
+    );
   }
   if (isDefault !== undefined && typeof isDefault !== "boolean") {
     return validationErrorResponse("isDefault must be a boolean");

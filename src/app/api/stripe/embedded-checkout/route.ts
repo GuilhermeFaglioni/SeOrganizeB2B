@@ -1,10 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { getUser } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
+import { isStripePriceId } from "@/lib/stripe-price-id";
 import { prisma } from "../../../../../prisma/client";
 
 export const dynamic = "force-dynamic";
 
+function clientSecretOf(subscription: Stripe.Subscription): string | null {
+  const invoice = subscription.latest_invoice;
+  if (!invoice || typeof invoice === "string") return null;
+
+  // Pinned API version (2024-12-18.acacia) expands the full PaymentIntent here;
+  // newer SDK typings model `payment_intent` as a string id, hence the narrow cast.
+  const paymentIntent = (invoice as Stripe.Invoice & {
+    payment_intent?: { client_secret?: string | null } | string | null;
+  }).payment_intent;
+
+  if (
+    paymentIntent &&
+    typeof paymentIntent === "object" &&
+    typeof paymentIntent.client_secret === "string"
+  ) {
+    return paymentIntent.client_secret;
+  }
+
+  return null;
+}
+
 export async function POST(request: NextRequest) {
+  const user = await getUser();
+  if (!user) {
+    return NextResponse.json(
+      { data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } },
+      { status: 401 }
+    );
+  }
+
   let priceId: string;
   try {
     const body = await request.json();
@@ -23,6 +55,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (!isStripePriceId(priceId)) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "priceId must be a Stripe Price ID (price_…), not a Product ID (prod_…)",
+        },
+      },
+      { status: 400 }
+    );
+  }
+
   try {
     const plan = await prisma.plan.findFirst({
       where: { stripePriceId: priceId, isActive: true },
@@ -34,46 +79,79 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const price = await stripe.prices.retrieve(priceId);
-
-    if (!price.active || price.type !== "recurring") {
+    const profile = await prisma.profile.findUnique({
+      where: { id: user.id },
+      include: { tenant: true },
+    });
+    const workspace = profile?.tenant;
+    if (!workspace) {
       return NextResponse.json(
-        { data: null, error: { code: "VALIDATION_ERROR", message: "Invalid price" } },
+        {
+          data: null,
+          error: { code: "VALIDATION_ERROR", message: "Workspace not found" },
+        },
         { status: 400 }
       );
     }
 
-    const customer = await stripe.customers.create({
-      metadata: { source: "test-landing", planId: plan.id },
-    });
-
-    const subscription = await stripe.subscriptions.create({
-      customer: customer.id,
-      items: [{ price: priceId }],
-      expand: ["latest_invoice.payment_intent"],
-    });
-
-    const latestInvoice = subscription.latest_invoice;
-    if (
-      latestInvoice &&
-      typeof latestInvoice === "object" &&
-      "payment_intent" in latestInvoice &&
-      latestInvoice.payment_intent &&
-      typeof latestInvoice.payment_intent === "object" &&
-      "client_secret" in latestInvoice.payment_intent
-    ) {
-      return NextResponse.json({
-        data: {
-          clientSecret: latestInvoice.payment_intent.client_secret as string,
-          subscriptionId: subscription.id,
-        },
-        error: null,
+    let customerId = workspace.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email ?? undefined,
+        metadata: { workspaceId: workspace.id },
+      });
+      customerId = customer.id;
+      await prisma.workspace.update({
+        where: { id: workspace.id },
+        data: { stripeCustomerId: customerId },
       });
     }
 
-    throw new Error("No payment intent returned from subscription");
+    const subscription = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: priceId }],
+      payment_behavior: "default_incomplete",
+      payment_settings: { save_default_payment_method: "on_subscription" },
+      metadata: { workspaceId: workspace.id, planId: plan.id },
+      expand: ["latest_invoice.payment_intent"],
+    });
+
+    const clientSecret = clientSecretOf(subscription);
+    if (!clientSecret) {
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            code: "STRIPE_CONFIGURATION_ERROR",
+            message: "No payment intent returned for the subscription",
+          },
+        },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json({
+      data: { clientSecret, subscriptionId: subscription.id },
+      error: null,
+    });
   } catch (error) {
-    console.error("[stripe-test-checkout] failed to create subscription", error);
+    if (error instanceof Stripe.errors.StripeError) {
+      console.error(
+        `[stripe-embedded-checkout] Stripe ${error.type} (${error.code}) requestId=${error.requestId}: ${error.message}`
+      );
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            code: "STRIPE_ERROR",
+            message: error.message || "Stripe rejected the request",
+          },
+        },
+        { status: error.statusCode ?? 502 }
+      );
+    }
+
+    console.error("[stripe-embedded-checkout] failed to create subscription", error);
     return NextResponse.json(
       {
         data: null,

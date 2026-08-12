@@ -6,8 +6,28 @@ import { prisma } from "../../../../../prisma/client";
 export const dynamic = "force-dynamic";
 
 function getCustomerId(event: Stripe.Event): string | null {
-  const object = event.data.object as Stripe.Invoice | Stripe.Subscription;
+  const object = event.data.object as
+    | Stripe.Invoice
+    | Stripe.Subscription
+    | Stripe.Checkout.Session;
   return typeof object.customer === "string" ? object.customer : null;
+}
+
+async function planIdForSubscription(
+  subscription: Stripe.Subscription | null | undefined
+): Promise<string | null> {
+  const priceId = subscription?.items.data[0]?.price.id;
+  if (!priceId) return null;
+  const plan = await prisma.plan.findFirst({ where: { stripePriceId: priceId } });
+  return plan?.id ?? null;
+}
+
+async function resolvePlanByCustomer(customerId: string): Promise<string | null> {
+  const subscriptions = await stripe.subscriptions.list({
+    customer: customerId,
+    limit: 1,
+  });
+  return planIdForSubscription(subscriptions.data[0]);
 }
 
 async function updateWorkspace(
@@ -35,6 +55,15 @@ async function updateWorkspace(
   });
 }
 
+async function activateWorkspace(customerId: string): Promise<void> {
+  const planId = await resolvePlanByCustomer(customerId);
+  await updateWorkspace(customerId, {
+    status: "active",
+    gracePeriodEndsAt: null,
+    ...(planId ? { planId } : {}),
+  });
+}
+
 async function handleEvent(event: Stripe.Event): Promise<void> {
   const customerId = getCustomerId(event);
   if (!customerId) {
@@ -43,15 +72,21 @@ async function handleEvent(event: Stripe.Event): Promise<void> {
   }
 
   switch (event.type) {
-    case "invoice.payment_succeeded":
+    case "checkout.session.completed": {
+      console.log(
+        `[stripe-webhook] checkout.session.completed for customer ${customerId}`
+      );
+      await activateWorkspace(customerId);
+      break;
+    }
+
+    case "invoice.payment_succeeded": {
       console.log(
         `[stripe-webhook] invoice.payment_succeeded for customer ${customerId}`
       );
-      await updateWorkspace(customerId, {
-        status: "active",
-        gracePeriodEndsAt: null,
-      });
+      await activateWorkspace(customerId);
       break;
+    }
 
     case "invoice.payment_failed":
       console.log(
@@ -77,14 +112,12 @@ async function handleEvent(event: Stripe.Event): Promise<void> {
       console.log(
         `[stripe-webhook] customer.subscription.updated for customer ${customerId}`
       );
-      const subscription = event.data.object as Stripe.Subscription;
-      const priceId = subscription.items.data[0]?.price.id;
-      const plan = priceId
-        ? await prisma.plan.findFirst({ where: { stripePriceId: priceId } })
-        : null;
+      const planId = await planIdForSubscription(
+        event.data.object as Stripe.Subscription
+      );
       await updateWorkspace(customerId, {
         stripeCustomerId: customerId,
-        ...(plan ? { planId: plan.id } : {}),
+        ...(planId ? { planId } : {}),
       });
       break;
     }
