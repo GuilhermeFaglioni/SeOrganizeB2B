@@ -71,7 +71,7 @@ describe("stripe embedded checkout", () => {
     expect(mocks.mockCreateSession).not.toHaveBeenCalled();
   });
 
-  it("creates an embedded checkout session and returns the client secret", async () => {
+  it("creates an elements checkout session and returns the client secret", async () => {
     const res = await POST(makeRequest({ priceId: "price_pro" }));
 
     expect(res.status).toBe(200);
@@ -80,7 +80,7 @@ describe("stripe embedded checkout", () => {
     expect(json.data.clientSecret).toBe("cs_test_secret");
     expect(mocks.mockCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        ui_mode: "embedded_page",
+        ui_mode: "elements",
         mode: "subscription",
         line_items: [{ price: "price_pro", quantity: 1 }],
         customer_creation: "always",
