@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { stripe } from "@/lib/stripe";
+import { paymentIntentStatusToCheckoutStatus } from "@/lib/stripe-return-status";
 import { CheckoutReturnView } from "./return-view";
 
 export const metadata: Metadata = {
@@ -11,19 +12,19 @@ export const dynamic = "force-dynamic";
 export default async function CheckoutReturnPage({
   searchParams,
 }: {
-  searchParams: { session_id?: string | string[] };
+  searchParams: { payment_intent?: string | string[] };
 }) {
-  const sessionId = Array.isArray(searchParams.session_id)
-    ? searchParams.session_id[0]
-    : searchParams.session_id;
+  const paymentIntentId = Array.isArray(searchParams.payment_intent)
+    ? searchParams.payment_intent[0]
+    : searchParams.payment_intent;
 
   let status: string | null = null;
-  if (sessionId) {
+  if (paymentIntentId) {
     try {
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
-      status = session.status ?? null;
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      status = paymentIntentStatusToCheckoutStatus(paymentIntent.status);
     } catch (error) {
-      console.error("[test-checkout-return] failed to retrieve session", error);
+      console.error("[test-checkout-return] failed to retrieve payment intent", error);
     }
   }
 

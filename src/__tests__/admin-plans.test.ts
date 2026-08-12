@@ -226,6 +226,35 @@ describe("admin plans API", () => {
     expect(mocks.mockPlanCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects a product id (prod_) as stripePriceId on create", async () => {
+    superAdmin();
+
+    const res = await createPlan(
+      makeRequest("http://x/api/admin/plans", "POST", {
+        name: "X",
+        stripePriceId: "prod_V3irzGGHYnnfI5",
+        allowedModules: [],
+      })
+    );
+
+    expect(res.status).toBe(400);
+    expect(mocks.mockPlanCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects a product id (prod_) as stripePriceId on patch", async () => {
+    superAdmin();
+
+    const res = await patchPlan(
+      makeRequest("http://x/api/admin/plans/p1", "PATCH", {
+        stripePriceId: "prod_V3irzGGHYnnfI5",
+      }),
+      { params: { id: "p1" } } as never
+    );
+
+    expect(res.status).toBe(400);
+    expect(mocks.mockPlanUpdate).not.toHaveBeenCalled();
+  });
+
   it("edits a plan without affecting tenants", async () => {
     superAdmin();
     mocks.mockPlanFindUnique.mockResolvedValue(planRow());

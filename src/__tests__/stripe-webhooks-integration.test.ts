@@ -10,12 +10,16 @@ const mocks = vi.hoisted(() => ({
   mockWorkspaceFindFirst: vi.fn(),
   mockWorkspaceUpdate: vi.fn(),
   mockPlanFindFirst: vi.fn(),
+  mockSubscriptionsList: vi.fn(),
 }));
 
 vi.mock("@/lib/stripe", () => ({
   stripe: {
     webhooks: {
       constructEvent: mocks.mockConstructEvent,
+    },
+    subscriptions: {
+      list: mocks.mockSubscriptionsList,
     },
   },
 }));
@@ -98,6 +102,7 @@ function installWorkspaceState(initial: WorkspaceState) {
     state = { ...state, ...data };
     return { ...state };
   });
+  mocks.mockSubscriptionsList.mockResolvedValue({ data: [] });
   return {
     get: (): WorkspaceState => ({ ...state }),
   };

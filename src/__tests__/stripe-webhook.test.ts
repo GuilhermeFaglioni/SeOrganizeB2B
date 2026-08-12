@@ -6,12 +6,16 @@ const mocks = vi.hoisted(() => ({
   mockWorkspaceFindFirst: vi.fn(),
   mockWorkspaceUpdate: vi.fn(),
   mockPlanFindFirst: vi.fn(),
+  mockSubscriptionsList: vi.fn(),
 }));
 
 vi.mock("@/lib/stripe", () => ({
   stripe: {
     webhooks: {
       constructEvent: mocks.mockConstructEvent,
+    },
+    subscriptions: {
+      list: mocks.mockSubscriptionsList,
     },
   },
 }));
@@ -65,11 +69,18 @@ const makeSubscription = (customer: string, priceId?: string) => ({
   },
 });
 
+const makeCheckoutSession = (customer: string) => ({
+  id: "cs_1",
+  object: "checkout.session",
+  customer,
+});
+
 describe("stripe webhook", () => {
   beforeEach(() => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
     mocks.mockWorkspaceFindFirst.mockResolvedValue({ id: "ws_1" });
     mocks.mockWorkspaceUpdate.mockResolvedValue({ id: "ws_1" });
+    mocks.mockSubscriptionsList.mockResolvedValue({ data: [] });
   });
 
   afterEach(() => {
@@ -80,6 +91,12 @@ describe("stripe webhook", () => {
     mocks.mockConstructEvent.mockReturnValue(
       makeEvent("invoice.payment_succeeded", makeInvoice("cus_123"))
     );
+    mocks.mockSubscriptionsList.mockResolvedValue({
+      data: [
+        { id: "sub_1", items: { data: [{ price: { id: "price_pro" } }] } },
+      ],
+    });
+    mocks.mockPlanFindFirst.mockResolvedValue({ id: "plan_pro" });
 
     const res = await POST(makeRequest("payload"));
 
@@ -90,7 +107,7 @@ describe("stripe webhook", () => {
     });
     expect(mocks.mockWorkspaceUpdate).toHaveBeenCalledWith({
       where: { id: "ws_1" },
-      data: { status: "active", gracePeriodEndsAt: null },
+      data: { status: "active", gracePeriodEndsAt: null, planId: "plan_pro" },
     });
   });
 
@@ -164,6 +181,50 @@ describe("stripe webhook", () => {
       where: { id: "ws_1" },
       data: { stripeCustomerId: "cus_123" },
     });
+  });
+
+  it("activates the workspace and resolves the plan on checkout.session.completed", async () => {
+    mocks.mockConstructEvent.mockReturnValue(
+      makeEvent("checkout.session.completed", makeCheckoutSession("cus_123"))
+    );
+    mocks.mockSubscriptionsList.mockResolvedValue({
+      data: [
+        { id: "sub_1", items: { data: [{ price: { id: "price_pro" } }] } },
+      ],
+    });
+    mocks.mockPlanFindFirst.mockResolvedValue({ id: "plan_pro" });
+
+    const res = await POST(makeRequest("payload"));
+
+    expect(res.status).toBe(200);
+    expect(mocks.mockSubscriptionsList).toHaveBeenCalledWith({
+      customer: "cus_123",
+      limit: 1,
+    });
+    expect(mocks.mockWorkspaceUpdate).toHaveBeenCalledWith({
+      where: { id: "ws_1" },
+      data: {
+        status: "active",
+        gracePeriodEndsAt: null,
+        planId: "plan_pro",
+      },
+    });
+  });
+
+  it("ignores checkout.session.completed without a customer", async () => {
+    mocks.mockConstructEvent.mockReturnValue(
+      makeEvent("checkout.session.completed", {
+        id: "cs_1",
+        object: "checkout.session",
+        customer: null,
+      })
+    );
+
+    const res = await POST(makeRequest("payload"));
+
+    expect(res.status).toBe(200);
+    expect(mocks.mockSubscriptionsList).not.toHaveBeenCalled();
+    expect(mocks.mockWorkspaceUpdate).not.toHaveBeenCalled();
   });
 
   it("returns 403 when the signature is invalid", async () => {
