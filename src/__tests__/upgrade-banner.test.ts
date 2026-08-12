@@ -99,16 +99,9 @@ describe("UpgradeBanner UI", () => {
     expect(bannerSource).toContain("text-info");
   });
 
-  it("starts a Stripe checkout with the current plan price id and redirects", () => {
-    expect(bannerSource).toContain('"/api/stripe/checkout"');
-    expect(bannerSource).toContain('JSON.stringify({ priceId })');
-    expect(bannerSource).toContain('method: "POST"');
-    expect(bannerSource).toContain("window.location.href = url");
-  });
-
-  it("loads the plans list to resolve the current plan's price id", () => {
-    expect(bannerSource).toContain('"/api/plans"');
-    expect(bannerSource).toContain("stripePriceId");
+  it("navigates to the plans page to upgrade", () => {
+    expect(bannerSource).toContain('router.push("/plans")');
+    expect(bannerSource).toContain("useRouter");
   });
 
   it("does not render when there are no warning limits", () => {

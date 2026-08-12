@@ -22,6 +22,7 @@ export const FINANCIAL_MODULES = [
 ] as const;
 
 const PAGE_MODULE_ROUTES: ReadonlyArray<{ prefix: string; module: string }> = [
+  { prefix: "/app", module: "tasks" },
   { prefix: "/board", module: "tasks" },
   { prefix: "/all", module: "tasks" },
   { prefix: "/projects", module: "projects" },
@@ -31,7 +32,7 @@ const PAGE_MODULE_ROUTES: ReadonlyArray<{ prefix: string; module: string }> = [
 ];
 
 export function moduleForPagePath(pathname: string): string | null {
-  if (pathname === "/") return "tasks";
+  if (pathname === "/" || pathname === "/app") return "tasks";
   for (const { prefix, module: moduleName } of PAGE_MODULE_ROUTES) {
     if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
       return moduleName;
@@ -44,10 +45,7 @@ export function allowedModulesForWorkspace(
   workspace: WorkspaceData | null | undefined
 ): string[] {
   if (!workspace) return [...ALL_MODULES];
-  const allowed =
-    workspace.features.allowedModules ?? workspace.plan?.allowedModules ?? [];
-  if (allowed.length === 0) return [...ALL_MODULES];
-  return allowed;
+  return workspace.features.allowedModules ?? workspace.plan?.allowedModules ?? [];
 }
 
 export function isModuleAllowedForWorkspace(

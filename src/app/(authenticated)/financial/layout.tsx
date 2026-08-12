@@ -15,7 +15,7 @@ export default function FinancialLayout({
 
   useEffect(() => {
     if (!isAnyFinancialAllowed()) {
-      router.replace("/upgrade?module=financial");
+      router.replace("/plans?module=financial");
     }
   }, [isAnyFinancialAllowed, router]);
 

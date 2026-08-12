@@ -101,7 +101,7 @@ export default function UpgradePage() {
         )}
 
         <div className="text-center">
-          <Button variant="ghost" onClick={() => router.push("/")}>
+          <Button variant="ghost" onClick={() => router.push("/app")}>
             {t("backToApp")}
           </Button>
         </div>

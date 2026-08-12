@@ -2,7 +2,6 @@ import { useCallback, useMemo } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
-  ALL_MODULES,
   FINANCIAL_MODULES,
   allowedModulesForWorkspace,
 } from "@/lib/module-gating";
@@ -14,9 +13,8 @@ export function useAllowedModules() {
   const isAdmin = permissions?.isAdmin ?? false;
 
   const allowedModules = useMemo(() => {
-    if (isAdmin) return new Set<string>(ALL_MODULES);
     return new Set<string>(allowedModulesForWorkspace(workspace));
-  }, [isAdmin, workspace]);
+  }, [workspace]);
 
   const isModuleAllowed = useCallback(
     (module: string) => allowedModules.has(module),

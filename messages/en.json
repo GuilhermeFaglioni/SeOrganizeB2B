@@ -40,6 +40,7 @@
       "calendar": "Calendar",
       "documents": "Documents",
       "financial": "Financial",
+      "plans": "Plans",
       "settings": "Settings",
       "signOut": "Sign out",
       "user": "User"
@@ -50,6 +51,7 @@
       "calendar": "Calendar",
       "projects": "Projects",
       "settings": "Settings",
+      "plans": "Plans",
       "upgrade": "Upgrade required",
       "all": "All tasks",
       "board": "Board",
@@ -183,6 +185,86 @@
       "backToApp": "Back to the app"
     }
   },
+  "landing": {
+    "nav": {
+      "aria": "Navigation",
+      "modules": "Modules",
+      "how": "How it works",
+      "pricing": "Plans",
+      "signIn": "Sign in",
+      "cta": "Create account",
+      "openApp": "Open app"
+    },
+    "hero": {
+      "eyebrow": "Operations and finance in one workspace",
+      "title": "Organize your team and your finances in one place",
+      "subtitle": "Tasks, projects, calendar, documents and contracts — with a transparent checkout that unlocks what you need, when you need it.",
+      "cta": "Create account",
+      "secondary": "See modules"
+    },
+    "mock": {
+      "cockpit": "Today cockpit",
+      "task1": "Review Acme client proposal",
+      "task2": "Close receivables contracts",
+      "task3": "Plan this week's sprint",
+      "metric1": "Tasks",
+      "metric2": "Projects",
+      "metric3": "Receivables"
+    },
+    "modulesTitle": "Everything your operation uses, together",
+    "modulesSubtitle": "Each module unlocks a part of the work. Subscribe and activate what your team needs.",
+    "modules": {
+      "tasks": {
+        "name": "Today & Board",
+        "description": "Capture, prioritize and organize your team's work in one place."
+      },
+      "projects": {
+        "name": "Projects",
+        "description": "Track deliverables, columns and owners per project."
+      },
+      "calendar": {
+        "name": "Calendar",
+        "description": "Event and deadline agenda synced with the team."
+      },
+      "documents": {
+        "name": "Documents",
+        "description": "Documents and notes shared with the team."
+      },
+      "financial": {
+        "name": "Financial",
+        "description": "Contracts, proposals, clients and receivables in one panel."
+      }
+    },
+    "howTitle": "Start in minutes",
+    "howSubtitle": "From account to work, no friction.",
+    "steps": {
+      "1": {
+        "title": "Create your account",
+        "description": "Sign up with email or Google and enter your workspace."
+      },
+      "2": {
+        "title": "Choose a plan",
+        "description": "Pay by card in the transparent checkout inside the app."
+      },
+      "3": {
+        "title": "Get to work",
+        "description": "The plan modules unlock right away."
+      }
+    },
+    "pricingTitle": "Pay when you're ready to start",
+    "pricingSubtitle": "Your account starts empty. Pick a plan and unlock modules at the moment you pay.",
+    "pricing": {
+      "point1": "Card checkout, right inside the platform",
+      "point2": "Modules unlock as soon as payment is confirmed",
+      "point3": "Cancel anytime",
+      "cardTitle": "Your account starts protected",
+      "cardBody": "Create the account, pick a plan and unlock modules with the transparent checkout.",
+      "cardCta": "Create free account"
+    },
+    "footer": {
+      "tagline": "Collaborative organization for teams that execute."
+    }
+  },
   "auth": {
     "login": {
       "subtitle": "Internal Company Organizer",
@@ -211,7 +293,8 @@
       "accountCreated": "Account created! Check your email to confirm your account.",
       "createAccountFailed": "Failed to create account",
       "checkingAuth": "Checking authentication...",
-      "checkingWorkspace": "Checking workspace..."
+      "checkingWorkspace": "Checking workspace...",
+      "backToSite": "Back to site"
     }
   },
   "notifications": {
@@ -1484,6 +1567,29 @@
       "financial.clients": "Financial — Clients",
       "financial.receivables": "Financial — Receivables",
       "areas": "Team areas"
+    }
+  },
+  "plans": {
+    "title": "Plans",
+    "description": "Pick a plan to unlock the SeOrganize+ modules.",
+    "plansTitle": "Available plans",
+    "modulesCount": "modules",
+    "subscribe": "Subscribe",
+    "currentPlan": "Current plan",
+    "noPlans": "No plans available right now.",
+    "checkoutFailed": "Could not start checkout. Try again.",
+    "back": "Back",
+    "selectedPlan": "Subscribing: {plan}",
+    "confirm": "Confirm payment",
+    "processing": "Processing...",
+    "missingKey": "Stripe is not configured (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY missing).",
+    "return": {
+      "success": "Payment complete!",
+      "successDescription": "Your subscription is active and the plan modules are unlocked.",
+      "notComplete": "Payment not completed",
+      "notCompleteDescription": "Your payment has not been processed yet. Go back and try again.",
+      "missingSession": "Could not find the payment.",
+      "goToApp": "Go to the app"
     }
   },
   "testCheckout": {

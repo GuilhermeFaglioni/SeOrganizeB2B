@@ -3,8 +3,10 @@
 export const dynamic = "force-dynamic";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
@@ -13,7 +15,15 @@ import { APP_NAME } from "@/lib/constants";
 export default function LoginPage() {
   const router = useRouter();
   const t = useTranslations("auth.login");
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register">(() => {
+    if (
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("mode") === "register"
+    ) {
+      return "register";
+    }
+    return "login";
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,7 +54,7 @@ export default function LoginPage() {
     try {
       await signInWithPassword(email, password);
       await fetch("/api/profile");
-      router.push("/");
+      router.push("/app");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("invalidCredentials"));
     } finally {
@@ -68,7 +78,7 @@ export default function LoginPage() {
         setSuccess(t("accountCreated"));
       } else {
         await fetch("/api/profile");
-        router.push("/");
+        router.push("/app");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t("createAccountFailed"));
@@ -97,6 +107,13 @@ export default function LoginPage() {
       className="min-h-screen bg-page flex items-center justify-center p-4"
     >
       <div className="w-full max-w-[400px] bg-page-alt rounded-xl shadow-lg p-8 space-y-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-body-small text-text-muted transition-colors hover:text-text-primary"
+        >
+          <ArrowLeft size={14} aria-hidden="true" />
+          {t("backToSite")}
+        </Link>
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center">
             <span className="text-white text-heading-1 font-bold">S</span>

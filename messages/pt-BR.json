@@ -40,6 +40,7 @@
       "calendar": "Calendário",
       "documents": "Documentos",
       "financial": "Financeiro",
+      "plans": "Planos",
       "settings": "Configurações",
       "signOut": "Sair",
       "user": "Usuário"
@@ -50,6 +51,7 @@
       "calendar": "Calendário",
       "projects": "Projetos",
       "settings": "Configurações",
+      "plans": "Planos",
       "upgrade": "Upgrade necessário",
       "all": "Todas as tarefas",
       "board": "Board",
@@ -183,6 +185,86 @@
       "backToApp": "Voltar para o aplicativo"
     }
   },
+  "landing": {
+    "nav": {
+      "aria": "Navegação",
+      "modules": "Módulos",
+      "how": "Como funciona",
+      "pricing": "Planos",
+      "signIn": "Entrar",
+      "cta": "Criar conta",
+      "openApp": "Abrir aplicativo"
+    },
+    "hero": {
+      "eyebrow": "Operação e financeiro em um só workspace",
+      "title": "Organize o time e o financeiro num só lugar",
+      "subtitle": "Tarefas, projetos, calendário, documentos e contratos — com o checkout transparente que desbloqueia o que você precisa, quando precisar.",
+      "cta": "Criar conta",
+      "secondary": "Ver módulos"
+    },
+    "mock": {
+      "cockpit": "Painel de hoje",
+      "task1": "Revisar proposta do cliente Acme",
+      "task2": "Fechar contratos de recebíveis",
+      "task3": "Planejar sprint da semana",
+      "metric1": "Tarefas",
+      "metric2": "Projetos",
+      "metric3": "Recebíveis"
+    },
+    "modulesTitle": "Tudo que sua operação usa, junto",
+    "modulesSubtitle": "Cada módulo desbloqueia uma parte do trabalho. Assine e ative o que o seu time precisa.",
+    "modules": {
+      "tasks": {
+        "name": "Hoje e Board",
+        "description": "Capture, priorize e organize o trabalho do time num só lugar."
+      },
+      "projects": {
+        "name": "Projetos",
+        "description": "Acompanhe entregas, colunas e responsáveis por projeto."
+      },
+      "calendar": {
+        "name": "Calendário",
+        "description": "Agenda de eventos e prazos sincronizada com o time."
+      },
+      "documents": {
+        "name": "Documentos",
+        "description": "Documentos e anotações compartilhados com a equipe."
+      },
+      "financial": {
+        "name": "Financeiro",
+        "description": "Contratos, propostas, clientes e recebíveis em um painel."
+      }
+    },
+    "howTitle": "Comece em minutos",
+    "howSubtitle": "Da conta ao trabalho, sem fricção.",
+    "steps": {
+      "1": {
+        "title": "Crie sua conta",
+        "description": "Cadastre-se com e-mail ou Google e entre no seu workspace."
+      },
+      "2": {
+        "title": "Escolha um plano",
+        "description": "Pague com cartão no checkout transparente dentro do app."
+      },
+      "3": {
+        "title": "Comece a trabalhar",
+        "description": "Os módulos do plano são liberados na hora."
+      }
+    },
+    "pricingTitle": "Pague quando quiser começar",
+    "pricingSubtitle": "Sua conta começa vazia. Escolha o plano e desbloqueie os módulos no momento do pagamento.",
+    "pricing": {
+      "point1": "Checkout com cartão, direto na plataforma",
+      "point2": "Módulos liberados assim que o pagamento é confirmado",
+      "point3": "Cancele quando quiser",
+      "cardTitle": "Sua conta começa protegida",
+      "cardBody": "Crie a conta, escolha um plano e desbloqueie os módulos com o checkout transparente.",
+      "cardCta": "Criar conta grátis"
+    },
+    "footer": {
+      "tagline": "Organização colaborativa para equipes que executam."
+    }
+  },
   "auth": {
     "login": {
       "subtitle": "Organizador interno da empresa",
@@ -211,7 +293,8 @@
       "accountCreated": "Conta criada! Verifique seu e-mail para confirmar.",
       "createAccountFailed": "Falha ao criar conta",
       "checkingAuth": "Verificando autenticação...",
-      "checkingWorkspace": "Verificando workspace..."
+      "checkingWorkspace": "Verificando workspace...",
+      "backToSite": "Voltar ao site"
     }
   },
   "notifications": {
@@ -1484,6 +1567,29 @@
       "financial.clients": "Financeiro — Clientes",
       "financial.receivables": "Financeiro — Recebíveis",
       "areas": "Áreas da equipe"
+    }
+  },
+  "plans": {
+    "title": "Planos",
+    "description": "Escolha um plano para desbloquear os módulos do SeOrganize+.",
+    "plansTitle": "Planos disponíveis",
+    "modulesCount": "módulos",
+    "subscribe": "Assinar",
+    "currentPlan": "Plano atual",
+    "noPlans": "Nenhum plano disponível no momento.",
+    "checkoutFailed": "Não foi possível iniciar o checkout. Tente novamente.",
+    "back": "Voltar",
+    "selectedPlan": "Assinando: {plan}",
+    "confirm": "Confirmar pagamento",
+    "processing": "Processando...",
+    "missingKey": "O Stripe não está configurado (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ausente).",
+    "return": {
+      "success": "Pagamento concluído!",
+      "successDescription": "Sua assinatura foi ativada e os módulos do plano foram liberados.",
+      "notComplete": "Pagamento não concluído",
+      "notCompleteDescription": "Seu pagamento ainda não foi processado. Volte e tente novamente.",
+      "missingSession": "Não foi possível localizar o pagamento.",
+      "goToApp": "Ir para o aplicativo"
     }
   },
   "testCheckout": {
