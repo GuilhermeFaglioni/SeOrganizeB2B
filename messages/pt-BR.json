@@ -1485,5 +1485,24 @@
       "financial.receivables": "Financeiro — Recebíveis",
       "areas": "Áreas da equipe"
     }
+  },
+  "testCheckout": {
+    "title": "Assine o SeOrganize+",
+    "description": "Escolha um plano e assine em minutos com o checkout transparente.",
+    "plansTitle": "Planos disponíveis",
+    "modulesCount": "módulos",
+    "subscribe": "Assinar",
+    "noPlans": "Nenhum plano disponível no momento.",
+    "missingKey": "O Stripe não está configurado (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ausente).",
+    "checkoutFailed": "Não foi possível iniciar o checkout. Tente novamente.",
+    "back": "Voltar",
+    "selectedPlan": "Assinando: {plan}",
+    "return": {
+      "success": "Pagamento concluído com sucesso!",
+      "successDescription": "Sua assinatura foi ativada. Você já pode fechar esta página.",
+      "notComplete": "Pagamento não concluído",
+      "notCompleteDescription": "Seu pagamento ainda não foi processado. Volte e tente novamente.",
+      "missingSession": "Não foi possível localizar a sessão de pagamento."
+    }
   }
 }
