@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import type { StripeElements } from "@stripe/stripe-js";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/constants";
@@ -24,59 +25,38 @@ export function TestCheckoutLanding({
   const t = useTranslations("testCheckout");
   const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [canConfirm, setCanConfirm] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
+  const elementsRef = useRef<StripeElements | null>(null);
   const mountRef = useRef<HTMLDivElement>(null);
-  const sdkRef = useRef<ReturnType<Stripe["initCheckoutElementsSdk"]> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (sdkRef.current) {
-        sdkRef.current = null;
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (!clientSecret || !stripePromise || !mountRef.current) return;
 
-    let cancelled = false;
     (async () => {
       const stripe = await stripePromise;
       if (!stripe) return;
-      const sdk = stripe.initCheckoutElementsSdk({
-        clientSecret,
-      });
-      if (cancelled) return;
-      sdkRef.current = sdk;
 
-      const paymentElement = sdk.createPaymentElement();
-      if (mountRef.current) {
-        paymentElement.mount(mountRef.current);
-      }
+      const elements = stripe.elements({ clientSecret });
+      elementsRef.current = elements;
 
-      sdk.on("change", (session) => {
-        setCanConfirm(session.canConfirm);
-        if (session.lastPaymentError) {
-          setCheckoutError(session.lastPaymentError.message ?? t("checkoutFailed"));
-        }
-      });
+      const paymentElement = elements.create("payment");
+      paymentElement.mount(mountRef.current!);
     })();
 
     return () => {
-      cancelled = true;
+      if (elementsRef.current) {
+        elementsRef.current = null;
+      }
     };
-  }, [clientSecret, t]);
+  }, [clientSecret]);
 
   async function handleSubscribe(priceId: string) {
     setSelectedPriceId(priceId);
     setCheckoutError(null);
     setClientSecret(null);
-    setCanConfirm(false);
-    setConfirming(false);
     setLoading(true);
     try {
       const response = await fetch("/api/stripe/embedded-checkout", {
@@ -99,16 +79,27 @@ export function TestCheckoutLanding({
   }
 
   async function handleConfirm() {
-    if (!sdkRef.current) return;
+    if (!elementsRef.current || !stripePromise) return;
     setConfirming(true);
     setCheckoutError(null);
     try {
-      const result = await sdkRef.current.loadActions();
-      if (result.type === "error") {
+      const stripe = await stripePromise;
+      if (!stripe) return;
+      const result = await stripe.confirmPayment({
+        elements: elementsRef.current,
+        confirmParams: {
+          return_url: `${window.location.origin}/test-checkout/return`,
+        },
+        redirect: "if_required",
+      });
+
+      if (result.error) {
         setCheckoutError(result.error.message ?? t("checkoutFailed"));
-        return;
       }
-      await result.actions.confirm();
+      // If no error and no redirect, payment succeeded
+      if (!result.error && result.paymentIntent?.status === "succeeded") {
+        window.location.href = "/test-checkout/return";
+      }
     } catch (error) {
       setCheckoutError(
         error instanceof Error ? error.message : t("checkoutFailed")
@@ -119,10 +110,11 @@ export function TestCheckoutLanding({
   }
 
   function handleBack() {
-    sdkRef.current = null;
+    if (elementsRef.current) {
+      elementsRef.current = null;
+    }
     setClientSecret(null);
     setCheckoutError(null);
-    setCanConfirm(false);
     setSelectedPriceId(null);
     setConfirming(false);
   }
@@ -184,7 +176,7 @@ export function TestCheckoutLanding({
                 />
                 <div className="text-center">
                   <Button
-                    disabled={!canConfirm || confirming}
+                    disabled={confirming}
                     onClick={handleConfirm}
                   >
                     {confirming ? "Processando..." : "Confirmar pagamento"}

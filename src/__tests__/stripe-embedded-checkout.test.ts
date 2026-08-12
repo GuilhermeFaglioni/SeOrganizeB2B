@@ -2,13 +2,17 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
-  mockCreateSession: vi.fn(),
+  mockRetrievePrice: vi.fn(),
+  mockCreateCustomer: vi.fn(),
+  mockCreateSubscription: vi.fn(),
   mockPlanFindFirst: vi.fn(),
 }));
 
 vi.mock("@/lib/stripe", () => ({
   stripe: {
-    checkout: { sessions: { create: mocks.mockCreateSession } },
+    prices: { retrieve: mocks.mockRetrievePrice },
+    customers: { create: mocks.mockCreateCustomer },
+    subscriptions: { create: mocks.mockCreateSubscription },
   },
 }));
 
@@ -34,13 +38,23 @@ const makePlan = () => ({
   isActive: true,
 });
 
-describe("stripe embedded checkout", () => {
+describe("stripe test checkout", () => {
   beforeEach(() => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
     mocks.mockPlanFindFirst.mockResolvedValue(makePlan());
-    mocks.mockCreateSession.mockResolvedValue({
-      id: "cs_1",
-      client_secret: "cs_test_secret",
+    mocks.mockRetrievePrice.mockResolvedValue({
+      active: true,
+      type: "recurring",
+    });
+    mocks.mockCreateCustomer.mockResolvedValue({ id: "cus_123" });
+    mocks.mockCreateSubscription.mockResolvedValue({
+      id: "sub_123",
+      latest_invoice: {
+        payment_intent: {
+          id: "pi_123",
+          client_secret: "pi_123_secret_key",
+        },
+      },
     });
   });
 
@@ -54,7 +68,7 @@ describe("stripe embedded checkout", () => {
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error.code).toBe("VALIDATION_ERROR");
-    expect(mocks.mockCreateSession).not.toHaveBeenCalled();
+    expect(mocks.mockCreateSubscription).not.toHaveBeenCalled();
   });
 
   it("returns 400 for an invalid priceId", async () => {
@@ -68,26 +82,41 @@ describe("stripe embedded checkout", () => {
     expect(mocks.mockPlanFindFirst).toHaveBeenCalledWith({
       where: { stripePriceId: "price_unknown", isActive: true },
     });
-    expect(mocks.mockCreateSession).not.toHaveBeenCalled();
+    expect(mocks.mockCreateSubscription).not.toHaveBeenCalled();
   });
 
-  it("creates an elements checkout session and returns the client secret", async () => {
+  it("creates a subscription and returns the client secret", async () => {
     const res = await POST(makeRequest({ priceId: "price_pro" }));
 
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.error).toBeNull();
-    expect(json.data.clientSecret).toBe("cs_test_secret");
-    expect(mocks.mockCreateSession).toHaveBeenCalledWith(
+    expect(json.data.clientSecret).toBe("pi_123_secret_key");
+    expect(json.data.subscriptionId).toBe("sub_123");
+    expect(mocks.mockRetrievePrice).toHaveBeenCalledWith("price_pro");
+    expect(mocks.mockCreateCustomer).toHaveBeenCalledWith(
       expect.objectContaining({
-        ui_mode: "elements",
-        mode: "subscription",
-        line_items: [{ price: "price_pro", quantity: 1 }],
-        customer_creation: "always",
-        return_url:
-          "http://x/test-checkout/return?session_id={CHECKOUT_SESSION_ID}",
         metadata: { source: "test-landing", planId: "plan_pro" },
       })
     );
+    expect(mocks.mockCreateSubscription).toHaveBeenCalledWith({
+      customer: "cus_123",
+      items: [{ price: "price_pro" }],
+      expand: ["latest_invoice.payment_intent"],
+    });
+  });
+
+  it("returns 400 for a non-recurring price", async () => {
+    mocks.mockRetrievePrice.mockResolvedValue({
+      active: true,
+      type: "one_time",
+    });
+
+    const res = await POST(makeRequest({ priceId: "price_pro" }));
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe("VALIDATION_ERROR");
+    expect(mocks.mockCreateSubscription).not.toHaveBeenCalled();
   });
 });
