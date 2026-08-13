@@ -3,7 +3,7 @@ import { useClients } from "@/hooks/use-clients";
 import { useProposals } from "@/hooks/use-proposals";
 import { useContracts } from "@/hooks/use-contracts";
 import { useProjects } from "@/hooks/use-projects";
-import { useWorkspace } from "@/hooks/use-proposals";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 const STORAGE_KEY = "seorganize:onboarding";
 
