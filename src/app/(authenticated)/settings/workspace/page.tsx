@@ -6,7 +6,7 @@ import {
   useUpdateWorkspace,
   useWorkspace,
 } from "@/hooks/use-proposals";
-import { toastSuccess } from "@/lib/toast";
+import { toastSuccess, toastError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ export default function WorkspacePage() {
   const update = useUpdateWorkspace();
   const [companyName, setCompanyName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [pixKey, setPixKey] = useState("");
   const hydrated = useRef(false);
 
   useEffect(() => {
@@ -31,14 +32,18 @@ export default function WorkspacePage() {
       hydrated.current = true;
       setCompanyName(data.companyName ?? "");
       setLogoUrl(data.logoUrl ?? "");
+      setPixKey(data.pixKey ?? "");
     }
   }, [data]);
 
   function handleSave(event: React.FormEvent) {
     event.preventDefault();
     update.mutate(
-      { companyName, logoUrl },
-      { onSuccess: () => toastSuccess(t("saved")) }
+      { companyName, logoUrl, pixKey },
+      {
+        onSuccess: () => toastSuccess(t("saved")),
+        onError: (err) => toastError(err.message),
+      }
     );
   }
 
@@ -70,6 +75,16 @@ export default function WorkspacePage() {
             placeholder="https://..."
           />
           <p className="text-xs text-text-muted">{t("logoUrlHint")}</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="pix-key">{t("pixKeyLabel")}</Label>
+          <Input
+            id="pix-key"
+            value={pixKey}
+            onChange={(event) => setPixKey(event.target.value)}
+            placeholder={t("pixKeyPlaceholder")}
+          />
+          <p className="text-xs text-text-muted">{t("pixKeyHint")}</p>
         </div>
         <Button type="submit" disabled={update.isPending}>
           {update.isPending ? t("saving") : t("save")}

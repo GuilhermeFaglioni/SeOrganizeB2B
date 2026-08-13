@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
-import { FinancialValidationError } from "./lifecycle";
+import { FinancialConflictError, FinancialValidationError } from "./lifecycle";
 import {
   prisma,
   requireTenantId,
@@ -8,6 +8,7 @@ import {
 } from "../../../prisma/client";
 import { makeProposalPublicSlug } from "./proposal-slug";
 import { toDecimal } from "./money";
+import { createContractDraftFromProposal } from "./contracts-service";
 import {
   renderProposalHtml,
   sanitizeProposalHtml,
@@ -16,6 +17,7 @@ import {
   isProposalStatus,
   type ProposalItemData,
 } from "./proposals";
+import { notifyProposalEvent } from "./proposal-notifications";
 
 export function proposalCode(year: number, sequence: number): string {
   return `PRP-${year}-${String(sequence).padStart(4, "0")}`;
@@ -60,6 +62,7 @@ const PROPOSAL_INCLUDE = {
   client: { select: { id: true, name: true, email: true } },
   template: { select: { id: true, name: true } },
   items: { orderBy: { position: "asc" } },
+  contract: { select: { id: true, code: true, status: true, officialValue: true, startDate: true, endDate: true, paymentMethod: true } },
 } as const;
 
 async function creatorLocale(actorId: string): Promise<string> {
@@ -286,14 +289,36 @@ export async function acceptProposal(identifier: string, name: string) {
     }
 
     const today = new Date().toISOString().slice(0, 10);
-    return prisma.proposal.update({
-      where: { id: proposal.id },
-      data: {
-        status: "accepted",
+    return prisma.$transaction(async (tx) => {
+      const proposalWithItems = await tx.proposal.findUnique({
+        where: { id: proposal.id },
+        include: { items: { orderBy: { position: "asc" } } },
+      });
+      if (!proposalWithItems) throw new FinancialValidationError("Proposal not found");
+      const accepted = await tx.proposal.updateMany({
+        where: { id: proposal.id, status: { not: "accepted" }, contractId: null },
+        data: {
+          status: "accepted",
+          acceptedAt: today,
+          acceptedByName: name.trim(),
+          viewedAt: proposal.viewedAt ?? today,
+        },
+      });
+      if (accepted.count !== 1) {
+        throw new FinancialConflictError("This proposal already has a contract");
+      }
+      await createContractDraftFromProposal(tx, proposalWithItems);
+      await notifyProposalEvent({
+        tx,
+        proposalId: proposal.id,
+        eventType: "proposal.accepted",
+        actorName: name.trim(),
+      });
+      return {
+        status: "accepted" as const,
         acceptedAt: today,
         acceptedByName: name.trim(),
-        viewedAt: proposal.viewedAt ?? today,
-      },
+      };
     });
   });
 }
@@ -315,13 +340,21 @@ export async function rejectProposal(
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  return prisma.proposal.update({
-    where: { id: proposalId },
-    data: {
-      status: "rejected",
-      rejectedAt: today,
-      rejectedReason: reason ?? null,
-    },
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.proposal.update({
+      where: { id: proposalId },
+      data: {
+        status: "rejected",
+        rejectedAt: today,
+        rejectedReason: reason ?? null,
+      },
+    });
+    await notifyProposalEvent({
+      tx,
+      proposalId,
+      eventType: "proposal.rejected",
+    });
+    return updated;
   });
 }
 
@@ -434,7 +467,9 @@ export async function getProposalPublic(identifier: string) {
   return withTenantBypass(async () => {
     const proposal = await prisma.proposal.findFirst({
       where: proposalIdentifierWhere(identifier),
-      include: { client: { select: { name: true } } },
+      include: {
+        client: { select: { name: true } },
+      },
     });
     if (!proposal) return null;
 
@@ -449,9 +484,16 @@ export async function getProposalPublic(identifier: string) {
     if (proposal.status !== "rejected" && proposal.status !== "accepted") {
       const today = new Date().toISOString().slice(0, 10);
       if (!proposal.viewedAt) {
-        await prisma.proposal.update({
-          where: { id: proposal.id },
-          data: { viewedAt: today, status: "viewed" },
+        await prisma.$transaction(async (tx) => {
+          await tx.proposal.update({
+            where: { id: proposal.id },
+            data: { viewedAt: today, status: "viewed" },
+          });
+          await notifyProposalEvent({
+            tx,
+            proposalId: proposal.id,
+            eventType: "proposal.viewed",
+          });
         });
       }
     }

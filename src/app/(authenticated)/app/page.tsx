@@ -3,8 +3,10 @@
 import { TodayTasks } from "@/components/today/today-tasks";
 import { TodayAgenda } from "@/components/today/today-agenda";
 import { TodayActivity } from "@/components/today/today-activity";
+import { TodayBusiness } from "@/components/today/today-business";
 import { useNotifications } from "@/hooks/use-notifications";
 import { TodaySavedViews } from "@/components/today/today-saved-views";
+import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { useTranslations } from "next-intl";
 
 export default function AuthenticatedHome() {
@@ -33,8 +35,10 @@ export default function AuthenticatedHome() {
             {t("unreadNotifications", { count: notifications?.unreadCount ?? 0 })}
           </div>
         </div>
+        <OnboardingWizard />
         <TodaySavedViews />
-        <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <TodayBusiness />
+        <div className="mt-5 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
           <TodayTasks />
           <TodayAgenda />
           <div className="xl:col-span-2">

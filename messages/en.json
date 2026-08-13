@@ -83,7 +83,7 @@
       "dashboard": {
         "title": "Admin dashboard",
         "metricsLabel": "Platform metrics",
-        "totalWorkspaces": "Total workspaces",
+        "totalWorkspaces": "Total companies",
         "totalProfiles": "Total profiles",
         "totalPlans": "Total plans"
       },
@@ -196,14 +196,14 @@
       "openApp": "Open app"
     },
     "hero": {
-      "eyebrow": "Operations and finance in one workspace",
+      "eyebrow": "Operations and finance in one place",
       "title": "Organize your team and your finances in one place",
       "subtitle": "Tasks, projects, calendar, documents and contracts — with a transparent checkout that unlocks what you need, when you need it.",
       "cta": "Create account",
       "secondary": "See modules"
     },
     "mock": {
-      "cockpit": "Today cockpit",
+      "cockpit": "Today dashboard",
       "task1": "Review Acme client proposal",
       "task2": "Close receivables contracts",
       "task3": "Plan this week's sprint",
@@ -240,7 +240,7 @@
     "steps": {
       "1": {
         "title": "Create your account",
-        "description": "Sign up with email or Google and enter your workspace."
+        "description": "Sign up with email or Google and enter your company."
       },
       "2": {
         "title": "Choose a plan",
@@ -293,7 +293,7 @@
       "accountCreated": "Account created! Check your email to confirm your account.",
       "createAccountFailed": "Failed to create account",
       "checkingAuth": "Checking authentication...",
-      "checkingWorkspace": "Checking workspace...",
+      "checkingWorkspace": "Checking company...",
       "backToSite": "Back to site"
     }
   },
@@ -382,8 +382,10 @@
         "contractDeleted": "Contract deleted",
         "loadFailed": "Failed to load contracts",
         "newContract": "New contract",
-        "emptyTitle": "No contracts match your filters",
+        "emptyTitle": "No contracts yet",
         "emptyHint": "No results for \"{search}\"",
+        "emptyHintDefault": "Create your first contract to formalize an engagement.",
+        "emptyAction": "Create first contract",
         "tableLabel": "Contracts",
         "colCode": "Code",
         "colTitle": "Title",
@@ -607,6 +609,9 @@
         "newClient": "New client",
         "noInactiveClients": "No inactive clients",
         "noSearchMatches": "No clients match your search",
+        "emptyTitle": "No clients yet",
+        "emptyHint": "Add your first client to start building your portfolio.",
+        "emptyAction": "Add first client",
         "tableLabel": "Clients",
         "name": "Name",
         "cpfCnpj": "CPF/CNPJ",
@@ -656,7 +661,27 @@
         "refundAmountField": "Refund amount (BRL)",
         "refundDateField": "Refund date",
         "close": "Close",
-        "confirmRefund": "Confirm refund"
+        "confirmRefund": "Confirm refund",
+        "generateInvoice": "Generate invoice"
+      },
+      "invoice": {
+        "title": "Installment Invoice",
+        "description": "Payment details via PIX",
+        "contract": "Contract",
+        "code": "Code",
+        "client": "Client",
+        "amount": "Amount",
+        "dueDate": "Due date",
+        "pixKey": "PIX Key",
+        "copyPix": "Copy PIX",
+        "copied": "Copied!",
+        "pixKeyHint": "Copy the PIX key and make the payment",
+        "noPixKey": "PIX key not configured",
+        "noPixKeyHint": "Configure the PIX key in company settings to generate invoices with PIX payment.",
+        "print": "Print",
+        "close": "Close",
+        "loadFailed": "Failed to load invoice data",
+        "pixCopied": "PIX key copied!"
       }
     }
   },
@@ -725,11 +750,14 @@
       "workspaceUpdateFailed": "Failed to save company settings"
     },
     "roles": {
-      "createFailed": "Failed to create role",
-      "updateFailed": "Failed to update role",
-      "deleteFailed": "Failed to delete role",
-      "defaultFailed": "Failed to set default role",
-      "assignFailed": "Failed to assign role"
+      "createFailed": "Failed to create permission",
+      "updateFailed": "Failed to update permission",
+      "deleteFailed": "Failed to delete permission",
+      "defaultFailed": "Failed to set default permission",
+      "assignFailed": "Failed to assign permission"
+    },
+    "invites": {
+      "createFailed": "Failed to send invite"
     }
   },
   "today": {
@@ -743,16 +771,30 @@
       "heading": "Today's priorities",
       "loadFailed": "Failed to load tasks.",
       "retry": "Try again",
-      "empty": "No tasks overdue or due today."
+      "empty": "No tasks overdue or due today.",
+      "emptyAction": "Create your first task"
     },
     "savedViews": {
-      "myViews": "My views"
+      "myViews": "My saved filters"
     },
     "activity": {
       "heading": "Recent activity"
     },
+    "business": {
+      "heading": "My business",
+      "receivablesThisWeek": "Receivables this week",
+      "openProposals": "Open proposals",
+      "expiringContracts": "Expiring contracts",
+      "overdueTasks": "Overdue tasks",
+      "viewProposals": "View proposals",
+      "viewContracts": "View contracts",
+      "viewTasks": "View tasks",
+      "loadFailed": "Failed to load business overview.",
+      "retry": "Try again",
+      "empty": "No business data available."
+    },
     "page": {
-      "executiveCockpit": "Executive cockpit",
+      "executiveCockpit": "Dashboard",
       "unreadNotifications": "{count} unread notifications"
     }
   },
@@ -786,13 +828,13 @@
       "groupAssignee": "Primary person"
     },
     "savedView": {
-      "savedToast": "View saved",
-      "saveFailed": "Failed to save view",
-      "removedToast": "View removed",
-      "myViews": "My views",
-      "saveView": "Save view",
-      "deleteView": "Delete view",
-      "saveViewTitle": "Save view",
+      "savedToast": "Filter saved",
+      "saveFailed": "Failed to save filter",
+      "removedToast": "Filter removed",
+      "myViews": "My saved filters",
+      "saveView": "Save filter",
+      "deleteView": "Delete filter",
+      "saveViewTitle": "Save filter",
       "saveDescription": "Saves the current filters, sorting, and grouping just for you.",
       "name": "Name",
       "namePlaceholder": "E.g.: This week's deliveries",
@@ -1197,8 +1239,8 @@
         "description": "Name and logo shown on public proposals"
       },
       "roles": {
-        "title": "Roles & permissions",
-        "description": "Create custom roles and define what each one can do"
+        "title": "Permissions",
+        "description": "Create custom permissions and define what each one can do"
       }
     },
     "profile": {
@@ -1251,10 +1293,21 @@
       "noAreas": "No areas configured.",
       "saving": "Saving...",
       "save": "Save",
-      "roleLabel": "Role",
-      "noRole": "No role",
-      "roleSaved": "Role updated",
-      "noPermission": "You do not have permission to manage the team."
+      "roleLabel": "Permission",
+      "noRole": "No permission",
+      "roleSaved": "Permission updated",
+      "noPermission": "You do not have permission to manage the team.",
+      "inviteTitle": "Invite collaborator",
+      "inviteEmailPlaceholder": "colleague@email.com",
+      "inviteButton": "Send invite",
+      "inviteSending": "Sending...",
+      "inviteSuccess": "Invite sent! They will receive an email.",
+      "inviteHint": "An invite will be sent with the default permission.",
+      "pendingInvites": "Pending invites",
+      "noPendingInvites": "No pending invites.",
+      "soloHint": "Invite your first collaborator to unlock permission management.",
+      "rolesHiddenTitle": "Permissions",
+      "rolesHiddenDescription": "Permission management will appear after you invite your first collaborator."
     },
     "workspace": {
       "backToSettings": "Back to Settings",
@@ -1265,6 +1318,9 @@
       "companyNameHint": "Used in the {{empresa.nome}} variable and in the public header.",
       "logoUrlLabel": "Logo URL",
       "logoUrlHint": "Used in the {{empresa.logo}} variable and in the public header.",
+      "pixKeyLabel": "PIX Key",
+      "pixKeyPlaceholder": "CPF, CNPJ, email, phone (+55…) or random key",
+      "pixKeyHint": "Copy-paste PIX key used to receive payments from clients.",
       "saving": "Saving...",
       "save": "Save",
       "saved": "Settings saved"
@@ -1293,7 +1349,10 @@
       "templates": "Templates",
       "newProposal": "New proposal",
       "loadFailed": "Failed to load proposals",
-      "emptyTitle": "No proposals match your filters",
+      "emptyTitle": "No proposals yet",
+      "emptyHint": "Create your first proposal to start winning clients.",
+      "emptyHintSearch": "No results for \"{search}\"",
+      "emptyAction": "Create first proposal",
       "tableLabel": "Proposals",
       "colCode": "Code",
       "colTitle": "Title",
@@ -1341,6 +1400,26 @@
       "rejected": "Proposal rejected",
       "linkCopied": "Link copied",
       "confirmDelete": "Delete proposal {code}? This action cannot be undone."
+      ,"confirmContractTitle": "Confirm contract",
+      "confirmContractDescription": "Choose duration and billing. The client, items, and value came from the accepted proposal.",
+      "durationType": "Duration",
+      "durationFixed": "Fixed term",
+      "durationOpenEnded": "Open-ended recurring",
+      "durationOneTime": "One-time payment",
+      "billingFrequency": "Frequency",
+      "frequencyMonthly": "Monthly",
+      "frequencyQuarterly": "Quarterly",
+      "frequencySemiannual": "Semiannual",
+      "frequencyAnnual": "Annual",
+      "installmentCount": "Number of installments",
+      "scheduleAria": "Contract schedule",
+      "dueDate": "Due date",
+      "installmentAmount": "Amount",
+      "scheduleTotal": "Total: {total} (official value: {official})",
+      "activateContract": "Activate contract",
+      "activatingContract": "Activating...",
+      "contractActivated": "Contract activated",
+      "contractActivationFailed": "The contract could not be activated"
     },
     "form": {
       "previewFailed": "Failed to generate the preview",
@@ -1423,34 +1502,34 @@
   },
   "roles": {
     "page": {
-      "title": "Roles & permissions",
-      "subtitle": "Create custom roles and control access to each module and action.",
-      "newRole": "New role",
-      "defaultRoleLabel": "Default role for new users",
-      "defaultRoleHint": "Newly created users without an assigned role automatically receive this role.",
+      "title": "Permissions",
+      "subtitle": "Create custom permissions and control access to each module and action.",
+      "newRole": "New permission",
+      "defaultRoleLabel": "Default permission for new users",
+      "defaultRoleHint": "Newly created users without an assigned permission automatically receive this permission.",
       "noDefault": "None (no access)",
-      "listAria": "Roles list",
+      "listAria": "Permissions list",
       "adminBadge": "Admin",
       "defaultBadge": "Default",
       "permissionCount": "{count, plural, one {# permission} other {# permissions}}",
       "userCount": "{count, plural, one {# user} other {# users}}",
       "edit": "Edit",
       "delete": "Delete",
-      "deleteConfirm": "Delete the role \"{name}\"? Assigned users will fall back to the default role (or lose access).",
-      "deleted": "Role deleted",
-      "defaultSaved": "Default role updated",
-      "saved": "Role saved",
-      "loadFailed": "Failed to load roles",
+      "deleteConfirm": "Delete the permission \"{name}\"? Assigned users will fall back to the default permission (or lose access).",
+      "deleted": "Permission deleted",
+      "defaultSaved": "Default permission updated",
+      "saved": "Permission saved",
+      "loadFailed": "Failed to load permissions",
       "retry": "Retry",
       "backToSettings": "Back to Settings",
-      "noPermission": "You do not have permission to manage roles.",
+      "noPermission": "You do not have permission to manage permissions.",
       "view": "View"
     },
     "editor": {
-      "titleCreate": "New role",
-      "titleEdit": "Edit role",
-      "titleView": "View role",
-      "nameLabel": "Role name",
+      "titleCreate": "New permission",
+      "titleEdit": "Edit permission",
+      "titleView": "View permission",
+      "nameLabel": "Permission name",
       "namePlaceholder": "e.g. Finance, Viewer",
       "permissionsTitle": "Permissions",
       "scopeLabel": "Scope",
@@ -1460,11 +1539,11 @@
         "project": "Project"
       },
       "previewTitle": "Preview",
-      "previewHint": "Resources visible with this role. The scope defines the breadth of access.",
-      "previewAria": "Resources visible with this role",
+      "previewHint": "Resources visible with this permission. The scope defines the breadth of access.",
+      "previewAria": "Resources visible with this permission",
       "previewEmpty": "No resources selected",
-      "adminLocked": "The Admin role is fixed and cannot be edited.",
-      "nameExists": "A role with this name already exists in this workspace.",
+      "adminLocked": "The Admin permission is fixed and cannot be edited.",
+      "nameExists": "A permission with this name already exists in this company.",
       "save": "Save",
       "saving": "Saving...",
       "cancel": "Cancel",
@@ -1509,7 +1588,7 @@
             "manageTemplates": "Manage proposal templates"
           }
         },
-        "manage_roles": "Manage roles & permissions"
+        "manage_roles": "Manage permissions"
       }
     }
   },
@@ -1520,11 +1599,11 @@
       "portalFailed": "Could not open the payment portal"
     },
     "expiration": {
-      "message": "Your workspace has been cancelled. Read-only mode is active until {date}."
+      "message": "Your company has been cancelled. Read-only mode is active until {date}."
     },
     "expired": {
-      "title": "Your workspace has expired",
-      "message": "Your access has been ended. Contact us to reactivate your workspace."
+      "title": "Your company has expired",
+      "message": "Your access has been ended. Contact us to reactivate your company."
     },
     "upgradeBanner": {
       "message": "You are about to reach the {resource} limit of your plan.",
@@ -1609,6 +1688,39 @@
       "notComplete": "Payment not completed",
       "notCompleteDescription": "Your payment has not been processed yet. Go back and try again.",
       "missingSession": "Could not find the payment session."
+    }
+  },
+  "onboarding": {
+    "wizard": {
+      "ariaLabel": "Getting started checklist",
+      "title": "Getting started",
+      "subtitle": "Set up your company in 4 steps.",
+      "dismiss": "Dismiss onboarding",
+      "progressAria": "{percent}% complete",
+      "done": "Done",
+      "skipHint": "You can skip this and come back later.",
+      "steps": {
+        "company": {
+          "title": "Set up your company",
+          "description": "Add your company name and details.",
+          "action": "Configure"
+        },
+        "client": {
+          "title": "Add your first client",
+          "description": "Clients are the businesses you serve.",
+          "action": "Add client"
+        },
+        "proposal": {
+          "title": "Create a proposal or contract",
+          "description": "Send a proposal or sign a contract.",
+          "action": "Create"
+        },
+        "task": {
+          "title": "Create your first task",
+          "description": "Tasks track your delivery work.",
+          "action": "Create task"
+        }
+      }
     }
   }
 }

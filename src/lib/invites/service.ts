@@ -34,13 +34,14 @@ export async function createInvite(input: CreateInviteInput) {
 
   const workspace = await prisma.workspace.findUnique({
     where: { id: input.workspaceId },
-    select: { id: true, name: true },
+    select: { id: true, name: true, defaultRoleId: true },
   });
   if (!workspace) {
     throw new InviteValidationError("Workspace not found");
   }
 
-  const roleId: string | null = input.roleId ?? null;
+  // Auto-fill from workspace default role when caller omits roleId
+  const roleId: string | null = input.roleId ?? workspace.defaultRoleId ?? null;
   if (roleId) {
     const role = await withTenant(input.workspaceId, () =>
       prisma.role.findFirst({

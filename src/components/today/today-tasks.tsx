@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckSquare2 } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle, ArrowRight, CheckSquare2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTodayTasks } from "@/hooks/use-today";
 import { LoadingState } from "@/components/shared/loading-state";
@@ -32,9 +33,16 @@ export function TodayTasks() {
         </div>
       )}
       {!isLoading && !error && data.length === 0 && (
-        <p className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-text-secondary">
-          {t("empty")}
-        </p>
+        <div className="rounded-xl border border-dashed border-border py-10 text-center">
+          <p className="text-sm text-text-secondary">{t("empty")}</p>
+          <Link
+            href="/projects"
+            className="mt-2 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            {t("emptyAction")}
+            <ArrowRight size={14} />
+          </Link>
+        </div>
       )}
       <div className="grid gap-3 md:grid-cols-2">
         {data.map((task) => (

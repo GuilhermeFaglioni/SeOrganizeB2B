@@ -1,0 +1,3 @@
+# Brasil-primeiro
+
+SeOrganize+ é um produto Brasil-primeiro: pt-BR como idioma primário, PIX/boleto como rails de cobrança nativos e CPF/CNPJ como identificador de cliente. Isto substitui a regra do módulo financeiro ("all interface copy must be in English"), que foi escrita antes de a intenção de mercado assentar — daí o aparente conflito entre aquela spec e os sinais já presentes no produto (`locale` pt-BR, `cpfCnpj`, métodos `pix`/`boleto`). Consequência: NF-e e WhatsApp entram no roadmap como canais reais, e a Onda 1 ("cobrar o cliente") é PIX + boleto/PDF + lembrete por e-mail, não cartão via Stripe.

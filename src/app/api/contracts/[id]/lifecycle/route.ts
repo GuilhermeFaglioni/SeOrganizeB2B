@@ -4,6 +4,7 @@ import { withTenant } from "../../../../../../prisma/client";
 import {
   activateContract,
   applyLifecycleAction,
+  confirmContract,
 } from "@/lib/financial/contracts-service";
 import { isCivilDate } from "@/lib/financial/civil-date";
 import { mapFinancialError } from "@/lib/financial/http";
@@ -13,6 +14,7 @@ import { noWorkspaceResponse } from "@/lib/authz/http";
 
 const ACTIONS = [
   "activate",
+  "confirm",
   "suspend",
   "resume",
   "close",
@@ -57,7 +59,7 @@ export async function POST(
   }
 
   try {
-    if (action === "activate") {
+    if (action === "activate" || action === "confirm") {
       const plan = body.plan;
       if (!Array.isArray(plan) || plan.length === 0) {
         return NextResponse.json(
@@ -68,6 +70,12 @@ export async function POST(
               message: "An installment plan is required",
             },
           },
+          { status: 400 }
+        );
+      }
+      if (action === "confirm" && (!isCivilDate(body.startDate ?? "") || (body.endDate && !isCivilDate(body.endDate)))) {
+        return NextResponse.json(
+          { data: null, error: { code: "VALIDATION_ERROR", message: "Confirmation dates must be valid" } },
           { status: 400 }
         );
       }
@@ -98,7 +106,16 @@ export async function POST(
         }
       }
       const contract = await withTenant(ctx.tenantId, () =>
-        activateContract(params.id, plan, user.id)
+        action === "confirm"
+          ? confirmContract(params.id, {
+              durationType: body.durationType,
+              billingFrequency: body.billingFrequency ?? null,
+              startDate: body.startDate,
+              endDate: body.endDate ?? null,
+              paymentMethod: body.paymentMethod ?? "pix",
+              plan,
+            }, user.id)
+          : activateContract(params.id, plan, user.id)
       );
       return NextResponse.json({ data: contract, error: null });
     }

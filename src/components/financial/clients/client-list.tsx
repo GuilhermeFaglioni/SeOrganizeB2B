@@ -120,7 +120,15 @@ export function ClientList() {
           title={
             statusFilter === "inactive"
               ? t("noInactiveClients")
-              : t("noSearchMatches")
+              : query
+                ? t("noSearchMatches")
+                : t("emptyTitle")
+          }
+          hint={!query && statusFilter !== "inactive" ? t("emptyHint") : undefined}
+          action={
+            !query && statusFilter !== "inactive" && can("financial.clients.create")
+              ? { label: t("emptyAction"), href: "/financial/clients/new" }
+              : undefined
           }
         />
       ) : (

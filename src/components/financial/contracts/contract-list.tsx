@@ -75,7 +75,15 @@ export function ContractList() {
       </div>
 
       {data.items.length === 0 ? (
-        <FinancialEmptyState title={t("emptyTitle")} hint={filters.search ? t("emptyHint", { search: filters.search }) : undefined} />
+        <FinancialEmptyState
+          title={t("emptyTitle")}
+          hint={filters.search ? t("emptyHint", { search: filters.search }) : t("emptyHintDefault")}
+          action={
+            !filters.search && can("financial.contracts.create")
+              ? { label: t("emptyAction"), href: "/financial/contracts/new" }
+              : undefined
+          }
+        />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border bg-page-alt" aria-live="polite">
           <table className="w-full min-w-[720px] text-left text-sm" aria-label={t("tableLabel")}>

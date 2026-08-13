@@ -68,6 +68,46 @@ export function buildPushPayload(ctx: NotificationContext): PushPayload | null {
         tag: `task-archived-${entityId}`,
       };
 
+    case "proposal.viewed":
+      return {
+        title: "Proposta visualizada",
+        body: summary,
+        url: `/financial/proposals`,
+        tag: `proposal-viewed-${entityId}`,
+      };
+
+    case "proposal.accepted":
+      return {
+        title: "Proposta aceita!",
+        body: summary,
+        url: `/financial/proposals`,
+        tag: `proposal-accepted-${entityId}`,
+      };
+
+    case "proposal.rejected":
+      return {
+        title: "Proposta recusada",
+        body: summary,
+        url: `/financial/proposals`,
+        tag: `proposal-rejected-${entityId}`,
+      };
+
+    case "installment.due_tomorrow":
+      return {
+        title: "Parcela vence amanhã",
+        body: summary,
+        url: `/financial/receivables`,
+        tag: `installment-due-${entityId}`,
+      };
+
+    case "installment.overdue":
+      return {
+        title: "Parcela vencida",
+        body: summary,
+        url: `/financial/receivables`,
+        tag: `installment-overdue-${entityId}`,
+      };
+
     default:
       return {
         title: "SeOrganize+",

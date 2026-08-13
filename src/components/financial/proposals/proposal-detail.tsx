@@ -11,6 +11,7 @@ import {
   useRejectProposal,
   useSendProposal,
 } from "@/hooks/use-proposals";
+import { useContractLifecycle } from "@/hooks/use-contracts";
 import { useCan } from "@/hooks/use-permissions";
 import { toastSuccess } from "@/lib/toast";
 import { MoneyText } from "@/components/financial/shared/money-text";
@@ -22,6 +23,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingState } from "@/components/shared/loading-state";
 import { ProposalHtmlPreview } from "@/components/financial/proposals/proposal-html-preview";
+import { suggestFinitePlan, recurringPlanForHorizon, sumPlan, validateFinitePlan } from "@/lib/financial/installments";
+import { addMonthsCivil } from "@/lib/financial/civil-date";
+import { toDecimal, formatBRL } from "@/lib/financial/money";
 import { Clipboard, ExternalLink, Trash2 } from "lucide-react";
 
 export function ProposalDetail({ proposalId }: { proposalId: string }) {
@@ -36,6 +40,12 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [durationType, setDurationType] = useState<"fixed" | "openEnded" | "oneTime">("fixed");
+  const [billingFrequency, setBillingFrequency] = useState<"monthly" | "quarterly" | "semiannual" | "annual">("monthly");
+  const [installmentCount, setInstallmentCount] = useState(2);
+  const paymentMethod = "pix";
+  const [confirmingContract, setConfirmingContract] = useState(false);
+  const lifecycle = useContractLifecycle();
 
   const publicUrl = useMemo(
     () =>
@@ -44,6 +54,26 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
         : null,
     [proposal]
   );
+
+  const linkedContract = (proposal as typeof proposal & {
+    contract?: { id: string; status: string; officialValue: string | null; startDate: string | null; endDate: string | null; paymentMethod: string } | null;
+  })?.contract;
+
+  const contractValue = linkedContract?.officialValue ?? proposal?.totalValue;
+  const contractStart = linkedContract?.startDate ?? new Date().toISOString().slice(0, 10);
+
+  const schedule = useMemo(() => {
+    if (!contractValue || !contractStart || installmentCount < 1) return [];
+    const value = toDecimal(contractValue);
+    if (durationType === "oneTime") {
+      return [{ expectedAmount: value.toFixed(2), dueDate: contractStart, paymentMethod: paymentMethod as "pix" }];
+    }
+    if (durationType === "openEnded") {
+      return recurringPlanForHorizon(contractStart, value, 0, installmentCount - 1, paymentMethod as "pix");
+    }
+    const endDate = addMonthsCivil(contractStart, (installmentCount - 1) * ({ monthly: 1, quarterly: 3, semiannual: 6, annual: 12 }[billingFrequency]));
+    return suggestFinitePlan(value, contractStart, endDate, billingFrequency, paymentMethod as "pix");
+  }, [contractValue, contractStart, durationType, billingFrequency, installmentCount, paymentMethod]);
 
   useEffect(() => {
     setRejectOpen(false);
@@ -62,6 +92,29 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
 
   const isDraft = proposal.status === "draft";
   const isOpen = proposal.status === "sent" || proposal.status === "viewed";
+
+  const scheduleTotal = sumPlan(schedule);
+  const scheduleErrors = durationType === "openEnded" ? [] : validateFinitePlan(schedule, toDecimal(contractValue ?? "0"));
+
+  async function confirmContract() {
+    if (!linkedContract || scheduleErrors.length > 0 || confirmingContract) return;
+    setConfirmingContract(true);
+    try {
+      const endDate = durationType === "fixed"
+        ? addMonthsCivil(contractStart, (installmentCount - 1) * ({ monthly: 1, quarterly: 3, semiannual: 6, annual: 12 }[billingFrequency]))
+        : durationType === "oneTime" ? contractStart : null;
+      lifecycle.mutate({ id: linkedContract.id, action: "confirm", plan: schedule, durationType, billingFrequency: durationType === "oneTime" ? null : billingFrequency, startDate: contractStart, endDate, paymentMethod }, {
+        onSuccess: () => {
+          toastSuccess(t("contractActivated"));
+          router.refresh();
+        },
+        onSettled: () => setConfirmingContract(false),
+      });
+    } catch (error) {
+      setConfirmingContract(false);
+      window.alert(error instanceof Error ? error.message : t("contractActivationFailed"));
+    }
+  }
 
   const copyLink = async () => {
     if (!publicUrl) return;
@@ -216,12 +269,14 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
           </div>
         </dl>
         {proposal.status === "accepted" && (
-          <p className="mt-4 text-sm text-success">
-            {t("acceptedBy", {
-              name: proposal.acceptedByName ?? "—",
-              date: proposal.acceptedAt ?? "—",
-            })}
-          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-success">
+            <p>{t("acceptedBy", { name: proposal.acceptedByName ?? "—", date: proposal.acceptedAt ?? "—" })}</p>
+            {linkedContract && (
+              <Link href={`/financial/contracts/${linkedContract.id}`} className="font-medium underline">
+                Ver contrato
+              </Link>
+            )}
+          </div>
         )}
         {proposal.status === "rejected" && (
           <p className="mt-4 text-sm text-danger">
@@ -254,6 +309,47 @@ export function ProposalDetail({ proposalId }: { proposalId: string }) {
               </tbody>
             </table>
           </div>
+        </section>
+      )}
+
+      {proposal.status === "accepted" && linkedContract?.status === "draft" && (
+        <section className="space-y-4 rounded-xl border border-accent/30 bg-page-alt p-4" aria-labelledby="contract-confirm-heading">
+          <div>
+            <h2 id="contract-confirm-heading" className="text-base font-semibold text-text-primary">{t("confirmContractTitle")}</h2>
+            <p className="mt-1 text-sm text-text-secondary">{t("confirmContractDescription")}</p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+              <Label htmlFor="proposal-contract-duration">{t("durationType")}</Label>
+              <select id="proposal-contract-duration" value={durationType} onChange={(event) => setDurationType(event.target.value as typeof durationType)} className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm">
+                <option value="fixed">{t("durationFixed")}</option>
+                <option value="openEnded">{t("durationOpenEnded")}</option>
+                <option value="oneTime">{t("durationOneTime")}</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="proposal-contract-frequency">{t("billingFrequency")}</Label>
+              <select id="proposal-contract-frequency" value={billingFrequency} disabled={durationType === "oneTime"} onChange={(event) => setBillingFrequency(event.target.value as typeof billingFrequency)} className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm">
+                <option value="monthly">{t("frequencyMonthly")}</option>
+                <option value="quarterly">{t("frequencyQuarterly")}</option>
+                <option value="semiannual">{t("frequencySemiannual")}</option>
+                <option value="annual">{t("frequencyAnnual")}</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="proposal-contract-installments">{t("installmentCount")}</Label>
+              <Input id="proposal-contract-installments" type="number" min={1} max={36} value={installmentCount} disabled={durationType === "oneTime"} onChange={(event) => setInstallmentCount(Math.max(1, Number(event.target.value) || 1))} />
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm" aria-label={t("scheduleAria")}>
+              <thead><tr><th className="px-2 py-1">{t("dueDate")}</th><th className="px-2 py-1">{t("installmentAmount")}</th></tr></thead>
+              <tbody>{schedule.map((item, index) => <tr key={`${item.dueDate}-${index}`} className="border-t border-border"><td className="px-2 py-1">{item.dueDate}</td><td className="px-2 py-1">{formatBRL(toDecimal(item.expectedAmount))}</td></tr>)}</tbody>
+            </table>
+          </div>
+          <p className="text-sm text-text-secondary">{t("scheduleTotal", { total: formatBRL(scheduleTotal), official: formatBRL(toDecimal(contractValue ?? "0")) })}</p>
+          {scheduleErrors.map((error) => <p key={error} role="alert" className="text-sm text-danger">{error}</p>)}
+          <Button onClick={confirmContract} disabled={confirmingContract || schedule.length === 0 || scheduleErrors.length > 0}>{confirmingContract ? t("activatingContract") : t("activateContract")}</Button>
         </section>
       )}
 

@@ -83,7 +83,7 @@
       "dashboard": {
         "title": "Dashboard do admin",
         "metricsLabel": "Métricas da plataforma",
-        "totalWorkspaces": "Total de workspaces",
+        "totalWorkspaces": "Total de empresas",
         "totalProfiles": "Total de perfis",
         "totalPlans": "Total de planos"
       },
@@ -196,7 +196,7 @@
       "openApp": "Abrir aplicativo"
     },
     "hero": {
-      "eyebrow": "Operação e financeiro em um só workspace",
+      "eyebrow": "Operação e financeiro em um só lugar",
       "title": "Organize o time e o financeiro num só lugar",
       "subtitle": "Tarefas, projetos, calendário, documentos e contratos — com o checkout transparente que desbloqueia o que você precisa, quando precisar.",
       "cta": "Criar conta",
@@ -240,7 +240,7 @@
     "steps": {
       "1": {
         "title": "Crie sua conta",
-        "description": "Cadastre-se com e-mail ou Google e entre no seu workspace."
+        "description": "Cadastre-se com e-mail ou Google e entre na sua empresa."
       },
       "2": {
         "title": "Escolha um plano",
@@ -293,7 +293,7 @@
       "accountCreated": "Conta criada! Verifique seu e-mail para confirmar.",
       "createAccountFailed": "Falha ao criar conta",
       "checkingAuth": "Verificando autenticação...",
-      "checkingWorkspace": "Verificando workspace...",
+      "checkingWorkspace": "Verificando empresa...",
       "backToSite": "Voltar ao site"
     }
   },
@@ -382,8 +382,10 @@
         "contractDeleted": "Contrato excluído",
         "loadFailed": "Falha ao carregar contratos",
         "newContract": "Novo contrato",
-        "emptyTitle": "Nenhum contrato corresponde aos seus filtros",
+        "emptyTitle": "Nenhum contrato ainda",
         "emptyHint": "Nenhum resultado para \"{search}\"",
+        "emptyHintDefault": "Crie seu primeiro contrato para formalizar um engajamento.",
+        "emptyAction": "Criar primeiro contrato",
         "tableLabel": "Contratos",
         "colCode": "Código",
         "colTitle": "Título",
@@ -607,6 +609,9 @@
         "newClient": "Novo cliente",
         "noInactiveClients": "Nenhum cliente inativo",
         "noSearchMatches": "Nenhum cliente corresponde à sua busca",
+        "emptyTitle": "Nenhum cliente ainda",
+        "emptyHint": "Adicione seu primeiro cliente para começar a construir seu portfólio.",
+        "emptyAction": "Adicionar primeiro cliente",
         "tableLabel": "Clientes",
         "name": "Nome",
         "cpfCnpj": "CPF/CNPJ",
@@ -656,7 +661,27 @@
         "refundAmountField": "Valor do reembolso (BRL)",
         "refundDateField": "Data do reembolso",
         "close": "Fechar",
-        "confirmRefund": "Confirmar reembolso"
+        "confirmRefund": "Confirmar reembolso",
+        "generateInvoice": "Gerar invoice"
+      },
+      "invoice": {
+        "title": "Invoice da Parcela",
+        "description": "Dados para pagamento via PIX",
+        "contract": "Contrato",
+        "code": "Código",
+        "client": "Cliente",
+        "amount": "Valor",
+        "dueDate": "Vencimento",
+        "pixKey": "Chave PIX",
+        "copyPix": "Copiar PIX",
+        "copied": "Copiado!",
+        "pixKeyHint": "Copie a chave PIX e realize o pagamento",
+        "noPixKey": "Chave PIX não configurada",
+        "noPixKeyHint": "Configure a chave PIX nas configurações da empresa para gerar invoices com pagamento via PIX.",
+        "print": "Imprimir",
+        "close": "Fechar",
+        "loadFailed": "Falha ao carregar dados da invoice",
+        "pixCopied": "Chave PIX copiada!"
       }
     }
   },
@@ -725,11 +750,14 @@
       "workspaceUpdateFailed": "Falha ao salvar configurações da empresa"
     },
     "roles": {
-      "createFailed": "Falha ao criar role",
-      "updateFailed": "Falha ao atualizar role",
-      "deleteFailed": "Falha ao excluir role",
-      "defaultFailed": "Falha ao definir role padrão",
-      "assignFailed": "Falha ao atribuir role"
+      "createFailed": "Falha ao criar permissão",
+      "updateFailed": "Falha ao atualizar permissão",
+      "deleteFailed": "Falha ao excluir permissão",
+      "defaultFailed": "Falha ao definir permissão padrão",
+      "assignFailed": "Falha ao atribuir permissão"
+    },
+    "invites": {
+      "createFailed": "Falha ao enviar convite"
     }
   },
   "today": {
@@ -743,16 +771,30 @@
       "heading": "Prioridades de hoje",
       "loadFailed": "Falha ao carregar tarefas.",
       "retry": "Tentar novamente",
-      "empty": "Nenhuma tarefa vencida ou para hoje."
+      "empty": "Nenhuma tarefa vencida ou para hoje.",
+      "emptyAction": "Criar primeira tarefa"
     },
     "savedViews": {
-      "myViews": "Minhas views"
+      "myViews": "Meus filtros salvos"
     },
     "activity": {
       "heading": "Atividade recente"
     },
+    "business": {
+      "heading": "Meu negócio",
+      "receivablesThisWeek": "A receber esta semana",
+      "openProposals": "Propostas abertas",
+      "expiringContracts": "Contratos a expirar",
+      "overdueTasks": "Entregas em atraso",
+      "viewProposals": "Ver propostas",
+      "viewContracts": "Ver contratos",
+      "viewTasks": "Ver tarefas",
+      "loadFailed": "Falha ao carregar visão de negócio.",
+      "retry": "Tentar novamente",
+      "empty": "Sem dados de negócio no momento."
+    },
     "page": {
-      "executiveCockpit": "Cockpit executivo",
+      "executiveCockpit": "Painel",
       "unreadNotifications": "{count} notificações não lidas"
     }
   },
@@ -789,9 +831,9 @@
       "savedToast": "Visualização salva",
       "saveFailed": "Falha ao salvar visualização",
       "removedToast": "Visualização removida",
-      "myViews": "Minhas views",
-      "saveView": "Salvar view",
-      "deleteView": "Excluir view",
+      "myViews": "Meus filtros salvos",
+      "saveView": "Salvar filtro",
+      "deleteView": "Excluir filtro",
       "saveViewTitle": "Salvar visualização",
       "saveDescription": "Salva filtros, ordenação e agrupamento atuais apenas para você.",
       "name": "Nome",
@@ -1197,8 +1239,8 @@
         "description": "Nome e logo exibidos nas propostas públicas"
       },
       "roles": {
-        "title": "Roles e permissões",
-        "description": "Crie roles customizadas e defina o que cada uma pode fazer"
+"title": "Permissões",
+        "description": "Crie permissões customizadas e defina o que cada uma pode fazer"
       }
     },
     "profile": {
@@ -1251,10 +1293,21 @@
       "noAreas": "Nenhuma área configurada.",
       "saving": "Salvando...",
       "save": "Salvar",
-      "roleLabel": "Role",
-      "noRole": "Sem role",
-      "roleSaved": "Role atualizada",
-      "noPermission": "Você não tem permissão para gerenciar a equipe."
+      "roleLabel": "Permissão",
+      "noRole": "Sem permissão",
+      "roleSaved": "Permissão atualizada",
+      "noPermission": "Você não tem permissão para gerenciar a equipe.",
+      "inviteTitle": "Convidar colaborador",
+      "inviteEmailPlaceholder": "colega@email.com",
+      "inviteButton": "Enviar convite",
+      "inviteSending": "Enviando...",
+      "inviteSuccess": "Convite enviado! Eles receberão um e-mail.",
+      "inviteHint": "O convite será enviado com a permissão padrão.",
+      "pendingInvites": "Convites pendentes",
+      "noPendingInvites": "Nenhum convite pendente.",
+      "soloHint": "Convide seu primeiro colaborador para desbloquear o gerenciamento de permissões.",
+      "rolesHiddenTitle": "Permissões",
+      "rolesHiddenDescription": "O gerenciamento de permissões aparecerá após você convidar seu primeiro colaborador."
     },
     "workspace": {
       "backToSettings": "Voltar para Configurações",
@@ -1265,6 +1318,9 @@
       "companyNameHint": "Usado nas variáveis {{empresa.nome}} e no cabeçalho público.",
       "logoUrlLabel": "URL do logo",
       "logoUrlHint": "Usado na variável {{empresa.logo}} e no cabeçalho público.",
+      "pixKeyLabel": "Chave PIX",
+      "pixKeyPlaceholder": "CPF, CNPJ, e-mail, telefone (+55…) ou chave aleatória",
+      "pixKeyHint": "Chave PIX copia-e-cola usada para receber pagamentos dos clientes.",
       "saving": "Salvando...",
       "save": "Salvar",
       "saved": "Configurações salvas"
@@ -1293,7 +1349,10 @@
       "templates": "Templates",
       "newProposal": "Nova proposta",
       "loadFailed": "Falha ao carregar propostas",
-      "emptyTitle": "Nenhuma proposta corresponde aos seus filtros",
+      "emptyTitle": "Nenhuma proposta ainda",
+      "emptyHint": "Crie sua primeira proposta para começar a conquistar clientes.",
+      "emptyHintSearch": "Nenhum resultado para \"{search}\"",
+      "emptyAction": "Criar primeira proposta",
       "tableLabel": "Propostas",
       "colCode": "Código",
       "colTitle": "Título",
@@ -1341,6 +1400,26 @@
       "rejected": "Proposta recusada",
       "linkCopied": "Link copiado",
       "confirmDelete": "Excluir a proposta {code}? Esta ação não pode ser desfeita."
+      ,"confirmContractTitle": "Confirmar contrato",
+      "confirmContractDescription": "Defina duração e cobrança. Cliente, itens e valor vieram da proposta aceita.",
+      "durationType": "Duração",
+      "durationFixed": "Prazo fixo",
+      "durationOpenEnded": "Recorrente sem prazo",
+      "durationOneTime": "Pagamento único",
+      "billingFrequency": "Frequência",
+      "frequencyMonthly": "Mensal",
+      "frequencyQuarterly": "Trimestral",
+      "frequencySemiannual": "Semestral",
+      "frequencyAnnual": "Anual",
+      "installmentCount": "Número de parcelas",
+      "scheduleAria": "Cronograma do contrato",
+      "dueDate": "Vencimento",
+      "installmentAmount": "Valor",
+      "scheduleTotal": "Total: {total} (valor oficial: {official})",
+      "activateContract": "Ativar contrato",
+      "activatingContract": "Ativando...",
+      "contractActivated": "Contrato ativado",
+      "contractActivationFailed": "Não foi possível ativar o contrato"
     },
     "form": {
       "previewFailed": "Falha ao gerar a pré-visualização",
@@ -1423,34 +1502,34 @@
   },
   "roles": {
     "page": {
-      "title": "Roles e permissões",
-      "subtitle": "Crie roles customizadas e controle o acesso a cada módulo e ação.",
-      "newRole": "Nova role",
-      "defaultRoleLabel": "Role padrão para novos usuários",
-      "defaultRoleHint": "Usuários recém-criados sem role atribuída recebem esta role automaticamente.",
+      "title": "Permissões",
+      "subtitle": "Crie permissões customizadas e controle o acesso a cada módulo e ação.",
+      "newRole": "Nova permissão",
+      "defaultRoleLabel": "Permissão padrão para novos usuários",
+      "defaultRoleHint": "Usuários recém-criados sem permissão atribuída recebem esta permissão automaticamente.",
       "noDefault": "Nenhuma (sem acesso)",
-      "listAria": "Lista de roles",
+      "listAria": "Lista de permissões",
       "adminBadge": "Admin",
       "defaultBadge": "Padrão",
       "permissionCount": "{count, plural, one {# permissão} other {# permissões}}",
       "userCount": "{count, plural, one {# usuário} other {# usuários}}",
       "edit": "Editar",
       "delete": "Excluir",
-      "deleteConfirm": "Excluir a role \"{name}\"? Os usuários atribuídos passarão a usar a role padrão (ou ficarão sem acesso).",
-      "deleted": "Role excluída",
-      "defaultSaved": "Role padrão atualizada",
-      "saved": "Role salva",
-      "loadFailed": "Falha ao carregar roles",
+      "deleteConfirm": "Excluir a permissão \"{name}\"? Os usuários atribuídos passarão a usar a permissão padrão (ou ficarão sem acesso).",
+      "deleted": "Permissão excluída",
+      "defaultSaved": "Permissão padrão atualizada",
+      "saved": "Permissão salva",
+      "loadFailed": "Falha ao carregar permissões",
       "retry": "Tentar novamente",
       "backToSettings": "Voltar para Configurações",
-      "noPermission": "Você não tem permissão para gerenciar roles.",
+      "noPermission": "Você não tem permissão para gerenciar permissões.",
       "view": "Ver"
     },
     "editor": {
-      "titleCreate": "Nova role",
-      "titleEdit": "Editar role",
-      "titleView": "Ver role",
-      "nameLabel": "Nome da role",
+      "titleCreate": "Nova permissão",
+      "titleEdit": "Editar permissão",
+      "titleView": "Ver permissão",
+      "nameLabel": "Nome da permissão",
       "namePlaceholder": "Ex.: Financeiro, Visualizador",
       "permissionsTitle": "Permissões",
       "scopeLabel": "Alcance",
@@ -1460,11 +1539,11 @@
         "project": "Projeto"
       },
       "previewTitle": "Pré-visualização",
-      "previewHint": "Recursos visíveis com esta role. O alcance define a abrangência do acesso.",
-      "previewAria": "Recursos visíveis com esta role",
+      "previewHint": "Recursos visíveis com esta permissão. O alcance define a abrangência do acesso.",
+      "previewAria": "Recursos visíveis com esta permissão",
       "previewEmpty": "Nenhum recurso selecionado",
-      "adminLocked": "A role Admin é fixa e não pode ser editada.",
-      "nameExists": "Já existe uma role com este nome neste workspace.",
+      "adminLocked": "A permissão Admin é fixa e não pode ser editada.",
+      "nameExists": "Já existe uma permissão com este nome nesta empresa.",
       "save": "Salvar",
       "saving": "Salvando...",
       "cancel": "Cancelar",
@@ -1509,7 +1588,7 @@
             "manageTemplates": "Gerenciar templates de proposta"
           }
         },
-        "manage_roles": "Gerenciar roles e permissões"
+        "manage_roles": "Gerenciar permissões"
       }
     }
   },
@@ -1520,11 +1599,11 @@
       "portalFailed": "Não foi possível abrir o portal de pagamento"
     },
     "expiration": {
-      "message": "Seu workspace foi cancelado. Modo somente leitura ativo até {date}."
+      "message": "Sua empresa foi cancelada. Modo somente leitura ativo até {date}."
     },
     "expired": {
-      "title": "Seu workspace expirou",
-      "message": "Seu acesso foi encerrado. Entre em contato para reativar seu workspace."
+      "title": "Sua empresa expirou",
+      "message": "Seu acesso foi encerrado. Entre em contato para reativar sua empresa."
     },
     "upgradeBanner": {
       "message": "Você está quase atingindo o limite de {resource} do seu plano.",
@@ -1609,6 +1688,39 @@
       "notComplete": "Pagamento não concluído",
       "notCompleteDescription": "Seu pagamento ainda não foi processado. Volte e tente novamente.",
       "missingSession": "Não foi possível localizar a sessão de pagamento."
+    }
+  },
+  "onboarding": {
+    "wizard": {
+      "ariaLabel": "Checklist de primeiros passos",
+      "title": "Primeiros passos",
+      "subtitle": "Configure sua empresa em 4 etapas.",
+      "dismiss": "Fechar onboarding",
+      "progressAria": "{percent}% concluído",
+      "done": "Feito",
+      "skipHint": "Você pode pular isso e voltar depois.",
+      "steps": {
+        "company": {
+          "title": "Configure sua empresa",
+          "description": "Adicione o nome e detalhes da sua empresa.",
+          "action": "Configurar"
+        },
+        "client": {
+          "title": "Adicione seu primeiro cliente",
+          "description": "Clientes são os negócios que você atende.",
+          "action": "Adicionar cliente"
+        },
+        "proposal": {
+          "title": "Crie uma proposta ou contrato",
+          "description": "Envie uma proposta ou assine um contrato.",
+          "action": "Criar"
+        },
+        "task": {
+          "title": "Crie sua primeira tarefa",
+          "description": "Tarefas acompanham o trabalho de entrega.",
+          "action": "Criar tarefa"
+        }
+      }
     }
   }
 }
