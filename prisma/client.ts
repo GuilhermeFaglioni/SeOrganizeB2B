@@ -24,22 +24,15 @@ function getDatabaseUrl(): string {
   return `${appendPgbouncer(baseUrl)}&connection_limit=1&pool_timeout=10`;
 }
 
-function getDirectUrl(): string {
-  // PgBouncer transaction mode (Supabase transaction pooler, port 6543) does
-  // not support prepared statements. Prisma needs `pgbouncer=true` on the
-  // directUrl too, otherwise `$queryRaw`/`$executeRaw` would fail when the
-  // connection points at the transaction pooler.
-  const baseUrl = process.env.DIRECT_URL;
-  return baseUrl ? appendPgbouncer(baseUrl) : "";
-}
-
 function createPrismaClient(): PrismaClient {
-  const directUrl = getDirectUrl();
+  // The alternate migration connection is a Prisma schema/CLI setting. Prisma
+  // 5's runtime constructor accepts only `{ url }` inside `datasources`; adding
+  // another sibling here makes every first database access throw a
+  // PrismaClientConstructorValidationError before any query runs.
   return new PrismaClient({
     datasources: {
       db: {
         url: getDatabaseUrl(),
-        ...(directUrl ? { directUrl } : {}),
       },
     },
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
