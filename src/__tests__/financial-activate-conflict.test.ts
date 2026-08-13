@@ -31,7 +31,7 @@ vi.mock("../../prisma/client", () => ({
   getTenantId: () => "tenant-1",
 }));
 
-import { activateContract } from "../lib/financial/contracts-service";
+import { activateContract, confirmContract } from "../lib/financial/contracts-service";
 import { FinancialConflictError } from "../lib/financial/lifecycle";
 import { toDecimal } from "../lib/financial/money";
 
@@ -51,6 +51,41 @@ const plan = [
 ];
 
 describe("activateContract conflict logic", () => {
+  it("confirms fields and activation in one transaction, rolling back on invalid plan", async () => {
+    resetTx();
+    const contractId = "confirm-1";
+    tx.contract.findUnique
+      .mockResolvedValueOnce({ status: "draft" })
+      .mockResolvedValueOnce({
+        id: contractId,
+        clientId: "client-1",
+        title: "Confirmed",
+        durationType: "fixed",
+        officialValue: toDecimal("100.00"),
+        startDate: "2026-09-01",
+        endDate: "2026-10-01",
+        billingFrequency: "monthly",
+        status: "draft",
+        predecessorId: null,
+        projects: [],
+      });
+
+    await expect(confirmContract(contractId, {
+      durationType: "fixed",
+      billingFrequency: "monthly",
+      startDate: "2026-09-01",
+      endDate: "2026-10-01",
+      paymentMethod: "pix",
+      plan: [{ expectedAmount: "99.99", dueDate: "2026-09-01", paymentMethod: "pix" }],
+    }, "actor-1")).rejects.toThrow("Installment total must equal");
+
+    expect(tx.contract.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: contractId },
+      data: expect.objectContaining({ durationType: "fixed", startDate: "2026-09-01" }),
+    }));
+    expect(tx.installment.createMany).not.toHaveBeenCalled();
+  });
+
   it("allows overlap with the active predecessor (renewal transfer)", async () => {
     resetTx();
 

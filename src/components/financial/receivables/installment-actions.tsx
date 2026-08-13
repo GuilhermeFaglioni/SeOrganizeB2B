@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { InvoiceView } from "@/components/financial/receivables/invoice-view";
 
 export function InstallmentActions({
   installment,
@@ -36,27 +37,38 @@ export function InstallmentActions({
   const [refundOpen, setRefundOpen] = useState(false);
   const [refundAmount, setRefundAmount] = useState("");
   const [refundDate, setRefundDate] = useState("");
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
 
   if (installment.status === "pending") {
     return (
-      <div className="flex flex-wrap gap-2">
-        {can("financial.receivables.markPaid") && (
-          <Button
-            size="sm"
-            onClick={() =>
-              markPaid.mutate({
-                id: installment.id,
-                paidAt: new Date().toISOString().slice(0, 10),
-              })
-            }
-          >
-            {t("markPaid")}
+      <>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => setInvoiceOpen(true)}>
+            {t("generateInvoice")}
           </Button>
-        )}
-        <Button size="sm" variant="outline" onClick={() => cancel.mutate(installment.id)}>
-          {t("cancel")}
-        </Button>
-      </div>
+          {can("financial.receivables.markPaid") && (
+            <Button
+              size="sm"
+              onClick={() =>
+                markPaid.mutate({
+                  id: installment.id,
+                  paidAt: new Date().toISOString().slice(0, 10),
+                })
+              }
+            >
+              {t("markPaid")}
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => cancel.mutate(installment.id)}>
+            {t("cancel")}
+          </Button>
+        </div>
+        <InvoiceView
+          installmentId={installment.id}
+          open={invoiceOpen}
+          onOpenChange={setInvoiceOpen}
+        />
+      </>
     );
   }
 

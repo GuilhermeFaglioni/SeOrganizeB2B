@@ -1,25 +1,59 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  proposalFindFirst: vi.fn(),
-  proposalUpdate: vi.fn(),
-  workspaceFindUnique: vi.fn(),
-}));
+const mocks = vi.hoisted(() => {
+  const proposalFindFirst = vi.fn();
+  const proposalFindUnique = vi.fn();
+  const proposalUpdateMany = vi.fn();
+  const proposalUpdate = vi.fn();
+  const contractFindUnique = vi.fn();
+  const contractFindFirst = vi.fn();
+  const contractCreate = vi.fn();
+  const workspaceFindUnique = vi.fn();
+
+  const tx = {
+    proposal: {
+      findUnique: proposalFindUnique,
+      updateMany: proposalUpdateMany,
+      update: proposalUpdate,
+    },
+    contract: {
+      findUnique: contractFindUnique,
+      findFirst: contractFindFirst,
+      create: contractCreate,
+    },
+  };
+
+  return {
+    proposalFindFirst,
+    proposalFindUnique,
+    proposalUpdateMany,
+    proposalUpdate,
+    contractFindUnique,
+    contractFindFirst,
+    contractCreate,
+    workspaceFindUnique,
+    tx,
+  };
+});
 
 vi.mock("../../prisma/client", () => ({
   prisma: {
     proposal: {
       findFirst: mocks.proposalFindFirst,
-      update: mocks.proposalUpdate,
     },
     workspace: {
       findUnique: mocks.workspaceFindUnique,
     },
+    $transaction: (cb: (tx: unknown) => unknown) => cb(mocks.tx),
   },
   withTenant: (_tenantId: string, fn: () => unknown) => fn(),
   withTenantBypass: (fn: () => unknown) => fn(),
   requireTenantId: () => "tenant-1",
   getTenantId: () => "tenant-1",
+}));
+
+vi.mock("../lib/financial/proposal-notifications", () => ({
+  notifyProposalEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
 import {
@@ -46,9 +80,9 @@ const publicProposal = {
 
 describe("proposal public links", () => {
   beforeEach(() => {
-    mocks.proposalFindFirst.mockReset();
-    mocks.proposalUpdate.mockReset();
-    mocks.workspaceFindUnique.mockReset();
+    Object.values(mocks).forEach((m) => {
+      if (typeof m === "function") m.mockReset();
+    });
     mocks.workspaceFindUnique.mockResolvedValue({ companyName: "SeOrganize+", logoUrl: null });
   });
 
@@ -74,6 +108,15 @@ describe("proposal public links", () => {
       status: "sent",
       viewedAt: null,
     });
+    mocks.proposalFindUnique.mockResolvedValue({
+      ...publicProposal,
+      status: "sent",
+      items: [],
+    });
+    mocks.proposalUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.contractFindUnique.mockResolvedValue(null);
+    mocks.contractFindFirst.mockResolvedValue(null);
+    mocks.contractCreate.mockResolvedValue({ id: "contract-1" });
     mocks.proposalUpdate.mockResolvedValue({ ...publicProposal, status: "accepted" });
 
     await acceptProposal(publicProposal.publicSlug, "Cliente");
@@ -86,8 +129,10 @@ describe("proposal public links", () => {
         ],
       },
     });
-    expect(mocks.proposalUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: publicProposal.id } })
+    expect(mocks.proposalUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: publicProposal.id, status: { not: "accepted" }, contractId: null },
+      })
     );
   });
 });

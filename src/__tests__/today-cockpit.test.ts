@@ -13,11 +13,12 @@ describe("Hoje cockpit", () => {
     expect(route).toContain("completesTasks: false");
   });
 
-  it("composes tasks, agenda, activity, and unread count", () => {
+  it("composes tasks, agenda, activity, business, and unread count", () => {
     const page = read("src/app/(authenticated)/app/page.tsx");
     expect(page).toContain("TodayTasks");
     expect(page).toContain("TodayAgenda");
     expect(page).toContain("TodayActivity");
+    expect(page).toContain("TodayBusiness");
     expect(page).toContain("unreadCount");
   });
 
@@ -25,5 +26,16 @@ describe("Hoje cockpit", () => {
     expect(read("src/components/layout/sidebar.tsx")).toContain(
       '{ href: "/app", label: t("today")'
     );
+  });
+
+  it("exposes a /api/today/business route that reuses financial overview permission", () => {
+    const route = read("src/app/api/today/business/route.ts");
+    expect(route).toContain("financial.overview.view");
+    expect(route).toContain("computeTodayBusiness");
+  });
+
+  it("calls checkAndNotifyInstallments on-demand from /api/today/business", () => {
+    const route = read("src/app/api/today/business/route.ts");
+    expect(route).toContain("checkAndNotifyInstallments");
   });
 });

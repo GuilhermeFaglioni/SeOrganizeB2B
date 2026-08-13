@@ -71,7 +71,7 @@ describe("workspace invites API", () => {
     mocks.mockProfileFindFirst.mockImplementation((args: { where?: { id?: string } }) =>
       Promise.resolve(args?.where?.id ? { tenantId: "ws-1" } : null)
     );
-    mocks.mockWorkspaceFindUnique.mockResolvedValue({ id: "ws-1", name: "Acme" });
+    mocks.mockWorkspaceFindUnique.mockResolvedValue({ id: "ws-1", name: "Acme", defaultRoleId: "default-role" });
     mocks.mockRoleFindFirst.mockResolvedValue({ id: "r2" });
   });
 
@@ -113,6 +113,70 @@ describe("workspace invites API", () => {
       })
     );
     expect(infoSpy).toHaveBeenCalled();
+    infoSpy.mockRestore();
+  });
+
+  it("auto-fills the workspace default role when no roleId is provided", async () => {
+    mocks.mockInviteFindFirst.mockResolvedValue(null);
+    mocks.mockInviteCreate.mockResolvedValue({
+      id: "inv-2",
+      workspaceId: "ws-1",
+      email: "solo@invite.com",
+      roleId: "default-role",
+      token: "tok2",
+      status: "pending",
+      expiresAt: future,
+    });
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+
+    const res = await createInvitePOST(
+      makeRequest("http://x/api/workspace/invites", {
+        email: "solo@invite.com",
+      })
+    );
+
+    expect(res.status).toBe(201);
+    expect(mocks.mockInviteCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          workspaceId: "ws-1",
+          email: "solo@invite.com",
+          roleId: "default-role",
+          status: "pending",
+        }),
+      })
+    );
+    infoSpy.mockRestore();
+  });
+
+  it("uses explicit roleId over workspace default when both are present", async () => {
+    mocks.mockInviteFindFirst.mockResolvedValue(null);
+    mocks.mockInviteCreate.mockResolvedValue({
+      id: "inv-3",
+      workspaceId: "ws-1",
+      email: "explicit@invite.com",
+      roleId: "r2",
+      token: "tok3",
+      status: "pending",
+      expiresAt: future,
+    });
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+
+    const res = await createInvitePOST(
+      makeRequest("http://x/api/workspace/invites", {
+        email: "explicit@invite.com",
+        roleId: "r2",
+      })
+    );
+
+    expect(res.status).toBe(201);
+    expect(mocks.mockInviteCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          roleId: "r2",
+        }),
+      })
+    );
     infoSpy.mockRestore();
   });
 

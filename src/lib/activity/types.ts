@@ -9,6 +9,7 @@ export interface RecordActivityInput {
   summary: string;
   metadata?: Prisma.InputJsonValue;
   notifyProfileIds?: string[];
+  tenantId?: string;
 }
 
 export interface ActivityItem {

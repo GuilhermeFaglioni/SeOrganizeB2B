@@ -108,7 +108,15 @@ export function ProposalList() {
       </div>
 
       {data.items.length === 0 ? (
-        <FinancialEmptyState title={t("emptyTitle")} />
+        <FinancialEmptyState
+          title={t("emptyTitle")}
+          hint={filters.search ? t("emptyHintSearch", { search: filters.search }) : t("emptyHint")}
+          action={
+            !filters.search && can("financial.proposals.create")
+              ? { label: t("emptyAction"), href: "/financial/proposals/new" }
+              : undefined
+          }
+        />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border bg-page-alt" aria-live="polite">
           <table className="w-full min-w-[760px] text-left text-sm" aria-label={t("tableLabel")}>

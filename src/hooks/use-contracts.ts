@@ -187,13 +187,23 @@ export function useContractLifecycle() {
       action,
       plan,
       effectiveDate,
-      retainedInstallmentIds,
+        retainedInstallmentIds,
+        durationType,
+        billingFrequency,
+        startDate,
+        endDate,
+        paymentMethod,
     }: {
       id: string;
       action: string;
       plan?: InstallmentPlanItem[];
       effectiveDate?: string;
-      retainedInstallmentIds?: string[];
+        retainedInstallmentIds?: string[];
+        durationType?: string;
+        billingFrequency?: string | null;
+        startDate?: string;
+        endDate?: string | null;
+        paymentMethod?: string;
     }) =>
       fetchJson(`/api/contracts/${id}/lifecycle`, {
         method: "POST",
@@ -203,12 +213,18 @@ export function useContractLifecycle() {
           plan,
           effectiveDate,
           retainedInstallmentIds,
+          durationType,
+          billingFrequency,
+          startDate,
+          endDate,
+          paymentMethod,
         }),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["overview"] });
       queryClient.invalidateQueries({ queryKey: ["receivables"] });
+      queryClient.invalidateQueries({ queryKey: ["proposals"] });
     },
     onError: () => toastError(t("lifecycleFailed")),
   });

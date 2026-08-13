@@ -24,6 +24,70 @@ import type {
   PaymentMethod,
 } from "./types";
 
+type ProposalForContract = {
+  id: string;
+  title: string;
+  clientId: string;
+  totalValue: Prisma.Decimal | null;
+  tenantId: string;
+  createdBy: string;
+  items: Array<{
+    name: string;
+    description: string | null;
+    quantity: Prisma.Decimal | null;
+    price: Prisma.Decimal | null;
+    position: number;
+  }>;
+};
+
+/** Creates the pre-filled draft while the proposal acceptance transaction is open. */
+export async function createContractDraftFromProposal(
+  tx: Prisma.TransactionClient,
+  proposal: ProposalForContract
+) {
+  const existing = await tx.proposal.findUnique({
+    where: { id: proposal.id },
+    select: { contractId: true },
+  });
+  if (existing?.contractId) {
+    return tx.contract.findUnique({
+      where: { id: existing.contractId },
+      include: { client: true, items: true, projects: true },
+    });
+  }
+
+  const contract = await tx.contract.create({
+    data: {
+      code: await nextContractCode(tx),
+      title: proposal.title,
+      clientId: proposal.clientId,
+      ownerId: proposal.createdBy,
+      status: "draft",
+      officialValue: proposal.totalValue,
+      startDate: new Date().toISOString().slice(0, 10),
+      paymentMethod: "pix",
+      tenantId: proposal.tenantId,
+      items: {
+        create: proposal.items.map((item) => ({
+          name: item.name,
+          description: item.description,
+          quantity: item.quantity,
+          price: item.price,
+          position: item.position,
+          tenantId: proposal.tenantId,
+        })),
+      },
+    },
+    include: { client: true, items: true, projects: true },
+  });
+
+  await tx.proposal.update({
+    where: { id: proposal.id },
+    data: { contractId: contract.id },
+  });
+  return contract;
+}
+
 export async function nextContractCode(
   tx: Prisma.TransactionClient
 ): Promise<string> {
@@ -287,6 +351,58 @@ export async function activateContract(
   actorId: string
 ) {
   return prisma.$transaction(async (tx) => {
+    return activateContractInTransaction(tx, contractId, plan, actorId);
+  });
+}
+
+export interface ConfirmContractInput {
+  durationType: string;
+  billingFrequency?: string | null;
+  startDate: string;
+  endDate?: string | null;
+  paymentMethod: PaymentMethod;
+  plan: InstallmentPlanItem[];
+}
+
+/** Updates confirmation fields and activates in the same database transaction. */
+export async function confirmContract(
+  contractId: string,
+  input: ConfirmContractInput,
+  actorId: string
+) {
+  return prisma.$transaction(async (tx) => {
+    const contract = await tx.contract.findUnique({
+      where: { id: contractId },
+      select: { status: true },
+    });
+    if (!contract) throw new FinancialValidationError("Contract not found");
+    if (contract.status !== "draft") {
+      throw new FinancialConflictError(
+        "Only draft contracts can be activated"
+      );
+    }
+
+    await tx.contract.update({
+      where: { id: contractId },
+      data: {
+        durationType: input.durationType,
+        billingFrequency: input.billingFrequency ?? null,
+        startDate: input.startDate,
+        endDate: input.endDate ?? null,
+        paymentMethod: input.paymentMethod,
+      },
+    });
+
+    return activateContractInTransaction(tx, contractId, input.plan, actorId);
+  });
+}
+
+async function activateContractInTransaction(
+  tx: Prisma.TransactionClient,
+  contractId: string,
+  plan: InstallmentPlanItem[],
+  actorId: string
+) {
     const contract = await tx.contract.findUnique({
       where: { id: contractId },
       include: { projects: true },
@@ -390,7 +506,6 @@ export async function activateContract(
     }
 
     return updated;
-  });
 }
 
 export interface LifecyclePayload {

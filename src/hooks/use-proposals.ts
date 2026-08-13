@@ -60,6 +60,7 @@ export interface WorkspaceData {
   id: string;
   companyName: string | null;
   logoUrl: string | null;
+  pixKey: string | null;
 }
 
 export function useProposals(filters: ProposalListFilters) {
@@ -262,7 +263,7 @@ export function useUpdateWorkspace() {
   const t = useTranslations("hooks.proposals");
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { companyName?: string; logoUrl?: string }) =>
+    mutationFn: (data: { companyName?: string; logoUrl?: string; pixKey?: string }) =>
       fetchJson("/api/settings/workspace", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
