@@ -294,6 +294,8 @@
       "createAccountFailed": "Falha ao criar conta",
       "checkingAuth": "Verificando autenticação...",
       "checkingWorkspace": "Verificando empresa...",
+      "workspaceLoadFailed": "Não foi possível carregar sua empresa. Tente novamente.",
+      "retry": "Tentar novamente",
       "backToSite": "Voltar ao site"
     }
   },
