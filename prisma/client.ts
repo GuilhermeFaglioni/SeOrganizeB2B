@@ -9,6 +9,11 @@ const TENANT_FILTER_INSTALLED = Symbol.for(
   "seorganize.prisma.tenantFilterInstalled"
 );
 
+function appendPgbouncer(baseUrl: string): string {
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${separator}pgbouncer=true`;
+}
+
 function getDatabaseUrl(): string {
   const baseUrl = process.env.DATABASE_URL;
   if (!baseUrl) {
@@ -16,13 +21,27 @@ function getDatabaseUrl(): string {
       "DATABASE_URL is not set. Add it to your environment to connect to the database."
     );
   }
-  const separator = baseUrl.includes("?") ? "&" : "?";
-  return `${baseUrl}${separator}pgbouncer=true&connection_limit=1&pool_timeout=10`;
+  return `${appendPgbouncer(baseUrl)}&connection_limit=1&pool_timeout=10`;
+}
+
+function getDirectUrl(): string {
+  // PgBouncer transaction mode (Supabase transaction pooler, port 6543) does
+  // not support prepared statements. Prisma needs `pgbouncer=true` on the
+  // directUrl too, otherwise `$queryRaw`/`$executeRaw` would fail when the
+  // connection points at the transaction pooler.
+  const baseUrl = process.env.DIRECT_URL;
+  return baseUrl ? appendPgbouncer(baseUrl) : "";
 }
 
 function createPrismaClient(): PrismaClient {
+  const directUrl = getDirectUrl();
   return new PrismaClient({
-    datasources: { db: { url: getDatabaseUrl() } },
+    datasources: {
+      db: {
+        url: getDatabaseUrl(),
+        ...(directUrl ? { directUrl } : {}),
+      },
+    },
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 }
