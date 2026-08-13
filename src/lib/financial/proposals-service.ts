@@ -28,13 +28,27 @@ export async function nextProposalCode(
 ): Promise<string> {
   const year = new Date().getUTCFullYear();
   const prefix = `PRP-${year}-`;
-  const last = await tx.proposal.findFirst({
-    where: { code: { startsWith: prefix } },
-    orderBy: { code: "desc" },
-    select: { code: true },
-  });
-  const sequence = last ? parseInt(last.code.slice(-4), 10) + 1 : 1;
-  return proposalCode(year, sequence);
+  // The code has a global unique index, so serialize allocation across
+  // tenants as well as across concurrent requests in the same tenant.
+  await tx.$executeRaw`
+    SELECT pg_advisory_xact_lock(hashtextextended(${prefix}, 0))
+  `;
+
+  const rows = await withTenantBypass(() =>
+    tx.proposal.findMany({
+      where: { code: { startsWith: prefix } },
+      select: { code: true },
+    })
+  );
+
+  const lastSequence = rows.reduce((highest, { code }) => {
+    const sequence = Number.parseInt(code.slice(prefix.length), 10);
+    return Number.isSafeInteger(sequence) && sequence > highest
+      ? sequence
+      : highest;
+  }, 0);
+
+  return proposalCode(year, lastSequence + 1);
 }
 
 export interface ProposalDraftInput {

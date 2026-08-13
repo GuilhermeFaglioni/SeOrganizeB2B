@@ -47,6 +47,15 @@ describe("financial transactional services", () => {
     expect(source).toContain("contractCode(");
   });
 
+  it("serializes proposal code allocation across concurrent transactions", () => {
+    const source = read("src/lib/financial/proposals-service.ts");
+    expect(source).toContain("nextProposalCode");
+    expect(source).toContain("pg_advisory_xact_lock");
+    expect(source).toContain("hashtextextended");
+    expect(source).toContain("withTenantBypass");
+    expect(source).toContain("lastSequence");
+  });
+
   it("protects paid installments and enforces refund limits", () => {
     const source = read("src/lib/financial/installments-service.ts");
     expect(source).toContain("refundableValue");
