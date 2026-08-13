@@ -10,17 +10,19 @@ export function ModuleGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isModuleAllowed, isAnyFinancialAllowed } = useAllowedModules();
 
+  const moduleName = moduleForPagePath(pathname);
+  const blocked = moduleName
+    ? moduleName === "financial"
+      ? !isAnyFinancialAllowed()
+      : !isModuleAllowed(moduleName)
+    : false;
+
   useEffect(() => {
-    const moduleName = moduleForPagePath(pathname);
-    if (!moduleName) return;
-    const blocked =
-      moduleName === "financial"
-        ? !isAnyFinancialAllowed()
-        : !isModuleAllowed(moduleName);
-    if (blocked) {
+    if (blocked && moduleName) {
       router.replace(`/plans?module=${encodeURIComponent(moduleName)}`);
     }
-  }, [pathname, isModuleAllowed, isAnyFinancialAllowed, router]);
+  }, [blocked, moduleName, router]);
 
+  if (blocked) return null;
   return <>{children}</>;
 }

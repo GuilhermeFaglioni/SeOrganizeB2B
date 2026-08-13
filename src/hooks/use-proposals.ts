@@ -254,7 +254,7 @@ export function useCloneProposal() {
 
 export function useWorkspace() {
   return useQuery<WorkspaceData>({
-    queryKey: ["workspace"],
+    queryKey: ["workspace-settings"],
     queryFn: () => fetchJson<WorkspaceData>("/api/settings/workspace"),
   });
 }
@@ -270,6 +270,7 @@ export function useUpdateWorkspace() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspace-settings"] });
       queryClient.invalidateQueries({ queryKey: ["workspace"] });
     },
     onError: () => toastError(t("workspaceUpdateFailed")),

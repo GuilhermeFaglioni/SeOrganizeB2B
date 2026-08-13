@@ -22,7 +22,7 @@ export default function AuthenticatedLayout({
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: { staleTime: 30 * 1000, retry: 1 },
+          queries: { staleTime: 30 * 1000, retry: false, refetchOnWindowFocus: false },
         },
       })
   );
