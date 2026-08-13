@@ -4,6 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/stores/auth-context";
+import { useProfile } from "@/hooks/use-profile";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { WorkspaceProvider } from "@/stores/workspace-context";
 import { GracePeriodBanner } from "@/components/billing/grace-period-banner";
@@ -15,7 +16,9 @@ import { getWorkspaceAccessMode } from "@/lib/workspace/access";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
-  const workspaceQuery = useWorkspace();
+  const authReady = !isLoading && Boolean(user);
+  const profileQuery = useProfile(user?.id, { enabled: authReady });
+  const workspaceQuery = useWorkspace({ enabled: authReady && profileQuery.isSuccess });
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations("auth.login");
@@ -45,6 +48,21 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return null;
+  }
+
+  if (profileQuery.isLoading) {
+    return <LoadingState text={t("checkingWorkspace")} />;
+  }
+
+  if (profileQuery.isError) {
+    return (
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 p-6 text-center">
+        <p className="text-body text-text-secondary">{t("workspaceLoadFailed")}</p>
+        <Button type="button" onClick={() => profileQuery.refetch()}>
+          {t("retry")}
+        </Button>
+      </div>
+    );
   }
 
   if (workspaceQuery.isLoading) {
