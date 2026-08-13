@@ -21,7 +21,12 @@ const statements = [
     CONSTRAINT "roles_pkey" PRIMARY KEY ("id")
   )`,
   `ALTER TABLE "roles" ADD COLUMN IF NOT EXISTS "is_admin" BOOLEAN NOT NULL DEFAULT false`,
-  `CREATE UNIQUE INDEX IF NOT EXISTS "roles_name_key" ON "roles"("name")`,
+  `ALTER TABLE "roles" ADD COLUMN IF NOT EXISTS "tenant_id" TEXT`,
+  // The single-tenant unique on name alone blocks the second account's
+  // seedWorkspaceRoles ("Admin" already exists globally -> P2002). Drop it and
+  // enforce uniqueness per (name, tenant_id) instead.
+  `DROP INDEX IF EXISTS "roles_name_key"`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "roles_name_tenant_id_key" ON "roles"("name", "tenant_id")`,
   `CREATE INDEX IF NOT EXISTS "roles_is_admin_idx" ON "roles"("is_admin")`,
   `ALTER TABLE "profiles" ADD COLUMN IF NOT EXISTS "role_id" TEXT`,
   `DO $$
@@ -31,8 +36,8 @@ const statements = [
          FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
      END IF;
    END $$`,
-  `INSERT INTO "roles" ("id", "name", "permissions", "is_admin", "created_at", "updated_at")
-   SELECT '00000000-0000-0000-0000-000000000001', 'Admin', '[]', true, now(), now()
+  `INSERT INTO "roles" ("id", "name", "permissions", "is_admin", "tenant_id", "created_at", "updated_at")
+   SELECT '00000000-0000-0000-0000-000000000001', 'Admin', '[]', true, '00000000-0000-0000-0000-000000000001', now(), now()
    WHERE NOT EXISTS (SELECT 1 FROM "roles" WHERE "id" = '00000000-0000-0000-0000-000000000001')`,
   `UPDATE "roles" SET "is_admin" = true, "name" = 'Admin'
    WHERE "id" = '00000000-0000-0000-0000-000000000001'`,
