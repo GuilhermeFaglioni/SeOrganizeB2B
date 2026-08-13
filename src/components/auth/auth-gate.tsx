@@ -10,6 +10,7 @@ import { GracePeriodBanner } from "@/components/billing/grace-period-banner";
 import { UpgradeBanner } from "@/components/billing/upgrade-banner";
 import { ExpirationBanner } from "@/components/billing/expiration-banner";
 import { LoadingState } from "@/components/shared/loading-state";
+import { Button } from "@/components/ui/button";
 import { getWorkspaceAccessMode } from "@/lib/workspace/access";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
@@ -48,6 +49,17 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (workspaceQuery.isLoading) {
     return <LoadingState text={t("checkingWorkspace")} />;
+  }
+
+  if (workspaceQuery.isError) {
+    return (
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 p-6 text-center">
+        <p className="text-body text-text-secondary">{t("workspaceLoadFailed")}</p>
+        <Button type="button" onClick={() => workspaceQuery.refetch()}>
+          {t("retry")}
+        </Button>
+      </div>
+    );
   }
 
   const readOnly = mode === "readonly";

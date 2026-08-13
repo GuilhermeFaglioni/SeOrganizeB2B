@@ -294,6 +294,8 @@
       "createAccountFailed": "Failed to create account",
       "checkingAuth": "Checking authentication...",
       "checkingWorkspace": "Checking company...",
+      "workspaceLoadFailed": "We couldn't load your workspace. Please try again.",
+      "retry": "Retry",
       "backToSite": "Back to site"
     }
   },
