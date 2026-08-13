@@ -15,9 +15,21 @@ export async function GET() {
   const name = user.user_metadata?.full_name || user.email || "Sistema";
 
   const existing = await prisma.profile.findUnique({ where: { id: user.id } });
-  const profile = existing
-    ? await prisma.profile.update({ where: { id: user.id }, data: { email } })
-    : await createProfileWithWorkspace({ id: user.id, email, name });
+  let profile;
+  if (existing) {
+    profile = await prisma.profile.update({ where: { id: user.id }, data: { email } });
+  } else {
+    try {
+      profile = await createProfileWithWorkspace({ id: user.id, email, name });
+    } catch (error) {
+      // I18nProvider and AuthGate can initialize a freshly authenticated user
+      // concurrently. If the other request won the profile unique constraint,
+      // reuse its profile instead of surfacing a transient 500.
+      if (!isUniqueViolation(error)) throw error;
+      profile = await prisma.profile.findUnique({ where: { id: user.id } });
+      if (!profile) throw error;
+    }
+  }
 
   return NextResponse.json({ data: profile, error: null });
 }
@@ -71,4 +83,13 @@ export async function PATCH(request: NextRequest) {
   });
 
   return NextResponse.json({ data: { id: updated.id, name: updated.name, email: updated.email, locale: updated.locale }, error: null });
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
+  );
 }

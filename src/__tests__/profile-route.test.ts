@@ -79,6 +79,19 @@ describe("GET /api/profile onboarding", () => {
     expect(mocks.mockCreateProfileWithWorkspace).not.toHaveBeenCalled();
   });
 
+  it("recovers when another request creates the profile concurrently", async () => {
+    mocks.mockProfileFindUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: "user-1", tenantId: "ws-new" });
+    mocks.mockCreateProfileWithWorkspace.mockRejectedValue({ code: "P2002" });
+
+    const res = await GET();
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data).toEqual({ id: "user-1", tenantId: "ws-new" });
+  });
+
   it("does not connect new users to a shared default workspace", () => {
     const source = readFileSync(
       resolve(__dirname, "../app/api/profile/route.ts"),

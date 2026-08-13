@@ -83,7 +83,7 @@ describe("AuthGate workspace status gating", () => {
   });
 
   it("caches workspace data via React Query", () => {
-    expect(authGateSource).toContain("useWorkspace()");
+    expect(authGateSource).toContain("useWorkspace({ enabled:");
     const hook = readFileSync(
       new URL("../hooks/use-workspace.ts", import.meta.url),
       "utf8"
@@ -92,6 +92,12 @@ describe("AuthGate workspace status gating", () => {
     expect(hook).toContain("\"/api/workspace\"");
     expect(hook).toContain("queryKey: [\"workspace\"]");
     expect(hook).toContain("staleTime");
+  });
+
+  it("initializes the authenticated profile before loading the workspace", () => {
+    expect(authGateSource).toContain("useProfile(user?.id");
+    expect(authGateSource).toContain("profileQuery.isSuccess");
+    expect(authGateSource).toContain("useWorkspace({ enabled:");
   });
 
   it("keeps redirecting unauthenticated users to /login", () => {

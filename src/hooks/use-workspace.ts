@@ -34,10 +34,11 @@ export interface WorkspaceData {
   };
 }
 
-export function useWorkspace() {
+export function useWorkspace(options?: { enabled?: boolean }) {
   return useQuery<WorkspaceData>({
     queryKey: ["workspace"],
     queryFn: () => fetchJson<WorkspaceData>("/api/workspace"),
+    enabled: options?.enabled ?? true,
     staleTime: 60 * 1000,
   });
 }
