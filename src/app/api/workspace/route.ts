@@ -51,9 +51,21 @@ async function getWorkspaceForUser(userId: string) {
     where: { id: userId },
     select: {
       tenant: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logoUrl: true,
+          companyName: true,
+          status: true,
+          gracePeriodEndsAt: true,
           plan: {
-            include: { planLimits: true },
+            select: {
+              id: true,
+              name: true,
+              allowedModules: true,
+              planLimits: true,
+            },
           },
         },
       },
