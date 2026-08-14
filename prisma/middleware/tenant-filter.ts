@@ -72,6 +72,8 @@ export async function withTenantBypass<T>(fn: () => T | Promise<T>): Promise<T> 
  *  - Invite    -> has NO tenantId column; scoped by workspaceId (the tenant
  *                 itself), so it must not receive a tenantId filter either.
  *  - ReadOnlyAccess -> has NO tenantId column; scoped by its bearer token.
+ *  - WorkspaceBindingAttempt -> scoped by authenticated user ID before a
+ *                 Profile exists, so it must not receive a tenantId filter.
  * Everything else with a `tenantId` column is tenant-scoped.
  */
 const EXEMPT_MODELS = new Set([
@@ -81,6 +83,7 @@ const EXEMPT_MODELS = new Set([
   "PlanLimit",
   "Invite",
   "ReadOnlyAccess",
+  "WorkspaceBindingAttempt",
 ]);
 
 /**

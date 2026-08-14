@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   mockGetProposalTemplate: vi.fn(),
   mockGetWorkspaceSettings: vi.fn(),
   mockUpdateWorkspaceSettings: vi.fn(),
+  mockGetTenantContext: vi.fn(),
 }));
 
 vi.mock("../../prisma/client", () => ({
@@ -33,13 +34,7 @@ vi.mock("../../prisma/client", () => ({
 }));
 
 vi.mock("@/lib/authz/tenant-context", () => ({
-  getTenantContext: vi.fn().mockResolvedValue({
-    tenantId: "tenant-1",
-    workspaceStatus: "active",
-    gracePeriodEndsAt: null,
-    cancelledAt: null,
-    isAdmin: true,
-  }),
+  getTenantContext: mocks.mockGetTenantContext,
 }));
 
 vi.mock("@/lib/authz/authz", () => ({
@@ -120,6 +115,7 @@ import { POST as sendProposalPOST } from "../app/api/proposals/[id]/send/route";
 import { POST as publicAcceptPOST } from "../app/api/p/[token]/route";
 import { POST as createTemplatePOST } from "../app/api/proposal-templates/route";
 import { GET as workspaceGET } from "../app/api/settings/workspace/route";
+import { PATCH as workspacePATCH } from "../app/api/settings/workspace/route";
 
 const makeRequest = (url: string, body?: unknown, method?: string) =>
   new NextRequest(url, {
@@ -140,6 +136,13 @@ const mockProposal = {
 describe("proposals API", () => {
   beforeEach(() => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
+    mocks.mockGetTenantContext.mockResolvedValue({
+      tenantId: "tenant-1",
+      workspaceStatus: "active",
+      gracePeriodEndsAt: null,
+      cancelledAt: null,
+      isAdmin: true,
+    });
   });
 
   afterEach(() => {
@@ -244,5 +247,40 @@ describe("proposals API", () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.data.companyName).toBe("Acme");
+  });
+
+  it("allows an admin to configure the binding code", async () => {
+    mocks.mockUpdateWorkspaceSettings.mockResolvedValue({
+      id: "tenant-1",
+      hasBindingCode: true,
+    });
+
+    const res = await workspacePATCH(
+      makeRequest("http://x/api/settings/workspace", {
+        bindingCode: "Acme-Join-2026",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(mocks.mockUpdateWorkspaceSettings).toHaveBeenCalledWith(
+      { bindingCode: "Acme-Join-2026" },
+      "tenant-1",
+    );
+  });
+
+  it("rejects binding-code changes from non-admins", async () => {
+    mocks.mockGetTenantContext.mockResolvedValue({
+      tenantId: "tenant-1",
+      isAdmin: false,
+    });
+
+    const res = await workspacePATCH(
+      makeRequest("http://x/api/settings/workspace", {
+        bindingCode: "Acme-Join-2026",
+      }),
+    );
+
+    expect(res.status).toBe(403);
+    expect(mocks.mockUpdateWorkspaceSettings).not.toHaveBeenCalled();
   });
 });

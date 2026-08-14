@@ -115,9 +115,11 @@ Transformar o SaaS de single-tenant para multi-tenant com isolamento via `tenant
 - **Prioridade:** Alta
 
 ### T-013: Criar fluxo de convite de colaboradores
-- `POST /api/workspace/invites` — Criar invite via email
+- `POST /api/workspace/invites` — Criar invite sem envio de email; exige código de vinculação configurado
 - `GET /api/workspace/invites` — Lista de invites pendentes
-- `POST /api/workspace/invites/[id]/accept` — Aceitar invite (fluxo de signup + vínculo ao workspace)
+- `DELETE /api/workspace/invites/[id]` — Cancelar invite como admin
+- `GET /api/onboarding/status` — Verificar se o usuário precisa informar um código
+- `POST /api/onboarding/bind` — Vincular usuário autenticado ao workspace pelo código
 - **Depende de:** T-009, T-004
 - **Prioridade:** Alta
 
@@ -134,7 +136,7 @@ Transformar o SaaS de single-tenant para multi-tenant com isolamento via `tenant
 - [ ] AuthGate bloqueia acesso quando workspace está `cancelled` e passou de 30 dias
 - [ ] AuthGate mostra banner de aviso quando workspace está em `grace_period`
 - [ ] AuthGate permite acesso normal quando workspace está `active`
-- [ ] Fluxo de convite: admin envia invite → email chega → colaborador aceita → profile criado vinculado ao workspace
+- [ ] Fluxo de convite: admin configura código → registra email → colaborador cria conta, informa o código e tem o profile vinculado ao workspace
 - [ ] `GET /api/workspace/invites` retorna lista pendente corretamente
 - [ ] Invite expira após tempo configurado (se houver política de expiração)
 - [ ] Testes unitários cobrem: workspace creation, invite flow, auth gate status checks

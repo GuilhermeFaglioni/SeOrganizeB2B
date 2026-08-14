@@ -30,22 +30,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signInWithGoogle, signInWithMagicLink, signInWithPassword, signUp } = useAuth();
-
-  const handleMagicLink = async () => {
-    if (!email) return;
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    try {
-      await signInWithMagicLink(email);
-      setSuccess(t("magicLinkSent"));
-    } catch {
-      setError(t("magicLinkFailed"));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { signInWithGoogle, signInWithPassword, signUp } = useAuth();
 
   const handlePasswordSignIn = async () => {
     setLoading(true);
@@ -53,7 +38,6 @@ export default function LoginPage() {
     setSuccess("");
     try {
       await signInWithPassword(email, password);
-      await fetch("/api/profile");
       router.push("/app");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("invalidCredentials"));
@@ -77,7 +61,6 @@ export default function LoginPage() {
       } else if (!data.session) {
         setSuccess(t("accountCreated"));
       } else {
-        await fetch("/api/profile");
         router.push("/app");
       }
     } catch (err) {
@@ -190,18 +173,6 @@ export default function LoginPage() {
                 ? t("signIn")
                 : t("createAccount")}
           </Button>
-
-          {mode === "login" && (
-            <Button
-              type="button"
-              variant="link"
-              className="w-full text-sm"
-              onClick={handleMagicLink}
-              disabled={loading || !email}
-            >
-              {t("sendMagicLink")}
-            </Button>
-          )}
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">

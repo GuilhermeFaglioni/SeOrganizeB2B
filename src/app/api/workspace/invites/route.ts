@@ -46,7 +46,9 @@ export async function POST(request: Request) {
 
   try {
     const invite = await createInvite({ workspaceId, email, roleId });
-    return NextResponse.json({ data: invite, error: null }, { status: 201 });
+    const { token, ...publicInvite } = invite;
+    void token;
+    return NextResponse.json({ data: publicInvite, error: null }, { status: 201 });
   } catch (error) {
     if (error instanceof InviteValidationError) {
       return NextResponse.json(

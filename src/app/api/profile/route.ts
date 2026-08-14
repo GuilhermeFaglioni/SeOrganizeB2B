@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAppLocale } from "@/i18n/config";
 import { createProfileWithWorkspace } from "@/lib/authz/workspace-setup";
+import { getOnboardingStatus } from "@/lib/invites/service";
 
 export async function GET() {
   const user = await getUser();
@@ -11,7 +12,7 @@ export async function GET() {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
 
-  const email = user.email || "Sistema";
+  const email = user.email?.trim().toLowerCase() || "sistema";
   const name = user.user_metadata?.full_name || user.email || "Sistema";
 
   const existing = await prisma.profile.findUnique({ where: { id: user.id } });
@@ -19,6 +20,22 @@ export async function GET() {
   if (existing) {
     profile = await prisma.profile.update({ where: { id: user.id }, data: { email } });
   } else {
+    const onboarding = await getOnboardingStatus({
+      userId: user.id,
+      email,
+    });
+    if (onboarding.status !== "workspace_creation_required") {
+      return NextResponse.json(
+        {
+          data: onboarding,
+          error: {
+            code: "ONBOARDING_REQUIRED",
+            message: "Workspace onboarding requires another step",
+          },
+        },
+        { status: 409 },
+      );
+    }
     try {
       profile = await createProfileWithWorkspace({ id: user.id, email, name });
     } catch (error) {

@@ -290,7 +290,7 @@
       "invalidCredentials": "E-mail ou senha inválidos",
       "passwordsDontMatch": "As senhas não coincidem",
       "accountExists": "Já existe uma conta com este e-mail.",
-      "accountCreated": "Conta criada! Verifique seu e-mail para confirmar.",
+      "accountCreated": "Conta criada! Continue para configurar sua empresa.",
       "createAccountFailed": "Falha ao criar conta",
       "checkingAuth": "Verificando autenticação...",
       "checkingWorkspace": "Verificando empresa...",
@@ -1301,10 +1301,15 @@
       "noPermission": "Você não tem permissão para gerenciar a equipe.",
       "inviteTitle": "Convidar colaborador",
       "inviteEmailPlaceholder": "colega@email.com",
-      "inviteButton": "Enviar convite",
-      "inviteSending": "Enviando...",
-      "inviteSuccess": "Convite enviado! Eles receberão um e-mail.",
-      "inviteHint": "O convite será enviado com a permissão padrão.",
+      "inviteButton": "Adicionar colaborador",
+      "inviteSending": "Adicionando...",
+      "inviteSuccess": "Convite enviado",
+      "inviteHint": "O colaborador deverá criar uma conta e informar o código de vinculação da empresa.",
+      "invitePending": "Pendente",
+      "inviteExpired": "Expirado",
+      "cancelInvite": "Cancelar convite",
+      "inviteCancelled": "Convite cancelado.",
+      "cancelFailed": "Falha ao cancelar convite",
       "pendingInvites": "Convites pendentes",
       "noPendingInvites": "Nenhum convite pendente.",
       "soloHint": "Convide seu primeiro colaborador para desbloquear o gerenciamento de permissões.",
@@ -1323,9 +1328,18 @@
       "pixKeyLabel": "Chave PIX",
       "pixKeyPlaceholder": "CPF, CNPJ, e-mail, telefone (+55…) ou chave aleatória",
       "pixKeyHint": "Chave PIX copia-e-cola usada para receber pagamentos dos clientes.",
+      "bindingCodeLabel": "Código de vinculação",
+      "bindingCodePlaceholder": "Digite um código com pelo menos 8 caracteres",
+      "bindingCodeHint": "Compartilhe este código manualmente com colaboradores convidados.",
+      "bindingCodeConfiguredHint": "Um código já está configurado. Informar um novo substituirá o anterior para convites pendentes.",
+      "bindingCodeConfirmLabel": "Confirmar código de vinculação",
+      "bindingCodeConfirmPlaceholder": "Repita o código de vinculação",
+      "bindingCodeShareHint": "O colaborador precisará deste código ao criar a conta.",
+      "bindingCodeMismatch": "Os códigos de vinculação não coincidem.",
       "saving": "Salvando...",
       "save": "Salvar",
-      "saved": "Configurações salvas"
+      "saved": "Configurações salvas",
+      "saveFailed": "Falha ao salvar configurações da empresa"
     }
   },
   "proposals": {
@@ -1723,6 +1737,21 @@
           "action": "Criar tarefa"
         }
       }
+    },
+    "binding": {
+      "checking": "Verificando vinculação...",
+      "title": "Vincular empresa",
+      "description": "Informe o código de vinculação compartilhado pelo admin da empresa.",
+      "codeLabel": "Código de vinculação",
+      "codePlaceholder": "Digite o código",
+      "bindButton": "Vincular empresa",
+      "binding": "Vinculando...",
+      "invalidCode": "Não foi possível verificar o código.",
+      "setupRequired": "A vinculação ainda não está configurada. Solicite ao admin que configure o código da empresa.",
+      "expired": "O convite expirou. Solicite ao admin que registre um novo convite.",
+      "loadFailed": "Não foi possível verificar o estado da vinculação.",
+      "retry": "Tentar novamente",
+      "signOut": "Sair"
     }
   }
 }

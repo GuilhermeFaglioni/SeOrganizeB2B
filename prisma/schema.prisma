@@ -78,6 +78,8 @@ model Workspace {
   defaultRoleId     String?   @map("default_role_id")
   stripeCustomerId  String?   @map("stripe_customer_id")
   pixKey            String?   @map("pix_key")
+  bindingCodeHash   String?   @map("binding_code_hash")
+  bindingCodeUpdatedAt DateTime? @map("binding_code_updated_at")
   planId            String?   @map("plan_id")
   status            String    @default("active")
   gracePeriodEndsAt DateTime? @map("grace_period_ends_at")
@@ -142,7 +144,20 @@ model Invite {
 
   @@index([workspaceId])
   @@index([email])
+  @@index([email, status, expiresAt])
   @@map("invites")
+}
+
+model WorkspaceBindingAttempt {
+  id              String    @id @default(uuid())
+  userId          String    @unique @map("user_id")
+  attemptCount    Int       @default(0) @map("attempt_count")
+  windowStartedAt DateTime  @map("window_started_at")
+  blockedUntil    DateTime? @map("blocked_until")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("workspace_binding_attempts")
 }
 
 model ReadOnlyAccess {
