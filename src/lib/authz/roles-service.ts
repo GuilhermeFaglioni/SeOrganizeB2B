@@ -192,22 +192,24 @@ export async function assignRole(
   });
 }
 
-export async function listTeam() {
-  const profiles = await prisma.profile.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      avatarUrl: true,
-      roleId: true,
-      role: { select: { id: true, name: true, isAdmin: true } },
-      teamMemberAreas: {
-        include: { area: { select: { id: true, name: true, color: true } } },
+export async function listTeam(tenantId: string) {
+  return withTenant(tenantId, () =>
+    prisma.profile.findMany({
+      where: { tenantId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+        roleId: true,
+        role: { select: { id: true, name: true, isAdmin: true } },
+        teamMemberAreas: {
+          include: { area: { select: { id: true, name: true, color: true } } },
+        },
       },
-    },
-    orderBy: { name: "asc" },
-  });
-  return profiles;
+      orderBy: { name: "asc" },
+    }),
+  );
 }
 
 function isUniqueViolation(error: unknown): boolean {
