@@ -118,6 +118,7 @@ function makeWorkspaceData(
     slug: "acme",
     logoUrl: null,
     companyName: "Acme Inc",
+    onboardingCompleted: false,
     status,
     gracePeriodEndsAt,
     plan: null,

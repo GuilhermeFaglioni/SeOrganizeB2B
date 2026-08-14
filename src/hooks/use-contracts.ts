@@ -66,11 +66,15 @@ export interface ContractListFilters {
   [key: string]: string | number | undefined;
 }
 
-export function useContracts(filters: ContractListFilters) {
+export function useContracts(
+  filters: ContractListFilters,
+  options?: { enabled?: boolean },
+) {
   return useQuery<Paginated<ContractSummary>>({
     queryKey: ["contracts", filters],
     queryFn: () =>
       fetchJson<Paginated<ContractSummary>>(`/api/contracts${qs(filters)}`),
+    enabled: options?.enabled ?? true,
   });
 }
 

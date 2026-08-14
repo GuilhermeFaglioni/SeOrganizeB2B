@@ -15,6 +15,7 @@ export interface WorkspaceData {
   slug: string;
   logoUrl: string | null;
   companyName: string | null;
+  onboardingCompleted: boolean;
   status: WorkspaceStatus;
   gracePeriodEndsAt: string | null;
   plan: {

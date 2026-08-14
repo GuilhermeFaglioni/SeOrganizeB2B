@@ -44,6 +44,14 @@ describe("onboarding wizard", () => {
     expect(hook).toContain("seorganize:onboarding");
   });
 
+  it("uses the persisted workspace completion to skip source-data loading", () => {
+    const hook = read("src/hooks/use-onboarding.ts");
+    expect(hook).toContain("workspace?.onboardingCompleted === true");
+    expect(hook).toContain("enabled: shouldLoadOnboardingData");
+    expect(hook).toContain('"/api/onboarding"');
+    expect(hook).toContain('method: "POST"');
+  });
+
   it("uses Array.from for Set iteration (TS2802 compat)", () => {
     const hook = read("src/hooks/use-onboarding.ts");
     expect(hook).toContain("Array.from(completed)");
