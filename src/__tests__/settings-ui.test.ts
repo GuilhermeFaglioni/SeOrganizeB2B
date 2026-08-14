@@ -9,7 +9,8 @@ const shellSource = readFileSync(
 describe("settings UI primitives", () => {
   it("defines a responsive shared settings shell", () => {
     expect(shellSource).toContain('export function SettingsShell');
-    expect(shellSource).toContain("min-h-full");
+    expect(shellSource).toContain("h-full min-h-0 overflow-y-auto");
+    expect(shellSource).toContain("min-h-0");
     expect(shellSource).toContain("max-w-5xl");
     expect(shellSource).toContain("sm:px-6");
   });

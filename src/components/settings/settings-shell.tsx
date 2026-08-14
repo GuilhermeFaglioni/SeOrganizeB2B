@@ -11,7 +11,13 @@ type SettingsShellProps = {
 
 export function SettingsShell({ children, className, testId }: SettingsShellProps) {
   return (
-    <div data-testid={testId} className={cn("min-h-full px-4 py-6 sm:px-6 lg:px-8", className)}>
+    <div
+      data-testid={testId}
+      className={cn(
+        "h-full min-h-0 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8",
+        className,
+      )}
+    >
       <div className="mx-auto w-full max-w-5xl space-y-8">{children}</div>
     </div>
   );
