@@ -22,6 +22,7 @@ function workspace(status: WorkspaceData["status"], endsAtDaysFromNow: number | 
     slug: "acme",
     logoUrl: null,
     companyName: "Acme Inc",
+    onboardingCompleted: false,
     status,
     gracePeriodEndsAt:
       endsAtDaysFromNow === null

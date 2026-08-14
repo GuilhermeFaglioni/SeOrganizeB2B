@@ -57,6 +57,7 @@ async function getWorkspaceForUser(userId: string) {
           slug: true,
           logoUrl: true,
           companyName: true,
+          onboardingCompleted: true,
           status: true,
           gracePeriodEndsAt: true,
           plan: {
@@ -114,6 +115,7 @@ export async function GET() {
       slug: workspace.slug,
       logoUrl: workspace.logoUrl,
       companyName: workspace.companyName,
+      onboardingCompleted: workspace.onboardingCompleted,
       status: workspace.status,
       gracePeriodEndsAt: workspace.gracePeriodEndsAt,
       plan: workspace.plan

@@ -20,6 +20,7 @@ function workspace(allowedModules: string[]): WorkspaceData {
     slug: "acme",
     logoUrl: null,
     companyName: null,
+    onboardingCompleted: false,
     status: "active",
     gracePeriodEndsAt: null,
     plan: { id: "p_1", name: "Starter", allowedModules },

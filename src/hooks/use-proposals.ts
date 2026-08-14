@@ -63,11 +63,15 @@ export interface WorkspaceData {
   pixKey: string | null;
 }
 
-export function useProposals(filters: ProposalListFilters) {
+export function useProposals(
+  filters: ProposalListFilters,
+  options?: { enabled?: boolean },
+) {
   return useQuery<Paginated<ProposalData>>({
     queryKey: ["proposals", filters],
     queryFn: () =>
       fetchJson<Paginated<ProposalData>>(`/api/proposals${qs(filters)}`),
+    enabled: options?.enabled ?? true,
   });
 }
 

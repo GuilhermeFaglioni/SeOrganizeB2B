@@ -24,10 +24,14 @@ export interface ClientListFilters {
   [key: string]: string | number | boolean | "all" | undefined;
 }
 
-export function useClients(filters: ClientListFilters) {
+export function useClients(
+  filters: ClientListFilters,
+  options?: { enabled?: boolean },
+) {
   return useQuery<Paginated<ClientData>>({
     queryKey: ["clients", filters],
     queryFn: () => fetchJson<Paginated<ClientData>>(`/api/clients${qs(filters)}`),
+    enabled: options?.enabled ?? true,
   });
 }
 

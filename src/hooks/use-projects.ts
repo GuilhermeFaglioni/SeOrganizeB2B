@@ -21,10 +21,11 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 
 export type { ProjectData };
 
-export function useProjects() {
+export function useProjects(options?: { enabled?: boolean }) {
   return useQuery<ProjectData[]>({
     queryKey: ["projects"],
     queryFn: () => fetchJson<ProjectData[]>(API),
+    enabled: options?.enabled ?? true,
   });
 }
 

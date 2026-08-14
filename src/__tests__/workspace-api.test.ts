@@ -60,6 +60,7 @@ const makeProfile = () => ({
     slug: "acme",
     logoUrl: null,
     companyName: "Acme Inc",
+    onboardingCompleted: true,
     status: "active",
     gracePeriodEndsAt: null,
     plan: {
@@ -102,6 +103,7 @@ describe("GET /api/workspace", () => {
     expect(json.data.name).toBe("Acme");
     expect(json.data.slug).toBe("acme");
     expect(json.data.status).toBe("active");
+    expect(json.data.onboardingCompleted).toBe(true);
     expect(json.data.plan).toEqual({
       id: "plan_1",
       name: "Pro",

@@ -1,13 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useClients } from "@/hooks/use-clients";
 import { useProposals } from "@/hooks/use-proposals";
 import { useContracts } from "@/hooks/use-contracts";
 import { useProjects } from "@/hooks/use-projects";
-import { useWorkspace } from "@/hooks/use-workspace";
+import { useWorkspace, type WorkspaceData } from "@/hooks/use-workspace";
+import { fetchJson } from "@/lib/financial/http";
 
 const STORAGE_KEY = "seorganize:onboarding";
 
 export type OnboardingStep = "company" | "client" | "proposal" | "task";
+
+const ALL_STEPS: OnboardingStep[] = ["company", "client", "proposal", "task"];
 
 export interface OnboardingState {
   /** Whether the wizard should be shown */
@@ -61,18 +65,32 @@ function writeStorage(state: StoredState) {
 
 export function useOnboarding(): OnboardingState {
   const [stored, setStored] = useState<StoredState>({});
+  const queryClient = useQueryClient();
+  const completionRequested = useRef(false);
 
   // Read from localStorage on mount
   useEffect(() => {
     setStored(readStorage());
   }, []);
 
-  // Fetch data to derive completion — request minimal data
-  const { data: clientsData } = useClients({ pageSize: 1, active: true });
-  const { data: proposalsData } = useProposals({ pageSize: 1 });
-  const { data: contractsData } = useContracts({ pageSize: 1 });
-  const { data: projects } = useProjects();
   const { data: workspace } = useWorkspace();
+  const onboardingCompleted = workspace?.onboardingCompleted === true;
+  const shouldLoadOnboardingData = !onboardingCompleted;
+
+  // Do not load source data after the workspace has a persisted completion flag.
+  const { data: clientsData } = useClients(
+    { pageSize: 1, active: true },
+    { enabled: shouldLoadOnboardingData },
+  );
+  const { data: proposalsData } = useProposals(
+    { pageSize: 1 },
+    { enabled: shouldLoadOnboardingData },
+  );
+  const { data: contractsData } = useContracts(
+    { pageSize: 1 },
+    { enabled: shouldLoadOnboardingData },
+  );
+  const { data: projects } = useProjects({ enabled: shouldLoadOnboardingData });
 
   // Derive completion from real data
   const hasCompanyName = Boolean(workspace?.companyName?.trim());
@@ -83,6 +101,41 @@ export function useOnboarding(): OnboardingState {
 
   // Check if any project has tasks (we check _count from projects)
   const hasTasks = hasProjects && (projects?.some((p) => (p._count?.tasks ?? 0) > 0) ?? false);
+  const dataComplete =
+    hasCompanyName &&
+    hasClients &&
+    (hasProposals || hasContracts) &&
+    hasTasks;
+
+  const completeOnboarding = useMutation({
+    mutationFn: () =>
+      fetchJson<{ onboardingCompleted: boolean }>("/api/onboarding", {
+        method: "POST",
+      }),
+    onSuccess: (result) => {
+      if (!result.onboardingCompleted) return;
+      queryClient.setQueryData<WorkspaceData>(["workspace"], (current) =>
+        current ? { ...current, onboardingCompleted: true } : current,
+      );
+    },
+    onError: () => {
+      completionRequested.current = false;
+    },
+  });
+  const completeOnboardingRequest = completeOnboarding.mutate;
+
+  useEffect(() => {
+    if (
+      !dataComplete ||
+      onboardingCompleted ||
+      completionRequested.current
+    ) {
+      return;
+    }
+
+    completionRequested.current = true;
+    completeOnboardingRequest();
+  }, [dataComplete, onboardingCompleted, completeOnboardingRequest]);
 
   // Merge derived state with stored completed steps
   const completedSteps = useMemo(() => {
@@ -98,9 +151,8 @@ export function useOnboarding(): OnboardingState {
   }, [stored.completedSteps, hasCompanyName, hasClients, hasProposals, hasContracts, hasTasks]);
 
   // Determine current step (first incomplete)
-  const allSteps: OnboardingStep[] = ["company", "client", "proposal", "task"];
   const currentStep = useMemo(() => {
-    for (const step of allSteps) {
+    for (const step of ALL_STEPS) {
       if (!completedSteps.has(step)) return step;
     }
     return "task" as OnboardingStep; // all done
@@ -109,7 +161,7 @@ export function useOnboarding(): OnboardingState {
   // Steps with metadata
   const steps = useMemo(
     () =>
-      allSteps.map((id) => ({
+      ALL_STEPS.map((id) => ({
         id,
         done: completedSteps.has(id),
         href: getStepHref(id),
@@ -117,14 +169,14 @@ export function useOnboarding(): OnboardingState {
     [completedSteps]
   );
 
-  // Show wizard if not skipped and not all steps done
-  const allDone = allSteps.every((s) => completedSteps.has(s));
+  // Show wizard only while it is neither dismissed nor persisted as complete.
+  const allDone = ALL_STEPS.every((s) => completedSteps.has(s));
   const skipped = stored.skipped === true;
-  const showWizard = !skipped && !allDone;
+  const showWizard = !skipped && !onboardingCompleted && !allDone;
 
   // Progress
-  const doneCount = allSteps.filter((s) => completedSteps.has(s)).length;
-  const progress = Math.round((doneCount / allSteps.length) * 100);
+  const doneCount = ALL_STEPS.filter((s) => completedSteps.has(s)).length;
+  const progress = Math.round((doneCount / ALL_STEPS.length) * 100);
 
   const markStepDone = useCallback(
     (step: OnboardingStep) => {
