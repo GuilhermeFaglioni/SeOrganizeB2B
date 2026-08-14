@@ -35,3 +35,17 @@ export function useCreateInvite() {
     onError: () => toastError(t("createFailed")),
   });
 }
+
+export function useCancelInvite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (inviteId: string) =>
+      fetchJson(`/api/workspace/invites/${inviteId}`, {
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invites"] });
+      queryClient.invalidateQueries({ queryKey: ["team"] });
+    },
+  });
+}

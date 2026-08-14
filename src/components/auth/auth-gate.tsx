@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/stores/auth-context";
 import { useProfile } from "@/hooks/use-profile";
+import { useOnboardingStatus } from "@/hooks/use-onboarding-status";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { WorkspaceProvider } from "@/stores/workspace-context";
 import { GracePeriodBanner } from "@/components/billing/grace-period-banner";
@@ -17,7 +18,18 @@ import { getWorkspaceAccessMode } from "@/lib/workspace/access";
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const authReady = !isLoading && Boolean(user);
-  const profileQuery = useProfile(user?.id, { enabled: authReady });
+  const onboardingQuery = useOnboardingStatus({ enabled: authReady });
+  const onboardingStatus = onboardingQuery.data?.status;
+  const needsBinding =
+    onboardingStatus === "binding_required" ||
+    onboardingStatus === "binding_setup_required";
+  const profileQuery = useProfile(user?.id, {
+    enabled:
+      authReady &&
+      onboardingQuery.isSuccess &&
+      (onboardingStatus === "ready" ||
+        onboardingStatus === "workspace_creation_required"),
+  });
   const workspaceQuery = useWorkspace({ enabled: authReady && profileQuery.isSuccess });
   const router = useRouter();
   const pathname = usePathname();
@@ -30,6 +42,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       router.push("/login");
     }
   }, [user, isLoading, router]);
+
+  useEffect(() => {
+    if (
+      user &&
+      needsBinding &&
+      pathname !== "/onboarding/bind"
+    ) {
+      router.replace("/onboarding/bind");
+    }
+  }, [user, needsBinding, pathname, router]);
 
   useEffect(() => {
     if (
@@ -48,6 +70,25 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return null;
+  }
+
+  if (onboardingQuery.isLoading) {
+    return <LoadingState text={t("checkingWorkspace")} />;
+  }
+
+  if (onboardingQuery.isError) {
+    return (
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 p-6 text-center">
+        <p className="text-body text-text-secondary">{t("workspaceLoadFailed")}</p>
+        <Button type="button" onClick={() => onboardingQuery.refetch()}>
+          {t("retry")}
+        </Button>
+      </div>
+    );
+  }
+
+  if (needsBinding) {
+    return <LoadingState text={t("checkingWorkspace")} />;
   }
 
   if (profileQuery.isLoading) {

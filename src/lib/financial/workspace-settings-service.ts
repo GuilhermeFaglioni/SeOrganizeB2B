@@ -1,10 +1,23 @@
 import { FinancialValidationError } from "./lifecycle";
 import { prisma } from "../../../prisma/client";
+import {
+  BindingCodeValidationError,
+  hashBindingCode,
+} from "../invites/binding-code";
 
 export interface WorkspaceSettingsInput {
   companyName?: string;
   logoUrl?: string;
   pixKey?: string;
+  bindingCode?: string;
+}
+
+export interface WorkspaceSettingsData {
+  id: string;
+  companyName: string | null;
+  logoUrl: string | null;
+  pixKey: string | null;
+  hasBindingCode: boolean;
 }
 
 /**
@@ -45,27 +58,59 @@ export async function getPixKey(tenantId: string): Promise<string> {
 }
 
 export async function getWorkspaceSettings(tenantId: string) {
-  return prisma.workspace.findUnique({
+  const workspace = await prisma.workspace.findUnique({
     where: { id: tenantId },
+    select: {
+      id: true,
+      companyName: true,
+      logoUrl: true,
+      pixKey: true,
+      bindingCodeHash: true,
+    },
   });
+  if (!workspace) return null;
+
+  const { bindingCodeHash, ...settings } = workspace;
+  return {
+    ...settings,
+    hasBindingCode: Boolean(bindingCodeHash),
+  } satisfies WorkspaceSettingsData;
 }
 
 export async function updateWorkspaceSettings(
   input: WorkspaceSettingsInput,
   tenantId: string
 ) {
-  const data: { companyName?: string | null; logoUrl?: string | null; pixKey?: string | null } = {};
+  const data: {
+    companyName?: string | null;
+    logoUrl?: string | null;
+    pixKey?: string | null;
+    bindingCodeHash?: string;
+    bindingCodeUpdatedAt?: Date;
+  } = {};
   if (input.companyName !== undefined) data.companyName = input.companyName.trim() || null;
   if (input.logoUrl !== undefined) data.logoUrl = input.logoUrl.trim() || null;
   if (input.pixKey !== undefined) {
     const validated = validatePixKey(input.pixKey);
     data.pixKey = validated || null;
   }
-  if (!data.companyName && data.logoUrl === undefined && data.pixKey === undefined) {
+  if (input.bindingCode !== undefined) {
+    try {
+      data.bindingCodeHash = await hashBindingCode(input.bindingCode);
+    } catch (error) {
+      if (error instanceof BindingCodeValidationError) {
+        throw new FinancialValidationError(error.message);
+      }
+      throw error;
+    }
+    data.bindingCodeUpdatedAt = new Date();
+  }
+  if (Object.keys(data).length === 0) {
     throw new FinancialValidationError("Nothing to update");
   }
-  return prisma.workspace.update({
+  await prisma.workspace.update({
     where: { id: tenantId },
     data,
   });
+  return getWorkspaceSettings(tenantId);
 }

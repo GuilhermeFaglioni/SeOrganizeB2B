@@ -290,7 +290,7 @@
       "invalidCredentials": "Invalid email or password",
       "passwordsDontMatch": "Passwords do not match",
       "accountExists": "An account with this email already exists.",
-      "accountCreated": "Account created! Check your email to confirm your account.",
+      "accountCreated": "Account created! Continue to set up your company.",
       "createAccountFailed": "Failed to create account",
       "checkingAuth": "Checking authentication...",
       "checkingWorkspace": "Checking company...",
@@ -1301,10 +1301,15 @@
       "noPermission": "You do not have permission to manage the team.",
       "inviteTitle": "Invite collaborator",
       "inviteEmailPlaceholder": "colleague@email.com",
-      "inviteButton": "Send invite",
-      "inviteSending": "Sending...",
-      "inviteSuccess": "Invite sent! They will receive an email.",
-      "inviteHint": "An invite will be sent with the default permission.",
+      "inviteButton": "Add collaborator",
+      "inviteSending": "Adding...",
+      "inviteSuccess": "Invite sent.",
+      "inviteHint": "The collaborator must create an account and enter the company binding code.",
+      "invitePending": "Pending",
+      "inviteExpired": "Expired",
+      "cancelInvite": "Cancel invite",
+      "inviteCancelled": "Invite cancelled.",
+      "cancelFailed": "Failed to cancel invite",
       "pendingInvites": "Pending invites",
       "noPendingInvites": "No pending invites.",
       "soloHint": "Invite your first collaborator to unlock permission management.",
@@ -1323,9 +1328,18 @@
       "pixKeyLabel": "PIX Key",
       "pixKeyPlaceholder": "CPF, CNPJ, email, phone (+55…) or random key",
       "pixKeyHint": "Copy-paste PIX key used to receive payments from clients.",
+      "bindingCodeLabel": "Binding code",
+      "bindingCodePlaceholder": "Enter a code with at least 8 characters",
+      "bindingCodeHint": "Share this code manually with invited collaborators.",
+      "bindingCodeConfiguredHint": "A code is already configured. Entering a new one will replace it for pending invitations.",
+      "bindingCodeConfirmLabel": "Confirm binding code",
+      "bindingCodeConfirmPlaceholder": "Repeat the binding code",
+      "bindingCodeShareHint": "The collaborator will need this code when creating their account.",
+      "bindingCodeMismatch": "The binding codes do not match.",
       "saving": "Saving...",
       "save": "Save",
-      "saved": "Settings saved"
+      "saved": "Settings saved",
+      "saveFailed": "Failed to save company settings"
     }
   },
   "proposals": {
@@ -1723,6 +1737,21 @@
           "action": "Create task"
         }
       }
+    },
+    "binding": {
+      "checking": "Checking company binding...",
+      "title": "Link your company",
+      "description": "Enter the binding code shared by the company admin.",
+      "codeLabel": "Binding code",
+      "codePlaceholder": "Enter the code",
+      "bindButton": "Link company",
+      "binding": "Linking...",
+      "invalidCode": "The binding code could not be verified.",
+      "setupRequired": "Binding is not configured yet. Ask the admin to configure the company code.",
+      "expired": "The invitation expired. Ask the admin to register a new invitation.",
+      "loadFailed": "We could not check the binding status.",
+      "retry": "Retry",
+      "signOut": "Sign out"
     }
   }
 }

@@ -25,6 +25,8 @@ export default function WorkspacePage() {
   const [companyName, setCompanyName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [pixKey, setPixKey] = useState("");
+  const [bindingCode, setBindingCode] = useState("");
+  const [bindingCodeConfirm, setBindingCodeConfirm] = useState("");
   const hydrated = useRef(false);
 
   useEffect(() => {
@@ -38,11 +40,27 @@ export default function WorkspacePage() {
 
   function handleSave(event: React.FormEvent) {
     event.preventDefault();
+    if (bindingCode || bindingCodeConfirm) {
+      if (bindingCode !== bindingCodeConfirm) {
+        toastError(t("bindingCodeMismatch"));
+        return;
+      }
+    }
+
     update.mutate(
-      { companyName, logoUrl, pixKey },
       {
-        onSuccess: () => toastSuccess(t("saved")),
-        onError: (err) => toastError(err.message),
+        companyName,
+        logoUrl,
+        pixKey,
+        ...(bindingCode ? { bindingCode } : {}),
+      },
+      {
+        onSuccess: () => {
+          setBindingCode("");
+          setBindingCodeConfirm("");
+          toastSuccess(t("saved"));
+        },
+        onError: () => toastError(t("saveFailed")),
       }
     );
   }
@@ -85,6 +103,37 @@ export default function WorkspacePage() {
             placeholder={t("pixKeyPlaceholder")}
           />
           <p className="text-xs text-text-muted">{t("pixKeyHint")}</p>
+        </div>
+        <div className="space-y-2 border-t border-border pt-4">
+          <Label htmlFor="binding-code">{t("bindingCodeLabel")}</Label>
+          <Input
+            id="binding-code"
+            type="password"
+            autoComplete="new-password"
+            value={bindingCode}
+                onChange={(event) => setBindingCode(event.target.value)}
+                placeholder={t("bindingCodePlaceholder")}
+                minLength={8}
+          />
+          <p className="text-xs text-text-muted">
+            {data.hasBindingCode
+              ? t("bindingCodeConfiguredHint")
+              : t("bindingCodeHint")}
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="binding-code-confirm">
+            {t("bindingCodeConfirmLabel")}
+          </Label>
+          <Input
+            id="binding-code-confirm"
+            type="password"
+            autoComplete="new-password"
+            value={bindingCodeConfirm}
+            onChange={(event) => setBindingCodeConfirm(event.target.value)}
+            placeholder={t("bindingCodeConfirmPlaceholder")}
+          />
+          <p className="text-xs text-text-muted">{t("bindingCodeShareHint")}</p>
         </div>
         <Button type="submit" disabled={update.isPending}>
           {update.isPending ? t("saving") : t("save")}

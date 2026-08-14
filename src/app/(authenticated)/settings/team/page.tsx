@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useAreas } from "@/hooks/use-areas";
 import { useAssignRole, useRoles, useTeam } from "@/hooks/use-roles";
-import { useInvites, useCreateInvite } from "@/hooks/use-invites";
+import { useInvites, useCreateInvite, useCancelInvite } from "@/hooks/use-invites";
 import { useCan } from "@/hooks/use-permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, ChevronRight, Mail, ShieldCheck, Users } from "lucide-react";
-import { toastSuccess } from "@/lib/toast";
+import { ChevronDown, ChevronRight, Mail, ShieldCheck, Users, X } from "lucide-react";
+import { toastError, toastSuccess } from "@/lib/toast";
 import {
   SettingsBackLink,
   SettingsHeader,
@@ -41,6 +41,7 @@ export default function TeamPage() {
   const { data: roles } = useRoles();
   const { data: invites } = useInvites();
   const createInvite = useCreateInvite();
+  const cancelInvite = useCancelInvite();
   const assignRole = useAssignRole();
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -86,6 +87,13 @@ export default function TeamPage() {
         },
       }
     );
+  };
+
+  const handleCancelInvite = (inviteId: string) => {
+    cancelInvite.mutate(inviteId, {
+      onSuccess: () => toastSuccess(t("inviteCancelled")),
+      onError: () => toastError(t("cancelFailed")),
+    });
   };
 
   const toggleArea = (profileId: string, areaId: string) => {
@@ -182,8 +190,20 @@ export default function TeamPage() {
                   </p>
                 </div>
                 <span className="rounded bg-bg-secondary px-2 py-0.5 text-xs text-text-secondary">
-                  {t("pendingInvites")}
+                  {invite.status === "expired"
+                    ? t("inviteExpired")
+                    : t("invitePending")}
                 </span>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label={t("cancelInvite")}
+                  onClick={() => handleCancelInvite(invite.id)}
+                  disabled={cancelInvite.isPending}
+                >
+                  <X size={16} aria-hidden="true" />
+                </Button>
               </li>
             ))}
           </ul>

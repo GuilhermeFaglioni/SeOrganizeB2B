@@ -54,7 +54,12 @@ export async function PATCH(request: NextRequest) {
   if (!ctx.isAdmin) return forbidden();
 
   const body = await request.json();
-  const input: { companyName?: string; logoUrl?: string; pixKey?: string } = {};
+  const input: {
+    companyName?: string;
+    logoUrl?: string;
+    pixKey?: string;
+    bindingCode?: string;
+  } = {};
   if (body.companyName !== undefined) {
     if (typeof body.companyName !== "string") {
       return NextResponse.json(
@@ -90,6 +95,18 @@ export async function PATCH(request: NextRequest) {
       );
     }
     input.pixKey = body.pixKey;
+  }
+  if (body.bindingCode !== undefined) {
+    if (typeof body.bindingCode !== "string") {
+      return NextResponse.json(
+        {
+          data: null,
+          error: { code: "VALIDATION_ERROR", message: "Binding code must be a string" },
+        },
+        { status: 400 }
+      );
+    }
+    input.bindingCode = body.bindingCode;
   }
 
   try {

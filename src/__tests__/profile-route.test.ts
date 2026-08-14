@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   mockProfileFindUnique: vi.fn(),
   mockProfileUpdate: vi.fn(),
   mockCreateProfileWithWorkspace: vi.fn(),
+  mockGetOnboardingStatus: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -27,6 +28,10 @@ vi.mock("@/lib/authz/workspace-setup", () => ({
   createProfileWithWorkspace: mocks.mockCreateProfileWithWorkspace,
 }));
 
+vi.mock("@/lib/invites/service", () => ({
+  getOnboardingStatus: mocks.mockGetOnboardingStatus,
+}));
+
 import { GET } from "../app/api/profile/route";
 
 describe("GET /api/profile onboarding", () => {
@@ -36,6 +41,9 @@ describe("GET /api/profile onboarding", () => {
       id: "user-1",
       email: "joao@acme.com",
       user_metadata: { full_name: "João Silva" },
+    });
+    mocks.mockGetOnboardingStatus.mockResolvedValue({
+      status: "workspace_creation_required",
     });
   });
 
@@ -75,6 +83,45 @@ describe("GET /api/profile onboarding", () => {
     expect(mocks.mockProfileUpdate).toHaveBeenCalledWith({
       where: { id: "user-1" },
       data: { email: "joao@acme.com" },
+    });
+    expect(mocks.mockCreateProfileWithWorkspace).not.toHaveBeenCalled();
+  });
+
+  it("normalizes the authenticated email before provisioning", async () => {
+    mocks.mockGetUser.mockResolvedValue({
+      id: "user-1",
+      email: "  Joao@Acme.COM ",
+      user_metadata: { full_name: "João Silva" },
+    });
+    mocks.mockProfileFindUnique.mockResolvedValue(null);
+    mocks.mockCreateProfileWithWorkspace.mockResolvedValue({ id: "user-1" });
+
+    await GET();
+
+    expect(mocks.mockGetOnboardingStatus).toHaveBeenCalledWith({
+      userId: "user-1",
+      email: "joao@acme.com",
+    });
+    expect(mocks.mockCreateProfileWithWorkspace).toHaveBeenCalledWith(
+      expect.objectContaining({ email: "joao@acme.com" }),
+    );
+  });
+
+  it("does not create a workspace while a binding code is required", async () => {
+    mocks.mockProfileFindUnique.mockResolvedValue(null);
+    mocks.mockGetOnboardingStatus.mockResolvedValue({
+      status: "binding_required",
+      reason: "pending_invite",
+    });
+
+    const res = await GET();
+    const json = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(json.error.code).toBe("ONBOARDING_REQUIRED");
+    expect(json.data).toEqual({
+      status: "binding_required",
+      reason: "pending_invite",
     });
     expect(mocks.mockCreateProfileWithWorkspace).not.toHaveBeenCalled();
   });

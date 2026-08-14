@@ -61,6 +61,7 @@ export interface WorkspaceData {
   companyName: string | null;
   logoUrl: string | null;
   pixKey: string | null;
+  hasBindingCode: boolean;
 }
 
 export function useProposals(
@@ -267,7 +268,12 @@ export function useUpdateWorkspace() {
   const t = useTranslations("hooks.proposals");
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { companyName?: string; logoUrl?: string; pixKey?: string }) =>
+    mutationFn: (data: {
+      companyName?: string;
+      logoUrl?: string;
+      pixKey?: string;
+      bindingCode?: string;
+    }) =>
       fetchJson("/api/settings/workspace", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
