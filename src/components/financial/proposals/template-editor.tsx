@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { detectVariables } from "@/lib/financial/proposal-variables";
+import {
+  detectVariables,
+  SYSTEM_VARIABLES,
+  SYSTEM_VARIABLE_DESCRIPTION_KEYS,
+} from "@/lib/financial/proposal-variables";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -147,6 +151,45 @@ export function TemplateEditor({
           )}
         </div>
       </div>
+
+      <section className="rounded-xl border border-border bg-page-alt p-4" aria-labelledby="system-variables-title">
+        <div className="mb-3">
+          <h3 id="system-variables-title" className="text-sm font-semibold text-text-primary">
+            {t("systemVariablesTitle")}
+          </h3>
+          <p className="mt-1 text-sm text-text-muted">{t("systemVariablesHint")}</p>
+        </div>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full min-w-[560px] text-left text-sm">
+            <thead className="bg-bg-secondary text-xs uppercase tracking-wide text-text-secondary">
+              <tr>
+                <th scope="col" className="px-3 py-2 font-medium">
+                  {t("variableKey")}
+                </th>
+                <th scope="col" className="px-3 py-2 font-medium">
+                  {t("variableMeaning")}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {SYSTEM_VARIABLES.map((variable) => (
+                <tr key={variable}>
+                  <td className="whitespace-nowrap px-3 py-2.5 align-top">
+                    <code className="rounded bg-bg-secondary px-1.5 py-0.5 text-xs text-text-primary">
+                      {`{{${variable}}}`}
+                    </code>
+                  </td>
+                  <td className="px-3 py-2.5 text-text-secondary">
+                    {t(
+                      `systemVariableDescriptions.${SYSTEM_VARIABLE_DESCRIPTION_KEYS[variable]}`
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <section className="rounded-xl border border-border bg-page-alt p-4">
         <h3 className="mb-2 text-sm font-semibold text-text-primary">

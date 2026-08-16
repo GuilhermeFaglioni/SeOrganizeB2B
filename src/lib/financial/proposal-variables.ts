@@ -16,6 +16,22 @@ export const SYSTEM_VARIABLES = [
 
 export type SystemVariable = (typeof SYSTEM_VARIABLES)[number];
 
+export const SYSTEM_VARIABLE_DESCRIPTION_KEYS: Record<SystemVariable, string> = {
+  "cliente.nome": "clientName",
+  "cliente.razao_social": "clientLegalName",
+  "cliente.email": "clientEmail",
+  "cliente.telefone": "clientPhone",
+  "cliente.cpf_cnpj": "clientDocument",
+  "proposta.numero": "proposalNumber",
+  "proposta.titulo": "proposalTitle",
+  "proposta.data": "proposalIssueDate",
+  "proposta.validade": "proposalValidUntil",
+  "proposta.valor_total": "proposalTotal",
+  itens: "items",
+  "empresa.nome": "companyName",
+  "empresa.logo": "companyLogo",
+};
+
 export interface TemplateVariable {
   name: string;
   isSystem: boolean;
