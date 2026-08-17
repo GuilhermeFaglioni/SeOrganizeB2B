@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { getSuperAdminStatus } from "@/lib/admin/super-admin";
 import { isStripePriceId } from "@/lib/stripe-price-id";
+import { ALL_MODULES } from "@/lib/module-gating";
 import { prisma } from "../../../../../prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -84,6 +85,14 @@ export async function POST(request: Request) {
     allowedModules.some((module) => typeof module !== "string")
   ) {
     return validationErrorResponse("allowedModules must be an array of strings");
+  }
+  const unknownModules = (allowedModules as string[]).filter(
+    (module) => !ALL_MODULES.includes(module as (typeof ALL_MODULES)[number])
+  );
+  if (unknownModules.length > 0) {
+    return validationErrorResponse(
+      `allowedModules contains unknown modules: ${unknownModules.join(", ")}`
+    );
   }
   if (
     stripePriceId !== undefined &&

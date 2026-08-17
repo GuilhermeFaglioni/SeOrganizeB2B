@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import { getSuperAdminStatus } from "@/lib/admin/super-admin";
 import { isStripePriceId } from "@/lib/stripe-price-id";
+import { ALL_MODULES } from "@/lib/module-gating";
 import { prisma } from "../../../../../../prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -78,10 +79,8 @@ export async function PATCH(
     return validationErrorResponse("Request body must be an object");
   }
 
-  const { name, stripePriceId, allowedModules, isDefault } = body as Record<
-    string,
-    unknown
-  >;
+  const { name, stripePriceId, allowedModules, isDefault, isActive } =
+    body as Record<string, unknown>;
 
   const data: Prisma.PlanUpdateInput = {};
 
@@ -116,6 +115,14 @@ export async function PATCH(
     ) {
       return validationErrorResponse("allowedModules must be an array of strings");
     }
+    const unknownModules = (allowedModules as string[]).filter(
+      (module) => !ALL_MODULES.includes(module as (typeof ALL_MODULES)[number])
+    );
+    if (unknownModules.length > 0) {
+      return validationErrorResponse(
+        `allowedModules contains unknown modules: ${unknownModules.join(", ")}`
+      );
+    }
     data.allowedModules = allowedModules as string[];
   }
   if (isDefault !== undefined) {
@@ -124,9 +131,38 @@ export async function PATCH(
     }
     data.isDefault = isDefault;
   }
+  if (isActive !== undefined) {
+    if (typeof isActive !== "boolean") {
+      return validationErrorResponse("isActive must be a boolean");
+    }
+    data.isActive = isActive;
+  }
+
+  if (Object.keys(data).length === 0) {
+    return validationErrorResponse("Nothing to update");
+  }
 
   const existing = await prisma.plan.findUnique({ where: { id: params.id } });
   if (!existing) return notFoundResponse();
+
+  if (existing.isInternal && data.isActive === false) {
+    return validationErrorResponse("Internal plans cannot be deactivated");
+  }
+  if (data.isActive === false && data.isDefault === true) {
+    return validationErrorResponse(
+      "An inactive plan cannot be set as default"
+    );
+  }
+  if (
+    data.isDefault === true &&
+    existing.isActive === false &&
+    data.isActive !== true
+  ) {
+    return validationErrorResponse("An inactive plan cannot be set as default");
+  }
+  if (data.isActive === false && existing.isDefault && data.isDefault === undefined) {
+    data.isDefault = false;
+  }
 
   if (data.isDefault === true) {
     const [, plan] = await prisma.$transaction([
@@ -153,9 +189,15 @@ export async function DELETE(
   const existing = await prisma.plan.findUnique({ where: { id: params.id } });
   if (!existing) return notFoundResponse();
 
+  if (existing.isInternal) {
+    return validationErrorResponse("Internal plans cannot be deleted");
+  }
+
   const plan = await prisma.plan.update({
     where: { id: params.id },
-    data: { isActive: false },
+    data: existing.isDefault
+      ? { isActive: false, isDefault: false }
+      : { isActive: false },
   });
 
   return NextResponse.json({ data: plan, error: null });
