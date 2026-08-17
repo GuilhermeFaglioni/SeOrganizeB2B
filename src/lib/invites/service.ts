@@ -1,7 +1,13 @@
 import { randomBytes } from "node:crypto";
+import type { Prisma } from "@prisma/client";
 import { prisma, withTenant } from "../../../prisma/client";
 import { verifyBindingCode } from "./binding-code";
 import type { WorkspaceOnboardingState } from "../onboarding/types";
+import {
+  assertClosedBetaGuestSlot,
+  recordClosedBetaAudit,
+  type ClosedBetaActor,
+} from "../closed-beta/service";
 
 export const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const BINDING_ATTEMPT_LIMIT = 5;
@@ -40,11 +46,13 @@ export interface CreateInviteInput {
   workspaceId: string;
   email: string;
   roleId?: string | null;
+  actor?: ClosedBetaActor;
 }
 
 export interface CancelInviteInput {
   inviteId: string;
   workspaceId: string;
+  actor?: ClosedBetaActor;
 }
 
 export interface UserOnboardingInput {
@@ -88,7 +96,7 @@ export async function getWorkspaceIdForUser(
   userId: string
 ): Promise<string | null> {
   const profile = await prisma.profile.findFirst({
-    where: { id: userId },
+    where: { id: userId, removedAt: null },
     select: { tenantId: true },
   });
   return profile?.tenantId ?? null;
@@ -187,16 +195,61 @@ export async function createInvite(input: CreateInviteInput) {
 
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + INVITE_TTL_MS);
-  return prisma.invite.create({
-    data: {
-      workspaceId: input.workspaceId,
-      email,
-      roleId,
-      token,
-      expiresAt,
-      status: "pending",
-    },
-  });
+  const persist = async (client: Prisma.TransactionClient | typeof prisma) => {
+    const betaCapacity = await assertClosedBetaGuestSlot(
+      client as Prisma.TransactionClient,
+      input.workspaceId,
+    );
+    const created = await client.invite.create({
+      data: {
+        workspaceId: input.workspaceId,
+        email,
+        roleId,
+        token,
+        expiresAt,
+        status: "pending",
+      },
+    });
+    if (betaCapacity && input.actor) {
+      await recordClosedBetaAudit(client, {
+        actor: input.actor,
+        action: "guest_invitation.created",
+        targetType: "invite",
+        targetId: created.id,
+        afterValue: { workspaceId: input.workspaceId, email, roleId },
+      });
+    }
+    return created;
+  };
+
+  const transaction = (prisma as unknown as { $transaction?: unknown }).$transaction;
+  if (typeof transaction === "function") {
+    return prisma.$transaction(async (client) => {
+      await client.invite.updateMany({
+        where: { workspaceId: input.workspaceId, status: "pending", expiresAt: { lt: new Date() } },
+        data: { status: "expired" },
+      });
+      const existingProfileInTransaction = await client.profile.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
+        select: { id: true, tenantId: true },
+      });
+      if (existingProfileInTransaction) {
+        if (existingProfileInTransaction.tenantId === input.workspaceId) {
+          throw new InviteValidationError("This email is already a member");
+        }
+        throw new InviteValidationError("This email already belongs to another workspace");
+      }
+      const pendingInTransaction = await client.invite.findFirst({
+        where: { workspaceId: input.workspaceId, email, status: "pending" },
+        select: { id: true },
+      });
+      if (pendingInTransaction) {
+        throw new InviteValidationError("This email has already been invited");
+      }
+      return persist(client);
+    });
+  }
+  return persist(prisma);
 }
 
 export async function listInvites(workspaceId: string) {
@@ -227,13 +280,34 @@ export async function cancelInvite(input: CancelInviteInput) {
     throw new InviteValidationError("This invite can no longer be cancelled");
   }
   try {
-    return await prisma.invite.update({
+    const cancelled = await prisma.invite.update({
       where: {
         id: invite.id,
         status: { in: ["pending", "expired"] },
       },
       data: { status: "cancelled" },
     });
+    if (input.actor) {
+      try {
+        const enrollment = await prisma.closedBetaEnrollment.findUnique({
+          where: { workspaceId: input.workspaceId },
+          select: { id: true },
+        });
+        if (enrollment) {
+          await recordClosedBetaAudit(prisma, {
+            actor: input.actor,
+            action: "guest_invitation.cancelled",
+            targetType: "invite",
+            targetId: invite.id,
+            afterValue: { workspaceId: input.workspaceId, status: cancelled.status },
+          });
+        }
+      } catch {
+        // The beta tables are introduced by a later migration; legacy invites
+        // remain cancellable before that migration is deployed.
+      }
+    }
+    return cancelled;
   } catch (error) {
     if (isRecordNotFound(error)) {
       throw new InviteValidationError("This invite can no longer be cancelled");
@@ -434,6 +508,8 @@ export async function bindUserToWorkspace(input: BindUserInput) {
       ) {
         throw new BindingCodeInvalidError();
       }
+
+      await assertClosedBetaGuestSlot(transaction, invite.workspaceId, invite.id);
 
       const profile = await transaction.profile.create({
         data: {

@@ -1,5 +1,5 @@
 import { prisma, withTenant } from "../../../prisma/client";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import {
   allScopedPermissions,
   MODULES,
@@ -12,6 +12,8 @@ export interface WorkspaceSetup {
   memberRoleId: string;
 }
 
+type WorkspaceDb = PrismaClient | Prisma.TransactionClient;
+
 function slugify(value: string): string {
   const normalized = value
     .normalize("NFD")
@@ -23,13 +25,14 @@ function slugify(value: string): string {
 
 export async function generateUniqueSlug(
   name: string | null | undefined,
-  email: string
+  email: string,
+  client: WorkspaceDb = prisma,
 ): Promise<string> {
   const base =
     slugify(name ?? "") || slugify(email.split("@")[0]) || "workspace";
   let slug = base;
   let suffix = 2;
-  while (await prisma.workspace.findUnique({ where: { slug } })) {
+  while (await client.workspace.findUnique({ where: { slug } })) {
     slug = `${base}-${suffix}`;
     suffix += 1;
   }
@@ -49,10 +52,11 @@ function memberPermissions(): ScopedPermission[] {
 }
 
 export async function seedWorkspaceRoles(
-  workspaceId: string
+  workspaceId: string,
+  client: WorkspaceDb = prisma,
 ): Promise<{ adminRoleId: string; memberRoleId: string }> {
   return withTenant(workspaceId, async () => {
-    const adminRole = await prisma.role.create({
+    const adminRole = await client.role.create({
       data: {
         name: "Admin",
         permissions: allScopedPermissions() as unknown as Prisma.InputJsonValue,
@@ -60,7 +64,7 @@ export async function seedWorkspaceRoles(
         tenantId: workspaceId,
       },
     });
-    const memberRole = await prisma.role.create({
+    const memberRole = await client.role.create({
       data: {
         name: "Member",
         permissions: memberPermissions() as unknown as Prisma.InputJsonValue,
@@ -70,6 +74,33 @@ export async function seedWorkspaceRoles(
     });
     return { adminRoleId: adminRole.id, memberRoleId: memberRole.id };
   });
+}
+
+export async function createWorkspaceForUserWithPlan(
+  name: string | null | undefined,
+  email: string,
+  planId: string,
+  client: WorkspaceDb,
+): Promise<WorkspaceSetup> {
+  const slug = await generateUniqueSlug(name, email, client);
+  const workspaceName = name ?? (email.split("@")[0] || "My Workspace");
+
+  const workspace = await client.workspace.create({
+    data: {
+      name: workspaceName,
+      slug,
+      planId,
+    },
+  });
+
+  const roles = await seedWorkspaceRoles(workspace.id, client);
+
+  await client.workspace.update({
+    where: { id: workspace.id },
+    data: { defaultRoleId: roles.memberRoleId },
+  });
+
+  return { id: workspace.id, ...roles };
 }
 
 export async function createWorkspaceForUser(

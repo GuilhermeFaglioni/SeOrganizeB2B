@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "../../../../../prisma/client";
+import { setWorkspacePlanAndLeaveClosedBeta } from "@/lib/closed-beta/service";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const plan = await prisma.plan.findFirst({
-      where: { stripePriceId: priceId, isActive: true },
+      where: { stripePriceId: priceId, isActive: true, isInternal: false },
     });
     if (!plan) {
       return NextResponse.json(
@@ -75,9 +76,9 @@ export async function POST(request: NextRequest) {
       items: [{ id: subscription.items.data[0].id, price: priceId }],
     });
 
-    await prisma.workspace.update({
-      where: { id: workspace.id },
-      data: { planId: plan.id },
+    await setWorkspacePlanAndLeaveClosedBeta(workspace.id, plan.id, {
+      userId: user.id,
+      email: user.email ?? "",
     });
 
     return NextResponse.json({ data: { url: `${request.nextUrl.origin}/app` }, error: null });

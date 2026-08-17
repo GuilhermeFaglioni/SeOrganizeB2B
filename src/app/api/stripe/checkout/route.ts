@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const plan = await prisma.plan.findFirst({
-      where: { stripePriceId: priceId, isActive: true },
+      where: { stripePriceId: priceId, isActive: true, isInternal: false },
     });
     if (!plan) {
       return NextResponse.json(

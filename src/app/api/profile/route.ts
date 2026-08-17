@@ -4,7 +4,10 @@ import { getUser } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAppLocale } from "@/i18n/config";
 import { createProfileWithWorkspace } from "@/lib/authz/workspace-setup";
-import { getOnboardingStatus } from "@/lib/invites/service";
+import {
+  getOnboardingStatus,
+} from "@/lib/invites/service";
+import { isPublicWorkspaceProvisioningBlocked } from "@/lib/closed-beta/service";
 
 export async function GET() {
   const user = await getUser();
@@ -15,9 +18,18 @@ export async function GET() {
   const email = user.email?.trim().toLowerCase() || "sistema";
   const name = user.user_metadata?.full_name || user.email || "Sistema";
 
-  const existing = await prisma.profile.findUnique({ where: { id: user.id } });
+  const existing = await prisma.profile.findUnique({
+    where: { id: user.id },
+    select: { id: true, removedAt: true },
+  });
   let profile;
   if (existing) {
+    if (existing.removedAt) {
+      return NextResponse.json(
+        { data: null, error: { code: "MEMBER_REMOVED", message: "This account no longer has access" } },
+        { status: 403 },
+      );
+    }
     profile = await prisma.profile.update({ where: { id: user.id }, data: { email } });
   } else {
     const onboarding = await getOnboardingStatus({
@@ -31,6 +43,18 @@ export async function GET() {
           error: {
             code: "ONBOARDING_REQUIRED",
             message: "Workspace onboarding requires another step",
+          },
+        },
+        { status: 409 },
+      );
+    }
+    if (await isPublicWorkspaceProvisioningBlocked()) {
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            code: "CLOSED_BETA_ONLY",
+            message: "This beta is available by invitation only",
           },
         },
         { status: 409 },

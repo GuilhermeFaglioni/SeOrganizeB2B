@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   mockProfileUpdate: vi.fn(),
   mockCreateProfileWithWorkspace: vi.fn(),
   mockGetOnboardingStatus: vi.fn(),
+  mockIsPublicWorkspaceProvisioningBlocked: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -32,6 +33,11 @@ vi.mock("@/lib/invites/service", () => ({
   getOnboardingStatus: mocks.mockGetOnboardingStatus,
 }));
 
+vi.mock("@/lib/closed-beta/service", () => ({
+  isPublicWorkspaceProvisioningBlocked:
+    mocks.mockIsPublicWorkspaceProvisioningBlocked,
+}));
+
 import { GET } from "../app/api/profile/route";
 
 describe("GET /api/profile onboarding", () => {
@@ -45,6 +51,7 @@ describe("GET /api/profile onboarding", () => {
     mocks.mockGetOnboardingStatus.mockResolvedValue({
       status: "workspace_creation_required",
     });
+    mocks.mockIsPublicWorkspaceProvisioningBlocked.mockResolvedValue(false);
   });
 
   it("creates a fresh workspace-backed profile for a brand-new user", async () => {
@@ -68,6 +75,18 @@ describe("GET /api/profile onboarding", () => {
       name: "João Silva",
     });
     expect(mocks.mockProfileUpdate).not.toHaveBeenCalled();
+  });
+
+  it("blocks public workspace provisioning while the beta is active", async () => {
+    mocks.mockProfileFindUnique.mockResolvedValue(null);
+    mocks.mockIsPublicWorkspaceProvisioningBlocked.mockResolvedValue(true);
+
+    const res = await GET();
+    const json = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(json.error.code).toBe("CLOSED_BETA_ONLY");
+    expect(mocks.mockCreateProfileWithWorkspace).not.toHaveBeenCalled();
   });
 
   it("only refreshes the email for an existing profile", async () => {

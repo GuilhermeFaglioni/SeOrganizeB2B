@@ -29,6 +29,7 @@ export async function getEffectivePermissions(
     where: { id: userId },
     select: {
       tenantId: true,
+      removedAt: true,
       role: {
         select: {
           id: true,
@@ -43,6 +44,16 @@ export async function getEffectivePermissions(
 
   const roleApplies = (role: { tenantId: string } | null) =>
     role !== null && role.tenantId === profile?.tenantId;
+
+  if (profile?.removedAt) {
+    return {
+      tenantId: null,
+      isAdmin: false,
+      roleId: null,
+      roleName: null,
+      permissions: [],
+    };
+  }
 
   let role = profile?.role ?? null;
   if (role && !roleApplies(role)) role = null;

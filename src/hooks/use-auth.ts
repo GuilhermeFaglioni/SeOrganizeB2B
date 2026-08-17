@@ -21,10 +21,12 @@ function getAppOrigin(): string {
 export function useAuth() {
   const client = getClient();
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (redirectPath?: string) => {
     await client.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${getAppOrigin()}/auth/callback` },
+      options: {
+        redirectTo: `${getAppOrigin()}${redirectPath ?? "/auth/callback"}`,
+      },
     });
   };
 
@@ -40,11 +42,17 @@ export function useAuth() {
     if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    redirectPath?: string,
+  ) => {
     const { error, data } = await client.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${getAppOrigin()}/auth/callback` },
+      options: {
+        emailRedirectTo: `${getAppOrigin()}${redirectPath ?? "/auth/callback"}`,
+      },
     });
     if (error) throw error;
     return data;

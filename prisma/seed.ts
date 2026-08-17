@@ -7,6 +7,10 @@ async function main() {
   const adminRoleId = "00000000-0000-0000-0000-000000000001";
   const memberRoleId = "00000000-0000-0000-0000-000000000002";
 
+  await prisma.closedBetaAuditEvent.deleteMany();
+  await prisma.closedBetaRateLimit.deleteMany();
+  await prisma.closedBetaInvitation.deleteMany();
+  await prisma.closedBetaEnrollment.deleteMany();
   await prisma.task.deleteMany();
   await prisma.comment.deleteMany();
   await prisma.document.deleteMany();
@@ -28,6 +32,7 @@ async function main() {
     allowedModules: ["tasks", "projects", "calendar", "documents"],
     isDefault: true,
     isActive: true,
+    isInternal: false,
   };
 
   if (!starterPlan) {

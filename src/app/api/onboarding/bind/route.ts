@@ -8,6 +8,10 @@ import {
   InviteNotFoundError,
   OnboardingRequiredError,
 } from "@/lib/invites/service";
+import {
+  ClosedBetaGuestCapacityError,
+  ClosedBetaInactiveError,
+} from "@/lib/closed-beta/service";
 
 function errorResponse(
   code: string,
@@ -71,6 +75,20 @@ export async function POST(request: Request) {
     }
     if (error instanceof InviteNotFoundError) {
       return errorResponse("NOT_FOUND", error.message, 404);
+    }
+    if (error instanceof ClosedBetaGuestCapacityError) {
+      return errorResponse(
+        "GUEST_CAPACITY_REACHED",
+        "This workspace has no available guest slots.",
+        409,
+      );
+    }
+    if (error instanceof ClosedBetaInactiveError) {
+      return errorResponse(
+        "BETA_INACTIVE",
+        "This workspace is not accepting new guests right now.",
+        409,
+      );
     }
     console.error("Workspace binding failed:", error);
     return errorResponse(
