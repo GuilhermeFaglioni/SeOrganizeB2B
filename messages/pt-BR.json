@@ -335,7 +335,7 @@
       "intro": "Estes termos definem as regras para uso do SeOrganize+ por prestadores digitais, empresas e equipes.",
       "sections": {
         "service": {"title": "O serviço", "body": "O SeOrganize+ oferece ferramentas para organizar tarefas, projetos, documentos, calendário, propostas, contratos e recebíveis. O serviço não substitui orientação jurídica, contábil ou financeira profissional."},
-        "accounts": {"title": "Contas e empresas", "body": "A pessoa usuária deve fornecer informações verdadeiras, proteger suas credenciais e usar somente empresas e dados aos quais tenha autorização. Cada empresa é responsável pelas permissões concedidas à sua equipe."},
+        "accounts": {"title": "Contas e empresas", "body": "A pessoa usuária deve fornecer informações verdadeiras, proteger suas credenciais e usar somente empresas e dados aos quais tenha autorização. Cada empresa é responsável pelas permissões concedidas à sua equipe. Regra de aceite dos termos: TODO_TERMS_ACCEPTANCE_POLICY."},
         "acceptableUse": {"title": "Uso aceitável", "body": "É proibido usar o serviço para fraude, abuso, violação de direitos, tentativa de acesso não autorizado, distribuição de malware ou uso das integrações de forma incompatível com as políticas dos provedores."},
         "integrations": {"title": "Integrações", "body": "O Google Calendar e outros provedores são serviços de terceiros. Ao conectar uma integração, a pessoa usuária autoriza as ações descritas na tela e pode desconectar a integração a qualquer momento."},
         "billing": {"title": "Planos e cobrança", "body": "Planos, preços, ativação, cancelamento e períodos de acesso são apresentados no produto. A empresa é responsável pelos pagamentos e pelo uso realizado por seus membros."},

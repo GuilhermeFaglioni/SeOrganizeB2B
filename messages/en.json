@@ -335,7 +335,7 @@
       "intro": "These terms define the rules for use of SeOrganize+ by digital service providers, companies and teams.",
       "sections": {
         "service": {"title": "The service", "body": "SeOrganize+ provides tools for tasks, projects, documents, calendar, proposals, contracts and receivables. The service does not replace professional legal, accounting or financial advice."},
-        "accounts": {"title": "Accounts and companies", "body": "Users must provide truthful information, protect credentials and use only companies and data they are authorized to access. Each company is responsible for permissions granted to its members."},
+        "accounts": {"title": "Accounts and companies", "body": "Users must provide truthful information, protect credentials and use only companies and data they are authorized to access. Each company is responsible for permissions granted to its members. Terms acceptance policy: TODO_TERMS_ACCEPTANCE_POLICY."},
         "acceptableUse": {"title": "Acceptable use", "body": "You may not use the service for fraud, abuse, rights violations, unauthorized access attempts, malware distribution or integrations that conflict with provider policies."},
         "integrations": {"title": "Integrations", "body": "Google Calendar and other providers are third-party services. By connecting an integration, you authorize the actions described in the product and may disconnect it at any time."},
         "billing": {"title": "Plans and billing", "body": "Plans, prices, activation, cancellation and access periods are presented in the product. The company is responsible for payments and use by its members."},
