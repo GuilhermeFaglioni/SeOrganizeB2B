@@ -31,6 +31,7 @@ model Profile {
   comments               Comment[]
   createdDocuments       Document[]
   calendarAuth           CalendarAuth?
+  calendarOAuthAttempts  CalendarOAuthAttempt[]
   calendarEvents         CalendarEvent[]
   calendarEventAttendees CalendarEventAttendee[]
   activities             Activity[]              @relation("ActivityActor")
@@ -105,6 +106,7 @@ model Workspace {
   commentMentions       CommentMention[]
   documents             Document[]
   calendarAuths         CalendarAuth[]
+  calendarOAuthAttempts CalendarOAuthAttempt[]
   calendarEvents        CalendarEvent[]
   calendarEventAttendees CalendarEventAttendee[]
   activities            Activity[]
@@ -494,6 +496,7 @@ model Document {
 model CalendarAuth {
   id           String    @id @default(uuid())
   userId       String    @unique @map("user_id")
+  googleSubject String?   @map("google_subject")
   accessToken  String    @map("access_token")
   refreshToken String    @map("refresh_token")
   expiresAt    DateTime  @map("expires_at")
@@ -507,7 +510,27 @@ model CalendarAuth {
   tenant Workspace @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
+  @@unique([tenantId, googleSubject])
   @@map("calendar_auth")
+}
+
+model CalendarOAuthAttempt {
+  id           String    @id @default(uuid())
+  stateHash    String    @unique @map("state_hash")
+  codeVerifier String    @map("code_verifier")
+  nonceHash    String    @map("nonce_hash")
+  userId       String    @map("user_id")
+  tenantId     String    @map("tenant_id")
+  expiresAt    DateTime  @map("expires_at")
+  consumedAt   DateTime? @map("consumed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  user   Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Workspace @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([tenantId, expiresAt])
+  @@map("calendar_oauth_attempts")
 }
 
 model CalendarEvent {
