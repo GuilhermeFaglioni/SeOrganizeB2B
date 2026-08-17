@@ -1,6 +1,6 @@
 # Google OAuth Verification Contract
 
-Status: implementation contract for issue #131. Business and legal owner details remain required before submitting the app for review.
+Status: implementation contract for issue #131. Controlled placeholders are allowed in development and staging only; production and Google submission remain blocked until they are replaced.
 
 ## Canonical Environment
 
@@ -60,17 +60,22 @@ These rules are implementation defaults and require confirmation by the legal/pr
 - Attendee records are retained only while their associated local event is retained.
 - Account deletion removes credentials, Google-derived mirrors and associated attendee data according to the final deletion policy.
 
-## Required Business Inputs
+## Controlled Business Placeholders
 
-The following values must be supplied before the legal pages and Google consent screen are finalized:
+The following placeholders may be used while the implementation is being exercised in development and staging:
 
-- Legal company/controller name.
-- CNPJ and business address, if applicable.
-- Public support email.
-- Privacy contact or DPO contact, if applicable.
-- Legal policy effective date and versioning policy.
-- Final retention period and disconnect behavior for local event mirrors.
-- Decision on mandatory Terms acceptance during registration.
+- `TODO_LEGAL_ENTITY_NAME`
+- `TODO_COMPANY_DOCUMENT`
+- `TODO_COMPANY_ADDRESS`
+- `TODO_SUPPORT_EMAIL`
+- `TODO_PRIVACY_EMAIL`
+- `TODO_POLICY_EFFECTIVE_DATE`
+- `TODO_RETENTION_POLICY`
+- `TODO_TERMS_ACCEPTANCE_POLICY`
+
+These placeholders must never be presented as final legal information in a production deployment or a Google verification submission. A release check must fail when any controlled placeholder is enabled for production.
+
+The proposed safe default for the disconnect behavior is to delete Google-derived event mirrors and preserve events explicitly created as local records. This remains a business decision until confirmed.
 
 ## External Configuration Checklist
 
