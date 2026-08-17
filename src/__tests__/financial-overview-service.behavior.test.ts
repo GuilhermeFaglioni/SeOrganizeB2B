@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { toDecimal, moneyToJson } from "../lib/financial/money";
+import { addDaysCivil, todayCivilDate } from "../lib/financial/civil-date";
 
 const { mockTx, mockExtendRecurringHorizons } = vi.hoisted(() => {
   const mockTx = {
@@ -285,7 +286,7 @@ describe("computeOverview service", () => {
   it("detects expiring contracts within 30 days", async () => {
     const expiringContract = {
       ...activeContract,
-      endDate: "2026-08-20",
+      endDate: addDaysCivil(todayCivilDate(), 3),
     };
 
     mockTx.contract.findMany.mockResolvedValue([expiringContract]);
@@ -304,7 +305,7 @@ describe("computeOverview service", () => {
       ...activeContract,
       id: `ctr-${i}`,
       code: `CTR-${i}`,
-      endDate: `2026-08-${String(10 + (i % 20)).padStart(2, "0")}`,
+      endDate: addDaysCivil(todayCivilDate(), i),
     }));
 
     mockTx.contract.findMany.mockResolvedValue(manyExpiring);
