@@ -99,7 +99,7 @@ export default function LoginPage() {
         </Link>
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center">
-            <span className="text-white text-heading-1 font-bold">S</span>
+            <span className="text-white text-heading-1 font-bold">S+</span>
           </div>
           <h1 className="text-display text-text-primary">{APP_NAME}</h1>
           <p className="text-body-small text-text-secondary">

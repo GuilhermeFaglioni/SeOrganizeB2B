@@ -43,6 +43,9 @@ jobs:
       - name: Run lint
         run: npm run lint
 
+      - name: Check production legal configuration
+        run: npm run security:check-legal-placeholders
+
       - name: Run typecheck
         run: npx tsc --noEmit
 

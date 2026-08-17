@@ -6,6 +6,7 @@ import {
   encryptGoogleToken,
   GoogleTokenCryptoError,
 } from "./token-crypto";
+import { getSiteOrigin } from "../site-url";
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -76,34 +77,14 @@ function requiredGoogleClientSecret(): string {
 }
 
 export function getAppOrigin(requestOrigin?: string): string {
-  const configuredOrigin =
-    process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? null;
-  if (!configuredOrigin) {
-    if (process.env.NODE_ENV === "production") {
-      throw new GoogleAuthError(
-        "GOOGLE_AUTH_CONFIGURATION",
-        "The application URL is not configured",
-      );
-    }
-    return requestOrigin ?? "http://localhost:3000";
-  }
-
-  let url: URL;
   try {
-    url = new URL(configuredOrigin);
+    return getSiteOrigin(requestOrigin);
   } catch {
     throw new GoogleAuthError(
       "GOOGLE_AUTH_CONFIGURATION",
-      "The application URL is invalid",
+      "The application URL is invalid or not configured",
     );
   }
-  if (url.protocol !== "https:" && url.hostname !== "localhost") {
-    throw new GoogleAuthError(
-      "GOOGLE_AUTH_CONFIGURATION",
-      "The application URL must use HTTPS",
-    );
-  }
-  return url.origin;
 }
 
 export function getCalendarRedirectUri(requestOrigin?: string): string {

@@ -9,20 +9,24 @@ function getClient() {
   return supabase;
 }
 
+function getAppOrigin(): string {
+  return process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+}
+
 export function useAuth() {
   const client = getClient();
 
   const signInWithGoogle = async () => {
     await client.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${getAppOrigin()}/auth/callback` },
     });
   };
 
   const signInWithMagicLink = async (email: string) => {
     await client.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: `${getAppOrigin()}/auth/callback` },
     });
   };
 
@@ -35,7 +39,7 @@ export function useAuth() {
     const { error, data } = await client.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: `${getAppOrigin()}/auth/callback` },
     });
     if (error) throw error;
     return data;
