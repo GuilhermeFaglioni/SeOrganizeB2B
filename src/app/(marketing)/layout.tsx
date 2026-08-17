@@ -87,6 +87,15 @@ export default function MarketingLayout({
             >
               {t("nav.cta")}
             </Link>
+            <Link href="/privacy" className="transition-colors hover:text-text-primary">
+              {t("footer.privacy")}
+            </Link>
+            <Link href="/terms" className="transition-colors hover:text-text-primary">
+              {t("footer.terms")}
+            </Link>
+            <Link href="/contact" className="transition-colors hover:text-text-primary">
+              {t("footer.contact")}
+            </Link>
           </div>
         </div>
       </footer>

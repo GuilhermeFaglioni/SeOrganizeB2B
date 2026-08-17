@@ -187,6 +187,7 @@ export default function LoginPage() {
             data-testid="google-sign-in"
             variant="outline"
             className="w-full"
+            type="button"
             onClick={signInWithGoogle}
             disabled={loading}
           >
@@ -218,6 +219,16 @@ export default function LoginPage() {
               </button>
             </>
           )}
+        </p>
+        <p className="text-center text-xs leading-5 text-text-muted">
+          {t("legalPrefix")} {" "}
+          <Link href="/privacy" className="text-accent hover:underline">
+            {t("privacyLink")}
+          </Link>{" "}
+          {t("legalAnd")} {" "}
+          <Link href="/terms" className="text-accent hover:underline">
+            {t("termsLink")}
+          </Link>
         </p>
       </div>
     </div>

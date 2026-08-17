@@ -262,7 +262,10 @@
       "cardCta": "Criar conta grátis"
     },
     "footer": {
-      "tagline": "Organização colaborativa para equipes que executam."
+      "tagline": "Organização colaborativa para equipes que executam.",
+      "privacy": "Privacidade",
+      "terms": "Termos",
+      "contact": "Contato"
     }
   },
   "auth": {
@@ -296,7 +299,62 @@
       "checkingWorkspace": "Verificando empresa...",
       "workspaceLoadFailed": "Não foi possível carregar sua empresa. Tente novamente.",
       "retry": "Tentar novamente",
-      "backToSite": "Voltar ao site"
+      "backToSite": "Voltar ao site",
+      "legalPrefix": "Ao continuar, você concorda com a",
+      "legalAnd": "e os",
+      "privacyLink": "Política de Privacidade",
+      "termsLink": "Termos de Serviço"
+    }
+  },
+  "legal": {
+    "placeholderNotice": "Documento em preenchimento: substitua todos os placeholders TODO pelas informações oficiais antes de publicar ou enviar o app para verificação do Google.",
+    "relatedPages": "Páginas relacionadas",
+    "privacyLink": "Política de Privacidade",
+    "termsLink": "Termos de Serviço",
+    "contactLink": "Contato",
+    "privacy": {
+      "eyebrow": "Privacidade",
+      "title": "Política de Privacidade",
+      "updated": "Versão: TODO_POLICY_EFFECTIVE_DATE",
+      "intro": "Esta política explica como o SeOrganize+ trata dados da empresa, da equipe e das integrações autorizadas pelo usuário, incluindo o Google Calendar.",
+      "sections": {
+        "controller": {"title": "Controlador", "body": "O controlador é TODO_LEGAL_ENTITY_NAME, CNPJ TODO_COMPANY_DOCUMENT, com endereço em TODO_COMPANY_ADDRESS. Contato geral: TODO_SUPPORT_EMAIL. Contato de privacidade: TODO_PRIVACY_EMAIL."},
+        "googleData": {"title": "Dados do Google", "body": "Quando você autoriza o Google Calendar, podemos receber o identificador estável da conta Google, e-mail verificado, tokens de acesso e renovação, identificadores de eventos, títulos, descrições, horários, fuso, participantes e status de resposta."},
+        "calendarUse": {"title": "Como usamos o Google Calendar", "body": "Usamos esses dados para exibir eventos na agenda, detectar conflitos, criar eventos, atualizar eventos, excluir eventos e enviar convites quando você solicita essas ações. Não usamos dados do Google para publicidade, venda, perfil de crédito ou finalidades não descritas aqui."},
+        "storage": {"title": "Armazenamento e segurança", "body": "Tokens são armazenados de forma criptografada no ambiente do aplicativo. Eventos e participantes podem ter uma cópia local para conectar a agenda ao trabalho da empresa. O acesso é protegido por autenticação, permissões e isolamento entre empresas."},
+        "sharing": {"title": "Compartilhamento e provedores", "body": "Dados são processados pelo Google para a integração autorizada e por provedores necessários para operar o serviço, como Supabase, hospedagem, banco de dados e cobrança. Não vendemos dados Google nem os transferimos para publicidade."},
+        "retention": {"title": "Retenção e exclusão", "body": "A regra final de retenção será TODO_RETENTION_POLICY. Ao desconectar, a proposta técnica é excluir espelhos derivados do Google e preservar somente eventos explicitamente locais. A exclusão da conta seguirá a política final aprovada."},
+        "rights": {"title": "Direitos e revogação", "body": "Você pode solicitar acesso, correção ou exclusão e pode revogar o acesso do Google nas configurações da conta. Para exercer direitos, use TODO_PRIVACY_EMAIL."},
+        "changes": {"title": "Alterações", "body": "Alterações relevantes nesta política serão publicadas nesta página e poderão exigir novo consentimento quando mudarem a finalidade do uso de dados Google."}
+      }
+    },
+    "terms": {
+      "eyebrow": "Uso do serviço",
+      "title": "Termos de Serviço",
+      "updated": "Versão: TODO_POLICY_EFFECTIVE_DATE",
+      "intro": "Estes termos definem as regras para uso do SeOrganize+ por prestadores digitais, empresas e equipes.",
+      "sections": {
+        "service": {"title": "O serviço", "body": "O SeOrganize+ oferece ferramentas para organizar tarefas, projetos, documentos, calendário, propostas, contratos e recebíveis. O serviço não substitui orientação jurídica, contábil ou financeira profissional."},
+        "accounts": {"title": "Contas e empresas", "body": "A pessoa usuária deve fornecer informações verdadeiras, proteger suas credenciais e usar somente empresas e dados aos quais tenha autorização. Cada empresa é responsável pelas permissões concedidas à sua equipe."},
+        "acceptableUse": {"title": "Uso aceitável", "body": "É proibido usar o serviço para fraude, abuso, violação de direitos, tentativa de acesso não autorizado, distribuição de malware ou uso das integrações de forma incompatível com as políticas dos provedores."},
+        "integrations": {"title": "Integrações", "body": "O Google Calendar e outros provedores são serviços de terceiros. Ao conectar uma integração, a pessoa usuária autoriza as ações descritas na tela e pode desconectar a integração a qualquer momento."},
+        "billing": {"title": "Planos e cobrança", "body": "Planos, preços, ativação, cancelamento e períodos de acesso são apresentados no produto. A empresa é responsável pelos pagamentos e pelo uso realizado por seus membros."},
+        "content": {"title": "Conteúdo", "body": "A empresa mantém os direitos sobre seu conteúdo e é responsável por possuir autorização para armazenar e compartilhar os dados inseridos no serviço, inclusive dados de clientes e participantes."},
+        "availability": {"title": "Disponibilidade", "body": "O serviço depende de infraestrutura própria e de terceiros. Podemos realizar manutenção, aplicar limites ou suspender funcionalidades para proteger usuários, dados e a operação."},
+        "termination": {"title": "Encerramento", "body": "A conta pode ser encerrada pela empresa ou pelo serviço conforme estes termos. O tratamento e a exclusão dos dados após o encerramento seguem a Política de Privacidade."},
+        "changes": {"title": "Alterações dos termos", "body": "Podemos atualizar estes termos. Alterações materiais serão comunicadas pelos canais disponíveis no produto ou nesta página."}
+      }
+    },
+    "contact": {
+      "eyebrow": "Atendimento",
+      "title": "Contato",
+      "updated": "Informações oficiais: TODO_SUPPORT_EMAIL",
+      "intro": "Use os contatos abaixo para suporte, privacidade e assuntos jurídicos. Os placeholders devem ser substituídos antes da publicação em produção.",
+      "sections": {
+        "support": {"title": "Suporte", "body": "E-mail de suporte: TODO_SUPPORT_EMAIL\nDescreva a empresa, a conta e o problema sem enviar senhas, tokens ou dados desnecessários."},
+        "privacy": {"title": "Privacidade e dados Google", "body": "Para solicitações de acesso, correção, exclusão ou revogação relacionadas a dados pessoais e Google Calendar: TODO_PRIVACY_EMAIL."},
+        "legal": {"title": "Assuntos jurídicos", "body": "Controlador: TODO_LEGAL_ENTITY_NAME\nCNPJ: TODO_COMPANY_DOCUMENT\nEndereço: TODO_COMPANY_ADDRESS"}
+      }
     }
   },
   "notifications": {
