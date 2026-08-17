@@ -4,7 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
-import { useAdminPlans, useCreatePlan } from "@/hooks/use-admin-plans";
+import {
+  useAdminPlans,
+  useCreatePlan,
+  useSetPlanActive,
+} from "@/hooks/use-admin-plans";
 import type { AdminPlan } from "@/hooks/use-admin-plans";
 import { ALL_MODULES } from "@/lib/module-gating";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +23,7 @@ export default function AdminPlansPage() {
   const t = useTranslations("admin.pages.plans");
   const { data: plans, isLoading, isError } = useAdminPlans();
   const createPlan = useCreatePlan();
+  const setPlanActive = useSetPlanActive();
 
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -61,6 +66,24 @@ export default function AdminPlansPage() {
       }
     );
   }
+
+  function handleSetActive(plan: AdminPlan, active: boolean) {
+    if (!active && !window.confirm(t("deactivateConfirm", { name: plan.name }))) {
+      return;
+    }
+    setPlanActive.mutate(
+      { id: plan.id, isActive: active },
+      {
+        onSuccess: () => {
+          toastSuccess(active ? t("activateSuccess") : t("deactivateSuccess"));
+        },
+        onError: () => toastError(active ? t("activateFailed") : t("deactivateFailed")),
+      }
+    );
+  }
+
+  const isPendingFor = (planId: string) =>
+    setPlanActive.isPending && setPlanActive.variables?.id === planId;
 
   return (
     <div data-testid="admin-plans-page" className="p-6">
@@ -154,6 +177,7 @@ export default function AdminPlansPage() {
               <th className="py-2 pr-4 font-medium">{t("modules")}</th>
               <th className="py-2 pr-4 font-medium">{t("default")}</th>
               <th className="py-2 pr-4 font-medium">{t("status")}</th>
+              <th className="py-2 pr-4 font-medium">{t("actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -166,6 +190,11 @@ export default function AdminPlansPage() {
                   >
                     {plan.name}
                   </Link>
+                  {plan.isInternal && (
+                    <Badge variant="secondary" className="ml-2">
+                      {t("internal")}
+                    </Badge>
+                  )}
                 </td>
                 <td className="py-2 pr-4 text-text-secondary">
                   {plan.allowedModules.length > 0
@@ -185,6 +214,32 @@ export default function AdminPlansPage() {
                   ) : (
                     <Badge variant="secondary">{t("inactive")}</Badge>
                   )}
+                </td>
+                <td className="py-2 pr-4">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/admin/plans/${plan.id}`}>{t("edit")}</Link>
+                    </Button>
+                    {plan.isActive ? (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={isPendingFor(plan.id)}
+                        onClick={() => handleSetActive(plan, false)}
+                      >
+                        {t("deactivate")}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={isPendingFor(plan.id)}
+                        onClick={() => handleSetActive(plan, true)}
+                      >
+                        {t("activate")}
+                      </Button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

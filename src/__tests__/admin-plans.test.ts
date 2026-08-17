@@ -33,6 +33,10 @@ vi.mock("../../prisma/client", () => ({
   },
 }));
 
+vi.mock("@/lib/module-gating", () => ({
+  ALL_MODULES: ["tasks", "projects", "calendar", "documents", "areas"],
+}));
+
 import {
   GET as listPlans,
   POST as createPlan,
@@ -350,6 +354,161 @@ describe("admin plans API", () => {
     );
 
     expect(res.status).toBe(404);
+    expect(mocks.mockPlanUpdate).not.toHaveBeenCalled();
+  });
+
+  it("activates a plan via PATCH isActive", async () => {
+    superAdmin();
+    mocks.mockPlanFindUnique.mockResolvedValue(
+      planRow({ isActive: false })
+    );
+    mocks.mockPlanUpdate.mockResolvedValue(
+      planRow({ isActive: true })
+    );
+
+    const res = await patchPlan(
+      makeRequest("http://x/api/admin/plans/p1", "PATCH", { isActive: true }),
+      { params: { id: "p1" } } as never
+    );
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.isActive).toBe(true);
+    expect(mocks.mockPlanUpdate).toHaveBeenCalledWith({
+      where: { id: "p1" },
+      data: { isActive: true },
+    });
+  });
+
+  it("deactivates a plan and clears default flag", async () => {
+    superAdmin();
+    mocks.mockPlanFindUnique.mockResolvedValue(
+      planRow({ isDefault: true, isActive: true })
+    );
+    mocks.mockPlanUpdate.mockResolvedValue(
+      planRow({ isDefault: false, isActive: false })
+    );
+
+    const res = await patchPlan(
+      makeRequest("http://x/api/admin/plans/p1", "PATCH", { isActive: false }),
+      { params: { id: "p1" } } as never
+    );
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.isActive).toBe(false);
+    expect(json.data.isDefault).toBe(false);
+    expect(mocks.mockPlanUpdate).toHaveBeenCalledWith({
+      where: { id: "p1" },
+      data: { isActive: false, isDefault: false },
+    });
+  });
+
+  it("rejects deactivation of internal plans via PATCH", async () => {
+    superAdmin();
+    mocks.mockPlanFindUnique.mockResolvedValue(
+      planRow({ isInternal: true, isActive: true })
+    );
+
+    const res = await patchPlan(
+      makeRequest("http://x/api/admin/plans/p1", "PATCH", { isActive: false }),
+      { params: { id: "p1" } } as never
+    );
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe("VALIDATION_ERROR");
+    expect(json.error.message).toContain("Internal plans");
+    expect(mocks.mockPlanUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects deactivation of internal plans via DELETE", async () => {
+    superAdmin();
+    mocks.mockPlanFindUnique.mockResolvedValue(
+      planRow({ isInternal: true, isActive: true })
+    );
+
+    const res = await deletePlan(
+      makeRequest("http://x/api/admin/plans/p1", "DELETE"),
+      { params: { id: "p1" } } as never
+    );
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe("VALIDATION_ERROR");
+    expect(json.error.message).toContain("Internal plans");
+    expect(mocks.mockPlanUpdate).not.toHaveBeenCalled();
+  });
+
+  it("clears default on DELETE if plan is default", async () => {
+    superAdmin();
+    mocks.mockPlanFindUnique.mockResolvedValue(
+      planRow({ isDefault: true, isActive: true })
+    );
+    mocks.mockPlanUpdate.mockResolvedValue(
+      planRow({ isDefault: false, isActive: false })
+    );
+
+    const res = await deletePlan(
+      makeRequest("http://x/api/admin/plans/p1", "DELETE"),
+      { params: { id: "p1" } } as never
+    );
+
+    expect(res.status).toBe(200);
+    expect(mocks.mockPlanUpdate).toHaveBeenCalledWith({
+      where: { id: "p1" },
+      data: { isActive: false, isDefault: false },
+    });
+  });
+
+  it("rejects PATCH with empty body", async () => {
+    superAdmin();
+    mocks.mockPlanFindUnique.mockResolvedValue(planRow());
+
+    const res = await patchPlan(
+      makeRequest("http://x/api/admin/plans/p1", "PATCH", {}),
+      { params: { id: "p1" } } as never
+    );
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe("VALIDATION_ERROR");
+    expect(mocks.mockPlanUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects unknown modules in allowedModules", async () => {
+    superAdmin();
+    mocks.mockPlanFindUnique.mockResolvedValue(planRow());
+
+    const res = await patchPlan(
+      makeRequest("http://x/api/admin/plans/p1", "PATCH", {
+        allowedModules: ["tasks", "unknown_module"],
+      }),
+      { params: { id: "p1" } } as never
+    );
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe("VALIDATION_ERROR");
+    expect(json.error.message).toContain("unknown_module");
+    expect(mocks.mockPlanUpdate).not.toHaveBeenCalled();
+  });
+
+  it("rejects setting isDefault true on inactive plan", async () => {
+    superAdmin();
+    mocks.mockPlanFindUnique.mockResolvedValue(
+      planRow({ isActive: false, isDefault: false })
+    );
+
+    const res = await patchPlan(
+      makeRequest("http://x/api/admin/plans/p1", "PATCH", { isDefault: true }),
+      { params: { id: "p1" } } as never
+    );
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe("VALIDATION_ERROR");
+    expect(json.error.message).toContain("inactive");
     expect(mocks.mockPlanUpdate).not.toHaveBeenCalled();
   });
 });
