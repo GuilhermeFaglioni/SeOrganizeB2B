@@ -23,12 +23,13 @@ describe("Google OAuth legal surface", () => {
     expect(read("src/app/login/page.tsx")).toContain('href="/terms"');
   });
 
-  it("marks controlled legal placeholders so they cannot be mistaken for final policy", () => {
+  it("publishes the official controller and Google data disclosures", () => {
     const legal = read("src/components/marketing/legal-page.tsx");
     const messages = read("messages/pt-BR.json");
-    expect(legal).toContain("placeholderNotice");
-    expect(messages).toContain("TODO_LEGAL_ENTITY_NAME");
-    expect(messages).toContain("TODO_PRIVACY_EMAIL");
+    expect(legal).not.toContain("placeholderNotice");
+    expect(messages).not.toContain("TODO_");
+    expect(messages).toContain("55.823.385 GUILHERME COSTA BARBOSA FAGLIONI");
+    expect(messages).toContain("guilhermefaglioni.contato@gmail.com");
     expect(messages).toContain("Google Calendar");
   });
 });

@@ -77,7 +77,8 @@
       "tenants": "Tenants",
       "plans": "Plans",
       "billing": "Billing",
-      "support": "Support"
+      "support": "Support",
+      "closedBeta": "Closed Beta"
     },
     "pages": {
       "dashboard": {
@@ -177,6 +178,31 @@
       "support": {
         "title": "Support tickets",
         "comingSoon": "Support ticket management will be enabled soon."
+      },
+      "closedBeta": {
+        "title": "Closed Beta",
+        "description": "Global control for invitations, capacity and participating companies.",
+        "loadFailed": "Failed to load Closed Beta.",
+        "updateFailed": "Failed to update Closed Beta.",
+        "confirmClose": "Closing the beta revokes pending primary invitations. Continue?",
+        "settingsTitle": "Campaign settings",
+        "settingsDescription": "Limits are global. Lowering them does not remove existing companies or members.",
+        "statusLabel": "Status",
+        "primaryLimit": "Primary slots",
+        "guestLimit": "Guests per company",
+        "save": "Save settings",
+        "saving": "Saving...",
+        "activeWorkspaces": "Active companies",
+        "reservedWorkspaces": "Reserved slots",
+        "availableWorkspaces": "Available slots",
+        "planTitle": "Associated plan",
+        "modules": "modules",
+        "planHint": "Internal, free plan without checkout and with every module enabled.",
+        "status": {
+          "active": "Active",
+          "paused": "Paused",
+          "closed": "Closed"
+        }
       }
     },
     "forbidden": {
@@ -307,7 +333,6 @@
     }
   },
   "legal": {
-    "placeholderNotice": "Draft document: replace every TODO placeholder with official information before publishing or submitting the app for Google verification.",
     "relatedPages": "Related pages",
     "privacyLink": "Privacy Policy",
     "termsLink": "Terms of Service",
@@ -315,16 +340,16 @@
     "privacy": {
       "eyebrow": "Privacy",
       "title": "Privacy Policy",
-      "updated": "Version: TODO_POLICY_EFFECTIVE_DATE",
+      "updated": "Version: August 17, 2026",
       "intro": "This policy explains how SeOrganize+ handles company, team and authorized integration data, including Google Calendar.",
       "sections": {
-        "controller": {"title": "Controller", "body": "The controller is TODO_LEGAL_ENTITY_NAME, company document TODO_COMPANY_DOCUMENT, at TODO_COMPANY_ADDRESS. General contact: TODO_SUPPORT_EMAIL. Privacy contact: TODO_PRIVACY_EMAIL."},
+        "controller": {"title": "Controller", "body": "The controller is 55.823.385 GUILHERME COSTA BARBOSA FAGLIONI, CNPJ 55.823.385/0001-89, at Rua José Gerardo Bessa, Silveira, Belo Horizonte, Minas Gerais, Brazil, ZIP 31140-390. General contact: guilhermefaglioni.contato@gmail.com. Privacy contact: guilhermefaglioni.contato@gmail.com."},
         "googleData": {"title": "Google data", "body": "When you authorize Google Calendar, we may receive the stable Google account identifier, verified email, access and refresh tokens, event identifiers, titles, descriptions, times, timezone, attendees and response status."},
         "calendarUse": {"title": "How we use Google Calendar", "body": "We use this data to show calendar events, detect conflicts, create events, update events, delete events and send invitations when you request those actions. We do not use Google data for advertising, sale, credit profiling or purposes not described here."},
         "storage": {"title": "Storage and security", "body": "Tokens are stored encrypted in the application environment. Events and attendees may have a local copy to connect the calendar to company work. Access is protected by authentication, permissions and company isolation."},
         "sharing": {"title": "Sharing and providers", "body": "Data is processed by Google for the authorized integration and by providers needed to operate the service, such as Supabase, hosting, database and billing providers. We do not sell Google data or transfer it for advertising."},
-        "retention": {"title": "Retention and deletion", "body": "The final retention rule is TODO_RETENTION_POLICY. When disconnected, we delete credentials and Google-derived mirrors and preserve only explicitly local events. Removal of company access follows the approved final policy."},
-        "rights": {"title": "Rights and revocation", "body": "Under the LGPD, you may request confirmation, access, correction, portability, information about sharing or deletion, and revoke Google access from company settings. To exercise rights, contact TODO_PRIVACY_EMAIL."},
+        "retention": {"title": "Retention and deletion", "body": "When Google Calendar is disconnected, we immediately delete credentials and Google-derived event and attendee mirrors; locally created events are preserved. We retain personal data while needed to provide the service and comply with legal obligations. After access ends, we delete or anonymize data when no legal, regulatory or rights-defense need requires retention. Fiscal, financial and audit records are retained for the applicable legal periods."},
+        "rights": {"title": "Rights and revocation", "body": "Under the LGPD, you may request confirmation, access, correction, portability, information about sharing or deletion, and revoke Google access from company settings. To exercise rights, contact guilhermefaglioni.contato@gmail.com."},
         "internationalTransfers": {"title": "International transfers", "body": "Because we use global providers, data may be processed outside Brazil. We apply the contractual and technical safeguards required for international transfers under the LGPD and applicable rules."},
         "limitedUse": {"title": "Google data policy", "body": "Use of Google API data follows the Google API Services User Data Policy, including Limited Use requirements. We use this data only to provide or improve visible features and do not transfer it for advertising."},
         "changes": {"title": "Changes", "body": "Material changes to this policy will be published on this page and may require renewed consent when they change the purpose of Google data use."}
@@ -333,11 +358,11 @@
     "terms": {
       "eyebrow": "Service use",
       "title": "Terms of Service",
-      "updated": "Version: TODO_POLICY_EFFECTIVE_DATE",
+      "updated": "Version: August 17, 2026",
       "intro": "These terms define the rules for use of SeOrganize+ by digital service providers, companies and teams.",
       "sections": {
         "service": {"title": "The service", "body": "SeOrganize+ provides tools for tasks, projects, documents, calendar, proposals, contracts and receivables. The service does not replace professional legal, accounting or financial advice."},
-        "access": {"title": "Access and companies", "body": "Users must provide truthful information, protect credentials and use only companies and data they are authorized to access. Each company is responsible for permissions granted to its members. Terms acceptance policy: TODO_TERMS_ACCEPTANCE_POLICY."},
+        "access": {"title": "Access and companies", "body": "Users must provide truthful information, protect credentials and use only companies and data they are authorized to access. Each company is responsible for permissions granted to its members. By creating or using access, users state that they have read and agree to these Terms. The current version is identified on this page, and material changes will be communicated through available channels before taking effect."},
         "acceptableUse": {"title": "Acceptable use", "body": "You may not use the service for fraud, abuse, rights violations, unauthorized access attempts, malware distribution or integrations that conflict with provider policies."},
         "integrations": {"title": "Integrations", "body": "Google Calendar and other providers are third-party services. By connecting an integration, you authorize the actions described in the product and may disconnect it at any time."},
         "billing": {"title": "Plans and billing", "body": "Plans, prices, activation, cancellation and access periods are presented in the product. The company is responsible for payments and use by its members."},
@@ -350,12 +375,12 @@
     "contact": {
       "eyebrow": "Support",
       "title": "Contact",
-      "updated": "Official information: TODO_SUPPORT_EMAIL",
-      "intro": "Use the contacts below for support, privacy and legal matters. Placeholders must be replaced before production publication.",
+      "updated": "Official information: guilhermefaglioni.contato@gmail.com",
+      "intro": "Use the contacts below for support, privacy and legal matters.",
       "sections": {
-        "support": {"title": "Support", "body": "Support email: TODO_SUPPORT_EMAIL\nDescribe the company, access and problem without sending passwords, tokens or unnecessary data."},
-        "privacy": {"title": "Privacy and Google data", "body": "For access, correction, deletion or revocation requests involving personal data and Google Calendar: TODO_PRIVACY_EMAIL."},
-        "legal": {"title": "Legal matters", "body": "Controller: TODO_LEGAL_ENTITY_NAME\nCompany document: TODO_COMPANY_DOCUMENT\nAddress: TODO_COMPANY_ADDRESS"}
+        "support": {"title": "Support", "body": "Support email: guilhermefaglioni.contato@gmail.com\nDescribe the company, access and problem without sending passwords, tokens or unnecessary data."},
+        "privacy": {"title": "Privacy and Google data", "body": "For access, correction, deletion or revocation requests involving personal data and Google Calendar: guilhermefaglioni.contato@gmail.com."},
+        "legal": {"title": "Legal matters", "body": "Controller: 55.823.385 GUILHERME COSTA BARBOSA FAGLIONI\nCompany document: 55.823.385/0001-89\nAddress: Rua José Gerardo Bessa, Silveira, Belo Horizonte, Minas Gerais, Brazil, ZIP 31140-390"}
       }
     }
   },
@@ -1803,6 +1828,22 @@
       "notComplete": "Payment not completed",
       "notCompleteDescription": "Your payment has not been processed yet. Go back and try again.",
       "missingSession": "Could not find the payment session."
+    }
+  },
+  "closedBeta": {
+    "accept": {
+      "checking": "Checking invitation...",
+      "title": "Closed Beta invitation",
+      "description": "You were invited to test SeOrganize+ for free.",
+      "unavailable": "This invitation is not available. Ask the administrator for a new link.",
+      "signInHint": "Create or access your account using the invited email.",
+      "createAccount": "Create account",
+      "signIn": "I already have an account",
+      "verifyEmail": "Confirm your email before accepting the invitation.",
+      "consent": "I accept the specific Closed Beta terms, understand that access is experimental, and agree to the metrics and feedback collection described in the terms.",
+      "accept": "Accept invitation",
+      "accepting": "Setting up your company...",
+      "acceptFailed": "The invitation could not be accepted."
     }
   },
   "onboarding": {

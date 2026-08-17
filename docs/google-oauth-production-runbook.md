@@ -68,4 +68,4 @@ Record a separate unlisted technical video. Show the user starting Calendar conn
 
 ## Production Gate
 
-The application is not ready for public Google verification while any `TODO_*` placeholder remains, the domain is unverified, the branding is unpublished, the token encryption key is absent or the legacy token migration has not completed.
+The application is not ready for public Google verification while the legal pages have not been reviewed, the domain is unverified, the branding is unpublished, the token encryption key is absent or the legacy token migration has not completed.

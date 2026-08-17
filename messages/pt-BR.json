@@ -77,7 +77,8 @@
       "tenants": "Tenants",
       "plans": "Planos",
       "billing": "Cobrança",
-      "support": "Suporte"
+      "support": "Suporte",
+      "closedBeta": "Closed Beta"
     },
     "pages": {
       "dashboard": {
@@ -177,6 +178,31 @@
       "support": {
         "title": "Tickets de suporte",
         "comingSoon": "O gerenciamento de tickets de suporte será habilitado em breve."
+      },
+      "closedBeta": {
+        "title": "Closed Beta",
+        "description": "Controle global de convites, capacidade e empresas participantes.",
+        "loadFailed": "Não foi possível carregar o Closed Beta.",
+        "updateFailed": "Não foi possível atualizar o Closed Beta.",
+        "confirmClose": "Encerrar o beta revoga os convites principais pendentes. Continuar?",
+        "settingsTitle": "Configuração da campanha",
+        "settingsDescription": "Os limites são globais. Reduzi-los não remove empresas ou membros existentes.",
+        "statusLabel": "Status",
+        "primaryLimit": "Vagas principais",
+        "guestLimit": "Convidados por empresa",
+        "save": "Salvar configuração",
+        "saving": "Salvando...",
+        "activeWorkspaces": "Empresas ativas",
+        "reservedWorkspaces": "Vagas reservadas",
+        "availableWorkspaces": "Vagas disponíveis",
+        "planTitle": "Plano associado",
+        "modules": "módulos",
+        "planHint": "Plano interno, gratuito, sem checkout e com todos os módulos liberados.",
+        "status": {
+          "active": "Ativo",
+          "paused": "Pausado",
+          "closed": "Encerrado"
+        }
       }
     },
     "forbidden": {
@@ -307,7 +333,6 @@
     }
   },
   "legal": {
-    "placeholderNotice": "Documento em preenchimento: substitua todos os placeholders TODO pelas informações oficiais antes de publicar ou enviar o app para verificação do Google.",
     "relatedPages": "Páginas relacionadas",
     "privacyLink": "Política de Privacidade",
     "termsLink": "Termos de Serviço",
@@ -315,16 +340,16 @@
     "privacy": {
       "eyebrow": "Privacidade",
       "title": "Política de Privacidade",
-      "updated": "Versão: TODO_POLICY_EFFECTIVE_DATE",
+      "updated": "Versão: 17/08/2026",
       "intro": "Esta política explica como o SeOrganize+ trata dados da empresa, da equipe e das integrações autorizadas pelo usuário, incluindo o Google Calendar.",
       "sections": {
-        "controller": {"title": "Controlador", "body": "O controlador é TODO_LEGAL_ENTITY_NAME, CNPJ TODO_COMPANY_DOCUMENT, com endereço em TODO_COMPANY_ADDRESS. Contato geral: TODO_SUPPORT_EMAIL. Contato de privacidade: TODO_PRIVACY_EMAIL."},
+        "controller": {"title": "Controlador", "body": "O controlador é 55.823.385 GUILHERME COSTA BARBOSA FAGLIONI, CNPJ 55.823.385/0001-89, com endereço em Rua José Gerardo Bessa, bairro Silveira, Belo Horizonte, Minas Gerais, Brasil, CEP 31140-390. Contato geral: guilhermefaglioni.contato@gmail.com. Contato de privacidade: guilhermefaglioni.contato@gmail.com."},
         "googleData": {"title": "Dados do Google", "body": "Quando você autoriza o Google Calendar, podemos receber o identificador estável da conta Google, e-mail verificado, tokens de acesso e renovação, identificadores de eventos, títulos, descrições, horários, fuso, participantes e status de resposta."},
         "calendarUse": {"title": "Como usamos o Google Calendar", "body": "Usamos esses dados para exibir eventos na agenda, detectar conflitos, criar eventos, atualizar eventos, excluir eventos e enviar convites quando você solicita essas ações. Não usamos dados do Google para publicidade, venda, perfil de crédito ou finalidades não descritas aqui."},
         "storage": {"title": "Armazenamento e segurança", "body": "Tokens são armazenados de forma criptografada no ambiente do aplicativo. Eventos e participantes podem ter uma cópia local para conectar a agenda ao trabalho da empresa. O acesso é protegido por autenticação, permissões e isolamento entre empresas."},
         "sharing": {"title": "Compartilhamento e provedores", "body": "Dados são processados pelo Google para a integração autorizada e por provedores necessários para operar o serviço, como Supabase, hospedagem, banco de dados e cobrança. Não vendemos dados Google nem os transferimos para publicidade."},
-        "retention": {"title": "Retenção e exclusão", "body": "A regra final de retenção será TODO_RETENTION_POLICY. Ao desconectar, excluímos as credenciais e os espelhos derivados do Google e preservamos somente eventos explicitamente locais. A exclusão do acesso da empresa seguirá a política final aprovada."},
-        "rights": {"title": "Direitos e revogação", "body": "Nos termos da LGPD, você pode solicitar confirmação, acesso, correção, portabilidade, informação sobre compartilhamento ou exclusão, além de revogar o acesso do Google nas configurações da empresa. Para exercer direitos, use TODO_PRIVACY_EMAIL."},
+        "retention": {"title": "Retenção e exclusão", "body": "Ao desconectar o Google Calendar, excluímos imediatamente as credenciais e os espelhos de eventos e participantes derivados do Google; eventos criados localmente são preservados. Mantemos dados pessoais enquanto necessários para prestar o serviço e cumprir obrigações legais. Após o encerramento, excluímos ou anonimizamos os dados quando não houver obrigação legal, regulatória ou necessidade de defesa de direitos. Dados fiscais, financeiros e de auditoria permanecem pelos prazos legais aplicáveis."},
+        "rights": {"title": "Direitos e revogação", "body": "Nos termos da LGPD, você pode solicitar confirmação, acesso, correção, portabilidade, informação sobre compartilhamento ou exclusão, além de revogar o acesso do Google nas configurações da empresa. Para exercer direitos, use guilhermefaglioni.contato@gmail.com."},
         "internationalTransfers": {"title": "Transferências internacionais", "body": "Como usamos provedores globais, os dados podem ser processados fora do Brasil. Aplicamos as salvaguardas contratuais e técnicas exigidas para transferências internacionais conforme a LGPD e as regras aplicáveis."},
         "limitedUse": {"title": "Política de dados do Google", "body": "O uso de dados das APIs do Google segue a Google API Services User Data Policy, incluindo os requisitos de Limited Use. Usamos esses dados somente para fornecer ou melhorar as funcionalidades visíveis e não os transferimos para publicidade."},
         "changes": {"title": "Alterações", "body": "Alterações relevantes nesta política serão publicadas nesta página e poderão exigir novo consentimento quando mudarem a finalidade do uso de dados Google."}
@@ -333,11 +358,11 @@
     "terms": {
       "eyebrow": "Uso do serviço",
       "title": "Termos de Serviço",
-      "updated": "Versão: TODO_POLICY_EFFECTIVE_DATE",
+      "updated": "Versão: 17/08/2026",
       "intro": "Estes termos definem as regras para uso do SeOrganize+ por prestadores digitais, empresas e equipes.",
       "sections": {
         "service": {"title": "O serviço", "body": "O SeOrganize+ oferece ferramentas para organizar tarefas, projetos, documentos, calendário, propostas, contratos e recebíveis. O serviço não substitui orientação jurídica, contábil ou financeira profissional."},
-        "access": {"title": "Acessos e empresas", "body": "A pessoa usuária deve fornecer informações verdadeiras, proteger suas credenciais e usar somente empresas e dados aos quais tenha autorização. Cada empresa é responsável pelas permissões concedidas à sua equipe. Regra de aceite dos termos: TODO_TERMS_ACCEPTANCE_POLICY."},
+        "access": {"title": "Acessos e empresas", "body": "A pessoa usuária deve fornecer informações verdadeiras, proteger suas credenciais e usar somente empresas e dados aos quais tenha autorização. Cada empresa é responsável pelas permissões concedidas à sua equipe. Ao criar ou utilizar um acesso, a pessoa usuária declara que leu e concorda com estes Termos. A versão vigente é identificada nesta página, e alterações materiais serão comunicadas pelos canais disponíveis antes de produzirem efeitos."},
         "acceptableUse": {"title": "Uso aceitável", "body": "É proibido usar o serviço para fraude, abuso, violação de direitos, tentativa de acesso não autorizado, distribuição de malware ou uso das integrações de forma incompatível com as políticas dos provedores."},
         "integrations": {"title": "Integrações", "body": "O Google Calendar e outros provedores são serviços de terceiros. Ao conectar uma integração, a pessoa usuária autoriza as ações descritas na tela e pode desconectar a integração a qualquer momento."},
         "billing": {"title": "Planos e cobrança", "body": "Planos, preços, ativação, cancelamento e períodos de acesso são apresentados no produto. A empresa é responsável pelos pagamentos e pelo uso realizado por seus membros."},
@@ -350,12 +375,12 @@
     "contact": {
       "eyebrow": "Atendimento",
       "title": "Contato",
-      "updated": "Informações oficiais: TODO_SUPPORT_EMAIL",
-      "intro": "Use os contatos abaixo para suporte, privacidade e assuntos jurídicos. Os placeholders devem ser substituídos antes da publicação em produção.",
+      "updated": "Informações oficiais: guilhermefaglioni.contato@gmail.com",
+      "intro": "Use os contatos abaixo para suporte, privacidade e assuntos jurídicos.",
       "sections": {
-        "support": {"title": "Suporte", "body": "E-mail de suporte: TODO_SUPPORT_EMAIL\nDescreva a empresa, o acesso e o problema sem enviar senhas, tokens ou dados desnecessários."},
-        "privacy": {"title": "Privacidade e dados Google", "body": "Para solicitações de acesso, correção, exclusão ou revogação relacionadas a dados pessoais e Google Calendar: TODO_PRIVACY_EMAIL."},
-        "legal": {"title": "Assuntos jurídicos", "body": "Controlador: TODO_LEGAL_ENTITY_NAME\nCNPJ: TODO_COMPANY_DOCUMENT\nEndereço: TODO_COMPANY_ADDRESS"}
+        "support": {"title": "Suporte", "body": "E-mail de suporte: guilhermefaglioni.contato@gmail.com\nDescreva a empresa, o acesso e o problema sem enviar senhas, tokens ou dados desnecessários."},
+        "privacy": {"title": "Privacidade e dados Google", "body": "Para solicitações de acesso, correção, exclusão ou revogação relacionadas a dados pessoais e Google Calendar: guilhermefaglioni.contato@gmail.com."},
+        "legal": {"title": "Assuntos jurídicos", "body": "Controlador: 55.823.385 GUILHERME COSTA BARBOSA FAGLIONI\nCNPJ: 55.823.385/0001-89\nEndereço: Rua José Gerardo Bessa, bairro Silveira, Belo Horizonte, Minas Gerais, Brasil, CEP 31140-390"}
       }
     }
   },
@@ -1803,6 +1828,22 @@
       "notComplete": "Pagamento não concluído",
       "notCompleteDescription": "Seu pagamento ainda não foi processado. Volte e tente novamente.",
       "missingSession": "Não foi possível localizar a sessão de pagamento."
+    }
+  },
+  "closedBeta": {
+    "accept": {
+      "checking": "Verificando convite...",
+      "title": "Convite para o Closed Beta",
+      "description": "Você foi convidado para testar o SeOrganize+ gratuitamente.",
+      "unavailable": "Este convite não está disponível. Solicite um novo link ao administrador.",
+      "signInHint": "Crie ou acesse a conta usando o e-mail que recebeu o convite.",
+      "createAccount": "Criar conta",
+      "signIn": "Já tenho uma conta",
+      "verifyEmail": "Confirme seu e-mail antes de aceitar o convite.",
+      "consent": "Aceito os termos específicos do Closed Beta, reconheço que o acesso é experimental e concordo com a coleta de métricas e feedback descrita nos termos.",
+      "accept": "Aceitar convite",
+      "accepting": "Configurando sua empresa...",
+      "acceptFailed": "Não foi possível aceitar o convite."
     }
   },
   "onboarding": {
