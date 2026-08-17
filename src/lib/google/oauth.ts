@@ -1,6 +1,11 @@
 import { createHash, randomBytes } from "node:crypto";
 import { OAuth2Client } from "google-auth-library";
 import { prisma } from "../../../prisma/client";
+import {
+  decryptGoogleToken,
+  encryptGoogleToken,
+  GoogleTokenCryptoError,
+} from "./token-crypto";
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -34,6 +39,7 @@ export interface OAuthAttemptSecrets {
 type GoogleAuthErrorCode =
   | "GOOGLE_AUTH_REQUIRED"
   | "GOOGLE_AUTH_EXPIRED"
+  | "GOOGLE_AUTH_RECONNECT_REQUIRED"
   | "GOOGLE_AUTH_INVALID_REQUEST"
   | "GOOGLE_AUTH_CONFIGURATION";
 
@@ -193,14 +199,23 @@ export async function refreshAccessToken(refreshToken: string) {
     }),
   });
 
+  const body = (await res.json().catch(() => ({}))) as {
+    error?: string;
+  } & GoogleTokenResponse;
   if (!res.ok) {
+    if (body.error === "invalid_grant") {
+      throw new GoogleAuthError(
+        "GOOGLE_AUTH_RECONNECT_REQUIRED",
+        "Google authorization was revoked. Reconnect your calendar.",
+      );
+    }
     throw new GoogleAuthError(
       "GOOGLE_AUTH_EXPIRED",
       "Google authorization expired. Reconnect your calendar.",
     );
   }
 
-  return (await res.json()) as GoogleTokenResponse;
+  return body;
 }
 
 export async function verifyGoogleIdToken(
@@ -235,34 +250,169 @@ export async function verifyGoogleIdToken(
   }
 }
 
-export async function getValidAccessToken(userId: string): Promise<string> {
-  const auth = await prisma.calendarAuth.findUnique({ where: { userId } });
-  if (!auth) {
-    throw new GoogleAuthError(
-      "GOOGLE_AUTH_REQUIRED",
-      "Google Calendar is not connected",
-    );
-  }
+const REFRESH_SKEW_MS = 60_000;
+const REFRESH_LEASE_MS = 30_000;
+const REFRESH_WAIT_MS = 75;
+const MAX_REFRESH_ATTEMPTS = 5;
 
-  if (auth.expiresAt > new Date()) {
-    return auth.accessToken;
+function decryptStoredToken(value: string | null | undefined): string {
+  try {
+    return decryptGoogleToken(value);
+  } catch (error) {
+    if (error instanceof GoogleTokenCryptoError) {
+      throw new GoogleAuthError(
+        "GOOGLE_AUTH_CONFIGURATION",
+        "Google token storage requires migration or configuration",
+      );
+    }
+    throw error;
   }
+}
 
-  const tokenData = await refreshAccessToken(auth.refreshToken);
-  if (!tokenData.access_token || !tokenData.expires_in) {
-    throw new GoogleAuthError(
-      "GOOGLE_AUTH_EXPIRED",
-      "Google did not return a valid access token",
-    );
-  }
+function waitForRefresh(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, REFRESH_WAIT_MS));
+}
 
-  await prisma.calendarAuth.update({
+export async function markCalendarReconnectRequired(
+  userId: string,
+  errorCode = "GOOGLE_AUTH_RECONNECT_REQUIRED",
+): Promise<void> {
+  await prisma.calendarAuth.updateMany({
     where: { userId },
     data: {
-      accessToken: tokenData.access_token,
-      expiresAt: new Date(Date.now() + tokenData.expires_in * 1000),
+      accessToken: null,
+      refreshToken: null,
+      expiresAt: null,
+      connectionStatus: "reconnect_required",
+      revokedAt: new Date(),
+      lastErrorCode: errorCode,
+      refreshLeaseUntil: null,
     },
   });
+}
 
-  return tokenData.access_token;
+export async function getValidAccessToken(userId: string): Promise<string> {
+  for (let attemptNumber = 0; attemptNumber < MAX_REFRESH_ATTEMPTS; attemptNumber += 1) {
+    const auth = await prisma.calendarAuth.findUnique({ where: { userId } });
+    if (!auth || auth.connectionStatus !== "connected") {
+      throw new GoogleAuthError(
+        auth ? "GOOGLE_AUTH_RECONNECT_REQUIRED" : "GOOGLE_AUTH_REQUIRED",
+        auth
+          ? "Google authorization must be reconnected"
+          : "Google Calendar is not connected",
+      );
+    }
+
+    const now = Date.now();
+    if (
+      auth.accessToken &&
+      auth.expiresAt &&
+      auth.expiresAt.getTime() > now + REFRESH_SKEW_MS
+    ) {
+      return decryptStoredToken(auth.accessToken);
+    }
+
+    if (!auth.refreshToken) {
+      await markCalendarReconnectRequired(userId, "GOOGLE_AUTH_EXPIRED");
+      throw new GoogleAuthError(
+        "GOOGLE_AUTH_RECONNECT_REQUIRED",
+        "Google authorization must be reconnected",
+      );
+    }
+
+    const leaseUntil = new Date(now + REFRESH_LEASE_MS);
+    const lease = await prisma.calendarAuth.updateMany({
+      where: {
+        userId,
+        connectionStatus: "connected",
+        OR: [
+          { refreshLeaseUntil: null },
+          { refreshLeaseUntil: { lt: new Date(now) } },
+        ],
+      },
+      data: { refreshLeaseUntil: leaseUntil },
+    });
+    if (lease.count !== 1) {
+      await waitForRefresh();
+      continue;
+    }
+
+    try {
+      const tokenData = await refreshAccessToken(
+        decryptStoredToken(auth.refreshToken),
+      );
+      if (!tokenData.access_token || !tokenData.expires_in) {
+        throw new GoogleAuthError(
+          "GOOGLE_AUTH_EXPIRED",
+          "Google did not return a valid access token",
+        );
+      }
+
+      await prisma.calendarAuth.updateMany({
+        where: { userId, refreshLeaseUntil: leaseUntil },
+        data: {
+          accessToken: encryptGoogleToken(tokenData.access_token),
+          refreshToken: tokenData.refresh_token
+            ? encryptGoogleToken(tokenData.refresh_token)
+            : auth.refreshToken,
+          expiresAt: new Date(Date.now() + tokenData.expires_in * 1000),
+          connectionStatus: "connected",
+          revokedAt: null,
+          lastErrorCode: null,
+          refreshLeaseUntil: null,
+        },
+      });
+      return tokenData.access_token;
+    } catch (error) {
+      if (error instanceof GoogleAuthError && error.code === "GOOGLE_AUTH_RECONNECT_REQUIRED") {
+        await markCalendarReconnectRequired(userId, error.code);
+      } else {
+        await prisma.calendarAuth.updateMany({
+          where: { userId, refreshLeaseUntil: leaseUntil },
+          data: { refreshLeaseUntil: null },
+        });
+      }
+      throw error;
+    }
+  }
+
+  throw new GoogleAuthError(
+    "GOOGLE_AUTH_EXPIRED",
+    "Google Calendar refresh is still in progress. Try again.",
+  );
+}
+
+export async function revokeGoogleToken(token: string): Promise<void> {
+  const response = await fetch("https://oauth2.googleapis.com/revoke", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ token }),
+  });
+  if (!response.ok && response.status !== 400) {
+    throw new Error("Google token revocation failed");
+  }
+}
+
+export async function disconnectGoogleCalendar(
+  userId: string,
+): Promise<{ revocationFailed: boolean }> {
+  const auth = await prisma.calendarAuth.findUnique({ where: { userId } });
+  if (!auth) return { revocationFailed: false };
+
+  let revocationFailed = false;
+  const encryptedToken = auth.refreshToken ?? auth.accessToken;
+  if (encryptedToken) {
+    try {
+      await revokeGoogleToken(decryptStoredToken(encryptedToken));
+    } catch (error) {
+      revocationFailed = true;
+      console.error(
+        "Google Calendar token revocation failed",
+        error instanceof GoogleAuthError ? error.code : "GOOGLE_REVOCATION_FAILED",
+      );
+    }
+  }
+
+  await prisma.calendarAuth.delete({ where: { userId } });
+  return { revocationFailed };
 }

@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import {
   getValidAccessToken,
   GoogleAuthError,
+  markCalendarReconnectRequired,
 } from "@/lib/google/oauth";
 import {
   GoogleCalendarClient,
@@ -157,12 +158,12 @@ export async function POST(request: NextRequest) {
 
     const calendarAuth = await prisma.calendarAuth.findUnique({
       where: { userId: user.id },
-      select: { id: true },
+      select: { id: true, connectionStatus: true },
     });
     let googleId: string | null = null;
     let googleEtag: string | null = null;
 
-    if (calendarAuth) {
+    if (calendarAuth?.connectionStatus === "connected") {
       try {
         const accessToken = await getValidAccessToken(user.id);
         const client = new GoogleCalendarClient(accessToken);
@@ -187,6 +188,9 @@ export async function POST(request: NextRequest) {
         googleEtag = result.etag;
       } catch (error) {
         console.error("Google Calendar create failed:", error);
+        if (error instanceof GoogleCalendarError && error.status === 401) {
+          await markCalendarReconnectRequired(user.id, "GOOGLE_AUTH_EXPIRED");
+        }
         const code =
           error instanceof GoogleAuthError
             ? error.code
@@ -199,8 +203,9 @@ export async function POST(request: NextRequest) {
             error: {
               code,
               message:
-                error instanceof Error
-                  ? error.message
+                code === "GOOGLE_AUTH_RECONNECT_REQUIRED" ||
+                code === "GOOGLE_AUTH_EXPIRED"
+                  ? "Reconnect Google Calendar to create events"
                   : "Could not create Google Calendar event",
             },
           },

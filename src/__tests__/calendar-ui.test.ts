@@ -22,6 +22,16 @@ describe("calendar experience contracts", () => {
     expect(source).toContain('t("localCalendarActive")');
   });
 
+  it("shows the connected account and supports safe disconnection", () => {
+    const page = read("src/app/(authenticated)/calendar/page.tsx");
+    const hook = read("src/hooks/use-calendar.ts");
+    expect(page).toContain("useDisconnectCalendar");
+    expect(page).toContain("<ConfirmDialog");
+    expect(page).toContain('t("reconnectRequired")');
+    expect(hook).toContain("/api/calendar/auth");
+    expect(hook).toContain('method: "DELETE"');
+  });
+
   it("shares one scheduling dialog across authenticated routes", () => {
     const layout = read("src/app/(authenticated)/layout.tsx");
     const provider = read("src/stores/schedule-event-context.tsx");

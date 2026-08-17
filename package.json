@@ -10,6 +10,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "security:encrypt-google-tokens": "tsx scripts/encrypt-google-tokens.ts",
     "db:migrate": "prisma migrate deploy",
     "db:status": "prisma migrate status",
     "postinstall": "prisma generate"

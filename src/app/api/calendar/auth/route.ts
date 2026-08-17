@@ -3,6 +3,7 @@ import { prisma, withTenant } from "../../../../../prisma/client";
 import { getUser } from "@/lib/supabase/server";
 import {
   createOAuthAttemptSecrets,
+  disconnectGoogleCalendar,
   getAuthUrl,
   getCalendarRedirectUri,
   GoogleAuthError,
@@ -26,12 +27,21 @@ export async function GET() {
   const auth = await withTenant(ctx.tenantId, () =>
     prisma.calendarAuth.findUnique({
       where: { userId: user.id },
-      select: { googleEmail: true },
+      select: {
+        googleEmail: true,
+        connectionStatus: true,
+        grantedScopes: true,
+      },
     })
   );
 
   return NextResponse.json({
-    data: { connected: !!auth, email: auth?.googleEmail || null },
+    data: {
+      connected: auth?.connectionStatus === "connected",
+      status: auth?.connectionStatus ?? "disconnected",
+      email: auth?.googleEmail || null,
+      scopes: auth?.grantedScopes?.split(/\s+/).filter(Boolean) ?? [],
+    },
     error: null,
   });
 }
@@ -47,11 +57,14 @@ export async function DELETE() {
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
-  await withTenant(ctx.tenantId, () =>
-    prisma.calendarAuth.delete({ where: { userId: user.id } })
+  const result = await withTenant(ctx.tenantId, () =>
+    disconnectGoogleCalendar(user.id),
   );
 
-  return NextResponse.json({ data: { connected: false }, error: null });
+  return NextResponse.json({
+    data: { connected: false, status: "disconnected", revocationFailed: result.revocationFailed },
+    error: null,
+  });
 }
 
 export async function POST(request: NextRequest) {

@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarView } from "@/components/calendar/calendar-view";
 import { UpcomingTasksPanel } from "@/components/calendar/upcoming-tasks-panel";
-import { useCalendarAuth, useUpcomingTasks } from "@/hooks/use-calendar";
+import {
+  useCalendarAuth,
+  useDisconnectCalendar,
+  useUpcomingTasks,
+} from "@/hooks/use-calendar";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
-import { ExternalLink, Link2 } from "lucide-react";
+import { ExternalLink, Link2, Unlink } from "lucide-react";
 import { useScheduleEventDialog } from "@/stores/schedule-event-context";
 import { toastError, toastSuccess } from "@/lib/toast";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 
 const API = "/api/calendar/auth";
 
@@ -23,6 +28,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 export default function CalendarPage() {
   const t = useTranslations("calendar.page");
   const { data: auth, isLoading } = useCalendarAuth();
+  const disconnectCalendar = useDisconnectCalendar();
   const {
     data: upcomingTasks = [],
     isLoading: tasksLoading,
@@ -32,6 +38,7 @@ export default function CalendarPage() {
   const { openScheduleEvent } = useScheduleEventDialog();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [disconnectOpen, setDisconnectOpen] = useState(false);
 
   useEffect(() => {
     const authResult = searchParams.get("calendarAuth");
@@ -61,6 +68,21 @@ export default function CalendarPage() {
     }
   }
 
+  function confirmDisconnect() {
+    disconnectCalendar.mutate(undefined, {
+      onSuccess: () => {
+        setDisconnectOpen(false);
+        toastSuccess(t("toastGoogleDisconnected"));
+      },
+      onError: (error) => {
+        toastError(
+          t("toastDisconnectFailed"),
+          error instanceof Error ? error.message : undefined,
+        );
+      },
+    });
+  }
+
   return (
     <div
       data-testid="calendar-page"
@@ -75,6 +97,21 @@ export default function CalendarPage() {
             </h2>
           </div>
           <div className="flex items-center gap-2">
+            {!isLoading && auth?.connected && (
+              <>
+                <span className="hidden max-w-[220px] truncate text-xs text-text-secondary sm:inline">
+                  {auth.email ?? t("connectedAccountUnknown")}
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={() => setDisconnectOpen(true)}
+                  disabled={disconnectCalendar.isPending}
+                >
+                  <Unlink className="h-4 w-4" />
+                  {t("disconnectGoogle")}
+                </Button>
+              </>
+            )}
             {!isLoading && !auth?.connected && (
               <Button
                 data-testid="connect-google-calendar"
@@ -82,11 +119,19 @@ export default function CalendarPage() {
                 onClick={connectGoogleCalendar}
               >
                 <Link2 className="h-4 w-4" />
-                {t("connectGoogle")}
+                {auth?.status === "reconnect_required"
+                  ? t("reconnectGoogle")
+                  : t("connectGoogle")}
               </Button>
             )}
           </div>
         </div>
+        {!isLoading && auth?.status === "reconnect_required" && (
+          <div className="mb-4 rounded-xl border border-danger/20 bg-danger-bg px-4 py-3 text-sm text-danger">
+            <p className="font-semibold">{t("reconnectRequired")}</p>
+            <p className="mt-1 text-xs">{t("reconnectRequiredHint")}</p>
+          </div>
+        )}
         {!isLoading && !auth?.connected && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3">
             <div>
@@ -113,7 +158,9 @@ export default function CalendarPage() {
               openScheduleEvent({ startDate: date, allDay })
             }
             onSyncError={
-              auth?.connected ? connectGoogleCalendar : undefined
+              auth?.connected || auth?.status === "reconnect_required"
+                ? connectGoogleCalendar
+                : undefined
             }
           />
         </div>
@@ -126,6 +173,16 @@ export default function CalendarPage() {
           onRetry={() => refetchTasks()}
         />
       </aside>
+      <ConfirmDialog
+        open={disconnectOpen}
+        onOpenChange={setDisconnectOpen}
+        title={t("disconnectTitle")}
+        description={t("disconnectDescription")}
+        confirmLabel={t("disconnectConfirm")}
+        cancelLabel={t("disconnectCancel")}
+        variant="destructive"
+        onConfirm={confirmDisconnect}
+      />
     </div>
   );
 }

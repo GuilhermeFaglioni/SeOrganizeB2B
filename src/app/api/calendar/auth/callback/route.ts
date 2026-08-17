@@ -13,6 +13,7 @@ import {
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { denyFor } from "@/lib/authz/authz";
 import { applyFeatureGate } from "@/lib/middleware/feature-gating";
+import { encryptGoogleToken } from "@/lib/google/token-crypto";
 
 function redirectToCalendar(
   request: NextRequest,
@@ -184,23 +185,34 @@ export async function GET(request: NextRequest) {
             "Google did not return a refresh token",
           );
         }
+        const encryptedAccessToken = encryptGoogleToken(accessToken);
+        const encryptedRefreshToken = tokenData.refresh_token
+          ? encryptGoogleToken(tokenData.refresh_token)
+          : refreshToken;
 
         return tx.calendarAuth.upsert({
           where: { userId: user.id },
           update: {
             googleSubject: identity.subject,
-            accessToken,
-            refreshToken,
+            accessToken: encryptedAccessToken,
+            refreshToken: encryptedRefreshToken,
             expiresAt: new Date(Date.now() + expiresIn * 1000),
             googleEmail: identity.email,
+            grantedScopes: tokenData.scope,
+            connectionStatus: "connected",
+            revokedAt: null,
+            lastErrorCode: null,
+            refreshLeaseUntil: null,
           },
           create: {
             userId: user.id,
             googleSubject: identity.subject,
-            accessToken,
-            refreshToken,
+            accessToken: encryptedAccessToken,
+            refreshToken: encryptedRefreshToken,
             expiresAt: new Date(Date.now() + expiresIn * 1000),
             googleEmail: identity.email,
+            grantedScopes: tokenData.scope,
+            connectionStatus: "connected",
             tenantId: ctx.tenantId!,
           },
         });

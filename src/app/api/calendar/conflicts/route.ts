@@ -5,8 +5,14 @@ import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate } from "@/lib/middleware/feature-gating";
-import { getValidAccessToken } from "@/lib/google/oauth";
-import { GoogleCalendarClient } from "@/lib/google/calendar";
+import {
+  getValidAccessToken,
+  markCalendarReconnectRequired,
+} from "@/lib/google/oauth";
+import {
+  GoogleCalendarClient,
+  GoogleCalendarError,
+} from "@/lib/google/calendar";
 import { dedupeCalendarEvents } from "@/lib/calendar/normalize";
 import { eventsOverlap } from "@/lib/calendar/conflicts";
 import type { CalendarEventData } from "@/lib/calendar/types";
@@ -101,9 +107,9 @@ export async function POST(request: NextRequest) {
     let googleEvents: CalendarEventData[] = [];
     const auth = await prisma.calendarAuth.findUnique({
       where: { userId: user.id },
-      select: { id: true },
+      select: { id: true, connectionStatus: true },
     });
-    if (auth) {
+    if (auth?.connectionStatus === "connected") {
       try {
         googleEvents = await new GoogleCalendarClient(
           await getValidAccessToken(user.id)
@@ -111,6 +117,9 @@ export async function POST(request: NextRequest) {
         googleStatus = "connected";
       } catch (error) {
         console.error("Conflict lookup failed for Google Calendar:", error);
+        if (error instanceof GoogleCalendarError && error.status === 401) {
+          await markCalendarReconnectRequired(user.id, "GOOGLE_AUTH_EXPIRED");
+        }
         googleStatus = "unavailable";
       }
     }

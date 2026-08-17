@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   calendarAuthUpsert: vi.fn(),
   transaction: vi.fn(),
   createOAuthAttemptSecrets: vi.fn(),
+  disconnectGoogleCalendar: vi.fn(),
   getAuthUrl: vi.fn(),
   getAppOrigin: vi.fn(),
   getCalendarRedirectUri: vi.fn(),
@@ -48,6 +49,7 @@ vi.mock("@/lib/middleware/feature-gating", () => ({
 
 vi.mock("@/lib/google/oauth", () => ({
   createOAuthAttemptSecrets: mocks.createOAuthAttemptSecrets,
+  disconnectGoogleCalendar: mocks.disconnectGoogleCalendar,
   getAuthUrl: mocks.getAuthUrl,
   getAppOrigin: mocks.getAppOrigin,
   getCalendarRedirectUri: mocks.getCalendarRedirectUri,
@@ -56,6 +58,10 @@ vi.mock("@/lib/google/oauth", () => ({
   GOOGLE_CALENDAR_SCOPE: "https://www.googleapis.com/auth/calendar.events.owned",
   GoogleAuthError: MockGoogleAuthError,
   hashOAuthValue: (value: string) => `hash:${value}`,
+}));
+
+vi.mock("@/lib/google/token-crypto", () => ({
+  encryptGoogleToken: (value: string) => `encrypted:${value}`,
 }));
 
 vi.mock("../../prisma/client", () => ({
@@ -76,7 +82,11 @@ vi.mock("../../prisma/client", () => ({
   withTenant: mocks.withTenant,
 }));
 
-import { POST } from "../app/api/calendar/auth/route";
+import {
+  DELETE as deleteAuth,
+  GET as getAuthStatus,
+  POST,
+} from "../app/api/calendar/auth/route";
 import { GET } from "../app/api/calendar/auth/callback/route";
 
 const makeRequest = (path: string) =>
@@ -127,6 +137,7 @@ describe("Google Calendar authorization routes", () => {
     mocks.calendarAuthFindUnique.mockResolvedValue(null);
     mocks.calendarAuthFindFirst.mockResolvedValue(null);
     mocks.calendarAuthUpsert.mockResolvedValue({ id: "calendar-auth-1" });
+    mocks.disconnectGoogleCalendar.mockResolvedValue({ revocationFailed: false });
     mocks.transaction.mockImplementation(
       async (callback: (tx: unknown) => unknown) =>
         callback({
@@ -151,6 +162,46 @@ describe("Google Calendar authorization routes", () => {
     expect(response.status).toBe(403);
     expect(mocks.attemptCreate).not.toHaveBeenCalled();
     expect(mocks.getAuthUrl).not.toHaveBeenCalled();
+  });
+
+  it("returns a reconnect-required connection without treating it as connected", async () => {
+    mocks.calendarAuthFindUnique.mockResolvedValue({
+      connectionStatus: "reconnect_required",
+      googleEmail: "user@example.com",
+      grantedScopes: "openid email https://www.googleapis.com/auth/calendar.events.owned",
+    });
+
+    const response = await getAuthStatus();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      data: {
+        connected: false,
+        status: "reconnect_required",
+        email: "user@example.com",
+        scopes: [
+          "openid",
+          "email",
+          "https://www.googleapis.com/auth/calendar.events.owned",
+        ],
+      },
+      error: null,
+    });
+  });
+
+  it("revokes and removes the local connection through DELETE", async () => {
+    const response = await deleteAuth();
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      data: {
+        connected: false,
+        status: "disconnected",
+        revocationFailed: false,
+      },
+      error: null,
+    });
+    expect(mocks.disconnectGoogleCalendar).toHaveBeenCalledWith("user-1");
   });
 
   it("stores a short-lived attempt and returns an authorization URL", async () => {

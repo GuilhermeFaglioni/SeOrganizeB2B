@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import {
   getValidAccessToken,
   GoogleAuthError,
+  markCalendarReconnectRequired,
 } from "@/lib/google/oauth";
 import {
   GoogleCalendarClient,
@@ -198,6 +199,9 @@ export async function PATCH(
         etag = result.etag;
       } catch (error) {
         console.error("Google Calendar update failed:", error);
+        if (error instanceof GoogleCalendarError && error.status === 401) {
+          await markCalendarReconnectRequired(user.id, "GOOGLE_AUTH_EXPIRED");
+        }
         const code =
           error instanceof GoogleAuthError
             ? error.code
@@ -209,7 +213,11 @@ export async function PATCH(
             data: null,
             error: {
               code,
-              message: error instanceof Error ? error.message : "Could not update Google Calendar event",
+              message:
+                code === "GOOGLE_AUTH_RECONNECT_REQUIRED" ||
+                code === "GOOGLE_AUTH_EXPIRED"
+                  ? "Reconnect Google Calendar to update events"
+                  : "Could not update Google Calendar event",
             },
           },
           { status: 502 },
@@ -347,6 +355,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         await client.deleteEvent(event.googleId);
       } catch (error) {
         console.error("Google Calendar delete failed:", error);
+        if (error instanceof GoogleCalendarError && error.status === 401) {
+          await markCalendarReconnectRequired(user.id, "GOOGLE_AUTH_EXPIRED");
+        }
         const code =
           error instanceof GoogleAuthError
             ? error.code
@@ -359,8 +370,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
             error: {
               code,
               message:
-                error instanceof Error
-                  ? error.message
+                code === "GOOGLE_AUTH_RECONNECT_REQUIRED" ||
+                code === "GOOGLE_AUTH_EXPIRED"
+                  ? "Reconnect Google Calendar to delete events"
                   : "Could not delete Google Calendar event",
             },
           },
