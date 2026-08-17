@@ -74,6 +74,8 @@ export async function withTenantBypass<T>(fn: () => T | Promise<T>): Promise<T> 
  *  - ReadOnlyAccess -> has NO tenantId column; scoped by its bearer token.
  *  - WorkspaceBindingAttempt -> scoped by authenticated user ID before a
  *                 Profile exists, so it must not receive a tenantId filter.
+ *  - Closed Beta models -> global campaign records protected by their own
+ *                 server-side admin/domain boundaries.
  * Everything else with a `tenantId` column is tenant-scoped.
  */
 const EXEMPT_MODELS = new Set([
@@ -84,6 +86,11 @@ const EXEMPT_MODELS = new Set([
   "Invite",
   "ReadOnlyAccess",
   "WorkspaceBindingAttempt",
+  "ClosedBetaConfig",
+  "ClosedBetaEnrollment",
+  "ClosedBetaInvitation",
+  "ClosedBetaAuditEvent",
+  "ClosedBetaRateLimit",
 ]);
 
 /**

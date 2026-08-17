@@ -4,6 +4,11 @@ import {
   BindingCodeValidationError,
   hashBindingCode,
 } from "../invites/binding-code";
+import {
+  invalidateClosedBetaGuestInvitations,
+  type ClosedBetaActor,
+} from "../closed-beta/service";
+import type { Prisma } from "@prisma/client";
 
 export interface WorkspaceSettingsInput {
   companyName?: string;
@@ -79,7 +84,8 @@ export async function getWorkspaceSettings(tenantId: string) {
 
 export async function updateWorkspaceSettings(
   input: WorkspaceSettingsInput,
-  tenantId: string
+  tenantId: string,
+  actor?: ClosedBetaActor,
 ) {
   const data: {
     companyName?: string | null;
@@ -108,9 +114,24 @@ export async function updateWorkspaceSettings(
   if (Object.keys(data).length === 0) {
     throw new FinancialValidationError("Nothing to update");
   }
-  await prisma.workspace.update({
-    where: { id: tenantId },
-    data,
-  });
+  const update = async (client: Prisma.TransactionClient | typeof prisma) => {
+    await client.workspace.update({
+      where: { id: tenantId },
+      data,
+    });
+    if (input.bindingCode !== undefined && actor) {
+      await invalidateClosedBetaGuestInvitations(tenantId, actor, client as Prisma.TransactionClient);
+    }
+  };
+
+  if (
+    input.bindingCode !== undefined &&
+    actor &&
+    typeof (prisma as unknown as { $transaction?: unknown }).$transaction === "function"
+  ) {
+    await prisma.$transaction(update);
+  } else {
+    await update(prisma);
+  }
   return getWorkspaceSettings(tenantId);
 }

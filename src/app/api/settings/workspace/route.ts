@@ -110,7 +110,10 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const settings = await updateWorkspaceSettings(input, ctx.tenantId);
+    const settings = await updateWorkspaceSettings(input, ctx.tenantId, {
+      userId: user.id,
+      email: user.email ?? "",
+    });
     return NextResponse.json({ data: settings, error: null });
   } catch (error) {
     return mapFinancialError(error);

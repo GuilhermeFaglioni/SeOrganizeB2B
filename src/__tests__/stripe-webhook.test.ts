@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   mockWorkspaceUpdate: vi.fn(),
   mockPlanFindFirst: vi.fn(),
   mockSubscriptionsList: vi.fn(),
+  mockLeaveClosedBeta: vi.fn(),
 }));
 
 vi.mock("@/lib/stripe", () => ({
@@ -30,6 +31,10 @@ vi.mock("../../prisma/client", () => ({
       findFirst: mocks.mockPlanFindFirst,
     },
   },
+}));
+
+vi.mock("@/lib/closed-beta/service", () => ({
+  setWorkspacePlanAndLeaveClosedBeta: mocks.mockLeaveClosedBeta,
 }));
 
 import { POST } from "../app/api/stripe/webhook/route";
@@ -81,6 +86,7 @@ describe("stripe webhook", () => {
     mocks.mockWorkspaceFindFirst.mockResolvedValue({ id: "ws_1" });
     mocks.mockWorkspaceUpdate.mockResolvedValue({ id: "ws_1" });
     mocks.mockSubscriptionsList.mockResolvedValue({ data: [] });
+    mocks.mockLeaveClosedBeta.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -105,9 +111,13 @@ describe("stripe webhook", () => {
     expect(mocks.mockWorkspaceFindFirst).toHaveBeenCalledWith({
       where: { stripeCustomerId: "cus_123" },
     });
+    expect(mocks.mockLeaveClosedBeta).toHaveBeenCalledWith("ws_1", "plan_pro", {
+      userId: "stripe-webhook",
+      email: "system",
+    });
     expect(mocks.mockWorkspaceUpdate).toHaveBeenCalledWith({
       where: { id: "ws_1" },
-      data: { status: "active", gracePeriodEndsAt: null, planId: "plan_pro" },
+      data: { status: "active", gracePeriodEndsAt: null },
     });
   });
 
@@ -157,11 +167,15 @@ describe("stripe webhook", () => {
 
     expect(res.status).toBe(200);
     expect(mocks.mockPlanFindFirst).toHaveBeenCalledWith({
-      where: { stripePriceId: "price_pro" },
+      where: { stripePriceId: "price_pro", isInternal: false },
+    });
+    expect(mocks.mockLeaveClosedBeta).toHaveBeenCalledWith("ws_1", "plan_pro", {
+      userId: "stripe-webhook",
+      email: "system",
     });
     expect(mocks.mockWorkspaceUpdate).toHaveBeenCalledWith({
       where: { id: "ws_1" },
-      data: { stripeCustomerId: "cus_123", planId: "plan_pro" },
+      data: { stripeCustomerId: "cus_123" },
     });
   });
 
@@ -206,7 +220,6 @@ describe("stripe webhook", () => {
       data: {
         status: "active",
         gracePeriodEndsAt: null,
-        planId: "plan_pro",
       },
     });
   });

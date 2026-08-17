@@ -24,6 +24,11 @@ export default function LoginPage() {
     }
     return "login";
   });
+  const [closedBetaToken] = useState(() =>
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("closedBetaToken")
+      : null,
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -32,13 +37,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { signInWithGoogle, signInWithPassword, signUp } = useAuth();
 
+  const closedBetaCallbackPath = closedBetaToken
+    ? `/auth/callback?closedBetaToken=${encodeURIComponent(closedBetaToken)}`
+    : undefined;
+  const postAuthPath = closedBetaToken
+    ? `/closed-beta/accept?token=${encodeURIComponent(closedBetaToken)}`
+    : "/app";
+
   const handlePasswordSignIn = async () => {
     setLoading(true);
     setError("");
     setSuccess("");
     try {
       await signInWithPassword(email, password);
-      router.push("/app");
+      router.push(postAuthPath);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("invalidCredentials"));
     } finally {
@@ -55,13 +67,13 @@ export default function LoginPage() {
     setError("");
     setSuccess("");
     try {
-      const data = await signUp(email, password);
+      const data = await signUp(email, password, closedBetaCallbackPath);
       if (data.user?.identities?.length === 0) {
         setError(t("accountExists"));
       } else if (!data.session) {
         setSuccess(t("accountCreated"));
       } else {
-        router.push("/app");
+        router.push(postAuthPath);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t("createAccountFailed"));
@@ -188,7 +200,7 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             type="button"
-            onClick={signInWithGoogle}
+            onClick={() => signInWithGoogle(closedBetaCallbackPath)}
             disabled={loading}
           >
             {t("signInWithGoogle")}

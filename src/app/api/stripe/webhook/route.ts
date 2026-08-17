@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "../../../../../prisma/client";
+import { setWorkspacePlanAndLeaveClosedBeta } from "@/lib/closed-beta/service";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,9 @@ async function planIdForSubscription(
 ): Promise<string | null> {
   const priceId = subscription?.items.data[0]?.price.id;
   if (!priceId) return null;
-  const plan = await prisma.plan.findFirst({ where: { stripePriceId: priceId } });
+  const plan = await prisma.plan.findFirst({
+    where: { stripePriceId: priceId, isInternal: false },
+  });
   return plan?.id ?? null;
 }
 
@@ -49,10 +52,22 @@ async function updateWorkspace(
     );
     return;
   }
-  await prisma.workspace.update({
-    where: { id: workspace.id },
-    data,
-  });
+  if (data.planId) {
+    await setWorkspacePlanAndLeaveClosedBeta(workspace.id, data.planId, {
+      userId: "stripe-webhook",
+      email: "system",
+    });
+    const workspaceData = { ...data };
+    delete workspaceData.planId;
+    if (Object.keys(workspaceData).length > 0) {
+      await prisma.workspace.update({
+        where: { id: workspace.id },
+        data: workspaceData,
+      });
+    }
+    return;
+  }
+  await prisma.workspace.update({ where: { id: workspace.id }, data });
 }
 
 async function activateWorkspace(customerId: string): Promise<void> {

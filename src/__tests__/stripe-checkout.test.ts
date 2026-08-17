@@ -96,7 +96,7 @@ describe("stripe checkout", () => {
     const json = await res.json();
     expect(json.error.code).toBe("VALIDATION_ERROR");
     expect(mocks.mockPlanFindFirst).toHaveBeenCalledWith({
-      where: { stripePriceId: "price_unknown", isActive: true },
+      where: { stripePriceId: "price_unknown", isActive: true, isInternal: false },
     });
     expect(mocks.mockCreateCustomer).not.toHaveBeenCalled();
     expect(mocks.mockCreateSession).not.toHaveBeenCalled();

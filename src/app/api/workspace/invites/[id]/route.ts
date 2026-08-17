@@ -46,7 +46,11 @@ export async function DELETE(
   }
 
   try {
-    const invite = await cancelInvite({ inviteId: params.id, workspaceId });
+    const invite = await cancelInvite({
+      inviteId: params.id,
+      workspaceId,
+      actor: { userId: user.id, email: user.email ?? "" },
+    });
     const { token, ...publicInvite } = invite;
     void token;
     return NextResponse.json({ data: publicInvite, error: null });

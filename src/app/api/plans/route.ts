@@ -14,7 +14,7 @@ export async function GET() {
   }
 
   const plans = await prisma.plan.findMany({
-    where: { isActive: true },
+    where: { isActive: true, isInternal: false },
     select: {
       id: true,
       name: true,

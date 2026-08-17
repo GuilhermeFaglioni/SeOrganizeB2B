@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useAreas } from "@/hooks/use-areas";
-import { useAssignRole, useRoles, useTeam } from "@/hooks/use-roles";
+import { useAssignRole, useRemoveMember, useRoles, useTeam } from "@/hooks/use-roles";
 import { useInvites, useCreateInvite, useCancelInvite } from "@/hooks/use-invites";
 import { useCan } from "@/hooks/use-permissions";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, ChevronRight, Mail, ShieldCheck, Users, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Mail, ShieldCheck, Trash2, Users, X } from "lucide-react";
 import { toastError, toastSuccess } from "@/lib/toast";
 import {
   SettingsBackLink,
@@ -43,6 +43,7 @@ export default function TeamPage() {
   const createInvite = useCreateInvite();
   const cancelInvite = useCancelInvite();
   const assignRole = useAssignRole();
+  const removeMember = useRemoveMember();
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editMap, setEditMap] = useState<Record<string, string[]>>({});
@@ -50,6 +51,7 @@ export default function TeamPage() {
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRoleId, setInviteRoleId] = useState("none");
 
   useEffect(() => {
     if (!team) return;
@@ -79,10 +81,14 @@ export default function TeamPage() {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
     createInvite.mutate(
-      { email: inviteEmail.trim() },
+      {
+        email: inviteEmail.trim(),
+        roleId: inviteRoleId === "none" ? null : inviteRoleId,
+      },
       {
         onSuccess: () => {
           setInviteEmail("");
+          setInviteRoleId("none");
           toastSuccess(t("inviteSuccess"));
         },
       }
@@ -137,6 +143,11 @@ export default function TeamPage() {
     );
   };
 
+  const handleRemoveMember = (profileId: string) => {
+    if (!window.confirm(t("removeConfirm"))) return;
+    removeMember.mutate(profileId);
+  };
+
   return (
     <SettingsShell testId="team-page">
       <SettingsBackLink label={t("backToSettings")} />
@@ -144,7 +155,7 @@ export default function TeamPage() {
 
       {/* Invite form — always visible, one-step: email only */}
       <SettingsSection>
-        <form onSubmit={handleInvite} className="flex items-end gap-2">
+        <form onSubmit={handleInvite} className="flex flex-wrap items-end gap-2">
           <div className="flex-1 space-y-1">
             <label htmlFor="invite-email" className="text-sm text-text-secondary">
               {t("inviteTitle")}
@@ -158,6 +169,24 @@ export default function TeamPage() {
               required
             />
             <p className="text-xs text-text-muted">{t("inviteHint")}</p>
+          </div>
+          <div className="min-w-44 space-y-1">
+            <label htmlFor="invite-role" className="text-sm text-text-secondary">
+              {t("inviteRole")}
+            </label>
+            <Select value={inviteRoleId} onValueChange={setInviteRoleId}>
+              <SelectTrigger id="invite-role">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t("inviteRoleDefault")}</SelectItem>
+                {roles?.map((role) => (
+                  <SelectItem key={role.id} value={role.id}>
+                    {role.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button type="submit" disabled={createInvite.isPending}>
             <Mail size={16} aria-hidden="true" className="mr-1.5" />
@@ -340,6 +369,17 @@ export default function TeamPage() {
                     >
                       {saving ? t("saving") : t("save")}
                     </Button>
+                    {!profile.isOwner && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleRemoveMember(profile.id)}
+                        disabled={removeMember.isPending}
+                      >
+                        <Trash2 className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                        {t("removeMember")}
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
