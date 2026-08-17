@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import {
   getValidAccessToken,
   GoogleAuthError,
+  markCalendarReconnectRequired,
 } from "@/lib/google/oauth";
 import {
   GoogleCalendarClient,
@@ -101,7 +102,12 @@ export async function GET(request: NextRequest) {
       }),
       prisma.calendarAuth.findUnique({
         where: { userId: user.id },
-        select: { id: true, googleEmail: true },
+        select: {
+          id: true,
+          googleEmail: true,
+          connectionStatus: true,
+          grantedScopes: true,
+        },
       }),
     ]);
 
@@ -129,11 +135,18 @@ export async function GET(request: NextRequest) {
       })),
     }));
 
-    if (!calendarAuth) {
+    const connection = {
+      connected: calendarAuth?.connectionStatus === "connected",
+      status: calendarAuth?.connectionStatus ?? "disconnected",
+      email: calendarAuth?.googleEmail ?? null,
+      scopes: calendarAuth?.grantedScopes?.split(/\s+/).filter(Boolean) ?? [],
+    };
+
+    if (!calendarAuth || !connection.connected) {
       return NextResponse.json({
         data: {
           events: normalizedLocal,
-          connection: { connected: false, email: null },
+          connection,
         },
         error: null,
       });
@@ -155,13 +168,18 @@ export async function GET(request: NextRequest) {
           events: dedupeCalendarEvents([...googleEvents, ...normalizedLocal]),
           connection: {
             connected: true,
+            status: "connected",
             email: calendarAuth.googleEmail,
+            scopes: calendarAuth.grantedScopes?.split(/\s+/).filter(Boolean) ?? [],
           },
         },
         error: null,
       });
     } catch (error) {
       console.error("Google Calendar fetch failed:", error);
+      if (error instanceof GoogleCalendarError && error.status === 401) {
+        await markCalendarReconnectRequired(user.id, "GOOGLE_AUTH_EXPIRED");
+      }
       const code =
         error instanceof GoogleAuthError
           ? error.code
@@ -174,8 +192,9 @@ export async function GET(request: NextRequest) {
           error: {
             code,
             message:
-              error instanceof Error
-                ? error.message
+              code === "GOOGLE_AUTH_RECONNECT_REQUIRED" ||
+              code === "GOOGLE_AUTH_EXPIRED"
+                ? "Reconnect Google Calendar to sync events"
                 : "Could not load Google Calendar",
           },
         },

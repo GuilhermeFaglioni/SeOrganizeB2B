@@ -10,6 +10,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "security:check-legal-placeholders": "tsx scripts/check-legal-placeholders.ts",
+    "security:encrypt-google-tokens": "tsx scripts/encrypt-google-tokens.ts",
     "db:migrate": "prisma migrate deploy",
     "db:status": "prisma migrate status",
     "postinstall": "prisma generate"
@@ -47,6 +49,7 @@
     "@uiw/react-md-editor": "^4.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "google-auth-library": "^10.9.1",
     "lucide-react": "^1.27.0",
     "motion": "^12.43.0",
     "next": "14.2.35",

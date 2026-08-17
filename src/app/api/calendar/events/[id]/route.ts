@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import {
   getValidAccessToken,
   GoogleAuthError,
+  markCalendarReconnectRequired,
 } from "@/lib/google/oauth";
 import {
   GoogleCalendarClient,
@@ -46,8 +47,8 @@ export async function PATCH(
   if (gate.response) return gate.response;
 
   return withTenant(ctx.tenantId, async () => {
-    const event = await prisma.calendarEvent.findUnique({
-      where: { id: params.id },
+    const event = await prisma.calendarEvent.findFirst({
+      where: { id: params.id, tenantId: ctx.tenantId! },
       include: { attendees: true },
     });
     if (!event) {
@@ -115,8 +116,8 @@ export async function PATCH(
     }
 
     if (taskId) {
-      const task = await prisma.task.findUnique({
-        where: { id: taskId },
+      const task = await prisma.task.findFirst({
+        where: { id: taskId, tenantId: ctx.tenantId! },
         select: { id: true },
       });
       if (!task) {
@@ -127,8 +128,8 @@ export async function PATCH(
       }
     }
     if (areaId) {
-      const area = await prisma.teamArea.findUnique({
-        where: { id: areaId },
+      const area = await prisma.teamArea.findFirst({
+        where: { id: areaId, tenantId: ctx.tenantId! },
         select: { id: true },
       });
       if (!area) {
@@ -145,13 +146,34 @@ export async function PATCH(
     let attendeeEmails: string[] | undefined;
     if (body.attendeeEmails !== undefined || body.profileIds !== undefined) {
       const rawEmails = Array.isArray(body.attendeeEmails) ? body.attendeeEmails : [];
-      const rawProfileIds = Array.isArray(body.profileIds) ? body.profileIds.filter(Boolean) : [];
+      const rawProfileIds: string[] = Array.isArray(body.profileIds)
+        ? Array.from(
+            new Set(
+              body.profileIds.filter(
+                (profileId: unknown): profileId is string =>
+                  typeof profileId === "string" && profileId.length > 0,
+              ),
+            ),
+          )
+        : [];
       const profiles = rawProfileIds.length > 0
         ? await prisma.profile.findMany({
-            where: { id: { in: rawProfileIds } },
+            where: { id: { in: rawProfileIds }, tenantId: ctx.tenantId! },
             select: { email: true },
           })
         : [];
+      if (profiles.length !== rawProfileIds.length) {
+        return NextResponse.json(
+          {
+            data: null,
+            error: {
+              code: "VALIDATION_ERROR",
+              message: "One or more attendees do not exist in this company",
+            },
+          },
+          { status: 400 },
+        );
+      }
       try {
         attendeeEmails = normalizeAttendeeEmails([
           ...rawEmails,
@@ -198,6 +220,9 @@ export async function PATCH(
         etag = result.etag;
       } catch (error) {
         console.error("Google Calendar update failed:", error);
+        if (error instanceof GoogleCalendarError && error.status === 401) {
+          await markCalendarReconnectRequired(user.id, "GOOGLE_AUTH_EXPIRED");
+        }
         const code =
           error instanceof GoogleAuthError
             ? error.code
@@ -209,7 +234,11 @@ export async function PATCH(
             data: null,
             error: {
               code,
-              message: error instanceof Error ? error.message : "Could not update Google Calendar event",
+              message:
+                code === "GOOGLE_AUTH_RECONNECT_REQUIRED" ||
+                code === "GOOGLE_AUTH_EXPIRED"
+                  ? "Reconnect Google Calendar to update events"
+                  : "Could not update Google Calendar event",
             },
           },
           { status: 502 },
@@ -243,7 +272,10 @@ export async function PATCH(
     const profiles =
       attendeeEmails && attendeeEmails.length > 0
         ? await prisma.profile.findMany({
-            where: { email: { in: attendeeEmails, mode: "insensitive" } },
+            where: {
+              email: { in: attendeeEmails, mode: "insensitive" },
+              tenantId: ctx.tenantId!,
+            },
             select: { id: true, email: true, name: true },
           })
         : [];
@@ -331,7 +363,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   if (gate.response) return gate.response;
 
   return withTenant(ctx.tenantId, async () => {
-    const event = await prisma.calendarEvent.findUnique({ where: { id: params.id } });
+    const event = await prisma.calendarEvent.findFirst({
+      where: { id: params.id, tenantId: ctx.tenantId! },
+    });
     if (!event) {
       return NextResponse.json({ data: null, error: { code: "NOT_FOUND", message: "Event not found" } }, { status: 404 });
     }
@@ -347,6 +381,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         await client.deleteEvent(event.googleId);
       } catch (error) {
         console.error("Google Calendar delete failed:", error);
+        if (error instanceof GoogleCalendarError && error.status === 401) {
+          await markCalendarReconnectRequired(user.id, "GOOGLE_AUTH_EXPIRED");
+        }
         const code =
           error instanceof GoogleAuthError
             ? error.code
@@ -359,8 +396,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
             error: {
               code,
               message:
-                error instanceof Error
-                  ? error.message
+                code === "GOOGLE_AUTH_RECONNECT_REQUIRED" ||
+                code === "GOOGLE_AUTH_EXPIRED"
+                  ? "Reconnect Google Calendar to delete events"
                   : "Could not delete Google Calendar event",
             },
           },

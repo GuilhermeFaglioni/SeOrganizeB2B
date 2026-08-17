@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { SwRegister } from "@/components/sw-register";
 import { ThemeWatcher } from "@/components/theme-watcher";
 import { I18nProvider } from "@/i18n/provider";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 // The whole app renders client-side with next-intl's client provider.
@@ -24,12 +25,27 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: getSiteUrl(),
   title: {
     default: "SeOrganize+",
     template: "%s | SeOrganize+",
   },
   description: "Organização colaborativa para equipes que executam.",
+  applicationName: "SeOrganize+",
   manifest: "/manifest.json",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "SeOrganize+",
+    title: "SeOrganize+",
+    description: "Organização colaborativa para equipes que executam.",
+    url: "/",
+  },
+  twitter: {
+    card: "summary",
+    title: "SeOrganize+",
+    description: "Organização colaborativa para equipes que executam.",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

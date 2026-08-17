@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import {
   getValidAccessToken,
   GoogleAuthError,
+  markCalendarReconnectRequired,
 } from "@/lib/google/oauth";
 import {
   GoogleCalendarClient,
@@ -96,18 +97,48 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const profileIds = Array.from(
-    new Set((body.profileIds ?? []).filter(Boolean)),
-  );
+  if (
+    (body.profileIds !== undefined &&
+      (!Array.isArray(body.profileIds) ||
+        body.profileIds.some((profileId) => typeof profileId !== "string"))) ||
+    (body.attendeeEmails !== undefined &&
+      (!Array.isArray(body.attendeeEmails) ||
+        body.attendeeEmails.some((email) => typeof email !== "string")))
+  ) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: { code: "VALIDATION_ERROR", message: "Invalid attendee list" },
+      },
+      { status: 400 },
+    );
+  }
+
+  const profileIds = Array.from(new Set(body.profileIds?.filter(Boolean) ?? []));
 
   return withTenant(ctx.tenantId, async () => {
+    if (body.taskId) {
+      const task = await prisma.task.findFirst({
+        where: { id: body.taskId, tenantId: ctx.tenantId! },
+        select: { id: true },
+      });
+      if (!task) {
+        return NextResponse.json(
+          {
+            data: null,
+            error: { code: "VALIDATION_ERROR", message: "Task not found" },
+          },
+          { status: 400 },
+        );
+      }
+    }
     const profiles = await prisma.profile.findMany({
       where: { id: { in: profileIds }, tenantId: ctx.tenantId! },
       select: { id: true, email: true, name: true },
     });
     if (body.areaId) {
-      const area = await prisma.teamArea.findUnique({
-        where: { id: body.areaId },
+      const area = await prisma.teamArea.findFirst({
+        where: { id: body.areaId, tenantId: ctx.tenantId! },
         select: { id: true },
       });
       if (!area) {
@@ -157,12 +188,12 @@ export async function POST(request: NextRequest) {
 
     const calendarAuth = await prisma.calendarAuth.findUnique({
       where: { userId: user.id },
-      select: { id: true },
+      select: { id: true, connectionStatus: true },
     });
     let googleId: string | null = null;
     let googleEtag: string | null = null;
 
-    if (calendarAuth) {
+    if (calendarAuth?.connectionStatus === "connected") {
       try {
         const accessToken = await getValidAccessToken(user.id);
         const client = new GoogleCalendarClient(accessToken);
@@ -187,6 +218,9 @@ export async function POST(request: NextRequest) {
         googleEtag = result.etag;
       } catch (error) {
         console.error("Google Calendar create failed:", error);
+        if (error instanceof GoogleCalendarError && error.status === 401) {
+          await markCalendarReconnectRequired(user.id, "GOOGLE_AUTH_EXPIRED");
+        }
         const code =
           error instanceof GoogleAuthError
             ? error.code
@@ -199,8 +233,9 @@ export async function POST(request: NextRequest) {
             error: {
               code,
               message:
-                error instanceof Error
-                  ? error.message
+                code === "GOOGLE_AUTH_RECONNECT_REQUIRED" ||
+                code === "GOOGLE_AUTH_EXPIRED"
+                  ? "Reconnect Google Calendar to create events"
                   : "Could not create Google Calendar event",
             },
           },

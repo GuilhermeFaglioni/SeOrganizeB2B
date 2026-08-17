@@ -262,7 +262,10 @@
       "cardCta": "Create free account"
     },
     "footer": {
-      "tagline": "Collaborative organization for teams that execute."
+      "tagline": "Collaborative organization for teams that execute.",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "contact": "Contact"
     }
   },
   "auth": {
@@ -296,7 +299,64 @@
       "checkingWorkspace": "Checking company...",
       "workspaceLoadFailed": "We couldn't load your workspace. Please try again.",
       "retry": "Retry",
-      "backToSite": "Back to site"
+      "backToSite": "Back to site",
+      "legalPrefix": "By continuing, you agree to the",
+      "legalAnd": "and",
+      "privacyLink": "Privacy Policy",
+      "termsLink": "Terms of Service"
+    }
+  },
+  "legal": {
+    "placeholderNotice": "Draft document: replace every TODO placeholder with official information before publishing or submitting the app for Google verification.",
+    "relatedPages": "Related pages",
+    "privacyLink": "Privacy Policy",
+    "termsLink": "Terms of Service",
+    "contactLink": "Contact",
+    "privacy": {
+      "eyebrow": "Privacy",
+      "title": "Privacy Policy",
+      "updated": "Version: TODO_POLICY_EFFECTIVE_DATE",
+      "intro": "This policy explains how SeOrganize+ handles company, team and authorized integration data, including Google Calendar.",
+      "sections": {
+        "controller": {"title": "Controller", "body": "The controller is TODO_LEGAL_ENTITY_NAME, company document TODO_COMPANY_DOCUMENT, at TODO_COMPANY_ADDRESS. General contact: TODO_SUPPORT_EMAIL. Privacy contact: TODO_PRIVACY_EMAIL."},
+        "googleData": {"title": "Google data", "body": "When you authorize Google Calendar, we may receive the stable Google account identifier, verified email, access and refresh tokens, event identifiers, titles, descriptions, times, timezone, attendees and response status."},
+        "calendarUse": {"title": "How we use Google Calendar", "body": "We use this data to show calendar events, detect conflicts, create events, update events, delete events and send invitations when you request those actions. We do not use Google data for advertising, sale, credit profiling or purposes not described here."},
+        "storage": {"title": "Storage and security", "body": "Tokens are stored encrypted in the application environment. Events and attendees may have a local copy to connect the calendar to company work. Access is protected by authentication, permissions and company isolation."},
+        "sharing": {"title": "Sharing and providers", "body": "Data is processed by Google for the authorized integration and by providers needed to operate the service, such as Supabase, hosting, database and billing providers. We do not sell Google data or transfer it for advertising."},
+        "retention": {"title": "Retention and deletion", "body": "The final retention rule is TODO_RETENTION_POLICY. When disconnected, we delete credentials and Google-derived mirrors and preserve only explicitly local events. Removal of company access follows the approved final policy."},
+        "rights": {"title": "Rights and revocation", "body": "Under the LGPD, you may request confirmation, access, correction, portability, information about sharing or deletion, and revoke Google access from company settings. To exercise rights, contact TODO_PRIVACY_EMAIL."},
+        "internationalTransfers": {"title": "International transfers", "body": "Because we use global providers, data may be processed outside Brazil. We apply the contractual and technical safeguards required for international transfers under the LGPD and applicable rules."},
+        "limitedUse": {"title": "Google data policy", "body": "Use of Google API data follows the Google API Services User Data Policy, including Limited Use requirements. We use this data only to provide or improve visible features and do not transfer it for advertising."},
+        "changes": {"title": "Changes", "body": "Material changes to this policy will be published on this page and may require renewed consent when they change the purpose of Google data use."}
+      }
+    },
+    "terms": {
+      "eyebrow": "Service use",
+      "title": "Terms of Service",
+      "updated": "Version: TODO_POLICY_EFFECTIVE_DATE",
+      "intro": "These terms define the rules for use of SeOrganize+ by digital service providers, companies and teams.",
+      "sections": {
+        "service": {"title": "The service", "body": "SeOrganize+ provides tools for tasks, projects, documents, calendar, proposals, contracts and receivables. The service does not replace professional legal, accounting or financial advice."},
+        "access": {"title": "Access and companies", "body": "Users must provide truthful information, protect credentials and use only companies and data they are authorized to access. Each company is responsible for permissions granted to its members. Terms acceptance policy: TODO_TERMS_ACCEPTANCE_POLICY."},
+        "acceptableUse": {"title": "Acceptable use", "body": "You may not use the service for fraud, abuse, rights violations, unauthorized access attempts, malware distribution or integrations that conflict with provider policies."},
+        "integrations": {"title": "Integrations", "body": "Google Calendar and other providers are third-party services. By connecting an integration, you authorize the actions described in the product and may disconnect it at any time."},
+        "billing": {"title": "Plans and billing", "body": "Plans, prices, activation, cancellation and access periods are presented in the product. The company is responsible for payments and use by its members."},
+        "content": {"title": "Content", "body": "The company retains rights to its content and is responsible for authorization to store and share information entered into the service, including client and attendee data."},
+        "availability": {"title": "Availability", "body": "The service depends on our infrastructure and third parties. We may perform maintenance, apply limits or suspend features to protect users, data and operations."},
+        "termination": {"title": "Termination", "body": "Access may be terminated by the company or the service under these terms. Data handling and deletion after termination follow the Privacy Policy."},
+        "changes": {"title": "Changes to the terms", "body": "We may update these terms. Material changes will be communicated through available product channels or this page."}
+      }
+    },
+    "contact": {
+      "eyebrow": "Support",
+      "title": "Contact",
+      "updated": "Official information: TODO_SUPPORT_EMAIL",
+      "intro": "Use the contacts below for support, privacy and legal matters. Placeholders must be replaced before production publication.",
+      "sections": {
+        "support": {"title": "Support", "body": "Support email: TODO_SUPPORT_EMAIL\nDescribe the company, access and problem without sending passwords, tokens or unnecessary data."},
+        "privacy": {"title": "Privacy and Google data", "body": "For access, correction, deletion or revocation requests involving personal data and Google Calendar: TODO_PRIVACY_EMAIL."},
+        "legal": {"title": "Legal matters", "body": "Controller: TODO_LEGAL_ENTITY_NAME\nCompany document: TODO_COMPANY_DOCUMENT\nAddress: TODO_COMPANY_ADDRESS"}
+      }
     }
   },
   "notifications": {
@@ -1114,12 +1174,32 @@
     },
     "page": {
       "toastGoogleConnected": "Google Calendar connected",
+      "toastGoogleDisconnected": "Google Calendar disconnected",
       "toastConnectFailed": "Failed to connect Google Calendar",
       "toastConnectFailedHint": "Try authorizing again.",
       "toastCalendarConnectFailed": "Failed to connect calendar",
+      "toastDisconnectFailed": "Failed to disconnect Google Calendar",
+      "toastDisconnectRevocationFailed": "Local access was removed, but Google revocation still needs confirmation.",
       "eyebrow": "Agenda",
       "title": "Executive calendar",
       "connectGoogle": "Connect Google",
+      "reconnectGoogle": "Reconnect Google",
+      "reconnectRequired": "Reconnect Google Calendar",
+      "reconnectRequiredHint": "The previous authorization expired or was revoked. Reconnect to sync events again.",
+      "connectedAccountUnknown": "Connected Google account",
+      "disconnectGoogle": "Disconnect",
+      "disconnectTitle": "Disconnect Google Calendar?",
+      "disconnectDescription": "Access will be revoked and SeOrganize+ will stop syncing events with this Google account.",
+      "disconnectConfirm": "Disconnect",
+      "disconnectCancel": "Cancel",
+      "connectDisclosureTitle": "Before connecting Google Calendar",
+      "connectDisclosureDescription": "SeOrganize+ will open Google's consent screen to authorize an explicit integration with your calendar.",
+      "connectDisclosureData": "Data accessed: events, times, descriptions, attendees and response status.",
+      "connectDisclosurePurpose": "Use: show the calendar, detect conflicts, create, edit, delete events and send invitations when you request those actions.",
+      "connectDisclosureScope": "Permission requested: events on calendars you own, without access to other calendars.",
+      "connectDisclosurePrivacy": "Read the Privacy Policy",
+      "connectDisclosureCancel": "Not now",
+      "connectDisclosureContinue": "Continue to Google",
       "localCalendarActive": "Local calendar active",
       "localCalendarHint": "Connect Google Calendar to sync events and send invites.",
       "connectNow": "Connect now"
@@ -1490,6 +1570,25 @@
       "previewLabel": "Preview",
       "previewFailed": "Failed to generate the preview",
       "previewEmpty": "Type HTML to see the preview.",
+      "systemVariablesTitle": "System variable dictionary",
+      "systemVariablesHint": "Use the key between {{ and }} in your HTML. These variables are filled automatically when the proposal is generated.",
+      "variableKey": "Key to use in HTML",
+      "variableMeaning": "Meaning",
+      "systemVariableDescriptions": {
+        "clientName": "Name of the client selected for the proposal.",
+        "clientLegalName": "Legal name registered for the client.",
+        "clientEmail": "Email registered for the client.",
+        "clientPhone": "Phone number registered for the client.",
+        "clientDocument": "CPF or CNPJ registered for the client.",
+        "proposalNumber": "Unique number generated for the proposal.",
+        "proposalTitle": "Title entered for the proposal.",
+        "proposalIssueDate": "Issue date of the proposal.",
+        "proposalValidUntil": "Date until which the proposal is valid.",
+        "proposalTotal": "Total proposal value, formatted in Brazilian reais.",
+        "items": "Table with the proposal items, quantities, prices, and totals.",
+        "companyName": "Name of your company.",
+        "companyLogo": "Your company logo. Inserts an HTML image when a logo is configured."
+      },
       "variablesTitle": "Detected variables",
       "noVariables": "No variables detected in the HTML.",
       "customVar": "custom",

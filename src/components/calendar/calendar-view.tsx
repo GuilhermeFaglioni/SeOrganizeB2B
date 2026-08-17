@@ -104,7 +104,7 @@ export function CalendarView({
       console.error("Calendar query failed:", error);
       toastError(
         t("syncToastFailed"),
-        error instanceof Error ? error.message : undefined,
+        t("syncFailed"),
       );
     }
   }, [error, t]);
@@ -128,9 +128,7 @@ export function CalendarView({
       {error && (
         <div className="absolute inset-x-4 top-16 z-20 flex items-center justify-between gap-3 rounded-xl border border-danger/20 bg-danger-bg px-4 py-3 text-sm text-danger shadow-card">
           <span>
-            {error instanceof Error
-              ? error.message
-              : t("syncFailed")}
+            {t("syncFailed")}
           </span>
           <button
             type="button"

@@ -1,15 +1,29 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarView } from "@/components/calendar/calendar-view";
 import { UpcomingTasksPanel } from "@/components/calendar/upcoming-tasks-panel";
-import { useCalendarAuth, useUpcomingTasks } from "@/hooks/use-calendar";
+import {
+  useCalendarAuth,
+  useDisconnectCalendar,
+  useUpcomingTasks,
+} from "@/hooks/use-calendar";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
-import { ExternalLink, Link2 } from "lucide-react";
+import { ExternalLink, Link2, Unlink } from "lucide-react";
 import { useScheduleEventDialog } from "@/stores/schedule-event-context";
 import { toastError, toastSuccess } from "@/lib/toast";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const API = "/api/calendar/auth";
 
@@ -23,6 +37,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 export default function CalendarPage() {
   const t = useTranslations("calendar.page");
   const { data: auth, isLoading } = useCalendarAuth();
+  const disconnectCalendar = useDisconnectCalendar();
   const {
     data: upcomingTasks = [],
     isLoading: tasksLoading,
@@ -32,6 +47,8 @@ export default function CalendarPage() {
   const { openScheduleEvent } = useScheduleEventDialog();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [disconnectOpen, setDisconnectOpen] = useState(false);
+  const [connectDisclosureOpen, setConnectDisclosureOpen] = useState(false);
 
   useEffect(() => {
     const authResult = searchParams.get("calendarAuth");
@@ -47,18 +64,39 @@ export default function CalendarPage() {
     }
   }, [router, searchParams, t]);
 
-  async function connectGoogleCalendar() {
+  async function authorizeGoogleCalendar() {
+    setConnectDisclosureOpen(false);
     try {
       const { url } = await fetchJson<{ url: string }>(API, {
         method: "POST",
       });
       window.location.href = url;
-    } catch (error) {
+    } catch {
       toastError(
         t("toastCalendarConnectFailed"),
-        error instanceof Error ? error.message : undefined,
+        t("toastConnectFailedHint"),
       );
     }
+  }
+
+  function openConnectDisclosure() {
+    setConnectDisclosureOpen(true);
+  }
+
+  function confirmDisconnect() {
+    disconnectCalendar.mutate(undefined, {
+      onSuccess: ({ revocationFailed }) => {
+        setDisconnectOpen(false);
+        if (revocationFailed) {
+          toastError(t("toastDisconnectRevocationFailed"));
+        } else {
+          toastSuccess(t("toastGoogleDisconnected"));
+        }
+      },
+      onError: () => {
+        toastError(t("toastDisconnectFailed"));
+      },
+    });
   }
 
   return (
@@ -75,18 +113,41 @@ export default function CalendarPage() {
             </h2>
           </div>
           <div className="flex items-center gap-2">
+            {!isLoading && auth?.connected && (
+              <>
+                <span className="hidden max-w-[220px] truncate text-xs text-text-secondary sm:inline">
+                  {auth.email ?? t("connectedAccountUnknown")}
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={() => setDisconnectOpen(true)}
+                  disabled={disconnectCalendar.isPending}
+                >
+                  <Unlink className="h-4 w-4" />
+                  {t("disconnectGoogle")}
+                </Button>
+              </>
+            )}
             {!isLoading && !auth?.connected && (
               <Button
                 data-testid="connect-google-calendar"
                 variant="outline"
-                onClick={connectGoogleCalendar}
+                onClick={openConnectDisclosure}
               >
                 <Link2 className="h-4 w-4" />
-                {t("connectGoogle")}
+                {auth?.status === "reconnect_required"
+                  ? t("reconnectGoogle")
+                  : t("connectGoogle")}
               </Button>
             )}
           </div>
         </div>
+        {!isLoading && auth?.status === "reconnect_required" && (
+          <div className="mb-4 rounded-xl border border-danger/20 bg-danger-bg px-4 py-3 text-sm text-danger">
+            <p className="font-semibold">{t("reconnectRequired")}</p>
+            <p className="mt-1 text-xs">{t("reconnectRequiredHint")}</p>
+          </div>
+        )}
         {!isLoading && !auth?.connected && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3">
             <div>
@@ -99,7 +160,7 @@ export default function CalendarPage() {
             </div>
             <button
               type="button"
-              onClick={connectGoogleCalendar}
+              onClick={openConnectDisclosure}
               className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700"
             >
               {t("connectNow")}
@@ -113,7 +174,9 @@ export default function CalendarPage() {
               openScheduleEvent({ startDate: date, allDay })
             }
             onSyncError={
-              auth?.connected ? connectGoogleCalendar : undefined
+              auth?.connected || auth?.status === "reconnect_required"
+                ? openConnectDisclosure
+                : undefined
             }
           />
         </div>
@@ -126,6 +189,42 @@ export default function CalendarPage() {
           onRetry={() => refetchTasks()}
         />
       </aside>
+      <ConfirmDialog
+        open={disconnectOpen}
+        onOpenChange={setDisconnectOpen}
+        title={t("disconnectTitle")}
+        description={t("disconnectDescription")}
+        confirmLabel={t("disconnectConfirm")}
+        cancelLabel={t("disconnectCancel")}
+        variant="destructive"
+        onConfirm={confirmDisconnect}
+      />
+      <Dialog open={connectDisclosureOpen} onOpenChange={setConnectDisclosureOpen}>
+        <DialogContent data-testid="calendar-connect-disclosure">
+          <DialogHeader>
+            <DialogTitle>{t("connectDisclosureTitle")}</DialogTitle>
+            <DialogDescription>{t("connectDisclosureDescription")}</DialogDescription>
+          </DialogHeader>
+          <ul className="space-y-2 text-sm text-text-secondary">
+            <li>{t("connectDisclosureData")}</li>
+            <li>{t("connectDisclosurePurpose")}</li>
+            <li>{t("connectDisclosureScope")}</li>
+          </ul>
+          <p className="text-sm text-text-secondary">
+            <Link href="/privacy" className="text-accent hover:underline">
+              {t("connectDisclosurePrivacy")}
+            </Link>
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConnectDisclosureOpen(false)}>
+              {t("connectDisclosureCancel")}
+            </Button>
+            <Button onClick={authorizeGoogleCalendar}>
+              {t("connectDisclosureContinue")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
