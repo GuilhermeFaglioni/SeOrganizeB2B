@@ -13,6 +13,9 @@ async function main() {
   let migrated = 0;
 
   for (const auth of auths) {
+    if (!auth.accessToken && !auth.refreshToken) {
+      continue;
+    }
     if (!auth.accessToken || !auth.refreshToken) {
       throw new Error(`Calendar authorization ${auth.id} has incomplete tokens`);
     }

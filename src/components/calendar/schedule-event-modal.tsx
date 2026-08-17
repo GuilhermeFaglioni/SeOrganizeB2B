@@ -152,10 +152,10 @@ export function ScheduleEventModal({
           );
           onOpenChange(false);
         },
-        onError: (error) => {
+        onError: () => {
           toastError(
             t("toastCreateFailed"),
-            error instanceof Error ? error.message : undefined,
+            t("toastCreateFailed"),
           );
         },
       },

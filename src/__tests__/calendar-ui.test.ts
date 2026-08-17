@@ -32,6 +32,13 @@ describe("calendar experience contracts", () => {
     expect(hook).toContain('method: "DELETE"');
   });
 
+  it("shows the data-use disclosure before starting Google authorization", () => {
+    const page = read("src/app/(authenticated)/calendar/page.tsx");
+    expect(page).toContain("calendar-connect-disclosure");
+    expect(page).toContain('href="/privacy"');
+    expect(page).toContain("authorizeGoogleCalendar");
+  });
+
   it("shares one scheduling dialog across authenticated routes", () => {
     const layout = read("src/app/(authenticated)/layout.tsx");
     const provider = read("src/stores/schedule-event-context.tsx");

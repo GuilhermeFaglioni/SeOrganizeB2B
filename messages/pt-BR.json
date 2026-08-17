@@ -323,8 +323,10 @@
         "calendarUse": {"title": "Como usamos o Google Calendar", "body": "Usamos esses dados para exibir eventos na agenda, detectar conflitos, criar eventos, atualizar eventos, excluir eventos e enviar convites quando você solicita essas ações. Não usamos dados do Google para publicidade, venda, perfil de crédito ou finalidades não descritas aqui."},
         "storage": {"title": "Armazenamento e segurança", "body": "Tokens são armazenados de forma criptografada no ambiente do aplicativo. Eventos e participantes podem ter uma cópia local para conectar a agenda ao trabalho da empresa. O acesso é protegido por autenticação, permissões e isolamento entre empresas."},
         "sharing": {"title": "Compartilhamento e provedores", "body": "Dados são processados pelo Google para a integração autorizada e por provedores necessários para operar o serviço, como Supabase, hospedagem, banco de dados e cobrança. Não vendemos dados Google nem os transferimos para publicidade."},
-        "retention": {"title": "Retenção e exclusão", "body": "A regra final de retenção será TODO_RETENTION_POLICY. Ao desconectar, a proposta técnica é excluir espelhos derivados do Google e preservar somente eventos explicitamente locais. A exclusão da conta seguirá a política final aprovada."},
-        "rights": {"title": "Direitos e revogação", "body": "Você pode solicitar acesso, correção ou exclusão e pode revogar o acesso do Google nas configurações da conta. Para exercer direitos, use TODO_PRIVACY_EMAIL."},
+        "retention": {"title": "Retenção e exclusão", "body": "A regra final de retenção será TODO_RETENTION_POLICY. Ao desconectar, excluímos as credenciais e os espelhos derivados do Google e preservamos somente eventos explicitamente locais. A exclusão do acesso da empresa seguirá a política final aprovada."},
+        "rights": {"title": "Direitos e revogação", "body": "Nos termos da LGPD, você pode solicitar confirmação, acesso, correção, portabilidade, informação sobre compartilhamento ou exclusão, além de revogar o acesso do Google nas configurações da empresa. Para exercer direitos, use TODO_PRIVACY_EMAIL."},
+        "internationalTransfers": {"title": "Transferências internacionais", "body": "Como usamos provedores globais, os dados podem ser processados fora do Brasil. Aplicamos as salvaguardas contratuais e técnicas exigidas para transferências internacionais conforme a LGPD e as regras aplicáveis."},
+        "limitedUse": {"title": "Política de dados do Google", "body": "O uso de dados das APIs do Google segue a Google API Services User Data Policy, incluindo os requisitos de Limited Use. Usamos esses dados somente para fornecer ou melhorar as funcionalidades visíveis e não os transferimos para publicidade."},
         "changes": {"title": "Alterações", "body": "Alterações relevantes nesta política serão publicadas nesta página e poderão exigir novo consentimento quando mudarem a finalidade do uso de dados Google."}
       }
     },
@@ -335,13 +337,13 @@
       "intro": "Estes termos definem as regras para uso do SeOrganize+ por prestadores digitais, empresas e equipes.",
       "sections": {
         "service": {"title": "O serviço", "body": "O SeOrganize+ oferece ferramentas para organizar tarefas, projetos, documentos, calendário, propostas, contratos e recebíveis. O serviço não substitui orientação jurídica, contábil ou financeira profissional."},
-        "accounts": {"title": "Contas e empresas", "body": "A pessoa usuária deve fornecer informações verdadeiras, proteger suas credenciais e usar somente empresas e dados aos quais tenha autorização. Cada empresa é responsável pelas permissões concedidas à sua equipe. Regra de aceite dos termos: TODO_TERMS_ACCEPTANCE_POLICY."},
+        "access": {"title": "Acessos e empresas", "body": "A pessoa usuária deve fornecer informações verdadeiras, proteger suas credenciais e usar somente empresas e dados aos quais tenha autorização. Cada empresa é responsável pelas permissões concedidas à sua equipe. Regra de aceite dos termos: TODO_TERMS_ACCEPTANCE_POLICY."},
         "acceptableUse": {"title": "Uso aceitável", "body": "É proibido usar o serviço para fraude, abuso, violação de direitos, tentativa de acesso não autorizado, distribuição de malware ou uso das integrações de forma incompatível com as políticas dos provedores."},
         "integrations": {"title": "Integrações", "body": "O Google Calendar e outros provedores são serviços de terceiros. Ao conectar uma integração, a pessoa usuária autoriza as ações descritas na tela e pode desconectar a integração a qualquer momento."},
         "billing": {"title": "Planos e cobrança", "body": "Planos, preços, ativação, cancelamento e períodos de acesso são apresentados no produto. A empresa é responsável pelos pagamentos e pelo uso realizado por seus membros."},
         "content": {"title": "Conteúdo", "body": "A empresa mantém os direitos sobre seu conteúdo e é responsável por possuir autorização para armazenar e compartilhar os dados inseridos no serviço, inclusive dados de clientes e participantes."},
         "availability": {"title": "Disponibilidade", "body": "O serviço depende de infraestrutura própria e de terceiros. Podemos realizar manutenção, aplicar limites ou suspender funcionalidades para proteger usuários, dados e a operação."},
-        "termination": {"title": "Encerramento", "body": "A conta pode ser encerrada pela empresa ou pelo serviço conforme estes termos. O tratamento e a exclusão dos dados após o encerramento seguem a Política de Privacidade."},
+        "termination": {"title": "Encerramento", "body": "O acesso pode ser encerrado pela empresa ou pelo serviço conforme estes termos. O tratamento e a exclusão dos dados após o encerramento seguem a Política de Privacidade."},
         "changes": {"title": "Alterações dos termos", "body": "Podemos atualizar estes termos. Alterações materiais serão comunicadas pelos canais disponíveis no produto ou nesta página."}
       }
     },
@@ -351,7 +353,7 @@
       "updated": "Informações oficiais: TODO_SUPPORT_EMAIL",
       "intro": "Use os contatos abaixo para suporte, privacidade e assuntos jurídicos. Os placeholders devem ser substituídos antes da publicação em produção.",
       "sections": {
-        "support": {"title": "Suporte", "body": "E-mail de suporte: TODO_SUPPORT_EMAIL\nDescreva a empresa, a conta e o problema sem enviar senhas, tokens ou dados desnecessários."},
+        "support": {"title": "Suporte", "body": "E-mail de suporte: TODO_SUPPORT_EMAIL\nDescreva a empresa, o acesso e o problema sem enviar senhas, tokens ou dados desnecessários."},
         "privacy": {"title": "Privacidade e dados Google", "body": "Para solicitações de acesso, correção, exclusão ou revogação relacionadas a dados pessoais e Google Calendar: TODO_PRIVACY_EMAIL."},
         "legal": {"title": "Assuntos jurídicos", "body": "Controlador: TODO_LEGAL_ENTITY_NAME\nCNPJ: TODO_COMPANY_DOCUMENT\nEndereço: TODO_COMPANY_ADDRESS"}
       }
@@ -1177,6 +1179,7 @@
       "toastConnectFailedHint": "Tente autorizar novamente.",
       "toastCalendarConnectFailed": "Falha ao conectar calendário",
       "toastDisconnectFailed": "Falha ao desconectar Google Calendar",
+      "toastDisconnectRevocationFailed": "Acesso local removido, mas a revogação no Google precisa ser confirmada.",
       "eyebrow": "Agenda",
       "title": "Calendário executivo",
       "connectGoogle": "Conectar Google",
@@ -1189,6 +1192,14 @@
       "disconnectDescription": "O acesso será revogado e o SeOrganize+ deixará de sincronizar eventos com esta conta Google.",
       "disconnectConfirm": "Desconectar",
       "disconnectCancel": "Cancelar",
+      "connectDisclosureTitle": "Antes de conectar o Google Calendar",
+      "connectDisclosureDescription": "O SeOrganize+ abrirá o consentimento do Google para autorizar uma integração explícita com seu calendário.",
+      "connectDisclosureData": "Dados acessados: eventos, horários, descrições, participantes e status de resposta.",
+      "connectDisclosurePurpose": "Uso: exibir agenda, detectar conflitos, criar, editar, excluir eventos e enviar convites quando você solicitar.",
+      "connectDisclosureScope": "Permissão solicitada: eventos dos calendários que você possui, sem acesso a outros calendários.",
+      "connectDisclosurePrivacy": "Leia a Política de Privacidade",
+      "connectDisclosureCancel": "Agora não",
+      "connectDisclosureContinue": "Continuar para o Google",
       "localCalendarActive": "Calendário local ativo",
       "localCalendarHint": "Conecte Google Calendar para sincronizar eventos e enviar convites.",
       "connectNow": "Conectar agora"

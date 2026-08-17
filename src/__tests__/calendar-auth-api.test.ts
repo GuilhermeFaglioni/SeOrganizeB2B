@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   getAppOrigin: vi.fn(),
   getCalendarRedirectUri: vi.fn(),
   exchangeCode: vi.fn(),
+  validateGrantedScopes: vi.fn(),
   verifyGoogleIdToken: vi.fn(),
 }));
 
@@ -54,6 +55,7 @@ vi.mock("@/lib/google/oauth", () => ({
   getAppOrigin: mocks.getAppOrigin,
   getCalendarRedirectUri: mocks.getCalendarRedirectUri,
   exchangeCode: mocks.exchangeCode,
+  validateGrantedScopes: mocks.validateGrantedScopes,
   verifyGoogleIdToken: mocks.verifyGoogleIdToken,
   GOOGLE_CALENDAR_SCOPE: "https://www.googleapis.com/auth/calendar.events.owned",
   GoogleAuthError: MockGoogleAuthError,
@@ -130,6 +132,11 @@ describe("Google Calendar authorization routes", () => {
       expires_in: 3600,
       scope: "openid email https://www.googleapis.com/auth/calendar.events.owned",
     });
+    mocks.validateGrantedScopes.mockReturnValue([
+      "openid",
+      "email",
+      "https://www.googleapis.com/auth/calendar.events.owned",
+    ]);
     mocks.verifyGoogleIdToken.mockResolvedValue({
       subject: "google-subject",
       email: "user@example.com",
@@ -313,5 +320,29 @@ describe("Google Calendar authorization routes", () => {
       data: { consumedAt: expect.any(Date) },
     });
     expect(mocks.exchangeCode).not.toHaveBeenCalled();
+  });
+
+  it("does not reuse another Google identity's refresh token", async () => {
+    mocks.exchangeCode.mockResolvedValue({
+      access_token: "access-token",
+      id_token: "id-token",
+      expires_in: 3600,
+      scope: "openid email https://www.googleapis.com/auth/calendar.events.owned",
+    });
+    mocks.calendarAuthFindUnique.mockResolvedValue({
+      googleSubject: "old-google-subject",
+      refreshToken: "encrypted:old-refresh-token",
+    });
+
+    const response = await GET(
+      makeRequest(
+        "/api/calendar/auth/callback?code=authorization-code&state=state-value",
+      ),
+    );
+
+    expect(response.headers.get("location")).toContain(
+      "error=GOOGLE_AUTH_INVALID_REQUEST",
+    );
+    expect(mocks.calendarAuthUpsert).not.toHaveBeenCalled();
   });
 });

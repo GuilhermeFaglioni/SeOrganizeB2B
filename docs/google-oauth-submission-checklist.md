@@ -46,7 +46,7 @@ Record a separate unlisted video in English. Keep the browser address bar visibl
 9. Delete the event and show that it is removed from Calendar.
 10. Return to the product and show the account/disconnect control.
 
-Do not use real customer data, real secrets, real CPF/CNPJ values or real attendee information in the recording.
+Do not use real client data, real secrets, real CPF/CNPJ values or real attendee information in the recording.
 
 ## Submission Gate
 

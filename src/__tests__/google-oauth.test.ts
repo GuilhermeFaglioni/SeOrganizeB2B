@@ -4,6 +4,7 @@ import {
   exchangeCode,
   getAuthUrl,
   hashOAuthValue,
+  validateGrantedScopes,
   verifyGoogleIdToken,
 } from "../lib/google/oauth";
 
@@ -55,6 +56,23 @@ describe("Google Calendar OAuth", () => {
     expect(url.searchParams.get("scope")?.split(" ")).not.toContain(
       "https://www.googleapis.com/auth/calendar",
     );
+    expect(url.searchParams.get("include_granted_scopes")).toBeNull();
+  });
+
+  it("rejects extra or incomplete granted scopes", () => {
+    expect(() =>
+      validateGrantedScopes(
+        "openid email https://www.googleapis.com/auth/calendar.events.owned https://www.googleapis.com/auth/calendar",
+      ),
+    ).toThrowError(/unsupported or incomplete/);
+    expect(() => validateGrantedScopes("openid email")).toThrowError(
+      /unsupported or incomplete/,
+    );
+    expect(
+      validateGrantedScopes(
+        "openid email https://www.googleapis.com/auth/calendar.events.owned",
+      ),
+    ).toEqual(["openid", "email", "https://www.googleapis.com/auth/calendar.events.owned"]);
   });
 
   it("sends the PKCE verifier and exact redirect URI when exchanging a code", async () => {

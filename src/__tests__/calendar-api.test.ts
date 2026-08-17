@@ -28,4 +28,13 @@ describe("calendar API contracts", () => {
     expect(source).toContain("GOOGLE_API_ERROR");
     expect(source).toContain("{ status: 502 }");
   });
+
+  it("validates linked calendar records against the active company", () => {
+    const schedule = read("src/app/api/calendar/schedule/route.ts");
+    const eventDetail = read("src/app/api/calendar/events/[id]/route.ts");
+    expect(schedule).toContain("where: { id: body.taskId, tenantId: ctx.tenantId! }");
+    expect(schedule).toContain("where: { id: body.areaId, tenantId: ctx.tenantId! }");
+    expect(eventDetail).toContain("where: { id: params.id, tenantId: ctx.tenantId! }");
+    expect(eventDetail).toContain("where: { id: taskId, tenantId: ctx.tenantId! }");
+  });
 });

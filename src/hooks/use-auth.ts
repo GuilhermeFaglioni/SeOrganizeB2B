@@ -10,7 +10,12 @@ function getClient() {
 }
 
 function getAppOrigin(): string {
-  return process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+  const configuredOrigin = process.env.NEXT_PUBLIC_APP_URL;
+  if (configuredOrigin) return new URL(configuredOrigin).origin;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("NEXT_PUBLIC_APP_URL is required in production");
+  }
+  return window.location.origin;
 }
 
 export function useAuth() {

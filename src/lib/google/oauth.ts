@@ -13,6 +13,11 @@ const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 export const GOOGLE_CALENDAR_SCOPE =
   "https://www.googleapis.com/auth/calendar.events.owned";
 export const GOOGLE_SCOPES = ["openid", "email", GOOGLE_CALENDAR_SCOPE] as const;
+const GOOGLE_EMAIL_SCOPE = "https://www.googleapis.com/auth/userinfo.email";
+const ALLOWED_GOOGLE_SCOPES = new Set([
+  ...GOOGLE_SCOPES,
+  GOOGLE_EMAIL_SCOPE,
+]);
 
 export interface GoogleTokenResponse {
   access_token?: string;
@@ -131,13 +136,42 @@ export function getAuthUrl({
     scope: GOOGLE_SCOPES.join(" "),
     access_type: "offline",
     prompt: "consent",
-    include_granted_scopes: "true",
     state,
     nonce,
     code_challenge: codeChallenge,
     code_challenge_method: "S256",
   });
   return `${GOOGLE_AUTH_URL}?${params.toString()}`;
+}
+
+export function validateGrantedScopes(scope: string | undefined): string[] {
+  const scopes = Array.from(new Set(scope?.split(/\s+/).filter(Boolean) ?? []));
+  const hasCalendarScope = scopes.includes(GOOGLE_CALENDAR_SCOPE);
+  const hasOpenId = scopes.includes("openid");
+  const hasEmail = scopes.includes("email") || scopes.includes(GOOGLE_EMAIL_SCOPE);
+
+  if (
+    !hasCalendarScope ||
+    !hasOpenId ||
+    !hasEmail ||
+    scopes.some((grantedScope) => !ALLOWED_GOOGLE_SCOPES.has(grantedScope))
+  ) {
+    throw new GoogleAuthError(
+      "GOOGLE_AUTH_INVALID_REQUEST",
+      "Google granted an unsupported or incomplete scope set",
+    );
+  }
+
+  return scopes;
+}
+
+export function hasValidGrantedScopes(scope: string | null | undefined): boolean {
+  try {
+    validateGrantedScopes(scope ?? undefined);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function exchangeCode(
@@ -284,6 +318,14 @@ export async function getValidAccessToken(userId: string): Promise<string> {
       );
     }
 
+    if (!hasValidGrantedScopes(auth.grantedScopes)) {
+      await markCalendarReconnectRequired(userId, "GOOGLE_SCOPE_MIGRATION_REQUIRED");
+      throw new GoogleAuthError(
+        "GOOGLE_AUTH_RECONNECT_REQUIRED",
+        "Google authorization must be reconnected",
+      );
+    }
+
     const now = Date.now();
     if (
       auth.accessToken &&
@@ -395,5 +437,12 @@ export async function disconnectGoogleCalendar(
   }
 
   await prisma.calendarAuth.delete({ where: { userId } });
+  await prisma.calendarEvent.deleteMany({
+    where: {
+      userId,
+      tenantId: auth.tenantId,
+      OR: [{ source: "google" }, { googleId: { not: null } }],
+    },
+  });
   return { revocationFailed };
 }

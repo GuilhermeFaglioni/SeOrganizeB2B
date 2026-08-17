@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   authFindUnique: vi.fn(),
   authUpdateMany: vi.fn(),
   authDelete: vi.fn(),
+  calendarEventDeleteMany: vi.fn(),
 }));
 
 vi.mock("../../prisma/client", () => ({
@@ -20,6 +21,9 @@ vi.mock("../../prisma/client", () => ({
       findUnique: mocks.authFindUnique,
       updateMany: mocks.authUpdateMany,
       delete: mocks.authDelete,
+    },
+    calendarEvent: {
+      deleteMany: mocks.calendarEventDeleteMany,
     },
   },
 }));
@@ -40,6 +44,7 @@ describe("Google token lifecycle", () => {
     const encryptedAccessToken = encryptGoogleToken("access-token");
     mocks.authFindUnique.mockResolvedValue({
       connectionStatus: "connected",
+      grantedScopes: "openid email https://www.googleapis.com/auth/calendar.events.owned",
       accessToken: encryptedAccessToken,
       refreshToken: encryptGoogleToken("refresh-token"),
       expiresAt: new Date(Date.now() + 120_000),
@@ -56,6 +61,7 @@ describe("Google token lifecycle", () => {
     const oldRefreshToken = encryptGoogleToken("old-refresh-token");
     mocks.authFindUnique.mockResolvedValue({
       connectionStatus: "connected",
+      grantedScopes: "openid email https://www.googleapis.com/auth/calendar.events.owned",
       accessToken: encryptGoogleToken("expired-access-token"),
       refreshToken: oldRefreshToken,
       expiresAt: new Date(Date.now() - 1_000),
@@ -95,6 +101,7 @@ describe("Google token lifecycle", () => {
     process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = KEY;
     mocks.authFindUnique.mockResolvedValue({
       connectionStatus: "connected",
+      grantedScopes: "openid email https://www.googleapis.com/auth/calendar.events.owned",
       accessToken: encryptGoogleToken("expired-access-token"),
       refreshToken: encryptGoogleToken("refresh-token"),
       expiresAt: new Date(Date.now() - 1_000),
@@ -121,15 +128,41 @@ describe("Google token lifecycle", () => {
     );
   });
 
+  it("requires reconnection before using a connection without an approved scope set", async () => {
+    process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = KEY;
+    mocks.authFindUnique.mockResolvedValue({
+      connectionStatus: "connected",
+      grantedScopes: null,
+      accessToken: encryptGoogleToken("access-token"),
+      refreshToken: encryptGoogleToken("refresh-token"),
+      expiresAt: new Date(Date.now() + 120_000),
+    });
+    mocks.authUpdateMany.mockResolvedValue({ count: 1 });
+
+    await expect(getValidAccessToken("user-1")).rejects.toMatchObject({
+      code: "GOOGLE_AUTH_RECONNECT_REQUIRED",
+    });
+    expect(mocks.authUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          connectionStatus: "reconnect_required",
+          lastErrorCode: "GOOGLE_SCOPE_MIGRATION_REQUIRED",
+        }),
+      }),
+    );
+  });
+
   it("revokes the refresh token before deleting the local connection", async () => {
     process.env.GOOGLE_CLIENT_ID = "client-id";
     process.env.GOOGLE_CLIENT_SECRET = "client-secret";
     process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = KEY;
     mocks.authFindUnique.mockResolvedValue({
+      tenantId: "tenant-1",
       refreshToken: encryptGoogleToken("refresh-token"),
       accessToken: encryptGoogleToken("access-token"),
     });
     mocks.authDelete.mockResolvedValue({ id: "auth-1" });
+    mocks.calendarEventDeleteMany.mockResolvedValue({ count: 1 });
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -144,5 +177,12 @@ describe("Google token lifecycle", () => {
     const body = fetchMock.mock.calls[0][1].body as URLSearchParams;
     expect(body.get("token")).toBe("refresh-token");
     expect(mocks.authDelete).toHaveBeenCalledWith({ where: { userId: "user-1" } });
+    expect(mocks.calendarEventDeleteMany).toHaveBeenCalledWith({
+      where: {
+        userId: "user-1",
+        tenantId: "tenant-1",
+        OR: [{ source: "google" }, { googleId: { not: null } }],
+      },
+    });
   });
 });

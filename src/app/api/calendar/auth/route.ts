@@ -24,6 +24,14 @@ export async function GET() {
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
 
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/calendar/auth",
+    method: "GET",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
+
   const auth = await withTenant(ctx.tenantId, () =>
     prisma.calendarAuth.findUnique({
       where: { userId: user.id },
@@ -56,6 +64,14 @@ export async function DELETE() {
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return noWorkspaceResponse();
+
+  const gate = await applyFeatureGate({
+    userId: user.id,
+    pathname: "/api/calendar/auth",
+    method: "DELETE",
+    tenantContext: ctx,
+  });
+  if (gate.response) return gate.response;
 
   const result = await withTenant(ctx.tenantId, () =>
     disconnectGoogleCalendar(user.id),

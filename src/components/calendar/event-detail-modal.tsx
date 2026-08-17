@@ -100,10 +100,10 @@ export function EventDetailModal({
       });
       toastSuccess(t("toastLinksUpdated"));
       onOpenChange(false);
-    } catch (error) {
+    } catch {
       toastError(
         t("toastUpdateFailed"),
-        error instanceof Error ? error.message : undefined
+        t("toastUpdateFailed"),
       );
     }
   }
@@ -273,10 +273,10 @@ export function EventDetailModal({
                       toastSuccess(t("toastDeleted"));
                       setConfirmDelete(false);
                       onOpenChange(false);
-                    } catch (error) {
+                     } catch {
                       toastError(
                         t("toastDeleteFailed"),
-                        error instanceof Error ? error.message : undefined,
+                        t("toastDeleteFailed"),
                       );
                     }
                   }}

@@ -56,8 +56,8 @@ Do not use preview or arbitrary request-host URLs in the production client.
 ## Release Order
 
 1. Run `npm run security:check-legal-placeholders` without the placeholder override.
-2. Run `npm run security:encrypt-google-tokens` against existing production records before deploying code that requires encrypted tokens.
-3. Apply Prisma migrations.
+2. Apply Prisma migrations; legacy unscoped credentials are discarded and require reconnection.
+3. Run `npm run security:encrypt-google-tokens` as a preflight for any remaining token records.
 4. Deploy with the canonical URL and encryption key configured.
 5. Validate login, Calendar consent, refresh, revocation and reconnect with a test account.
 6. Publish branding and submit the verification request.

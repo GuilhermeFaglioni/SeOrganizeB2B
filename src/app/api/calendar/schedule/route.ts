@@ -97,18 +97,48 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const profileIds = Array.from(
-    new Set((body.profileIds ?? []).filter(Boolean)),
-  );
+  if (
+    (body.profileIds !== undefined &&
+      (!Array.isArray(body.profileIds) ||
+        body.profileIds.some((profileId) => typeof profileId !== "string"))) ||
+    (body.attendeeEmails !== undefined &&
+      (!Array.isArray(body.attendeeEmails) ||
+        body.attendeeEmails.some((email) => typeof email !== "string")))
+  ) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: { code: "VALIDATION_ERROR", message: "Invalid attendee list" },
+      },
+      { status: 400 },
+    );
+  }
+
+  const profileIds = Array.from(new Set(body.profileIds?.filter(Boolean) ?? []));
 
   return withTenant(ctx.tenantId, async () => {
+    if (body.taskId) {
+      const task = await prisma.task.findFirst({
+        where: { id: body.taskId, tenantId: ctx.tenantId! },
+        select: { id: true },
+      });
+      if (!task) {
+        return NextResponse.json(
+          {
+            data: null,
+            error: { code: "VALIDATION_ERROR", message: "Task not found" },
+          },
+          { status: 400 },
+        );
+      }
+    }
     const profiles = await prisma.profile.findMany({
       where: { id: { in: profileIds }, tenantId: ctx.tenantId! },
       select: { id: true, email: true, name: true },
     });
     if (body.areaId) {
-      const area = await prisma.teamArea.findUnique({
-        where: { id: body.areaId },
+      const area = await prisma.teamArea.findFirst({
+        where: { id: body.areaId, tenantId: ctx.tenantId! },
         select: { id: true },
       });
       if (!area) {

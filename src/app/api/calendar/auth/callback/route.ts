@@ -5,9 +5,9 @@ import {
   exchangeCode,
   getAppOrigin,
   getCalendarRedirectUri,
-  GOOGLE_CALENDAR_SCOPE,
   GoogleAuthError,
   hashOAuthValue,
+  validateGrantedScopes,
   verifyGoogleIdToken,
 } from "@/lib/google/oauth";
 import { getTenantContext } from "@/lib/authz/tenant-context";
@@ -16,10 +16,9 @@ import { applyFeatureGate } from "@/lib/middleware/feature-gating";
 import { encryptGoogleToken } from "@/lib/google/token-crypto";
 
 function redirectToCalendar(
-  request: NextRequest,
   params: Record<string, string>,
 ): NextResponse {
-  const origin = getSafeRedirectOrigin(request);
+  const origin = getSafeRedirectOrigin();
   const target = new URL("/calendar", origin);
   for (const [key, value] of Object.entries(params)) {
     target.searchParams.set(key, value);
@@ -27,32 +26,26 @@ function redirectToCalendar(
   return NextResponse.redirect(target);
 }
 
-function getSafeRedirectOrigin(request: NextRequest): string {
-  const requestOrigin = new URL(request.url).origin;
-  try {
-    return getAppOrigin(requestOrigin);
-  } catch {
-    // Keep error redirects functional even when production configuration is broken.
-    return requestOrigin;
-  }
+function getSafeRedirectOrigin(): string {
+  return getAppOrigin();
 }
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
   if (!user) {
     return NextResponse.redirect(
-      new URL("/login", getSafeRedirectOrigin(request)),
+      new URL("/login", getSafeRedirectOrigin()),
     );
   }
 
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) {
-    return redirectToCalendar(request, { calendarAuth: "failed", error: "no_workspace" });
+    return redirectToCalendar({ calendarAuth: "failed", error: "no_workspace" });
   }
 
   const denied = await denyFor(user.id, "calendar.edit");
   if (denied) {
-    return redirectToCalendar(request, { calendarAuth: "failed", error: "forbidden" });
+    return redirectToCalendar({ calendarAuth: "failed", error: "forbidden" });
   }
 
   const gate = await applyFeatureGate({
@@ -62,7 +55,7 @@ export async function GET(request: NextRequest) {
     tenantContext: ctx,
   });
   if (gate.response) {
-    return redirectToCalendar(request, { calendarAuth: "failed", error: "feature_unavailable" });
+    return redirectToCalendar({ calendarAuth: "failed", error: "feature_unavailable" });
   }
 
   const { searchParams } = new URL(request.url);
@@ -83,14 +76,14 @@ export async function GET(request: NextRequest) {
         }),
       );
     }
-    return redirectToCalendar(request, {
+    return redirectToCalendar({
       calendarAuth: "failed",
       error: oauthError === "access_denied" ? "access_denied" : "oauth_failed",
     });
   }
 
   if (!code || !state) {
-    return redirectToCalendar(request, {
+    return redirectToCalendar({
       calendarAuth: "failed",
       error: "invalid_request",
     });
@@ -110,7 +103,7 @@ export async function GET(request: NextRequest) {
   );
 
   if (!attempt) {
-    return redirectToCalendar(request, {
+    return redirectToCalendar({
       calendarAuth: "failed",
       error: "invalid_state",
     });
@@ -130,29 +123,24 @@ export async function GET(request: NextRequest) {
   );
 
   if (claimed.count !== 1) {
-    return redirectToCalendar(request, {
+    return redirectToCalendar({
       calendarAuth: "failed",
       error: "invalid_state",
     });
   }
 
   try {
-    const redirectUri = getCalendarRedirectUri(new URL(request.url).origin);
+    const redirectUri = getCalendarRedirectUri();
     const tokenData = await exchangeCode(code, redirectUri, attempt.codeVerifier);
     const accessToken = tokenData.access_token;
     const expiresIn = tokenData.expires_in;
-    if (
-      !accessToken ||
-      !tokenData.id_token ||
-      typeof expiresIn !== "number" ||
-      !Number.isFinite(expiresIn) ||
-      !tokenData.scope?.split(/\s+/).includes(GOOGLE_CALENDAR_SCOPE)
-    ) {
+    if (!accessToken || !tokenData.id_token || typeof expiresIn !== "number" || !Number.isFinite(expiresIn)) {
       throw new GoogleAuthError(
         "GOOGLE_AUTH_INVALID_REQUEST",
         "Google did not grant the required Calendar scope",
       );
     }
+    const grantedScopes = validateGrantedScopes(tokenData.scope);
 
     const identity = await verifyGoogleIdToken(
       tokenData.id_token,
@@ -163,7 +151,7 @@ export async function GET(request: NextRequest) {
       prisma.$transaction(async (tx) => {
         const existing = await tx.calendarAuth.findUnique({
           where: { userId: user.id },
-          select: { refreshToken: true },
+          select: { googleSubject: true, refreshToken: true },
         });
         const conflictingAuth = await tx.calendarAuth.findFirst({
           where: {
@@ -176,6 +164,15 @@ export async function GET(request: NextRequest) {
           throw new GoogleAuthError(
             "GOOGLE_AUTH_INVALID_REQUEST",
             "Google account is already connected",
+          );
+        }
+        if (
+          !tokenData.refresh_token &&
+          existing?.googleSubject !== identity.subject
+        ) {
+          throw new GoogleAuthError(
+            "GOOGLE_AUTH_INVALID_REQUEST",
+            "Google did not return credentials for the selected account",
           );
         }
         const refreshToken = tokenData.refresh_token ?? existing?.refreshToken;
@@ -198,7 +195,7 @@ export async function GET(request: NextRequest) {
             refreshToken: encryptedRefreshToken,
             expiresAt: new Date(Date.now() + expiresIn * 1000),
             googleEmail: identity.email,
-            grantedScopes: tokenData.scope,
+            grantedScopes: grantedScopes.join(" "),
             connectionStatus: "connected",
             revokedAt: null,
             lastErrorCode: null,
@@ -211,7 +208,7 @@ export async function GET(request: NextRequest) {
             refreshToken: encryptedRefreshToken,
             expiresAt: new Date(Date.now() + expiresIn * 1000),
             googleEmail: identity.email,
-            grantedScopes: tokenData.scope,
+            grantedScopes: grantedScopes.join(" "),
             connectionStatus: "connected",
             tenantId: ctx.tenantId!,
           },
@@ -219,12 +216,12 @@ export async function GET(request: NextRequest) {
       }),
     );
 
-    return redirectToCalendar(request, { calendarAuth: "connected" });
+    return redirectToCalendar({ calendarAuth: "connected" });
   } catch (error) {
     const reason =
       error instanceof GoogleAuthError ? error.code : "oauth_failed";
     console.error("Google Calendar authorization failed", reason);
-    return redirectToCalendar(request, {
+    return redirectToCalendar({
       calendarAuth: "failed",
       error: reason,
     });
