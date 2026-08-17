@@ -265,6 +265,7 @@ describe("proposals API", () => {
     expect(mocks.mockUpdateWorkspaceSettings).toHaveBeenCalledWith(
       { bindingCode: "Acme-Join-2026" },
       "tenant-1",
+      { userId: "user-1", email: "a@b.c" },
     );
   });
 

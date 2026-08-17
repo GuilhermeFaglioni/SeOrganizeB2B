@@ -17,6 +17,7 @@ model Profile {
   locale    String   @default("pt-BR")
   roleId    String?  @map("role_id")
   tenantId  String   @map("tenant_id")
+  removedAt DateTime? @map("removed_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -45,6 +46,7 @@ model Profile {
   proposalTemplates      ProposalTemplate[]      @relation("ProposalTemplateCreator")
   proposals              Proposal[]              @relation("ProposalCreator")
   projectMembers         ProjectMember[]
+  closedBetaOwnedEnrollment ClosedBetaEnrollment? @relation("ClosedBetaOwner")
 
   @@index([tenantId])
   @@map("profiles")
@@ -125,6 +127,8 @@ model Workspace {
   proposalItems         ProposalItem[]
   invites               Invite[]
   readOnlyAccesses      ReadOnlyAccess[]
+  closedBetaEnrollment  ClosedBetaEnrollment?
+  closedBetaInvitations ClosedBetaInvitation[]
 
   @@map("workspaces")
 }
@@ -184,11 +188,13 @@ model Plan {
   allowedModules Json     @default("[]")
   isDefault      Boolean  @default(false) @map("is_default")
   isActive       Boolean  @default(true) @map("is_active")
+  isInternal     Boolean  @default(false) @map("is_internal")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   workspaces Workspace[]
   planLimits PlanLimit[]
+  closedBetaConfig ClosedBetaConfig?
 
   @@map("plans")
 }
@@ -206,6 +212,94 @@ model PlanLimit {
 
   @@index([planId])
   @@map("plan_limits")
+}
+
+model ClosedBetaConfig {
+  id                    String   @id @default("default")
+  status                String   @default("paused")
+  maxPrimaryWorkspaces  Int      @default(30) @map("max_primary_workspaces")
+  maxGuestsPerWorkspace Int      @default(3) @map("max_guests_per_workspace")
+  planId                String   @unique @map("plan_id")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@map("closed_beta_configs")
+}
+
+model ClosedBetaEnrollment {
+  id             String    @id @default(uuid())
+  workspaceId    String    @unique @map("workspace_id")
+  ownerProfileId String    @unique @map("owner_profile_id")
+  status         String    @default("active")
+  source         String    @default("invitation")
+  previousPlanId String?   @map("previous_plan_id")
+  consentVersion String?   @map("consent_version")
+  consentedAt    DateTime? @map("consented_at")
+  joinedAt       DateTime  @default(now()) @map("joined_at")
+  leftAt         DateTime? @map("left_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner     Profile   @relation("ClosedBetaOwner", fields: [ownerProfileId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([ownerProfileId])
+  @@map("closed_beta_enrollments")
+}
+
+model ClosedBetaInvitation {
+  id              String    @id @default(uuid())
+  email           String
+  tokenHash       String    @unique @map("token_hash")
+  status          String    @default("pending")
+  expiresAt       DateTime  @map("expires_at")
+  reservedAt      DateTime  @default(now()) @map("reserved_at")
+  acceptedAt      DateTime? @map("accepted_at")
+  revokedAt       DateTime? @map("revoked_at")
+  workspaceId     String?   @map("workspace_id")
+  createdByUserId String    @map("created_by_user_id")
+  createdByEmail  String    @map("created_by_email")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@index([email, status])
+  @@index([status, expiresAt])
+  @@index([workspaceId])
+  @@map("closed_beta_invitations")
+}
+
+model ClosedBetaAuditEvent {
+  id          String   @id @default(uuid())
+  actorUserId String?  @map("actor_user_id")
+  actorEmail  String?  @map("actor_email")
+  action      String
+  targetType  String   @map("target_type")
+  targetId    String?  @map("target_id")
+  beforeValue Json?    @map("before_value")
+  afterValue  Json?    @map("after_value")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([targetType, targetId])
+  @@index([actorUserId, createdAt])
+  @@map("closed_beta_audit_events")
+}
+
+model ClosedBetaRateLimit {
+  key             String    @id
+  attemptCount    Int       @default(0) @map("attempt_count")
+  windowStartedAt DateTime  @map("window_started_at")
+  blockedUntil    DateTime? @map("blocked_until")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([blockedUntil])
+  @@map("closed_beta_rate_limits")
 }
 
 model TeamArea {

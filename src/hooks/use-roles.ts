@@ -21,6 +21,7 @@ export interface TeamMemberData {
   email: string;
   avatarUrl: string | null;
   roleId: string | null;
+  isOwner?: boolean;
   role: { id: string; name: string; isAdmin: boolean } | null;
   teamMemberAreas: { areaId: string; area: { id: string; name: string; color: string } }[];
 }
@@ -126,5 +127,20 @@ export function useAssignRole() {
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
     },
     onError: () => toastError(t("assignFailed")),
+  });
+}
+
+export function useRemoveMember() {
+  const t = useTranslations("hooks.roles");
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) =>
+      fetchJson(`/api/profiles/${userId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team"] });
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["invites"] });
+    },
+    onError: () => toastError(t("removeFailed")),
   });
 }

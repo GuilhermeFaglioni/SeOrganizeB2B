@@ -83,7 +83,9 @@ describe("GET /api/team", () => {
 
     expect(res.status).toBe(200);
     expect(mocks.mockProfileFindMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { tenantId: "workspace-2" } }),
+      expect.objectContaining({
+        where: { tenantId: "workspace-2", removedAt: null },
+      }),
     );
     expect(await res.json()).toMatchObject({
       data: [currentWorkspaceProfile],

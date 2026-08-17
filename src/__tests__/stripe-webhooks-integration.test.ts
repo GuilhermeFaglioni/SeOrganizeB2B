@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   mockWorkspaceUpdate: vi.fn(),
   mockPlanFindFirst: vi.fn(),
   mockSubscriptionsList: vi.fn(),
+  mockLeaveClosedBeta: vi.fn(),
 }));
 
 vi.mock("@/lib/stripe", () => ({
@@ -34,6 +35,10 @@ vi.mock("../../prisma/client", () => ({
       findFirst: mocks.mockPlanFindFirst,
     },
   },
+}));
+
+vi.mock("@/lib/closed-beta/service", () => ({
+  setWorkspacePlanAndLeaveClosedBeta: mocks.mockLeaveClosedBeta,
 }));
 
 import { POST } from "../app/api/stripe/webhook/route";
@@ -105,6 +110,9 @@ function installWorkspaceState(initial: WorkspaceState) {
   mocks.mockSubscriptionsList.mockResolvedValue({ data: [] });
   return {
     get: (): WorkspaceState => ({ ...state }),
+    setPlan: (planId: string) => {
+      state = { ...state, planId };
+    },
   };
 }
 
@@ -133,6 +141,7 @@ function makeWorkspaceData(
 describe("stripe webhook integration — simulated events (T-049)", () => {
   beforeEach(() => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
+    mocks.mockLeaveClosedBeta.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -200,6 +209,9 @@ describe("stripe webhook integration — simulated events (T-049)", () => {
 
   it("updates planId and stripeCustomerId on customer.subscription.updated", async () => {
     const ws = installWorkspaceState(activeWorkspace());
+    mocks.mockLeaveClosedBeta.mockImplementation(async (_workspaceId, planId) => {
+      ws.setPlan(planId);
+    });
     mocks.mockPlanFindFirst.mockResolvedValue({ id: "plan_pro" });
     mocks.mockConstructEvent.mockReturnValue(
       makeEvent(
@@ -211,9 +223,13 @@ describe("stripe webhook integration — simulated events (T-049)", () => {
     const res = await POST(makeRequest("payload"));
 
     expect(res.status).toBe(200);
+    expect(mocks.mockLeaveClosedBeta).toHaveBeenCalledWith("ws_1", "plan_pro", {
+      userId: "stripe-webhook",
+      email: "system",
+    });
     expect(mocks.mockWorkspaceUpdate).toHaveBeenCalledWith({
       where: { id: "ws_1" },
-      data: { stripeCustomerId: "cus_123", planId: "plan_pro" },
+      data: { stripeCustomerId: "cus_123" },
     });
     expect(ws.get().planId).toBe("plan_pro");
     expect(ws.get().stripeCustomerId).toBe("cus_123");
@@ -243,6 +259,7 @@ describe("stripe webhook integration — simulated events (T-049)", () => {
 describe("stripe webhook integration — grace period lifecycle (T-049)", () => {
   beforeEach(() => {
     Object.values(mocks).forEach((mock) => mock.mockReset());
+    mocks.mockLeaveClosedBeta.mockResolvedValue(undefined);
   });
 
   afterEach(() => {

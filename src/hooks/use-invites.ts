@@ -23,7 +23,7 @@ export function useCreateInvite() {
   const t = useTranslations("hooks.invites");
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { email: string }) =>
+    mutationFn: (data: { email: string; roleId?: string | null }) =>
       fetchJson("/api/workspace/invites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

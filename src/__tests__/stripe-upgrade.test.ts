@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   mockListSubscriptions: vi.fn(),
   mockUpdateSubscription: vi.fn(),
   mockWorkspaceUpdate: vi.fn(),
+  mockLeaveClosedBeta: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -29,6 +30,10 @@ vi.mock("@/lib/stripe", () => ({
       update: mocks.mockUpdateSubscription,
     },
   },
+}));
+
+vi.mock("@/lib/closed-beta/service", () => ({
+  setWorkspacePlanAndLeaveClosedBeta: mocks.mockLeaveClosedBeta,
 }));
 
 import { POST } from "../app/api/stripe/upgrade/route";
@@ -77,6 +82,7 @@ describe("stripe upgrade", () => {
     mocks.mockListSubscriptions.mockResolvedValue({ data: [makeSubscription()] });
     mocks.mockUpdateSubscription.mockResolvedValue(makeSubscription());
     mocks.mockWorkspaceUpdate.mockResolvedValue({});
+    mocks.mockLeaveClosedBeta.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -104,7 +110,7 @@ describe("stripe upgrade", () => {
     const json = await res.json();
     expect(json.error.code).toBe("VALIDATION_ERROR");
     expect(mocks.mockPlanFindFirst).toHaveBeenCalledWith({
-      where: { stripePriceId: "price_unknown", isActive: true },
+      where: { stripePriceId: "price_unknown", isActive: true, isInternal: false },
     });
     expect(mocks.mockUpdateSubscription).not.toHaveBeenCalled();
     expect(mocks.mockWorkspaceUpdate).not.toHaveBeenCalled();
@@ -162,9 +168,9 @@ describe("stripe upgrade", () => {
     expect(mocks.mockUpdateSubscription).toHaveBeenCalledWith("sub_1", {
       items: [{ id: "si_1", price: "price_pro" }],
     });
-    expect(mocks.mockWorkspaceUpdate).toHaveBeenCalledWith({
-      where: { id: "ws_1" },
-      data: { planId: "plan_pro" },
+    expect(mocks.mockLeaveClosedBeta).toHaveBeenCalledWith("ws_1", "plan_pro", {
+      userId: "user_1",
+      email: "owner@acme.com",
     });
   });
 });

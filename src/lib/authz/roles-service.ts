@@ -193,9 +193,20 @@ export async function assignRole(
 }
 
 export async function listTeam(tenantId: string) {
-  return withTenant(tenantId, () =>
+  let ownerProfileId: string | null = null;
+  try {
+    const enrollment = await prisma.closedBetaEnrollment.findUnique({
+      where: { workspaceId: tenantId },
+      select: { ownerProfileId: true, status: true },
+    });
+    if (enrollment?.status === "active") ownerProfileId = enrollment.ownerProfileId;
+  } catch {
+    // The beta migration is optional for legacy workspaces.
+  }
+
+  const team = await withTenant(tenantId, () =>
     prisma.profile.findMany({
-      where: { tenantId },
+      where: { tenantId, removedAt: null },
       select: {
         id: true,
         name: true,
@@ -210,6 +221,10 @@ export async function listTeam(tenantId: string) {
       orderBy: { name: "asc" },
     }),
   );
+  return team.map((member) => ({
+    ...member,
+    isOwner: member.id === ownerProfileId,
+  }));
 }
 
 function isUniqueViolation(error: unknown): boolean {
