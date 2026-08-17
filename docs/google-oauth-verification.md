@@ -55,27 +55,18 @@ These rules are implementation defaults and require confirmation by the legal/pr
 - OAuth credentials are retained only while the Calendar connection is active.
 - Disconnecting or revoking access deletes the encrypted access and refresh tokens immediately.
 - A revoked or invalid authorization is marked reconnectable and cannot be used for new Google requests.
-- Google-derived event mirrors are deleted or converted to explicitly local records according to the user's chosen disconnect behavior; the behavior must be made visible before implementation.
+- Google-derived event and attendee mirrors are deleted when the Calendar connection is disconnected; explicitly local events remain local.
 - Local events created without Google remain local after a Calendar disconnect.
 - Attendee records are retained only while their associated local event is retained.
 - Account deletion removes credentials, Google-derived mirrors and associated attendee data according to the final deletion policy.
 
-## Controlled Business Placeholders
+## Official Legal Configuration
 
-The following placeholders may be used while the implementation is being exercised in development and staging:
+The public legal pages identify `55.823.385 GUILHERME COSTA BARBOSA FAGLIONI`, CNPJ `55.823.385/0001-89`, at Rua José Gerardo Bessa, Silveira, Belo Horizonte, Minas Gerais, Brazil, ZIP `31140-390`. Support and privacy requests use `guilhermefaglioni.contato@gmail.com`. The policy version is `17/08/2026`.
 
-- `TODO_LEGAL_ENTITY_NAME`
-- `TODO_COMPANY_DOCUMENT`
-- `TODO_COMPANY_ADDRESS`
-- `TODO_SUPPORT_EMAIL`
-- `TODO_PRIVACY_EMAIL`
-- `TODO_POLICY_EFFECTIVE_DATE`
-- `TODO_RETENTION_POLICY`
-- `TODO_TERMS_ACCEPTANCE_POLICY`
+The configured disconnect behavior deletes Google credentials and Google-derived event and attendee mirrors while preserving explicitly local events. Personal data is retained only while needed to provide the service or comply with legal obligations, and is deleted or anonymized when those needs end. Fiscal, financial and audit records follow the applicable legal retention periods.
 
-These placeholders must never be presented as final legal information in a production deployment or a Google verification submission. A release check must fail when any controlled placeholder is enabled for production.
-
-The proposed safe default for the disconnect behavior is to delete Google-derived event mirrors and preserve events explicitly created as local records. This remains a business decision until confirmed.
+By creating or using access, users agree to the Terms version published on the page. Material changes are communicated through available product channels before taking effect.
 
 ## External Configuration Checklist
 

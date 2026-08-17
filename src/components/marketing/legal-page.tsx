@@ -48,13 +48,6 @@ export function LegalPage({ document }: { document: LegalDocument }) {
         <p className="mt-3 text-sm text-text-muted">{t("updated")}</p>
         <p className="mt-8 text-base leading-7 text-text-secondary">{t("intro")}</p>
 
-        <div
-          role="note"
-          className="mt-8 rounded-xl border border-warning/30 bg-warning-bg px-4 py-3 text-sm leading-6 text-warning"
-        >
-          {common("placeholderNotice")}
-        </div>
-
         <div className="mt-10 space-y-8">
           {SECTION_KEYS[document].map((section) => (
             <section key={section}>

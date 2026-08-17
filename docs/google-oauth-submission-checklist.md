@@ -50,14 +50,10 @@ Do not use real client data, real secrets, real CPF/CNPJ values or real attendee
 
 ## Submission Gate
 
-- [ ] `TODO_LEGAL_ENTITY_NAME` replaced.
-- [ ] `TODO_COMPANY_DOCUMENT` replaced.
-- [ ] `TODO_COMPANY_ADDRESS` replaced.
-- [ ] `TODO_SUPPORT_EMAIL` replaced.
-- [ ] `TODO_PRIVACY_EMAIL` replaced.
-- [ ] `TODO_POLICY_EFFECTIVE_DATE` replaced.
-- [ ] `TODO_RETENTION_POLICY` replaced.
-- [ ] `TODO_TERMS_ACCEPTANCE_POLICY` replaced.
+- [x] Legal entity and CNPJ confirmed: 55.823.385 GUILHERME COSTA BARBOSA FAGLIONI, CNPJ 55.823.385/0001-89.
+- [x] Company address and support/privacy contact confirmed.
+- [x] Privacy Policy effective date confirmed: 17/08/2026.
+- [x] Retention and terms acceptance policy confirmed.
 - [ ] Production `APP_URL` and `NEXT_PUBLIC_APP_URL` set to `https://seorganize.faglionidev.com`.
 - [ ] `GOOGLE_TOKEN_ENCRYPTION_KEY` configured.
 - [ ] Legacy Calendar tokens migrated before the new code is deployed.

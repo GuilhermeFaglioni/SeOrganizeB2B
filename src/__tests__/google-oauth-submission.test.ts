@@ -15,10 +15,10 @@ describe("Google OAuth submission evidence", () => {
     expect(checklist).toContain("OAuth client ID");
   });
 
-  it("keeps the submission gate explicit while legal inputs are placeholders", () => {
+  it("records the completed legal configuration and remaining submission gates", () => {
     const checklist = read("docs/google-oauth-submission-checklist.md");
-    expect(checklist).toContain("TODO_LEGAL_ENTITY_NAME");
-    expect(checklist).toContain("TODO_TERMS_ACCEPTANCE_POLICY");
+    expect(checklist).toContain("Legal entity and CNPJ confirmed");
+    expect(checklist).toContain("Retention and terms acceptance policy confirmed");
     expect(checklist).toContain("Search Console ownership verified");
   });
 });
