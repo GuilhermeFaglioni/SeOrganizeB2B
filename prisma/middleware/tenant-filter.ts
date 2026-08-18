@@ -91,6 +91,10 @@ const EXEMPT_MODELS = new Set([
   "ClosedBetaInvitation",
   "ClosedBetaAuditEvent",
   "ClosedBetaRateLimit",
+  "ClosedBetaCheckinEdition",
+  "ClosedBetaCheckinQuestion",
+  "ClosedBetaCheckinResponse",
+  "ClosedBetaCheckinWorkspaceState",
 ]);
 
 /**

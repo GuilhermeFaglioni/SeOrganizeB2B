@@ -47,6 +47,8 @@ model Profile {
   proposals              Proposal[]              @relation("ProposalCreator")
   projectMembers         ProjectMember[]
   closedBetaOwnedEnrollment ClosedBetaEnrollment? @relation("ClosedBetaOwner")
+  checkinResponses       ClosedBetaCheckinResponse[]
+  checkinCompletions     ClosedBetaCheckinWorkspaceState[] @relation("ClosedBetaCheckinCompleter")
 
   @@index([tenantId])
   @@map("profiles")
@@ -129,6 +131,8 @@ model Workspace {
   readOnlyAccesses      ReadOnlyAccess[]
   closedBetaEnrollment  ClosedBetaEnrollment?
   closedBetaInvitations ClosedBetaInvitation[]
+  checkinResponses          ClosedBetaCheckinResponse[]
+  checkinWorkspaceStates    ClosedBetaCheckinWorkspaceState[]
 
   @@map("workspaces")
 }
@@ -300,6 +304,87 @@ model ClosedBetaRateLimit {
 
   @@index([blockedUntil])
   @@map("closed_beta_rate_limits")
+}
+
+model ClosedBetaCheckinEdition {
+  id          String    @id @default(uuid())
+  title       String
+  status      String    @default("draft")
+  isMandatory Boolean   @default(true) @map("is_mandatory")
+  opensAt     DateTime? @map("opens_at")
+  closesAt    DateTime? @map("closes_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  questions        ClosedBetaCheckinQuestion[]
+  responses        ClosedBetaCheckinResponse[]
+  workspaceStates  ClosedBetaCheckinWorkspaceState[]
+
+  @@map("closed_beta_checkin_editions")
+}
+
+model ClosedBetaCheckinQuestion {
+  id                   String   @id @default(uuid())
+  editionId            String   @map("edition_id")
+  text                 String
+  type                 String
+  options              Json?
+  required             Boolean  @default(true)
+  position             Int      @default(0)
+  theme                String?
+  isSuggestionQuestion Boolean  @default(false) @map("is_suggestion_question")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  edition ClosedBetaCheckinEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+
+  @@index([editionId])
+  @@map("closed_beta_checkin_questions")
+}
+
+model ClosedBetaCheckinResponse {
+  id          String   @id @default(uuid())
+  editionId   String   @map("edition_id")
+  workspaceId String   @map("workspace_id")
+  profileId   String   @map("profile_id")
+  answers     Json
+  isPrimary   Boolean  @default(false) @map("is_primary")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  edition   ClosedBetaCheckinEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  workspace Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  profile   Profile                  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([editionId, profileId])
+  @@index([editionId, workspaceId])
+  @@index([workspaceId])
+  @@index([profileId])
+  @@map("closed_beta_checkin_responses")
+}
+
+model ClosedBetaCheckinWorkspaceState {
+  id                   String    @id @default(uuid())
+  editionId            String    @map("edition_id")
+  workspaceId          String    @map("workspace_id")
+  status               String    @default("pending")
+  completedByProfileId String?   @map("completed_by_profile_id")
+  completedAt          DateTime? @map("completed_at")
+  exemptionReason      String?   @map("exemption_reason")
+  exemptionExpiresAt   DateTime? @map("exemption_expires_at")
+  grantedByUserId      String?   @map("granted_by_user_id")
+  grantedByEmail       String?   @map("granted_by_email")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  edition   ClosedBetaCheckinEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  workspace Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  completedBy Profile?               @relation("ClosedBetaCheckinCompleter", fields: [completedByProfileId], references: [id], onDelete: SetNull)
+
+  @@unique([editionId, workspaceId])
+  @@index([workspaceId])
+  @@index([status])
+  @@map("closed_beta_checkin_workspace_states")
 }
 
 model TeamArea {
