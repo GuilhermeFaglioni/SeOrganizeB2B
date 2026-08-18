@@ -7,6 +7,7 @@ import { useAuth } from "@/stores/auth-context";
 import { useProfile } from "@/hooks/use-profile";
 import { useOnboardingStatus } from "@/hooks/use-onboarding-status";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useCheckinStatus } from "@/hooks/use-checkin";
 import { WorkspaceProvider } from "@/stores/workspace-context";
 import { GracePeriodBanner } from "@/components/billing/grace-period-banner";
 import { UpgradeBanner } from "@/components/billing/upgrade-banner";
@@ -31,11 +32,15 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         onboardingStatus === "workspace_creation_required"),
   });
   const workspaceQuery = useWorkspace({ enabled: authReady && profileQuery.isSuccess });
+  const checkinQuery = useCheckinStatus({
+    enabled: authReady && profileQuery.isSuccess && workspaceQuery.isSuccess,
+  });
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations("auth.login");
 
   const mode = getWorkspaceAccessMode(workspaceQuery.data);
+  const checkinBlocked = checkinQuery.data?.blocked === true;
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -63,6 +68,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       router.replace("/expired");
     }
   }, [user, workspaceQuery.isLoading, mode, pathname, router]);
+
+  useEffect(() => {
+    if (user && checkinBlocked && pathname !== "/beta/checkin") {
+      router.replace("/beta/checkin");
+    }
+  }, [user, checkinBlocked, pathname, router]);
 
   if (isLoading) {
     return <LoadingState text={t("checkingAuth")} />;
@@ -119,6 +130,14 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         </Button>
       </div>
     );
+  }
+
+  if (
+    workspaceQuery.isSuccess &&
+    checkinQuery.isLoading &&
+    pathname !== "/beta/checkin"
+  ) {
+    return <LoadingState text={t("checkingWorkspace")} />;
   }
 
   const readOnly = mode === "readonly";

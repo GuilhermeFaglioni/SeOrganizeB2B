@@ -26,6 +26,28 @@
     "unauthorized": "Não autorizado",
     "retry": "Tentar novamente"
   },
+  "checkin": {
+    "title": "Check-in semanal do Beta",
+    "description": "Sua empresa precisa concluir o check-in desta semana. Qualquer membro pode responder.",
+    "minutesHint": "Leva cerca de 2 minutos.",
+    "didNotUse": "Não usei o produto esta semana",
+    "didNotUseHint": "Selecione esta opção se não houve tempo para usar o SeOrganize+ nesta semana.",
+    "noSuggestion": "Não tenho uma sugestão nesta semana.",
+    "optional": "opcional",
+    "progress": "{answered}/{total}",
+    "submit": "Enviar resposta",
+    "submitting": "Enviando...",
+    "successTitle": "Check-in concluído",
+    "successBody": "Obrigado pelo seu feedback.",
+    "unlocked": "Sua empresa foi desbloqueada e o acesso está liberado.",
+    "noEdition": "Nenhum check-in disponível no momento.",
+    "loadFailed": "Não foi possível carregar o check-in.",
+    "submitFailed": "Não foi possível enviar sua resposta.",
+    "retry": "Tentar novamente",
+    "backToApp": "Voltar ao app",
+    "exemptTitle": "Sua empresa está isenta",
+    "exemptBody": "Uma exceção temporária está ativa para esta semana."
+  },
   "layout": {
     "topbar": {
       "openMenu": "Abrir menu",

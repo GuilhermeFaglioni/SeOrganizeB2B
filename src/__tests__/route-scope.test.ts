@@ -34,6 +34,11 @@ vi.mock("../../prisma/client", () => ({
       count: mocks.mockContractCount,
       findUnique: mocks.mockContractFindUnique,
     },
+    closedBetaCheckinEdition: { findFirst: vi.fn().mockResolvedValue(null) },
+    closedBetaEnrollment: { findUnique: vi.fn().mockResolvedValue(null) },
+    closedBetaCheckinWorkspaceState: {
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
   },
   withTenant: (_tenantId: string, fn: () => unknown) => fn(),
   withTenantBypass: (fn: () => unknown) => fn(),

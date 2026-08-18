@@ -29,6 +29,13 @@ export type CheckinEditionPhase = "upcoming" | "open" | "overdue";
 
 export const CHECKIN_RATING_MIN = 1;
 export const CHECKIN_RATING_MAX = 5;
+const ACTIVE_EDITION_TTL_MS = 30_000;
+
+let activeEditionCache: { id: string | null; expiresAt: number } | null = null;
+
+export function invalidateActiveCheckinEditionCache(): void {
+  activeEditionCache = null;
+}
 
 export class CheckinValidationError extends Error {}
 export class CheckinNotFoundError extends Error {}
@@ -70,6 +77,7 @@ export interface SubmitCheckinResponseInput {
   profileId: string;
   answers: Record<string, unknown>;
   actor: ClosedBetaActor;
+  didNotUse?: boolean;
   now?: Date;
 }
 
@@ -184,11 +192,24 @@ function missingRequiredQuestions(
 }
 
 export async function getActiveCheckinEdition() {
-  return prisma.closedBetaCheckinEdition.findFirst({
+  const now = Date.now();
+  if (activeEditionCache && activeEditionCache.expiresAt > now) {
+    if (!activeEditionCache.id) return null;
+    return prisma.closedBetaCheckinEdition.findUnique({
+      where: { id: activeEditionCache.id },
+      include: { questions: { orderBy: { position: "asc" } } },
+    });
+  }
+  const edition = await prisma.closedBetaCheckinEdition.findFirst({
     where: { status: "published", isMandatory: true },
     orderBy: [{ opensAt: "desc" }, { createdAt: "desc" }],
     include: { questions: { orderBy: { position: "asc" } } },
   });
+  activeEditionCache = {
+    id: edition?.id ?? null,
+    expiresAt: now + ACTIVE_EDITION_TTL_MS,
+  };
+  return edition;
 }
 
 export function getCheckinEditionPhase(
@@ -444,6 +465,7 @@ export async function publishCheckinEdition(
         closesAt: published.closesAt?.toISOString() ?? null,
       },
     });
+    invalidateActiveCheckinEditionCache();
     return getCheckinEdition(editionId, client);
   });
 }
@@ -468,6 +490,7 @@ export async function closeCheckinEdition(editionId: string, actor: ClosedBetaAc
       targetId: edition.id,
       afterValue: { title: closed.title, status: closed.status },
     });
+    invalidateActiveCheckinEditionCache();
     return closed;
   });
 }
@@ -506,18 +529,24 @@ export async function submitCheckinResponse(input: SubmitCheckinResponseInput) {
     throw new CheckinValidationError("The respondent is not an active member of this workspace");
   }
 
-  validateAnswers(edition.questions, input.answers);
-  const missing = missingRequiredQuestions(
-    edition.questions.map((question) => ({
-      id: question.id,
-      required: question.required,
-      isSuggestionQuestion: question.isSuggestionQuestion,
-    })),
-    input.answers,
-  );
-  if (missing.length > 0) {
-    throw new CheckinValidationError("Some required questions were not answered");
+  const didNotUse = input.didNotUse ?? false;
+  if (!didNotUse) {
+    validateAnswers(edition.questions, input.answers);
+    const missing = missingRequiredQuestions(
+      edition.questions.map((question) => ({
+        id: question.id,
+        required: question.required,
+        isSuggestionQuestion: question.isSuggestionQuestion,
+      })),
+      input.answers,
+    );
+    if (missing.length > 0) {
+      throw new CheckinValidationError("Some required questions were not answered");
+    }
   }
+  const storedAnswers: Record<string, unknown> = didNotUse
+    ? { ...input.answers, __did_not_use__: true }
+    : input.answers;
 
   return prisma.$transaction(async (client) => {
     const existing = await client.closedBetaCheckinResponse.findUnique({
@@ -573,7 +602,7 @@ export async function submitCheckinResponse(input: SubmitCheckinResponseInput) {
         editionId: input.editionId,
         workspaceId: input.workspaceId,
         profileId: input.profileId,
-        answers: input.answers as Prisma.InputJsonValue,
+        answers: storedAnswers as Prisma.InputJsonValue,
         isPrimary: canComplete,
       },
     });

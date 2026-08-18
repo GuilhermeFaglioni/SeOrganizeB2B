@@ -54,6 +54,7 @@ import {
   publishCheckinEdition,
   closeCheckinEdition,
   grantCheckinExemption,
+  invalidateActiveCheckinEditionCache,
   revokeCheckinExemption,
   getCheckinEditionPhase,
   getWorkspaceCheckin,
@@ -123,6 +124,7 @@ function resetMocks(node: unknown) {
 beforeEach(() => {
   resetMocks(prismaMock);
   auditMock.recordClosedBetaAudit.mockReset();
+  invalidateActiveCheckinEditionCache();
   prismaMock.$transaction.mockImplementation((fn: unknown) =>
     (fn as (client: unknown) => unknown)(prismaMock),
   );
@@ -487,6 +489,35 @@ describe("submitCheckinResponse", () => {
     });
 
     expect(result.completedWorkspace).toBe(true);
+  });
+
+  it("accepts a did-not-use submission without required answers", async () => {
+    prismaMock.closedBetaCheckinResponse.findUnique.mockResolvedValue(null);
+    prismaMock.$queryRaw.mockResolvedValue([
+      { id: "state-1", status: "pending", exemption_expires_at: null },
+    ]);
+    prismaMock.closedBetaCheckinResponse.create.mockResolvedValue({
+      id: "response-1",
+      isPrimary: true,
+    });
+
+    const result = await submitCheckinResponse({
+      editionId: "edition-1",
+      workspaceId: "workspace-1",
+      profileId: "profile-1",
+      answers: {},
+      didNotUse: true,
+      actor,
+    });
+
+    expect(result.completedWorkspace).toBe(true);
+    expect(prismaMock.closedBetaCheckinResponse.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          answers: expect.objectContaining({ __did_not_use__: true }),
+        }),
+      }),
+    );
   });
 
   it("rejects submissions for a closed edition", async () => {
