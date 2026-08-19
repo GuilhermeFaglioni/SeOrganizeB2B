@@ -15,7 +15,7 @@
   --spacing-balsa-density-default: var(--balsa-spacing-density-default);
   --spacing-balsa-density-comfortable: var(--balsa-spacing-density-comfortable);
   /* The spacing scale, aliased so `gap-balsa-md` and `py-balsa-section-lg` read as
-     what they are. See docs/spacing-scale.md for the steps, their roles and the
+     what they are. The spacing-scale contract defines the steps, their roles and the
      three laws that derive everything not on the scale. */
   --spacing-balsa-4xs: var(--balsa-space-4xs);
   --spacing-balsa-3xs: var(--balsa-space-3xs);
@@ -61,7 +61,7 @@
    overlap: rhythm tops out at 32px and section starts at 48px.
 
    A control's own inset is neither. It is derived from the control's size and
-   the spacing density, so nobody picks one — see docs/spacing-scale.md.
+   the spacing density, so nobody picks one — use the spacing-scale contract.
 
    Declared on :root rather than inside a theme preset: a preset may override
    any of it, but the scale exists before any preset does.

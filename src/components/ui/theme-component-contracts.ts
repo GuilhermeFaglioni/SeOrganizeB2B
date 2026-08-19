@@ -52,7 +52,7 @@ type SurfaceVariant = "surface" | "outline" | "soft" | "glass";
 
 /**
  * Appearance-only defaults keyed by the public component contract. These
- * unions stay independent from the Vue files so the theme item installs by
+ * unions stay independent from framework files so the theme item installs by
  * itself rather than pulling the entire component catalog into a project.
  */
 export interface ThemeComponentDefaultMap {

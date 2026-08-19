@@ -30,7 +30,7 @@
  * resolve where they are declared, which matches the material layer -- written
  * as inline styles on the theme root and already root-scoped. Moving the
  * aliases onto these would quietly narrow subtree palettes to the root, so the
- * derivations appear in both places on purpose. `tests/theme.test.ts` fails if
+ * derivations appear in both places on purpose. The foundation invariant requires
  * the two ever disagree.
  */
 :root {

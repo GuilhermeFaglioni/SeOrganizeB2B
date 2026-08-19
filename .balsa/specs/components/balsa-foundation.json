@@ -11,6 +11,7 @@
     "--balsa-color-background",
     "--balsa-color-foreground",
     "--balsa-color-surface",
+    "--balsa-color-muted",
     "--balsa-color-primary",
     "--balsa-color-secondary",
     "--balsa-color-accent"

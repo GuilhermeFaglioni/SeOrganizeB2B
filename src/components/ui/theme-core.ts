@@ -1718,10 +1718,10 @@ export function themePresentation(input: ThemeInput): ThemePresentation {
 }
 
 /**
- * Framework-neutral theme scope. Vue and React adapters recompute this
+ * Framework-neutral theme scope. Framework adapters recompute this
  * reactively and provide it through their own context; they do not reimplement
  * resolution, default merging, or presentation. Contract: the 2026-08-14
- * theme/portal design pass (`~/.agents/runs/20260814-164053-review-codex-personal`).
+ * theme/portal design contract.
  */
 export interface ThemeScopeState {
   readonly input: ThemeInput;
