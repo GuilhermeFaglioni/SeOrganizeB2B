@@ -73,7 +73,7 @@
       "installedVersion": "0.1.0",
       "designSystemVersion": "0.8.0",
       "originalSourceHash": "sha256-08a9326c36fa6027bcb5e40ef31d47346b23a05db5911e6c56e9ec215db0870d",
-      "installedSourceHash": "sha256-08a9326c36fa6027bcb5e40ef31d47346b23a05db5911e6c56e9ec215db0870d",
+      "installedSourceHash": "sha256-778cd12a64064d7688490d778252de1c4dd440ab47c4a51f5afdd254c0f7e3de",
       "dependencies": [
         "react",
         "tailwindcss",

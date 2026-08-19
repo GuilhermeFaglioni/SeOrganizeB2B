@@ -13,13 +13,15 @@ export function createDesignThemeStore(
 ) {
   const definitions = new Map<string, ThemeDefinition>();
 
-  for (const theme of options.themes ?? []) {
+  function registerDefinition(theme: ThemeDefinition): void {
     const definition = defineTheme(theme);
     if (definitions.has(definition.id)) {
       throw new TypeError(`Theme id "${definition.id}" is already registered.`);
     }
     definitions.set(definition.id, definition);
   }
+
+  for (const theme of options.themes ?? []) registerDefinition(theme);
 
   return {
     get themes(): readonly ThemeDefinition[] {
@@ -32,11 +34,7 @@ export function createDesignThemeStore(
       return definitions.has(id);
     },
     registerTheme(theme: ThemeDefinition): void {
-      const definition = defineTheme(theme);
-      if (definitions.has(definition.id)) {
-        throw new TypeError(`Theme id "${definition.id}" is already registered.`);
-      }
-      definitions.set(definition.id, definition);
+      registerDefinition(theme);
     },
   };
 }

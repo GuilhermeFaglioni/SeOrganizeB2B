@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
 import { BalsaThemeContext } from "./theme-context";
 import { createThemeScope, type ThemeDefaults, type ThemeInput } from "./theme";

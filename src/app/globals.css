@@ -4,9 +4,8 @@
 @import "../styles/balsa-shadcn-bridge.css";
 @import "../styles/se-organize-mais-design-system-palette.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 /* ===== Light theme (default) ===== */
 :root {

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "theme-core",
+  "title": "Balsa theme core",
+  "category": "theme",
+  "classification": "balsa-addition",
+  "status": "beta",
+  "version": "0.1.0",
+  "purpose": "Provide framework-neutral theme types, validation, inheritance, and recipe derivation.",
+  "publicApi": {
+    "source": [
+      "src/components/ui/theme-core.ts",
+      "src/components/ui/theme-component-contracts.ts"
+    ]
+  }
+}
