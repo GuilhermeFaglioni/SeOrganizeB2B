@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 2,
+  "components": {
+    "@balsa/shared/theme-core": {
+      "registry": "@balsa/shared/theme-core",
+      "namespace": "@balsa",
+      "origin": "https://balsa-ui.com/r/theme-core.json",
+      "installedVersion": "0.1.0",
+      "designSystemVersion": "0.8.0",
+      "originalSourceHash": "sha256-c5a73abb4144b466786c0995cab45c7c4e3f292c6c5c332452dcaa8c478d207a",
+      "installedSourceHash": "sha256-6b28ff3c767cf20285b4076eb020451788c1a376f717c7c5779d9a1098db69e8",
+      "dependencies": [],
+      "registryDependencies": [],
+      "targetPath": "src/components/ui/theme-core.ts",
+      "files": [
+        "src/components/ui/theme-core.ts",
+        "src/components/ui/theme-component-contracts.ts"
+      ]
+    },
+    "@balsa/design-system-se-organize-mais-design-system": {
+      "registry": "@balsa/design-system-se-organize-mais-design-system",
+      "namespace": "@balsa",
+      "installedVersion": "1.0.0",
+      "designSystemVersion": "0.8.0",
+      "originalSourceHash": "sha256-7788a5d30120122e3dc6befb0d72ae17fa173a7bc489f4f19a0408ac5d4e6773",
+      "installedSourceHash": "sha256-7788a5d30120122e3dc6befb0d72ae17fa173a7bc489f4f19a0408ac5d4e6773",
+      "targetPath": "src/themes/se-organize-mais-design-system.ts",
+      "files": [
+        "src/themes/se-organize-mais-design-system.ts",
+        "src/styles/se-organize-mais-design-system-palette.css"
+      ]
+    },
+    "@balsa/shared/balsa-foundation": {
+      "registry": "@balsa/shared/balsa-foundation",
+      "namespace": "@balsa",
+      "origin": "https://balsa-ui.com/r/balsa-foundation.json",
+      "installedVersion": "0.1.0",
+      "designSystemVersion": "0.8.0",
+      "originalSourceHash": "sha256-4e20f4ad5ea63bdce72e6785a52d2119053d2cfc7d6a691b8e5739a188309512",
+      "installedSourceHash": "sha256-4e20f4ad5ea63bdce72e6785a52d2119053d2cfc7d6a691b8e5739a188309512",
+      "dependencies": [
+        "tailwindcss"
+      ],
+      "registryDependencies": [],
+      "targetPath": "src/styles/balsa-foundation.css",
+      "files": [
+        "src/styles/balsa-foundation.css"
+      ]
+    },
+    "@balsa/shared/balsa-theme": {
+      "registry": "@balsa/shared/balsa-theme",
+      "namespace": "@balsa",
+      "origin": "https://balsa-ui.com/r/balsa-theme.json",
+      "installedVersion": "0.1.0",
+      "designSystemVersion": "0.8.0",
+      "originalSourceHash": "sha256-e61223ea49bdcaf72e8f2da1fc7f9b82958a77fd4c898aea558e6033ac50a351",
+      "installedSourceHash": "sha256-e61223ea49bdcaf72e8f2da1fc7f9b82958a77fd4c898aea558e6033ac50a351",
+      "dependencies": [
+        "tailwindcss"
+      ],
+      "registryDependencies": [
+        "@balsa/shared/balsa-foundation"
+      ],
+      "targetPath": "src/styles/balsa-theme.css",
+      "files": [
+        "src/styles/balsa-theme.css"
+      ]
+    },
+    "@balsa/react/balsa-theme": {
+      "registry": "@balsa/react/balsa-theme",
+      "namespace": "@balsa",
+      "origin": "https://balsa-ui.com/r/balsa-theme.json",
+      "installedVersion": "0.1.0",
+      "designSystemVersion": "0.8.0",
+      "originalSourceHash": "sha256-08a9326c36fa6027bcb5e40ef31d47346b23a05db5911e6c56e9ec215db0870d",
+      "installedSourceHash": "sha256-08a9326c36fa6027bcb5e40ef31d47346b23a05db5911e6c56e9ec215db0870d",
+      "dependencies": [
+        "react",
+        "tailwindcss",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "@balsa/shared/theme-core",
+        "@balsa/shared/balsa-theme",
+        "@balsa/shared/balsa-foundation"
+      ],
+      "targetPath": "src/components/ui/theme.ts",
+      "files": [
+        "src/components/ui/theme.ts",
+        "src/components/ui/theme-context.ts",
+        "src/components/ui/BalsaThemeProvider.tsx"
+      ]
+    },
+    "@balsa/shared/balsa-palette": {
+      "registry": "@balsa/shared/balsa-palette",
+      "namespace": "@balsa",
+      "origin": "https://balsa-ui.com/r/balsa-palette.json",
+      "installedVersion": "0.1.0",
+      "designSystemVersion": "0.8.0",
+      "originalSourceHash": "sha256-069bc4e3c815a4e00729fef152031398458613018cc820f2a55572dfa841aa1d",
+      "installedSourceHash": "sha256-069bc4e3c815a4e00729fef152031398458613018cc820f2a55572dfa841aa1d",
+      "dependencies": [
+        "tailwindcss"
+      ],
+      "registryDependencies": [
+        "@balsa/shared/balsa-foundation"
+      ],
+      "targetPath": "src/styles/balsa-palette.css",
+      "files": [
+        "src/styles/balsa-palette.css"
+      ]
+    },
+    "@balsa/shared/balsa-shadcn-bridge": {
+      "registry": "@balsa/shared/balsa-shadcn-bridge",
+      "namespace": "@balsa",
+      "origin": "https://balsa-ui.com/r/balsa-shadcn-bridge.json",
+      "installedVersion": "0.1.0",
+      "designSystemVersion": "0.8.0",
+      "originalSourceHash": "sha256-6054b7bee1cf51777aa825e5dbf49d8b597fdd622d73690bc91793170a0786bb",
+      "installedSourceHash": "sha256-6054b7bee1cf51777aa825e5dbf49d8b597fdd622d73690bc91793170a0786bb",
+      "dependencies": [
+        "tailwindcss"
+      ],
+      "registryDependencies": [
+        "@balsa/shared/balsa-foundation",
+        "@balsa/shared/balsa-theme"
+      ],
+      "targetPath": "src/styles/balsa-shadcn-bridge.css",
+      "files": [
+        "src/styles/balsa-shadcn-bridge.css"
+      ]
+    }
+  }
+}

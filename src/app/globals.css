@@ -1,3 +1,9 @@
+@import "../styles/balsa-foundation.css";
+@import "../styles/balsa-palette.css";
+@import "../styles/balsa-theme.css";
+@import "../styles/balsa-shadcn-bridge.css";
+@import "../styles/se-organize-mais-design-system-palette.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
