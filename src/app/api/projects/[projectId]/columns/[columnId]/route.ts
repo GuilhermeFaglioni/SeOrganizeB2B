@@ -5,7 +5,11 @@ import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { getUser } from "@/lib/supabase/server";
 
-export async function PATCH(request: NextRequest, { params }: { params: { projectId: string; columnId: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  props: { params: Promise<{ projectId: string; columnId: string }> }
+) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
@@ -41,7 +45,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { projec
   });
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { projectId: string; columnId: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  props: { params: Promise<{ projectId: string; columnId: string }> }
+) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });

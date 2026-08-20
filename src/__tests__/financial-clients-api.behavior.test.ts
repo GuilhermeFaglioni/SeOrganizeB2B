@@ -76,7 +76,7 @@ describe("clients API route behavior", () => {
 
   it("returns 400 for an empty PATCH name without calling update", async () => {
     const res = await patchClient(makeRequest("http://x/api/clients/c1", { name: "   " }), {
-      params: { id: "c1" },
+      params: Promise.resolve({ id: "c1" }),
     });
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -86,7 +86,7 @@ describe("clients API route behavior", () => {
 
   it("returns 400 for a non-string PATCH name without calling update", async () => {
     const res = await patchClient(makeRequest("http://x/api/clients/c1", { name: 42 }), {
-      params: { id: "c1" },
+      params: Promise.resolve({ id: "c1" }),
     });
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -101,7 +101,7 @@ describe("clients API route behavior", () => {
       active: true,
     });
     const res = await patchClient(makeRequest("http://x/api/clients/c1", { name: "  Acme  " }), {
-      params: { id: "c1" },
+      params: Promise.resolve({ id: "c1" }),
     });
     expect(res.status).toBe(200);
     expect(mockPrisma.client.update).toHaveBeenCalledWith({
@@ -145,7 +145,7 @@ describe("clients API route behavior", () => {
   it("returns 404 when a client is not found", async () => {
     mockPrisma.client.findUnique.mockResolvedValue(null);
     const res = await getClient(makeRequest("http://x/api/clients/missing"), {
-      params: { id: "missing" },
+      params: Promise.resolve({ id: "missing" }),
     });
     expect(res.status).toBe(404);
   });

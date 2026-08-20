@@ -71,7 +71,7 @@ const makeRequest = (body?: unknown) =>
     headers: { "content-type": "application/json" },
   });
 
-const params = { params: { id: "ws_1" } };
+const params = { params: Promise.resolve({ id: "ws_1" }) };
 
 const USAGE = {
   users: 3,

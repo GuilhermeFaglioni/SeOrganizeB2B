@@ -51,10 +51,8 @@ async function requireSuperAdmin(): Promise<GateResult> {
   return { ok: true, user };
 }
 
-export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
 
@@ -69,10 +67,8 @@ export async function GET(
   return NextResponse.json({ data: limits, error: null });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
 

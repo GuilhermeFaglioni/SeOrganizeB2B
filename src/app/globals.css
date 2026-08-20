@@ -1,6 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "../styles/balsa-foundation.css";
+@import "../styles/balsa-palette.css";
+@import "../styles/balsa-theme.css";
+@import "../styles/balsa-shadcn-bridge.css";
+@import "../styles/se-organize-mais-design-system-palette.css";
+
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 /* ===== Light theme (default) ===== */
 :root {

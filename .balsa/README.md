@@ -11,4 +11,4 @@ npx balsa-ui@latest add input button
 
 This workspace uses the React Balsa registry. Installed source is editable application code; preserve local changes and do not use `--force` without reviewing the diff.
 
-The application remains on React 18 because its Next.js 14.2 runtime declares React 18 peer requirements. The installed Balsa React foundation uses APIs available in React 18; upgrading the application to React 19 requires a coordinated Next.js upgrade and is intentionally not hidden by a dependency claim in this ticket.
+The application uses React 19 with Next.js 15.5.9, whose peer dependencies explicitly support React 19. The installed Balsa React foundation uses APIs available in React 19 and remains source-controlled and editable in this workspace.

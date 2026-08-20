@@ -4,10 +4,8 @@ import { getUser } from "@/lib/supabase/server";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json(

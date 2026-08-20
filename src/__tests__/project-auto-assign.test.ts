@@ -90,7 +90,7 @@ describe("project auto-assign by area (T-032)", () => {
   it("returns 401 when unauthenticated", async () => {
     mocks.mockGetUser.mockResolvedValue(null);
     const res = await PATCH(makeRequest({ enabled: true }), {
-      params: { projectId: "p1" },
+      params: Promise.resolve({ projectId: "p1" }),
     });
     expect(res.status).toBe(401);
     expect(mocks.mockProjectFindFirst).not.toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe("project auto-assign by area (T-032)", () => {
   it("returns 403 when the user lacks permission to manage the project", async () => {
     mocks.mockDenyFor.mockResolvedValue(new NextResponse(null, { status: 403 }));
     const res = await PATCH(makeRequest({ enabled: true }), {
-      params: { projectId: "p1" },
+      params: Promise.resolve({ projectId: "p1" }),
     });
     expect(res.status).toBe(403);
     expect(mocks.mockProjectFindFirst).not.toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe("project auto-assign by area (T-032)", () => {
   it("returns 404 when the project does not exist", async () => {
     mocks.mockProjectFindFirst.mockResolvedValue(null);
     const res = await PATCH(makeRequest({ enabled: true }), {
-      params: { projectId: "p1" },
+      params: Promise.resolve({ projectId: "p1" }),
     });
     expect(res.status).toBe(404);
     expect(mocks.mockProjectMemberCreateMany).not.toHaveBeenCalled();
@@ -117,7 +117,7 @@ describe("project auto-assign by area (T-032)", () => {
   it("rejects a non-boolean enabled value", async () => {
     mocks.mockProjectFindFirst.mockResolvedValue(project);
     const res = await PATCH(makeRequest({ enabled: "yes" }), {
-      params: { projectId: "p1" },
+      params: Promise.resolve({ projectId: "p1" }),
     });
     expect(res.status).toBe(400);
     expect(mocks.mockProjectMemberCreateMany).not.toHaveBeenCalled();
@@ -132,7 +132,7 @@ describe("project auto-assign by area (T-032)", () => {
     mocks.mockProjectMemberCreateMany.mockResolvedValue({ count: 2 });
 
     const res = await PATCH(makeRequest({ enabled: true }), {
-      params: { projectId: "p1" },
+      params: Promise.resolve({ projectId: "p1" }),
     });
     expect(res.status).toBe(200);
 
@@ -155,7 +155,7 @@ describe("project auto-assign by area (T-032)", () => {
   it("does not fetch area members when the project has no area", async () => {
     mocks.mockProjectFindFirst.mockResolvedValue({ ...project, areaId: null });
     const res = await PATCH(makeRequest({ enabled: true }), {
-      params: { projectId: "p1" },
+      params: Promise.resolve({ projectId: "p1" }),
     });
     expect(res.status).toBe(200);
     expect(mocks.mockTeamMemberAreaFindMany).not.toHaveBeenCalled();
@@ -169,7 +169,7 @@ describe("project auto-assign by area (T-032)", () => {
     mocks.mockProjectMemberDeleteMany.mockResolvedValue({ count: 3 });
 
     const res = await PATCH(makeRequest({ enabled: false }), {
-      params: { projectId: "p1" },
+      params: Promise.resolve({ projectId: "p1" }),
     });
     expect(res.status).toBe(200);
 

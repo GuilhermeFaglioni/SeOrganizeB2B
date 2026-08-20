@@ -6,7 +6,8 @@ import { noWorkspaceResponse } from "@/lib/authz/http";
 import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-gating";
 import { getUser } from "@/lib/supabase/server";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
@@ -58,7 +59,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   });
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });

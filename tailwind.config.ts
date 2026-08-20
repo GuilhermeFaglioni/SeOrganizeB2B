@@ -50,8 +50,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "Geist", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
-        mono: ["var(--font-mono)", "Geist Mono", "SF Mono", "Consolas", "monospace"],
+        sans: ["var(--font-sans)", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        mono: ["SF Mono", "Consolas", "monospace"],
       },
       borderRadius: {
         DEFAULT: "6px",
