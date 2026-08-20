@@ -111,7 +111,7 @@ describe("1. status removal from PATCH whitelist", () => {
         title: "Updated",
         status: "active",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
 
     expect(mockUpdateContract).toHaveBeenCalledWith(
@@ -135,7 +135,7 @@ describe("1. status removal from PATCH whitelist", () => {
         officialValue: "2000",
         notes: "n",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
 
     expect(mockUpdateContract).toHaveBeenCalledWith(
@@ -236,7 +236,7 @@ describe("3b. financial routes use mapFinancialError (behavior)", () => {
 
     const res = await patchContract(
       makeRequest("http://x/api/contracts/ctr-1", { title: "X" }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -251,7 +251,7 @@ describe("3b. financial routes use mapFinancialError (behavior)", () => {
 
     const res = await patchContract(
       makeRequest("http://x/api/contracts/ctr-1", { title: "X" }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(409);
     const json = await res.json();
@@ -263,7 +263,7 @@ describe("3b. financial routes use mapFinancialError (behavior)", () => {
 
     const res = await patchContract(
       makeRequest("http://x/api/contracts/ctr-1", { title: "X" }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(500);
     const json = await res.json();
@@ -322,7 +322,7 @@ describe("4. installment operations include audit (behavior)", () => {
         { action: "pay", paidAt: "2026-10-01" },
         "PATCH"
       ),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(200);
     expect(mockRecordPayment).toHaveBeenCalledWith(
@@ -345,7 +345,7 @@ describe("4. installment operations include audit (behavior)", () => {
         { action: "cancel" },
         "PATCH"
       ),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(200);
     expect(mockCancelInstallment).toHaveBeenCalledWith("inst-1", "user-1");
@@ -365,7 +365,7 @@ describe("4. installment operations include audit (behavior)", () => {
         refundAmount: "100",
         refundDate: "2026-10-15",
       }),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(201);
     expect(mockRefundInstallment).toHaveBeenCalledWith(

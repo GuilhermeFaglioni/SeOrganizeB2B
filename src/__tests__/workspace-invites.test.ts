@@ -179,7 +179,7 @@ describe("workspace invites API", () => {
 
     const res = await cancelInviteDELETE(
       makeRequest("http://x/api/workspace/invites/inv-cancel"),
-      { params: { id: "inv-cancel" } } as never,
+      { params: Promise.resolve({ id: "inv-cancel" }) } as never,
     );
 
     expect(res.status).toBe(200);

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "balsa-foundation",
+  "title": "Balsa color foundation",
+  "category": "theme",
+  "classification": "balsa-addition",
+  "status": "beta",
+  "version": "0.1.0",
+  "purpose": "Provide the exact adaptive Balsa color roles and utility token foundation.",
+  "tokens": [
+    "--balsa-color-background",
+    "--balsa-color-foreground",
+    "--balsa-color-surface",
+    "--balsa-color-muted",
+    "--balsa-color-primary",
+    "--balsa-color-secondary",
+    "--balsa-color-accent"
+  ],
+  "publicApi": {
+    "source": "src/styles/balsa-foundation.css"
+  }
+}

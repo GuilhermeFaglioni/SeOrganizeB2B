@@ -27,9 +27,9 @@ const mocks = vi.hoisted(() => ({
 
 const MockGoogleAuthError = vi.hoisted(
   () =>
-    class extends Error {
+    (class extends Error {
       code = "GOOGLE_AUTH_INVALID_REQUEST";
-    },
+    }),
 );
 
 vi.mock("@/lib/supabase/server", () => ({

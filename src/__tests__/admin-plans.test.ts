@@ -108,19 +108,19 @@ describe("admin plans API", () => {
 
     const getRes = await getPlan(
       makeRequest("http://x/api/admin/plans/p1", "GET"),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
     expect(getRes.status).toBe(403);
 
     const patchRes = await patchPlan(
       makeRequest("http://x/api/admin/plans/p1", "PATCH", { name: "Y" }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
     expect(patchRes.status).toBe(403);
 
     const deleteRes = await deletePlan(
       makeRequest("http://x/api/admin/plans/p1", "DELETE"),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
     expect(deleteRes.status).toBe(403);
     expect(mocks.mockPlanUpdate).not.toHaveBeenCalled();
@@ -252,7 +252,7 @@ describe("admin plans API", () => {
       makeRequest("http://x/api/admin/plans/p1", "PATCH", {
         stripePriceId: "prod_V3irzGGHYnnfI5",
       }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(400);
@@ -272,7 +272,7 @@ describe("admin plans API", () => {
         stripePriceId: "price_2",
         allowedModules: ["tasks", "calendar", "projects"],
       }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -300,7 +300,7 @@ describe("admin plans API", () => {
 
     const res = await patchPlan(
       makeRequest("http://x/api/admin/plans/p1", "PATCH", { isDefault: true }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -319,7 +319,7 @@ describe("admin plans API", () => {
 
     const res = await deletePlan(
       makeRequest("http://x/api/admin/plans/p1", "DELETE"),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -337,7 +337,7 @@ describe("admin plans API", () => {
 
     const res = await patchPlan(
       makeRequest("http://x/api/admin/plans/nope", "PATCH", { name: "X" }),
-      { params: { id: "nope" } } as never
+      { params: Promise.resolve({ id: "nope" }) } as never
     );
 
     expect(res.status).toBe(404);
@@ -350,7 +350,7 @@ describe("admin plans API", () => {
 
     const res = await deletePlan(
       makeRequest("http://x/api/admin/plans/nope", "DELETE"),
-      { params: { id: "nope" } } as never
+      { params: Promise.resolve({ id: "nope" }) } as never
     );
 
     expect(res.status).toBe(404);
@@ -368,7 +368,7 @@ describe("admin plans API", () => {
 
     const res = await patchPlan(
       makeRequest("http://x/api/admin/plans/p1", "PATCH", { isActive: true }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -391,7 +391,7 @@ describe("admin plans API", () => {
 
     const res = await patchPlan(
       makeRequest("http://x/api/admin/plans/p1", "PATCH", { isActive: false }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -412,7 +412,7 @@ describe("admin plans API", () => {
 
     const res = await patchPlan(
       makeRequest("http://x/api/admin/plans/p1", "PATCH", { isActive: false }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(400);
@@ -430,7 +430,7 @@ describe("admin plans API", () => {
 
     const res = await deletePlan(
       makeRequest("http://x/api/admin/plans/p1", "DELETE"),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(400);
@@ -451,7 +451,7 @@ describe("admin plans API", () => {
 
     const res = await deletePlan(
       makeRequest("http://x/api/admin/plans/p1", "DELETE"),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -467,7 +467,7 @@ describe("admin plans API", () => {
 
     const res = await patchPlan(
       makeRequest("http://x/api/admin/plans/p1", "PATCH", {}),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(400);
@@ -484,7 +484,7 @@ describe("admin plans API", () => {
       makeRequest("http://x/api/admin/plans/p1", "PATCH", {
         allowedModules: ["tasks", "unknown_module"],
       }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(400);
@@ -502,7 +502,7 @@ describe("admin plans API", () => {
 
     const res = await patchPlan(
       makeRequest("http://x/api/admin/plans/p1", "PATCH", { isDefault: true }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(400);

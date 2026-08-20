@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 2,
+  "releaseVersion": "0.8.0",
+  "generatedFrom": [
+    "packages/react/registry.json",
+    "packages/shared/registry.json"
+  ],
+  "frameworks": [
+    "react"
+  ],
+  "items": [
+    {
+      "name": "balsa-foundation",
+      "title": "Balsa color foundation",
+      "category": "theme",
+      "classification": "balsa-addition",
+      "description": "Palette-optional adaptive color fallbacks and CSS token recipes.",
+      "status": "beta",
+      "version": "0.1.0",
+      "registry": "@balsa/shared/balsa-foundation",
+      "registryDependencies": [],
+      "npmDependencies": [
+        "tailwindcss"
+      ],
+      "tokens": [
+        "--balsa-color-background",
+        "--balsa-color-foreground",
+        "--balsa-color-surface",
+        "--balsa-color-muted",
+        "--balsa-color-primary",
+        "--balsa-color-secondary",
+        "--balsa-color-accent"
+      ],
+      "source": [
+        "src/styles/balsa-foundation.css"
+      ],
+      "framework": "shared",
+      "specification": "specs/components/balsa-foundation.json"
+    },
+    {
+      "name": "balsa-palette",
+      "title": "Balsa palette",
+      "category": "theme",
+      "classification": "balsa-addition",
+      "description": "Optional explicit palette presets for the Balsa color foundation.",
+      "status": "beta",
+      "version": "0.1.0",
+      "registry": "@balsa/shared/balsa-palette",
+      "registryDependencies": [
+        "@balsa/shared/balsa-foundation"
+      ],
+      "npmDependencies": [
+        "tailwindcss"
+      ],
+      "tokens": [
+        "--balsa-color-background",
+        "--balsa-color-foreground",
+        "--balsa-color-surface",
+        "--balsa-color-muted",
+        "--balsa-color-primary",
+        "--balsa-color-secondary",
+        "--balsa-color-accent"
+      ],
+      "source": [
+        "src/styles/balsa-palette.css"
+      ],
+      "framework": "shared",
+      "specification": "specs/components/balsa-palette.json"
+    },
+    {
+      "name": "balsa-theme",
+      "title": "Balsa design theme stylesheet",
+      "category": "theme",
+      "classification": "balsa-addition",
+      "description": "CSS-only geometry, type, depth, material, and motion recipes.",
+      "status": "beta",
+      "version": "0.1.0",
+      "registry": "@balsa/shared/balsa-theme",
+      "registryDependencies": [
+        "@balsa/shared/balsa-foundation"
+      ],
+      "npmDependencies": [
+        "tailwindcss"
+      ],
+      "tokens": [
+        "typography",
+        "spacing",
+        "radius",
+        "elevation",
+        "motion"
+      ],
+      "source": [
+        "src/styles/balsa-theme.css"
+      ],
+      "framework": "shared",
+      "specification": "specs/components/balsa-theme-shared.json"
+    },
+    {
+      "name": "balsa-shadcn-bridge",
+      "title": "Balsa shadcn token bridge",
+      "category": "theme",
+      "classification": "balsa-addition",
+      "description": "Maps Balsa semantic tokens onto the existing shadcn variables.",
+      "status": "beta",
+      "version": "0.1.0",
+      "registry": "@balsa/shared/balsa-shadcn-bridge",
+      "registryDependencies": [
+        "@balsa/shared/balsa-foundation",
+        "@balsa/shared/balsa-theme"
+      ],
+      "npmDependencies": [
+        "tailwindcss"
+      ],
+      "tokens": [
+        "--background",
+        "--foreground",
+        "--primary",
+        "--secondary",
+        "--accent",
+        "--border",
+        "--ring"
+      ],
+      "source": [
+        "src/styles/balsa-shadcn-bridge.css"
+      ],
+      "framework": "shared",
+      "specification": "specs/components/balsa-shadcn-bridge.json"
+    },
+    {
+      "name": "theme-core",
+      "title": "Balsa theme core",
+      "category": "theme",
+      "classification": "balsa-addition",
+      "description": "Framework-neutral theme types, validation, inheritance, and recipe derivation.",
+      "status": "beta",
+      "version": "0.1.0",
+      "registry": "@balsa/shared/theme-core",
+      "registryDependencies": [],
+      "npmDependencies": [],
+      "tokens": [],
+      "source": [
+        "src/components/ui/theme-core.ts",
+        "src/components/ui/theme-component-contracts.ts"
+      ],
+      "framework": "shared",
+      "specification": "specs/components/theme-core.json"
+    },
+    {
+      "name": "balsa-theme",
+      "title": "Balsa React design themes",
+      "category": "theme",
+      "classification": "balsa-addition",
+      "description": "Typed React theme definitions, context helpers, and a scoped provider.",
+      "status": "beta",
+      "version": "0.1.0",
+      "registry": "@balsa/react/balsa-theme",
+      "registryDependencies": [
+        "@balsa/shared/theme-core",
+        "@balsa/shared/balsa-theme",
+        "@balsa/shared/balsa-foundation"
+      ],
+      "npmDependencies": [
+        "react",
+        "tailwindcss",
+        "lucide-react"
+      ],
+      "tokens": [],
+      "source": [
+        "src/components/ui/theme.ts",
+        "src/components/ui/theme-context.ts",
+        "src/components/ui/BalsaThemeProvider.tsx"
+      ],
+      "framework": "react",
+      "specification": "specs/components/balsa-theme-react.json"
+    }
+  ]
+}

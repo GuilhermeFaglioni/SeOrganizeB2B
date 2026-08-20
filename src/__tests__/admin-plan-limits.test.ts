@@ -94,7 +94,7 @@ describe("admin plan limits API", () => {
 
     const res = await listLimits(
       makeRequest("http://x/api/admin/plans/p1/limits", "GET"),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(401);
@@ -107,7 +107,7 @@ describe("admin plan limits API", () => {
 
     const listRes = await listLimits(
       makeRequest("http://x/api/admin/plans/p1/limits", "GET"),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
     expect(listRes.status).toBe(403);
     expect(mocks.mockPlanLimitFindMany).not.toHaveBeenCalled();
@@ -118,14 +118,14 @@ describe("admin plan limits API", () => {
         limit: 50,
         behavior: "hard",
       }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
     expect(createRes.status).toBe(403);
     expect(mocks.mockPlanLimitCreate).not.toHaveBeenCalled();
 
     const getRes = await getLimit(
       makeRequest("http://x/api/admin/plans/p1/limits/lim1", "GET"),
-      { params: { id: "p1", limitId: "lim1" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "lim1" }) } as never
     );
     expect(getRes.status).toBe(403);
 
@@ -133,14 +133,14 @@ describe("admin plan limits API", () => {
       makeRequest("http://x/api/admin/plans/p1/limits/lim1", "PATCH", {
         limit: 100,
       }),
-      { params: { id: "p1", limitId: "lim1" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "lim1" }) } as never
     );
     expect(patchRes.status).toBe(403);
     expect(mocks.mockPlanLimitUpdate).not.toHaveBeenCalled();
 
     const deleteRes = await deleteLimit(
       makeRequest("http://x/api/admin/plans/p1/limits/lim1", "DELETE"),
-      { params: { id: "p1", limitId: "lim1" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "lim1" }) } as never
     );
     expect(deleteRes.status).toBe(403);
     expect(mocks.mockPlanLimitDelete).not.toHaveBeenCalled();
@@ -156,7 +156,7 @@ describe("admin plan limits API", () => {
 
     const res = await listLimits(
       makeRequest("http://x/api/admin/plans/p1/limits", "GET"),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -178,7 +178,7 @@ describe("admin plan limits API", () => {
 
     const res = await listLimits(
       makeRequest("http://x/api/admin/plans/nope/limits", "GET"),
-      { params: { id: "nope" } } as never
+      { params: Promise.resolve({ id: "nope" }) } as never
     );
 
     expect(res.status).toBe(404);
@@ -196,7 +196,7 @@ describe("admin plan limits API", () => {
         limit: 50,
         behavior: "hard",
       }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(201);
@@ -218,7 +218,7 @@ describe("admin plan limits API", () => {
         limit: 50,
         behavior: "hard",
       }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(400);
@@ -234,7 +234,7 @@ describe("admin plan limits API", () => {
         limit: 50,
         behavior: "strict",
       }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
 
     expect(res.status).toBe(400);
@@ -250,7 +250,7 @@ describe("admin plan limits API", () => {
         limit: -1,
         behavior: "hard",
       }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
     expect(negativeRes.status).toBe(400);
 
@@ -260,7 +260,7 @@ describe("admin plan limits API", () => {
         limit: 1.5,
         behavior: "hard",
       }),
-      { params: { id: "p1" } } as never
+      { params: Promise.resolve({ id: "p1" }) } as never
     );
     expect(floatRes.status).toBe(400);
 
@@ -277,7 +277,7 @@ describe("admin plan limits API", () => {
         limit: 50,
         behavior: "hard",
       }),
-      { params: { id: "nope" } } as never
+      { params: Promise.resolve({ id: "nope" }) } as never
     );
 
     expect(res.status).toBe(404);
@@ -290,7 +290,7 @@ describe("admin plan limits API", () => {
 
     const res = await getLimit(
       makeRequest("http://x/api/admin/plans/p1/limits/lim1", "GET"),
-      { params: { id: "p1", limitId: "lim1" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "lim1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -307,7 +307,7 @@ describe("admin plan limits API", () => {
 
     const res = await getLimit(
       makeRequest("http://x/api/admin/plans/p1/limits/other", "GET"),
-      { params: { id: "p1", limitId: "other" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "other" }) } as never
     );
 
     expect(res.status).toBe(404);
@@ -327,7 +327,7 @@ describe("admin plan limits API", () => {
         limit: 100,
         behavior: "warning",
       }),
-      { params: { id: "p1", limitId: "lim1" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "lim1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -349,7 +349,7 @@ describe("admin plan limits API", () => {
       makeRequest("http://x/api/admin/plans/p1/limits/lim1", "PATCH", {
         resource: "invoices",
       }),
-      { params: { id: "p1", limitId: "lim1" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "lim1" }) } as never
     );
 
     expect(res.status).toBe(400);
@@ -364,7 +364,7 @@ describe("admin plan limits API", () => {
       makeRequest("http://x/api/admin/plans/p1/limits/other", "PATCH", {
         limit: 100,
       }),
-      { params: { id: "p1", limitId: "other" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "other" }) } as never
     );
 
     expect(res.status).toBe(404);
@@ -378,7 +378,7 @@ describe("admin plan limits API", () => {
 
     const res = await deleteLimit(
       makeRequest("http://x/api/admin/plans/p1/limits/lim1", "DELETE"),
-      { params: { id: "p1", limitId: "lim1" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "lim1" }) } as never
     );
 
     expect(res.status).toBe(200);
@@ -395,7 +395,7 @@ describe("admin plan limits API", () => {
 
     const res = await deleteLimit(
       makeRequest("http://x/api/admin/plans/p1/limits/other", "DELETE"),
-      { params: { id: "p1", limitId: "other" } } as never
+      { params: Promise.resolve({ id: "p1", limitId: "other" }) } as never
     );
 
     expect(res.status).toBe(404);

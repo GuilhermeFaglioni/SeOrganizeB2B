@@ -6,13 +6,16 @@ const read = (path: string) =>
   readFileSync(resolve(__dirname, "../..", path), "utf8");
 
 describe("Executive Quartz contracts", () => {
-  it("uses the approved brand and local Geist fonts", () => {
+  it("uses the approved brand and named Balsa typography", () => {
     expect(read("src/lib/constants.ts")).toContain(
       'APP_NAME = "SeOrganize+"',
     );
     const layout = read("src/app/layout.tsx");
-    expect(layout).toContain("next/font/local");
-    expect(layout).toContain("GeistVF.woff");
+    expect(layout).toContain("createThemeScope");
+    expect(layout).toContain('data-theme="se-organize-mais-design-system"');
+    expect(layout).toContain('data-palette="se-organize-mais-design-system"');
+    expect(layout).not.toContain("next/font/local");
+    expect(layout).not.toContain("GeistVF.woff");
     expect(layout).toContain('default: "SeOrganize+"');
   });
 

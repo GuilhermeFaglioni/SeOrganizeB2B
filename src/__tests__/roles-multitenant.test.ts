@@ -157,7 +157,7 @@ describe("roles API multi-tenant", () => {
 
     const res = await updateRolePATCH(
       makeRequest("http://x/api/roles/admin", { name: "Super Admin" }, "PATCH"),
-      { params: { id: "admin" } }
+      { params: Promise.resolve({ id: "admin" }) }
     );
 
     expect(res.status).toBe(400);
@@ -174,7 +174,7 @@ describe("roles API multi-tenant", () => {
 
     const res = await deleteRoleDELETE(
       makeRequest("http://x/api/roles/admin", undefined, "DELETE"),
-      { params: { id: "admin" } }
+      { params: Promise.resolve({ id: "admin" }) }
     );
 
     expect(res.status).toBe(400);
@@ -192,7 +192,7 @@ describe("roles API multi-tenant", () => {
 
     const res = await updateRolePATCH(
       makeRequest("http://x/api/roles/r1", { name: "Editor Plus" }, "PATCH"),
-      { params: { id: "r1" } }
+      { params: Promise.resolve({ id: "r1" }) }
     );
 
     expect(res.status).toBe(200);

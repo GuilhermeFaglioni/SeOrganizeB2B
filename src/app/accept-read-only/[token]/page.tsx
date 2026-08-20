@@ -27,11 +27,12 @@ function Message({
 export default async function AcceptReadOnlyAccessPage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
+  const { token } = await params;
   let result;
   try {
-    result = await acceptReadOnlyAccess(params.token);
+    result = await acceptReadOnlyAccess(token);
   } catch (error) {
     if (error instanceof ReadOnlyAccessUsedError) {
       return (

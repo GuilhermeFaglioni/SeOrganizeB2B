@@ -178,7 +178,7 @@ describe("proposals API", () => {
     mocks.mockSendProposal.mockResolvedValue({ ...mockProposal, status: "sent" });
     const res = await sendProposalPOST(
       makeRequest("http://x/api/proposals/prp-1/send"),
-      { params: { id: "prp-1" } }
+      { params: Promise.resolve({ id: "prp-1" }) }
     );
     expect(res.status).toBe(200);
     expect(mocks.mockSendProposal).toHaveBeenCalledWith("prp-1");
@@ -187,7 +187,7 @@ describe("proposals API", () => {
   it("returns 400 for public accept without a name", async () => {
     const res = await publicAcceptPOST(
       makeRequest("http://x/api/p/tok-1", {}),
-      { params: { token: "tok-1" } }
+      { params: Promise.resolve({ token: "tok-1" }) }
     );
     expect(res.status).toBe(400);
   });
@@ -196,7 +196,7 @@ describe("proposals API", () => {
     mocks.mockAcceptProposal.mockResolvedValue({ ...mockProposal, status: "accepted" });
     const res = await publicAcceptPOST(
       makeRequest("http://x/api/p/tok-1", { name: "Cliente" }),
-      { params: { token: "tok-1" } }
+      { params: Promise.resolve({ token: "tok-1" }) }
     );
     expect(res.status).toBe(200);
     expect(mocks.mockAcceptProposal).toHaveBeenCalledWith("tok-1", "Cliente");
@@ -208,7 +208,7 @@ describe("proposals API", () => {
     );
     const res = await publicAcceptPOST(
       makeRequest("http://x/api/p/tok-1", { name: "Cliente" }),
-      { params: { token: "tok-1" } }
+      { params: Promise.resolve({ token: "tok-1" }) }
     );
     expect(res.status).toBe(400);
   });
@@ -219,7 +219,7 @@ describe("proposals API", () => {
     );
     const res = await publicAcceptPOST(
       makeRequest("http://x/api/p/tok-1", { name: "Cliente" }),
-      { params: { token: "tok-1" } }
+      { params: Promise.resolve({ token: "tok-1" }) }
     );
     expect(res.status).toBe(409);
   });

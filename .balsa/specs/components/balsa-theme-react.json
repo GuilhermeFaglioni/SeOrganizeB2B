@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "balsa-theme",
+  "title": "Balsa React design themes",
+  "category": "theme",
+  "classification": "balsa-addition",
+  "status": "beta",
+  "version": "0.1.0",
+  "purpose": "Provide typed React theme definitions, context helpers, and a scoped provider.",
+  "publicApi": {
+    "source": [
+      "src/components/ui/theme.ts",
+      "src/components/ui/theme-context.ts",
+      "src/components/ui/BalsaThemeProvider.tsx"
+    ]
+  }
+}

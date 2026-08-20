@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "name": "balsa-theme",
+  "title": "Balsa design theme stylesheet",
+  "category": "theme",
+  "classification": "balsa-addition",
+  "status": "beta",
+  "version": "0.1.0",
+  "purpose": "Provide the exact Balsa geometry, typography, material, elevation, and motion recipes.",
+  "tokens": [
+    "typography",
+    "spacing",
+    "radius",
+    "elevation",
+    "motion"
+  ],
+  "publicApi": {
+    "source": "src/styles/balsa-theme.css"
+  }
+}
