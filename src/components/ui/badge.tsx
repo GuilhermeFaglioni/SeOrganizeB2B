@@ -1,32 +1,128 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+"use client";
 
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default: "border-transparent bg-accent text-white",
-        secondary: "border-transparent bg-page text-text-secondary",
-        destructive: "border-transparent bg-danger text-white",
-        outline: "text-text-secondary",
-        success: "border-transparent bg-success-bg text-success",
-        warning: "border-transparent bg-warning-bg text-warning",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
+import {
+  type CSSProperties,
+  type HTMLAttributes,
+  type ReactNode,
+} from "react";
+import { semanticColorClasses, type Rounded, type SemanticColor } from "./types";
+import { type ThemeInput } from "./theme";
+import {
+  BalsaThemeContext,
+  useResolvedThemeProps,
+} from "./theme-context";
+import { mergeClasses } from "./classes";
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+export type BadgeVariant =
+  | "solid"
+  | "soft"
+  | "outline"
+  | "glass"
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "success"
+  | "warning";
+type BadgeSize = "sm" | "md" | "lg";
 
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />
+export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
+  variant?: BadgeVariant;
+  color?: SemanticColor;
+  size?: BadgeSize;
+  rounded?: Rounded;
+  theme?: ThemeInput;
+  children?: ReactNode;
 }
 
-export { Badge, badgeVariants }
+type BalsaBadgeVariant = "solid" | "soft" | "outline" | "glass";
+
+function normalizeVariant(variant: BadgeVariant | undefined): BalsaBadgeVariant {
+  if (!variant || variant === "default") return "solid";
+  if (variant === "secondary" || variant === "success" || variant === "warning") return "soft";
+  if (variant === "destructive") return "solid";
+  return variant;
+}
+
+function normalizeColor(
+  variant: BadgeVariant | undefined,
+  color: SemanticColor | undefined,
+): SemanticColor {
+  if (color) return color;
+  if (variant === "destructive") return "destructive";
+  if (variant === "success") return "success";
+  if (variant === "warning") return "warning";
+  if (variant === "secondary" || variant === "outline") return "secondary";
+  return "accent";
+}
+
+const sizeClasses: Readonly<Record<BadgeSize, string>> = {
+  sm: "px-balsa-xs py-balsa-4xs text-xs",
+  md: "px-balsa-sm py-balsa-4xs text-xs",
+  lg: "px-balsa-md py-balsa-3xs text-sm",
+};
+const roundedClasses: Readonly<Record<Rounded, string>> = {
+  none: "rounded-none", sm: "rounded-sm", md: "rounded-md", lg: "rounded-lg",
+  xl: "rounded-xl", "2xl": "rounded-2xl", "3xl": "rounded-3xl", full: "rounded-full",
+};
+
+export function Badge(rawProps: BadgeProps) {
+  const normalizedProps = {
+    ...rawProps,
+    variant: normalizeVariant(rawProps.variant),
+    color: normalizeColor(rawProps.variant, rawProps.color),
+  } as BadgeProps;
+  const { props, theme } = useResolvedThemeProps("badge", "controls", normalizedProps, {
+    variant: "solid",
+    size: "md",
+    rounded: "full",
+  } as const);
+  const {
+  variant: rawVariant,
+  color = "accent",
+  size,
+  rounded,
+  // Omit from the DOM rest; resolved values live on `theme` from the helper.
+  theme: _themeInput,
+  className,
+  style,
+  children,
+  ...domProps
+  } = props;
+  void _themeInput;
+
+  const variant = normalizeVariant(rawVariant);
+
+  const classes = mergeClasses(
+    "inline-flex",
+    roundedClasses[rounded],
+    sizeClasses[size],
+    semanticColorClasses[color][variant],
+    variant === "outline" ? ["border", "bg-transparent"] : [],
+    variant === "glass" ? "border" : [],
+    className,
+  );
+
+  return (
+    <BalsaThemeContext.Provider value={theme}>
+      <span
+        {...domProps}
+        data-balsa="badge"
+        data-theme={theme.explicitPresentation?.id}
+        data-theme-base={theme.explicitPresentation?.base}
+        data-variant={variant}
+        data-color={color}
+        data-size={size}
+        data-rounded={rounded}
+        style={
+          {
+            ...theme.explicitPresentation?.style,
+            ...style,
+          } as CSSProperties
+        }
+        className={classes}
+      >
+        {children}
+      </span>
+    </BalsaThemeContext.Provider>
+  );
+}
