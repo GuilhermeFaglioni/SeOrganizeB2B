@@ -1,3 +1,6 @@
+"use client";
+
+import { createPortal } from "react-dom";
 import {
   CircleAlert,
   CircleCheckBig,
@@ -6,12 +9,24 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import type {
-  CSSProperties,
-  FocusEvent,
-  HTMLAttributes,
-  MouseEvent,
-  ReactNode,
+import {
+  Children,
+  cloneElement,
+  createContext,
+  forwardRef,
+  isValidElement,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ButtonHTMLAttributes,
+  type CSSProperties,
+  type FocusEvent,
+  type HTMLAttributes,
+  type MouseEvent,
+  type ReactElement,
+  type ReactNode,
 } from "react";
 import { Button } from "./button";
 import { mergeClasses } from "./classes";
@@ -30,13 +45,17 @@ export interface ToastProps extends Omit<
   HTMLAttributes<HTMLElement>,
   "title" | "children" | "color" | "onPause"
 > {
-  id: string;
-  title: string;
+  id?: string;
+  open?: boolean;
+  defaultOpen?: boolean;
+  forceMount?: boolean;
+  duration?: number;
+  title?: ReactNode;
   "data-balsa"?: string;
   "data-palette"?: string;
-  description?: string;
+  description?: ReactNode;
   color?: SemanticColor;
-  variant?: ToastVariant;
+  variant?: ToastVariant | "default" | "destructive" | "success";
   size?: ToastSize;
   rounded?: Rounded;
   shadow?: Shadow;
@@ -47,6 +66,7 @@ export interface ToastProps extends Omit<
   theme?: ThemeInput;
   onAction?: () => void;
   onDismiss?: () => void;
+  onOpenChange?: (open: boolean) => void;
   onPause?: () => void;
   onResume?: () => void;
   action?: ReactNode | ((dismiss: () => void) => ReactNode);
@@ -147,8 +167,161 @@ const titleSizeClasses: Readonly<Record<ToastSize, string>> = {
   lg: "text-lg",
 };
 
-export function Toast(rawProps: ToastProps) {
-  const { props, theme } = useResolvedThemeProps("toast", "overlays", rawProps, {
+export interface ToastProviderProps {
+  children?: ReactNode;
+  duration?: number;
+  label?: string;
+  swipeDirection?: string;
+}
+
+interface ToastProviderContextValue {
+  duration?: number;
+  label?: string;
+  viewportHost?: HTMLElement | null;
+  setViewportHost?: (host: HTMLElement | null) => void;
+}
+
+const ToastProviderContext = createContext<ToastProviderContextValue>({});
+
+export function useToastProviderSettings(): ToastProviderContextValue {
+  return useContext(ToastProviderContext);
+}
+
+export function ToastProvider({ children, duration, label }: ToastProviderProps) {
+  const [viewportHost, setViewportHost] = useState<HTMLElement | null>(null);
+  return (
+    <ToastProviderContext.Provider value={{ duration, label, viewportHost, setViewportHost }}>
+      {children}
+    </ToastProviderContext.Provider>
+  );
+}
+
+export const ToastTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(function ToastTitle(
+  { className, ...props },
+  ref,
+) {
+  return <h3 {...props} ref={ref} className={mergeClasses("font-semibold", className)} />;
+});
+
+export const ToastDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLParagraphElement>>(function ToastDescription(
+  { className, ...props },
+  ref,
+) {
+  return <p {...props} ref={ref} className={mergeClasses("text-sm opacity-90", className)} />;
+});
+
+export interface ToastActionProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+  altText?: string;
+  children?: ReactNode;
+}
+
+export const ToastAction = forwardRef<HTMLButtonElement, ToastActionProps>(function ToastAction(
+  { altText, children, className, color: _color, ...props },
+  ref,
+) {
+  void _color;
+  return (
+    <Button
+      {...props}
+      ref={ref}
+      size="sm"
+      variant="outline"
+      aria-label={props["aria-label"] ?? altText}
+      className={mergeClasses("shrink-0", className)}
+    >
+      {children}
+    </Button>
+  );
+});
+
+export const ToastClose = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement>>(function ToastClose(
+  { children, className, color: _color, ...props },
+  ref,
+) {
+  void _color;
+  return (
+    <Button
+      {...props}
+      ref={ref}
+      size={null}
+      shape="fab"
+      variant="outline"
+      prefixIcon={X}
+      aria-label={props["aria-label"] ?? "Close"}
+      className={mergeClasses("size-8 min-h-0 min-w-0 border-0 p-0", className)}
+    >
+      {children}
+    </Button>
+  );
+});
+
+export type ToastActionElement = ReactElement<typeof ToastAction>;
+
+export { ToastViewport } from "./ToastViewport";
+export type { ToastViewportProps } from "./ToastViewport";
+
+function findToastPart<T>(children: ReactNode, type: (props: T) => ReactNode): ReactElement<T> | undefined {
+  for (const child of Children.toArray(children)) {
+    if (!isValidElement(child)) continue;
+    if (child.type === type) return child as ReactElement<T>;
+    const nested = findToastPart(
+      (child as ReactElement<{ children?: ReactNode }>).props.children,
+      type,
+    );
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
+function isToastPart(type: unknown): boolean {
+  return type === ToastTitle
+    || type === ToastDescription
+    || type === ToastAction
+    || type === ToastClose;
+}
+
+function removeToastParts(children: ReactNode): ReactNode {
+  return Children.map(children, (child) => {
+    if (!isValidElement(child)) return child;
+    if (isToastPart(child.type)) return null;
+    const element = child as ReactElement<{ children?: ReactNode }>;
+    if (!("children" in element.props)) return child;
+    return cloneElement(element, {
+      children: removeToastParts(element.props.children),
+    });
+  });
+}
+
+function normalizeToastVariant(variant: ToastProps["variant"]): ToastVariant {
+  return variant === "default" || variant === "destructive" || variant === "success"
+    ? "surface"
+    : variant ?? "surface";
+}
+
+function normalizeToastColor(
+  color: SemanticColor | undefined,
+  variant: ToastProps["variant"],
+): SemanticColor {
+  if (variant === "destructive") return "destructive";
+  if (variant === "success") return "success";
+  return color ?? "primary";
+}
+
+export const Toast = forwardRef<HTMLElement, ToastProps>(function Toast(rawProps, ref) {
+  const generatedId = useId();
+  const providerSettings = useToastProviderSettings();
+  const normalizedProps = {
+    ...rawProps,
+    ...(rawProps.variant === undefined
+      ? {}
+      : { variant: normalizeToastVariant(rawProps.variant) }),
+    ...(rawProps.color !== undefined
+      || rawProps.variant === "destructive"
+      || rawProps.variant === "success"
+      ? { color: normalizeToastColor(rawProps.color, rawProps.variant) }
+      : {}),
+  };
+  const { props, theme } = useResolvedThemeProps("toast", "overlays", normalizedProps, {
     variant: "surface",
     size: "md",
     rounded: "lg",
@@ -156,12 +329,16 @@ export function Toast(rawProps: ToastProps) {
   } as const);
   const {
     id,
+    open,
+    defaultOpen = true,
+    forceMount = false,
+    duration,
     title,
     "data-balsa": _dataBalsa,
     "data-palette": dataPalette,
     description,
     color = "primary",
-    variant,
+    variant: rawVariant,
     size,
     rounded,
     shadow,
@@ -172,6 +349,7 @@ export function Toast(rawProps: ToastProps) {
     theme: _themeInput,
     onAction,
     onDismiss,
+    onOpenChange,
     onPause,
     onResume,
     action,
@@ -187,11 +365,96 @@ export function Toast(rawProps: ToastProps) {
   void _dataBalsa;
   void _themeInput;
 
+  const variant = normalizeToastVariant(rawVariant);
+
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
+  const [pauseReasons, setPauseReasons] = useState({ focus: false, hover: false });
+  const paused = pauseReasons.focus || pauseReasons.hover;
+  const isOpen = open ?? uncontrolledOpen;
+  const toastDuration = duration ?? providerSettings.duration ?? 5000;
+  const timerRef = useRef<{
+    duration: number;
+    remaining: number;
+    startedAt: number;
+    handle?: ReturnType<typeof setTimeout>;
+  } | null>(null);
+  const openRef = useRef(open);
+  const callbacksRef = useRef({ onDismiss, onOpenChange });
+  openRef.current = open;
+  callbacksRef.current = { onDismiss, onOpenChange };
+
+  useEffect(() => {
+    if (!isOpen || !Number.isFinite(toastDuration) || toastDuration <= 0) {
+      if (timerRef.current?.handle !== undefined) clearTimeout(timerRef.current.handle);
+      timerRef.current = null;
+      return;
+    }
+    if (!timerRef.current || timerRef.current.duration !== toastDuration) {
+      timerRef.current = {
+        duration: toastDuration,
+        remaining: toastDuration,
+        startedAt: 0,
+      };
+    }
+    const timer = timerRef.current;
+    if (paused) return;
+    timer.startedAt = Date.now();
+    timer.handle = setTimeout(() => {
+      timerRef.current = null;
+      if (openRef.current === undefined) setUncontrolledOpen(false);
+      callbacksRef.current.onOpenChange?.(false);
+      callbacksRef.current.onDismiss?.();
+    }, timer.remaining);
+    return () => {
+      if (timer.handle === undefined) return;
+      timer.remaining = Math.max(0, timer.remaining - (Date.now() - timer.startedAt));
+      clearTimeout(timer.handle);
+      timer.handle = undefined;
+    };
+  }, [isOpen, paused, toastDuration]);
+
+  function dismissToast(): void {
+    if (open === undefined) setUncontrolledOpen(false);
+    onOpenChange?.(false);
+    onDismiss?.();
+  }
+
+  if (!isOpen && !forceMount) return null;
+
+  const titleElement = findToastPart<HTMLAttributes<HTMLHeadingElement>>(children, ToastTitle);
+  const descriptionElement = findToastPart<HTMLAttributes<HTMLParagraphElement>>(children, ToastDescription);
+  const legacyActionElement = findToastPart<ToastActionProps>(children, ToastAction);
+  const closeElement = findToastPart<ButtonHTMLAttributes<HTMLButtonElement>>(children, ToastClose);
+  const resolvedId = id ?? generatedId;
+  const resolvedTitle = title ?? titleElement?.props.children ?? "Notification";
+  const resolvedDescription = description ?? descriptionElement?.props.children;
+  const hasDescription = resolvedDescription !== undefined && resolvedDescription !== null;
+  const titleProps = titleElement?.props;
+  const descriptionProps = descriptionElement?.props;
+  const bodyChildren = removeToastParts(children);
   const currentIcon = icon ?? defaultIcons[color];
   const isTintedVariant = variant === "soft" || variant === "glass";
-  const titleId = `${id}-title`;
-  const descriptionId = description ? `${id}-description` : undefined;
-  const actionContent = typeof action === "function" ? action(() => onDismiss?.()) : action;
+  const titleId = `${resolvedId}-title`;
+  const descriptionId = hasDescription ? `${resolvedId}-description` : undefined;
+  const legacyAction = legacyActionElement
+    ? cloneElement(legacyActionElement, {
+        onClick: (event: MouseEvent<HTMLButtonElement>) => {
+          legacyActionElement.props.onClick?.(event);
+          if (event.defaultPrevented) return;
+          onAction?.();
+          dismissToast();
+        },
+      })
+    : undefined;
+  const actionContent = typeof action === "function"
+    ? action(dismissToast)
+    : action ?? legacyAction;
+  const closeClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    closeElement?.props.onClick?.(event);
+    if (!event.defaultPrevented) dismissToast();
+  };
+  const resolvedCloseLabel = closeElement?.props["aria-label"] ?? closeLabel;
+  const closeChildren = closeElement?.props.children;
 
   const classes = mergeClasses(
     "pointer-events-auto relative w-full min-w-0 border font-balsa-body shadow-balsa-surface outline-none",
@@ -202,22 +465,27 @@ export function Toast(rawProps: ToastProps) {
   );
 
   function pause(event: MouseEvent<HTMLElement> | FocusEvent<HTMLElement>): void {
+    const reason = event.type === "mouseenter" ? "hover" : "focus";
+    setPauseReasons((current) => ({ ...current, [reason]: true }));
     if (event.type === "mouseenter") onMouseEnter?.(event as MouseEvent<HTMLElement>);
     else onFocus?.(event as FocusEvent<HTMLElement>);
     onPause?.();
   }
 
   function resume(event: MouseEvent<HTMLElement> | FocusEvent<HTMLElement>): void {
+    const reason = event.type === "mouseleave" ? "hover" : "focus";
+    setPauseReasons((current) => ({ ...current, [reason]: false }));
     if (event.type === "mouseleave") onMouseLeave?.(event as MouseEvent<HTMLElement>);
     else onBlur?.(event as FocusEvent<HTMLElement>);
     onResume?.();
   }
 
-  return (
+  const toastMarkup = (
     <BalsaThemeContext.Provider value={theme}>
       <article
         {...domProps}
-        id={id}
+        ref={ref}
+        id={resolvedId}
         data-balsa="toast"
         data-theme={theme.explicitPresentation?.id}
         data-theme-base={theme.explicitPresentation?.base}
@@ -227,6 +495,7 @@ export function Toast(rawProps: ToastProps) {
         data-size={size}
         data-rounded={rounded}
         data-shadow={shadow}
+        data-state={isOpen ? "open" : "closed"}
         role={color === "destructive" ? "alert" : "status"}
         aria-live={color === "destructive" ? "assertive" : "polite"}
         aria-atomic="true"
@@ -255,43 +524,54 @@ export function Toast(rawProps: ToastProps) {
           />
           <div className={mergeClasses("min-w-0 flex-1", dismissible ? "pr-9" : "")}>
             <h3
+              {...titleProps}
               id={titleId}
-              className={mergeClasses("m-0 font-semibold leading-tight", titleSizeClasses[size])}
+              className={mergeClasses(
+                "m-0 font-semibold leading-tight",
+                titleSizeClasses[size],
+                titleProps?.className,
+              )}
             >
-              {title}
+              {resolvedTitle}
             </h3>
-            {description ? (
+            {hasDescription ? (
               <p
+                {...descriptionProps}
                 id={descriptionId}
                 className={mergeClasses(
                   "mt-balsa-3xs leading-relaxed",
                   isTintedVariant ? "text-current" : "text-balsa-muted-foreground",
+                  descriptionProps?.className,
                 )}
               >
-                {description}
+                {resolvedDescription}
               </p>
             ) : null}
-            {children}
+            {bodyChildren}
           </div>
         </div>
 
         {dismissible ? (
           <Button
+            {...closeElement?.props}
             data-balsa-toast-close=""
             size={null}
             shape="fab"
             variant="outline"
             color="secondary"
             prefixIcon={X}
-            aria-label={closeLabel}
+            aria-label={resolvedCloseLabel}
             className={mergeClasses(
               "absolute right-2 top-2 size-8 min-h-0 min-w-0 border-0 bg-transparent p-0 text-lg shadow-none",
               isTintedVariant
                 ? "text-current hover:bg-current/15 active:bg-current/25"
                 : "text-balsa-muted-foreground hover:bg-balsa-muted hover:text-balsa-foreground active:bg-balsa-muted",
+              closeElement?.props.className,
             )}
-            onClick={onDismiss}
-          />
+            onClick={closeClick}
+          >
+            {closeChildren}
+          </Button>
         ) : null}
 
         {actionLabel || actionContent ? (
@@ -304,7 +584,9 @@ export function Toast(rawProps: ToastProps) {
                 variant="outline"
                 color={actionColorMap[color]}
                 size="sm"
-                onClick={onAction}
+                onClick={() => {
+                  onAction?.();
+                }}
               >
                 {actionLabel}
               </Button>
@@ -314,4 +596,8 @@ export function Toast(rawProps: ToastProps) {
       </article>
     </BalsaThemeContext.Provider>
   );
-}
+
+  return providerSettings.viewportHost
+    ? createPortal(toastMarkup, providerSettings.viewportHost)
+    : toastMarkup;
+});

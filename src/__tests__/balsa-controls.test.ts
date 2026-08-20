@@ -1,4 +1,6 @@
 import { createElement } from "react";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,9 +27,22 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Toast,
+  ToastAction,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@/components/ui/toast";
+
+const read = (path: string) => readFileSync(resolve(__dirname, "../..", path), "utf8");
 
 describe("Balsa control compatibility seams", () => {
   it("keeps legacy Button variants, loading and link composition accessible", () => {
@@ -119,7 +134,7 @@ describe("Balsa control compatibility seams", () => {
         createElement(
           SelectTrigger,
           { "aria-label": "Status" },
-          createElement(SelectValue, { placeholder: "Choose status" }),
+          createElement(SelectValue, { placeholder: "Choose status" }, "Should not render"),
         ),
         createElement(
           SelectContent,
@@ -203,5 +218,131 @@ describe("Balsa control compatibility seams", () => {
     expect(markup).toContain('aria-haspopup="dialog"');
     expect(markup).toContain('data-testid="settings-dialog"');
     expect(markup).not.toContain("<button><button");
+  });
+
+  it("preserves the legacy Toast exports and compound content on Balsa", () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        ToastProvider,
+        null,
+        createElement(
+          Toast,
+          { variant: "destructive", id: "legacy-toast" },
+          createElement(ToastTitle, null, "Saved"),
+          createElement(ToastDescription, null, "The changes are ready."),
+          createElement(ToastAction, { altText: "Undo" }, "Undo"),
+          createElement(ToastClose, { "aria-label": "Dismiss" }),
+        ),
+        createElement(ToastViewport, null),
+      ),
+    );
+
+    expect(markup).toContain('data-balsa="toast"');
+    expect(markup).toContain("Saved");
+    expect(markup).toContain("The changes are ready.");
+    expect(markup).toContain("Undo");
+    expect(ToastViewport).toBeDefined();
+
+    const richMarkup = renderToStaticMarkup(
+      createElement(
+        Toast,
+        { title: createElement("strong", null, "Rich title") },
+        createElement(ToastDescription, null, createElement("em", null, "Rich description")),
+      ),
+    );
+    expect(richMarkup).toContain("<strong>Rich title</strong>");
+    expect(richMarkup).toContain("<em>Rich description</em>");
+
+    expect(renderToStaticMarkup(createElement(Toast, { open: false, title: "Hidden" }))).toBe("");
+    expect(renderToStaticMarkup(
+      createElement(Toast, { open: false, forceMount: true, title: "Closed" }),
+    )).toContain('data-state="closed"');
+  });
+
+  it("preserves SelectValue content and placeholder semantics", () => {
+    const selected = renderToStaticMarkup(
+      createElement(
+        Select,
+        { value: "active" },
+        createElement(
+          SelectTrigger,
+          { "aria-label": "Status" },
+          createElement(SelectValue, null, "Current status"),
+        ),
+        createElement(
+          SelectContent,
+          null,
+          createElement(SelectItem, { value: "active" }, "Active"),
+        ),
+      ),
+    );
+    const empty = renderToStaticMarkup(
+      createElement(
+        Select,
+        null,
+        createElement(
+          SelectTrigger,
+          { "aria-label": "Status" },
+          createElement(SelectValue, { placeholder: "Choose status" }),
+        ),
+        createElement(SelectContent, null, createElement(SelectItem, { value: "active" }, "Active")),
+      ),
+    );
+    const customTrigger = renderToStaticMarkup(
+      createElement(
+        Select,
+        null,
+        createElement(
+          SelectTrigger,
+          { asChild: true },
+          createElement(
+            "button",
+            { type: "button", "aria-label": "Status" },
+            createElement(SelectValue, { placeholder: "Choose custom status" }),
+          ),
+        ),
+        createElement(SelectContent, null, createElement(SelectItem, { value: "active" }, "Active")),
+      ),
+    );
+
+    expect(selected).toContain("Current status");
+    expect(empty).toContain("Choose status");
+    expect(empty).not.toContain("Should not render");
+    expect(customTrigger).toContain("Choose custom status");
+  });
+
+  it("preserves legacy Select labels and separators", () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        Select,
+        null,
+        createElement(SelectTrigger, { "aria-label": "Status" }, createElement(SelectValue)),
+        createElement(
+          SelectContent,
+          null,
+          createElement(SelectLabel, { className: "group-label" }, "Status options"),
+          createElement(SelectItem, { value: "active" }, "Active"),
+          createElement(SelectSeparator, { id: "status-divider" }),
+          createElement(SelectItem, { value: "archived" }, "Archived"),
+        ),
+      ),
+    );
+
+    expect(markup).toContain("Status options");
+    expect(markup).toContain("group-label");
+    expect(markup).toContain('role="separator"');
+    expect(markup).toContain('id="status-divider"');
+  });
+
+  it("keeps Select handlers and the non-Popover list in its anchor", () => {
+    const selectSource = read("src/components/ui/select.tsx");
+    const dropdownSource = read("src/components/ui/DropdownMenu.tsx");
+
+    expect(selectSource).toContain("onClick?.(event");
+    expect(selectSource).toContain("onKeyDown?.(event");
+    expect(selectSource).toContain("const portalHost = floating ?");
+    expect(selectSource).toContain("{portalHost ? createPortal(list, portalHost) : list}");
+    expect(dropdownSource).toContain("triggerOnClick?.");
+    expect(dropdownSource).toContain("triggerOnKeyDown?.");
   });
 });

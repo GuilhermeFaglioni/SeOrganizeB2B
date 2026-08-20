@@ -1,6 +1,15 @@
 "use client";
 
-import { Children, isValidElement, useId, type HTMLAttributes, type ReactElement, type ReactNode } from "react";
+import {
+  Children,
+  isValidElement,
+  useId,
+  type ButtonHTMLAttributes,
+  type HTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
+} from "react";
 import { DropdownMenu as BalsaDropdownMenu } from "./DropdownMenu";
 import type { MenuItem, MenuSelection } from "./menu";
 
@@ -11,8 +20,9 @@ export interface DropdownMenuProps {
   children?: ReactNode;
 }
 
-export interface DropdownMenuTriggerProps {
+export interface DropdownMenuTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
+  ref?: Ref<HTMLElement>;
   children?: ReactNode;
 }
 
@@ -285,6 +295,12 @@ export function DropdownMenu({ open, defaultOpen, onOpenChange, children }: Drop
 
   const triggerChild = trigger?.props.children ?? <span>Open menu</span>;
   const triggerElement = isValidElement(triggerChild) ? triggerChild : <span>{triggerChild}</span>;
+  const {
+    children: _triggerChildren,
+    asChild: triggerAsChild,
+    ...triggerProps
+  } = trigger?.props ?? {};
+  void _triggerChildren;
   let counter = 0;
   const collected = collectItems(content.props.children, () => `${generatedId}-${++counter}`);
   const callbacks = new Map<string, {
@@ -299,7 +315,7 @@ export function DropdownMenu({ open, defaultOpen, onOpenChange, children }: Drop
     }
   }
   registerCallbacks(collected);
-  const triggerProps = isValidElement(triggerElement)
+  const triggerLabelProps = isValidElement(triggerElement)
     ? triggerElement.props as { "aria-label"?: string; title?: string }
     : {};
   const {
@@ -315,13 +331,14 @@ export function DropdownMenu({ open, defaultOpen, onOpenChange, children }: Drop
   return (
     <BalsaDropdownMenu
        id={contentId ?? generatedId}
-       label={triggerProps["aria-label"] ?? triggerProps.title ?? (textFromNode(triggerChild) || "Menu")}
+       label={triggerLabelProps["aria-label"] ?? triggerLabelProps.title ?? (textFromNode(triggerChild) || "Menu")}
       items={collected.map(({ item }) => item)}
       open={open}
       defaultOpen={defaultOpen}
        onOpenChange={onOpenChange}
        trigger={triggerElement}
-       triggerAsChild={trigger?.props.asChild}
+       triggerAsChild={triggerAsChild}
+       triggerProps={trigger ? triggerProps : undefined}
        panelProps={{ ...panelProps, className: panelClassName, style: panelStyle }}
        sideOffset={sideOffset}
        onSelect={(selection: MenuSelection) => {

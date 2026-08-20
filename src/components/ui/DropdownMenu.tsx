@@ -7,11 +7,13 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ButtonHTMLAttributes,
   type HTMLAttributes,
   type KeyboardEvent,
   type MouseEvent,
   type ReactElement,
   type ReactNode,
+  type Ref,
 } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -60,9 +62,19 @@ export interface DropdownMenuProps extends Omit<
   onSelect?: (selection: MenuSelection) => void;
   trigger?: ReactNode;
   triggerAsChild?: boolean;
+  triggerProps?: Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
+    ref?: Ref<HTMLElement>;
+  };
   panelProps?: Omit<HTMLAttributes<HTMLDivElement>, "children">;
   "data-balsa"?: string;
   "data-palette"?: string;
+}
+
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null): void | (() => void) {
+  if (!ref) return undefined;
+  if (typeof ref === "function") return ref(value);
+  ref.current = value;
+  return undefined;
 }
 
 export function DropdownMenu(rawProps: DropdownMenuProps) {
@@ -91,6 +103,7 @@ export function DropdownMenu(rawProps: DropdownMenuProps) {
     onSelect,
     trigger,
     triggerAsChild = false,
+    triggerProps,
     panelProps,
     "data-balsa": _dataBalsa,
     "data-palette": dataPalette,
@@ -184,7 +197,9 @@ export function DropdownMenu(rawProps: DropdownMenuProps) {
     close();
   }
 
-  function handleTriggerKeydown(event: KeyboardEvent<HTMLButtonElement>): void {
+  function handleTriggerKeydown(event: KeyboardEvent<HTMLButtonElement>, enabled = true): void {
+    onKeyDown?.(event as KeyboardEvent<HTMLElement>);
+    if (event.defaultPrevented || !enabled) return;
     if (["ArrowDown", "Enter", " "].includes(event.key)) {
       event.preventDefault();
       setOpen(true);
@@ -196,7 +211,6 @@ export function DropdownMenu(rawProps: DropdownMenuProps) {
         buttons?.item(buttons.length - 1)?.focus();
       });
     }
-    onKeyDown?.(event as KeyboardEvent<HTMLElement>);
   }
 
   useLayoutEffect(() => {
@@ -241,8 +255,22 @@ export function DropdownMenu(rawProps: DropdownMenuProps) {
   const triggerClasses = mergeClasses(
     "border-balsa-border-strong bg-balsa-surface px-balsa-md py-balsa-2xs text-balsa-surface-foreground hover:bg-balsa-muted",
     rawProps.rounded === undefined ? "rounded-balsa-control" : roundedClasses[rounded],
+    triggerProps?.className,
     className,
   );
+  const {
+    style: triggerStyle,
+    ref: outerTriggerRef,
+    onClick: triggerOnClick,
+    onKeyDown: triggerOnKeyDown,
+    onFocus: triggerOnFocus,
+    onBlur: triggerOnBlur,
+    ...triggerDomProps
+  } = triggerProps ?? {};
+  const triggerDisabled = disabled || Boolean(triggerProps?.disabled);
+  useLayoutEffect(() => {
+    if (triggerDisabled && current) setOpen(false);
+  }, [current, triggerDisabled]);
   const {
     className: panelClassName,
     style: panelStyleOverride,
@@ -305,46 +333,108 @@ export function DropdownMenu(rawProps: DropdownMenuProps) {
           (() => {
             const child = trigger as ReactElement<{
               id?: string;
+              ref?: Ref<HTMLElement>;
               className?: string;
               style?: CSSProperties;
               disabled?: boolean;
+              "aria-disabled"?: boolean;
+              tabIndex?: number;
               "aria-expanded"?: boolean;
               "aria-controls"?: string;
               "aria-haspopup"?: "menu";
               onClick?: (event: MouseEvent<HTMLElement>) => void;
               onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void;
+              onFocus?: (event: React.FocusEvent<HTMLElement>) => void;
+              onBlur?: (event: React.FocusEvent<HTMLElement>) => void;
             }>;
+            const childDisabled = triggerDisabled || Boolean(child.props.disabled);
             return cloneElement(child, {
+              ...triggerDomProps,
               id: `${id}-trigger`,
-              disabled: child.props.disabled ?? disabled,
+              disabled: childDisabled,
+              "aria-disabled": childDisabled ? true : child.props["aria-disabled"],
+              tabIndex: childDisabled ? -1 : child.props.tabIndex,
               "aria-expanded": current,
               "aria-controls": id,
               "aria-haspopup": "menu",
               className: mergeClasses(child.props.className, triggerClasses),
+              style: { ...triggerStyle, ...child.props.style },
+              ref: (node: HTMLElement | null) => {
+                const childCleanup = assignRef(child.props.ref, node);
+                const outerCleanup = assignRef(outerTriggerRef, node);
+                return () => {
+                  if (childCleanup) childCleanup();
+                  else assignRef(child.props.ref, null);
+                  if (outerCleanup) outerCleanup();
+                  else assignRef(outerTriggerRef, null);
+                };
+              },
               onClick: (event: MouseEvent<HTMLElement>) => {
+                if (childDisabled) {
+                  event.preventDefault();
+                  return;
+                }
+                triggerOnClick?.(event as MouseEvent<HTMLButtonElement>);
                 child.props.onClick?.(event);
-                if (!event.defaultPrevented && !disabled) setOpen(!current);
+                if (!event.defaultPrevented && !childDisabled) setOpen(!current);
               },
               onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
-                handleTriggerKeydown(event as KeyboardEvent<HTMLButtonElement>);
+                if (childDisabled) {
+                  if (event.key !== "Tab") event.preventDefault();
+                  return;
+                }
+                triggerOnKeyDown?.(event as KeyboardEvent<HTMLButtonElement>);
+                child.props.onKeyDown?.(event);
+                handleTriggerKeydown(event as KeyboardEvent<HTMLButtonElement>, !childDisabled);
+              },
+              onFocus: (event: React.FocusEvent<HTMLElement>) => {
+                child.props.onFocus?.(event);
+                triggerOnFocus?.(event as React.FocusEvent<HTMLButtonElement>);
+              },
+              onBlur: (event: React.FocusEvent<HTMLElement>) => {
+                child.props.onBlur?.(event);
+                triggerOnBlur?.(event as React.FocusEvent<HTMLButtonElement>);
               },
             });
           })()
         ) : (
           <Button
+            {...triggerDomProps}
             id={`${id}-trigger`}
             variant="outline"
             color="neutral"
             size="md"
-            disabled={disabled}
+            disabled={triggerDisabled}
             aria-expanded={current}
             aria-controls={id}
             aria-haspopup="menu"
             className={triggerClasses}
-            onClick={() => {
-              if (!disabled) setOpen(!current);
+            style={triggerStyle}
+            ref={(node) => {
+              const cleanup = assignRef(outerTriggerRef, node);
+              return () => {
+                if (cleanup) cleanup();
+                else assignRef(outerTriggerRef, null);
+              };
             }}
-            onKeyDown={handleTriggerKeydown}
+            onClick={(event) => {
+              if (triggerDisabled) {
+                event.preventDefault();
+                return;
+              }
+              triggerOnClick?.(event);
+              if (!event.defaultPrevented) setOpen(!current);
+            }}
+            onKeyDown={(event) => {
+              if (triggerDisabled) {
+                event.preventDefault();
+                return;
+              }
+              triggerOnKeyDown?.(event);
+              if (!event.defaultPrevented) handleTriggerKeydown(event);
+            }}
+            onFocus={triggerOnFocus}
+            onBlur={triggerOnBlur}
           >
             {trigger ?? "Open menu"}
           </Button>

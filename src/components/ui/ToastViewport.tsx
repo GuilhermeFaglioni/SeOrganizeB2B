@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  forwardRef,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -26,7 +27,12 @@ import {
   useControllableState,
   useResolvedThemeProps,
 } from "./theme-context";
-import { Toast, type ToastSize, type ToastVariant } from "./toast";
+import {
+  Toast,
+  useToastProviderSettings,
+  type ToastSize,
+  type ToastVariant,
+} from "./toast";
 import type { SemanticColor } from "./types";
 
 export type ToastPosition =
@@ -80,6 +86,8 @@ export interface ToastViewportProps extends Omit<
   onAction?: (item: ToastItem) => void;
   onDismiss?: (item: ToastItem, reason: ToastDismissReason) => void;
   action?: (item: ToastItem, controls: ToastActionControls) => ReactNode;
+  children?: ReactNode;
+  hotkey?: string;
 }
 
 interface TimerState {
@@ -122,15 +130,18 @@ function samePresentation(
     && nextEntries.every(([property, value]) => current.style[property as `--balsa-${string}`] === value);
 }
 
-export function ToastViewport(rawProps: ToastViewportProps) {
+export const ToastViewport = forwardRef<HTMLElement, ToastViewportProps>(function ToastViewport(rawProps, ref) {
   const { props, theme } = useResolvedThemeProps("toast", "overlays", rawProps, {});
+  const providerSettings = useToastProviderSettings();
   const {
     "data-balsa": _dataBalsa,
     "data-palette": dataPalette,
-    label = "Notifications",
+    children,
+    hotkey = "F8",
+    label = providerSettings.label ?? "Notifications",
     position = "bottom-end",
     limit = 5,
-    duration = 5000,
+    duration = providerSettings.duration ?? 5000,
     pauseOnHover = true,
     pauseOnFocus = true,
     contained = false,
@@ -159,6 +170,7 @@ export function ToastViewport(rawProps: ToastViewportProps) {
   });
   const scope = useBalsaPortalScope();
   const anchorRef = useRef<HTMLSpanElement | null>(null);
+  const viewportRef = useRef<HTMLElement | null>(null);
   const timersRef = useRef(new Map<string, TimerState>());
   const pauseReasonsRef = useRef(new Set<string>());
   const itemsRef = useRef(current);
@@ -180,8 +192,15 @@ export function ToastViewport(rawProps: ToastViewportProps) {
   const visibleItems = current.slice(-safeLimit).reverse();
   const portalHost = contained ? null : (scope?.host ?? (mounted ? document.body : null));
 
-  function itemDuration(item: ToastItem): number {
+  function setViewportRef(node: HTMLElement | null): void {
+    viewportRef.current = node;
+    if (typeof ref === "function") ref(node);
+    else if (ref) ref.current = node;
+  }
+
+  function itemDuration(item: ToastItem): number | null {
     const candidate = item.duration ?? durationRef.current;
+    if (candidate === 0 || candidate === Infinity) return null;
     return Number.isFinite(candidate) && candidate > 0 ? candidate : 5000;
   }
 
@@ -226,6 +245,11 @@ export function ToastViewport(rawProps: ToastViewportProps) {
       }
       const nextDuration = itemDuration(item);
       const existing = timersRef.current.get(item.id);
+      if (nextDuration === null) {
+        if (existing) clearTimer(existing);
+        timersRef.current.delete(item.id);
+        continue;
+      }
       if (existing?.duration === nextDuration) continue;
       if (existing) clearTimer(existing);
       const timer: TimerState = {
@@ -278,6 +302,12 @@ export function ToastViewport(rawProps: ToastViewportProps) {
   }, []);
 
   useLayoutEffect(() => {
+    if (!mounted || !providerSettings.setViewportHost) return;
+    providerSettings.setViewportHost(viewportRef.current);
+    return () => providerSettings.setViewportHost?.(null);
+  }, [contained, mounted, providerSettings.setViewportHost, scope?.host]);
+
+  useLayoutEffect(() => {
     if (!mounted) return;
     const anchor = anchorRef.current;
     if (!anchor) return;
@@ -300,7 +330,16 @@ export function ToastViewport(rawProps: ToastViewportProps) {
     if (!mounted) return;
 
     function handleKeydown(event: KeyboardEvent): void {
-      if (event.defaultPrevented || event.key !== "Escape" || itemsRef.current.length === 0) return;
+      if (event.defaultPrevented) return;
+      if (hotkey && event.key === hotkey) {
+        if (itemsRef.current.length === 0) return;
+        if (document.activeElement instanceof HTMLElement
+          && document.activeElement.matches("input, textarea, [contenteditable='true']")) return;
+        event.preventDefault();
+        viewportRef.current?.focus();
+        return;
+      }
+      if (event.key !== "Escape" || itemsRef.current.length === 0) return;
       const currentLimit = Number.isFinite(limitRef.current)
         ? Math.max(1, Math.min(10, Math.floor(limitRef.current)))
         : 5;
@@ -335,11 +374,14 @@ export function ToastViewport(rawProps: ToastViewportProps) {
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("blur", handleBlur);
       window.removeEventListener("focus", handleFocus);
-      timersRef.current.forEach((timer) => clearTimer(timer));
-      timersRef.current.clear();
-      pauseReasonsRef.current.clear();
     };
-  }, [mounted]);
+  }, [hotkey, mounted]);
+
+  useEffect(() => () => {
+    timersRef.current.forEach((timer) => clearTimer(timer));
+    timersRef.current.clear();
+    pauseReasonsRef.current.clear();
+  }, []);
 
   const presentation = portalPresentation ?? {
     themeId: theme.presentation.id,
@@ -352,6 +394,7 @@ export function ToastViewport(rawProps: ToastViewportProps) {
   const viewport = mounted ? (
     <section
       {...domProps}
+      ref={setViewportRef}
       data-balsa="toast-viewport"
       data-theme={presentation.themeId}
       data-theme-base={presentation.themeBase}
@@ -359,6 +402,7 @@ export function ToastViewport(rawProps: ToastViewportProps) {
       data-balsa-adapt={presentation.adapt}
       data-position={position}
       aria-label={label}
+      tabIndex={-1}
       className={mergeClasses(
          "pointer-events-none z-[70] flex max-h-[calc(100dvh-2rem)] max-w-sm gap-balsa-md overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]",
         contained
@@ -393,6 +437,7 @@ export function ToastViewport(rawProps: ToastViewportProps) {
         resume("focus");
       }}
     >
+      {children}
       {visibleItems.map((item) => {
         const controls: ToastActionControls = {
           dismiss: () => dismiss(item.id, "close"),
@@ -402,6 +447,7 @@ export function ToastViewport(rawProps: ToastViewportProps) {
           <Toast
             key={item.id}
             id={item.id}
+            duration={0}
             title={item.title}
             description={item.description}
             color={item.color}
@@ -437,4 +483,4 @@ export function ToastViewport(rawProps: ToastViewportProps) {
       </span>
     </BalsaThemeContext.Provider>
   );
-}
+});
