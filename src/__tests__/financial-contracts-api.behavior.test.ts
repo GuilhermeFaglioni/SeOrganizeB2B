@@ -416,7 +416,7 @@ describe("contracts API route behavior", () => {
       (getUser as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
       const res = await getContract(makeRequest("http://x/api/contracts/ctr-1"), {
-        params: { id: "ctr-1" },
+        params: Promise.resolve({ id: "ctr-1" }),
       });
       expect(res.status).toBe(401);
     });
@@ -425,7 +425,7 @@ describe("contracts API route behavior", () => {
       mockPrisma.contract.findUnique.mockResolvedValue(null);
 
       const res = await getContract(makeRequest("http://x/api/contracts/missing"), {
-        params: { id: "missing" },
+        params: Promise.resolve({ id: "missing" }),
       });
       expect(res.status).toBe(404);
       const json = await res.json();
@@ -447,7 +447,7 @@ describe("contracts API route behavior", () => {
       mockPrisma.contract.findUnique.mockResolvedValue(fullContract);
 
       const res = await getContract(makeRequest("http://x/api/contracts/ctr-1"), {
-        params: { id: "ctr-1" },
+        params: Promise.resolve({ id: "ctr-1" }),
       });
       expect(res.status).toBe(200);
       const json = await res.json();
@@ -477,7 +477,7 @@ describe("contracts API route behavior", () => {
 
       const res = await patchContract(
         makeRequest("http://x/api/contracts/ctr-1", { title: "X" }),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
       expect(res.status).toBe(401);
     });
@@ -485,7 +485,7 @@ describe("contracts API route behavior", () => {
     it("returns 400 when startDate is invalid on PATCH", async () => {
       const res = await patchContract(
         makeRequest("http://x/api/contracts/ctr-1", { startDate: "bad" }),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
       expect(res.status).toBe(400);
       const json = await res.json();
@@ -503,7 +503,7 @@ describe("contracts API route behavior", () => {
           officialValue: "2000",
           notes: "new notes",
         }),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
 
       expect(res.status).toBe(200);
@@ -531,7 +531,7 @@ describe("contracts API route behavior", () => {
           items,
           projectIds,
         }),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
 
       expect(res.status).toBe(200);
@@ -550,7 +550,7 @@ describe("contracts API route behavior", () => {
 
       await patchContract(
         makeRequest("http://x/api/contracts/ctr-1", { officialValue: 3000 }),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
 
       expect(mockUpdateContract).toHaveBeenCalledWith(
@@ -567,7 +567,7 @@ describe("contracts API route behavior", () => {
 
       const res = await patchContract(
         makeRequest("http://x/api/contracts/ctr-1", { title: "X" }),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
       expect(res.status).toBe(409);
       const json = await res.json();
@@ -579,7 +579,7 @@ describe("contracts API route behavior", () => {
 
       const res = await patchContract(
         makeRequest("http://x/api/contracts/ctr-1", { title: "X" }),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
       expect(res.status).toBe(500);
       const json = await res.json();
@@ -593,7 +593,7 @@ describe("contracts API route behavior", () => {
       (getUser as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
       const res = await deleteContract(makeRequest("http://x/api/contracts/ctr-1", undefined, "DELETE"), {
-        params: { id: "ctr-1" },
+        params: Promise.resolve({ id: "ctr-1" }),
       });
       expect(res.status).toBe(401);
     });
@@ -603,7 +603,7 @@ describe("contracts API route behavior", () => {
 
       const res = await deleteContract(
         makeRequest("http://x/api/contracts/ctr-1", undefined, "DELETE"),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
       expect(res.status).toBe(200);
       const json = await res.json();
@@ -619,7 +619,7 @@ describe("contracts API route behavior", () => {
 
       const res = await deleteContract(
         makeRequest("http://x/api/contracts/ctr-1", undefined, "DELETE"),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
       expect(res.status).toBe(409);
       const json = await res.json();
@@ -631,7 +631,7 @@ describe("contracts API route behavior", () => {
 
       const res = await deleteContract(
         makeRequest("http://x/api/contracts/ctr-1", undefined, "DELETE"),
-        { params: { id: "ctr-1" } }
+        { params: Promise.resolve({ id: "ctr-1" }) }
       );
       expect(res.status).toBe(500);
       const json = await res.json();

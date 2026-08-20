@@ -9,7 +9,8 @@ import { applyFeatureGate, withFeatureWarning } from "@/lib/middleware/feature-g
 import { completeRecurringTask } from "@/lib/tasks/complete-recurring-task";
 import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 
-export async function GET(request: NextRequest, { params }: { params: { taskId: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ taskId: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
@@ -58,7 +59,8 @@ export async function GET(request: NextRequest, { params }: { params: { taskId: 
   return NextResponse.json({ data: task, error: null });
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { taskId: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ taskId: string }> }) {
+  const params = await props.params;
   try {
     const user = await getUser();
     if (!user) {
@@ -296,7 +298,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { taskId: string } }) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ taskId: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });

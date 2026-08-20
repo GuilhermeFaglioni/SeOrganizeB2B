@@ -125,7 +125,7 @@ describe("lifecycle route behavior", () => {
       makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
         action: "activate",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(401);
     const json = await res.json();
@@ -137,7 +137,7 @@ describe("lifecycle route behavior", () => {
       makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
         action: "invalid",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -150,7 +150,7 @@ describe("lifecycle route behavior", () => {
       makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
         action: "activate",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -163,7 +163,7 @@ describe("lifecycle route behavior", () => {
         action: "activate",
         plan: [{ expectedAmount: "500", dueDate: "bad", paymentMethod: "pix" }],
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -178,7 +178,7 @@ describe("lifecycle route behavior", () => {
           { expectedAmount: "abc", dueDate: "2026-10-01", paymentMethod: "pix" },
         ],
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -197,7 +197,7 @@ describe("lifecycle route behavior", () => {
         action: "activate",
         plan,
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(200);
     expect(mocks.mockActivateContract).toHaveBeenCalledWith(
@@ -212,7 +212,7 @@ describe("lifecycle route behavior", () => {
       makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
         action: "cancel",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -229,7 +229,7 @@ describe("lifecycle route behavior", () => {
       makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
         action: "suspend",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(200);
     expect(mocks.mockApplyLifecycleAction).toHaveBeenCalledWith(
@@ -249,7 +249,7 @@ describe("lifecycle route behavior", () => {
       makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
         action: "resume",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -265,7 +265,7 @@ describe("lifecycle route behavior", () => {
       makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
         action: "suspend",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(409);
     const json = await res.json();
@@ -279,7 +279,7 @@ describe("lifecycle route behavior", () => {
       makeRequest("http://x/api/contracts/ctr-1/lifecycle", {
         action: "close",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(500);
     const json = await res.json();
@@ -308,7 +308,7 @@ describe("changes route behavior", () => {
         effectiveDate: "2026-10-01",
         strategy: "redistribute",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(401);
   });
@@ -321,7 +321,7 @@ describe("changes route behavior", () => {
         effectiveDate: "2026-10-01",
         strategy: "redistribute",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -336,7 +336,7 @@ describe("changes route behavior", () => {
         effectiveDate: "2026-10-01",
         strategy: "invalid",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -351,7 +351,7 @@ describe("changes route behavior", () => {
         effectiveDate: "2026-10-01",
         strategy: "redistribute",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -366,7 +366,7 @@ describe("changes route behavior", () => {
         effectiveDate: "bad",
         strategy: "redistribute",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -389,7 +389,7 @@ describe("changes route behavior", () => {
         description: "Extra service",
         reason: "Client request",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(200);
     expect(mocks.mockApplyContractChange).toHaveBeenCalledWith(
@@ -419,7 +419,7 @@ describe("changes route behavior", () => {
         effectiveDate: "2026-10-01",
         strategy: "adjust",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -438,7 +438,7 @@ describe("changes route behavior", () => {
         effectiveDate: "2026-10-01",
         strategy: "redistribute",
       }),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(409);
     const json = await res.json();
@@ -466,7 +466,7 @@ describe("installment PATCH route behavior", () => {
         { action: "pay" },
         "PATCH"
       ),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(401);
   });
@@ -478,7 +478,7 @@ describe("installment PATCH route behavior", () => {
         { action: "unknown" },
         "PATCH"
       ),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -498,7 +498,7 @@ describe("installment PATCH route behavior", () => {
         { action: "pay", paidAt: "2026-10-01" },
         "PATCH"
       ),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(200);
     expect(mocks.mockRecordPayment).toHaveBeenCalledWith(
@@ -515,7 +515,7 @@ describe("installment PATCH route behavior", () => {
         { action: "pay", paidAt: "bad" },
         "PATCH"
       ),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -534,7 +534,7 @@ describe("installment PATCH route behavior", () => {
         { action: "cancel" },
         "PATCH"
       ),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(200);
     expect(mocks.mockCancelInstallment).toHaveBeenCalledWith(
@@ -554,7 +554,7 @@ describe("installment PATCH route behavior", () => {
         { action: "pay", paidAt: "2026-10-01" },
         "PATCH"
       ),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -572,7 +572,7 @@ describe("installment PATCH route behavior", () => {
         { action: "pay", paidAt: "2026-10-01" },
         "PATCH"
       ),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(409);
     const json = await res.json();
@@ -597,7 +597,7 @@ describe("refund POST route behavior", () => {
       makeRequest("http://x/api/installments/inst-1/refund", {
         refundAmount: "100",
       }),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(401);
   });
@@ -607,7 +607,7 @@ describe("refund POST route behavior", () => {
       makeRequest("http://x/api/installments/inst-1/refund", {
         refundAmount: "abc",
       }),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -620,7 +620,7 @@ describe("refund POST route behavior", () => {
         refundAmount: "100",
         refundDate: "bad",
       }),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -641,7 +641,7 @@ describe("refund POST route behavior", () => {
         refundAmount: "100",
         refundDate: "2026-10-15",
       }),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(201);
     expect(mocks.mockRefundInstallment).toHaveBeenCalledWith(
@@ -661,7 +661,7 @@ describe("refund POST route behavior", () => {
       makeRequest("http://x/api/installments/inst-1/refund", {
         refundAmount: "100",
       }),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -677,7 +677,7 @@ describe("refund POST route behavior", () => {
       makeRequest("http://x/api/installments/inst-1/refund", {
         refundAmount: "100",
       }),
-      { params: { id: "inst-1" } }
+      { params: Promise.resolve({ id: "inst-1" }) }
     );
     expect(res.status).toBe(409);
     const json = await res.json();

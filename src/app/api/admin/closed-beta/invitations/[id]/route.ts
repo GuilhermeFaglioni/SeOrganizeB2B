@@ -51,10 +51,8 @@ function errorResponse(error: unknown) {
   );
 }
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireClosedBetaAdmin();
   if (!gate.ok) return gateError(gate.reason);
 
@@ -76,10 +74,8 @@ export async function DELETE(
   }
 }
 
-export async function POST(
-  _request: Request,
-  { params }: { params: { id: string } },
-) {
+export async function POST(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireClosedBetaAdmin();
   if (!gate.ok) return gateError(gate.reason);
 

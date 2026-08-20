@@ -12,11 +12,12 @@ export const dynamic = "force-dynamic";
 export default async function CheckoutReturnPage({
   searchParams,
 }: {
-  searchParams: { payment_intent?: string | string[] };
+  searchParams: Promise<{ payment_intent?: string | string[] }>;
 }) {
-  const paymentIntentId = Array.isArray(searchParams.payment_intent)
-    ? searchParams.payment_intent[0]
-    : searchParams.payment_intent;
+  const resolvedSearchParams = await searchParams;
+  const paymentIntentId = Array.isArray(resolvedSearchParams.payment_intent)
+    ? resolvedSearchParams.payment_intent[0]
+    : resolvedSearchParams.payment_intent;
 
   let status: string | null = null;
   if (paymentIntentId) {
