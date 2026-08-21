@@ -36,11 +36,9 @@ function QuestionControl({
   question,
   value,
   onChange,
-  questionIndex,
 }: {
   question: CheckinQuestion;
   value: unknown;
-  questionIndex: number;
   onChange: (value: unknown) => void;
 }) {
   const t = useTranslations("checkin");
@@ -389,7 +387,6 @@ export default function BetaCheckinPage() {
               </p>
               <QuestionControl
                 question={question}
-                questionIndex={index}
                 value={answers[question.id]}
                 onChange={(value) =>
                   setAnswers((current) => ({ ...current, [question.id]: value }))

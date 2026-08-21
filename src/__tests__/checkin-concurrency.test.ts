@@ -38,7 +38,6 @@ const edition = {
 };
 const enrollment = { status: "active" };
 const profileA = { tenantId: "ws-1", removedAt: null };
-const profileB = { tenantId: "ws-1", removedAt: null };
 
 function p2002Error() {
   return new Prisma.PrismaClientKnownRequestError(
@@ -211,7 +210,7 @@ describe("check-in real concurrency via P2002", () => {
       { id: "state-1", status: "completed", exemption_expires_at: null },
     ]);
     mocks.prismaClient.closedBetaCheckinResponse.create.mockImplementation(
-      async (data: Record<string, unknown>) => ({
+      async () => ({
         id: "resp-new",
         editionId: "ed-1",
         workspaceId: "ws-1",

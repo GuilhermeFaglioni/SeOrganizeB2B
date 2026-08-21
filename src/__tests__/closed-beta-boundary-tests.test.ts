@@ -31,7 +31,6 @@ import {
   CLOSED_BETA_CONSENT_VERSION,
   invalidateClosedBetaGuestInvitations,
   removeClosedBetaMember,
-  ClosedBetaGuestCapacityError,
   ClosedBetaMemberError,
   updateClosedBetaConfig,
 } from "../lib/closed-beta/service";
@@ -51,7 +50,6 @@ const config30 = {
   },
 };
 
-const enrollment = { id: "en-1", owner_profile_id: "owner-1" };
 const actor = { userId: "admin-1", email: "admin@co" };
 
 beforeEach(() => {
