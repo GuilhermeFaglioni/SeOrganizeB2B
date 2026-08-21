@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
@@ -14,6 +14,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { toastError } from "@/lib/toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const DRAFT_STORAGE_KEY = "beta-checkin-draft";
 
 function QuestionControl({
   question,
@@ -94,7 +106,11 @@ function QuestionControl({
         rows={3}
         maxLength={300}
         className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm text-text-primary"
+        aria-describedby={`hint-${question.id}`}
       />
+      <p id={`hint-${question.id}`} className="text-xs text-text-muted">
+        {t("privacyHint")}
+      </p>
       {question.isSuggestionQuestion && (
         <label className="flex cursor-pointer items-center gap-2 text-sm">
           <Checkbox
@@ -117,6 +133,47 @@ export default function BetaCheckinPage() {
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [didNotUse, setDidNotUse] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [exiting, setExiting] = useState(false);
+
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const draftSavedAt = useRef<number>(0);
+
+  // Restore draft from localStorage
+  useEffect(() => {
+    if (!data?.editionId) return;
+    try {
+      const raw = localStorage.getItem(`${DRAFT_STORAGE_KEY}:${data.editionId}`);
+      if (raw) {
+        const draft = JSON.parse(raw) as { answers?: Record<string, unknown>; didNotUse?: boolean };
+        if (draft.answers && Object.keys(draft.answers).length > 0) {
+          setAnswers(draft.answers);
+          setDidNotUse(draft.didNotUse ?? false);
+        }
+      }
+    } catch { /* ignore corrupt drafts */ }
+  }, [data?.editionId]);
+
+  // Persist draft to localStorage
+  useEffect(() => {
+    if (!data?.editionId || submitted || data.memberSubmitted) return;
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    draftTimer.current = setTimeout(() => {
+      localStorage.setItem(
+        `${DRAFT_STORAGE_KEY}:${data.editionId}`,
+        JSON.stringify({ answers, didNotUse }),
+      );
+      draftSavedAt.current = Date.now();
+    }, 1000);
+    return () => { if (draftTimer.current) clearTimeout(draftTimer.current); };
+  }, [answers, didNotUse, data?.editionId, submitted, data?.memberSubmitted]);
+
+  // Clear draft on successful submit
+  useEffect(() => {
+    if ((submitted || data?.memberSubmitted) && data?.editionId) {
+      localStorage.removeItem(`${DRAFT_STORAGE_KEY}:${data.editionId}`);
+    }
+  }, [submitted, data?.memberSubmitted, data?.editionId]);
 
   if (isLoading) {
     return (
@@ -231,6 +288,21 @@ export default function BetaCheckinPage() {
     );
   }
 
+  const handleExitBeta = async () => {
+    setExiting(true);
+    try {
+      const res = await fetch("/api/closed-beta/exit", { method: "POST" });
+      if (!res.ok) throw new Error();
+      toastError(t("exitDone"));
+      router.push("/app");
+    } catch {
+      toastError(t("exitFailed"));
+    } finally {
+      setExiting(false);
+      setShowExitDialog(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-6" data-testid="checkin-page">
       <div>
@@ -242,10 +314,10 @@ export default function BetaCheckinPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-border bg-page-alt p-3">
+      <div className="rounded-lg border border-border bg-page-alt p-3" role="progressbar" aria-valuenow={answered} aria-valuemin={0} aria-valuemax={total} aria-label={t("progressAria", { answered, total })}>
         <div className="flex items-center justify-between text-sm text-text-secondary">
           <span>{edition.title}</span>
-          <span>
+          <span aria-hidden="true">
             {t("progress", { answered, total })}
           </span>
         </div>
@@ -255,6 +327,10 @@ export default function BetaCheckinPage() {
             style={{ width: `${total ? (answered / total) * 100 : 0}%` }}
           />
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-page-alt p-3 text-xs text-text-muted flex items-center gap-2" role="status">
+        {t("draftUnsaved")}
       </div>
 
       <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border p-4 text-sm">
@@ -299,6 +375,27 @@ export default function BetaCheckinPage() {
       >
         {submit.isPending ? t("submitting") : t("submit")}
       </Button>
+
+      <div className="text-center">
+        <Button variant="ghost" className="text-xs text-text-muted" onClick={() => setShowExitDialog(true)}>
+          {t("exitTitle")}
+        </Button>
+      </div>
+
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("exitTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("exitBody")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("exitCancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleExitBeta} disabled={exiting}>
+              {exiting ? t("exitLeaving") : t("exitConfirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
