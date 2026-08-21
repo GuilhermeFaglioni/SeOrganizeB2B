@@ -7,8 +7,9 @@ export const dynamic = "force-dynamic";
 
 export async function POST(
   _request: Request,
-  { params }: { params: { id: string } },
+  props: { params: Promise<{ id: string }> },
 ) {
+  const params = await props.params;
   const gate = await requireClosedBetaAdmin();
   if (!gate.ok) {
     return NextResponse.json(

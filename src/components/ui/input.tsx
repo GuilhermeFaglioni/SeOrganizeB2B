@@ -37,6 +37,7 @@ export type InputType =
   | "number"
   | "date"
   | "time"
+  | "datetime-local"
   | "email"
   | "phone"
   | "monetary"

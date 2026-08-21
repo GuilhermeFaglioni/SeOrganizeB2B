@@ -14,8 +14,9 @@ function badRequest(message: string) {
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  props: { params: Promise<{ id: string }> },
 ) {
+  const params = await props.params;
   const gate = await requireClosedBetaAdmin();
   if (!gate.ok) {
     return NextResponse.json(

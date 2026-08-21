@@ -17,8 +17,9 @@ function badRequest(message: string) {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  props: { params: Promise<{ id: string }> },
 ) {
+  const params = await props.params;
   const gate = await requireClosedBetaAdmin();
   if (!gate.ok) {
     return NextResponse.json(
@@ -42,8 +43,9 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  props: { params: Promise<{ id: string }> },
 ) {
+  const params = await props.params;
   const gate = await requireClosedBetaAdmin();
   if (!gate.ok) {
     return NextResponse.json(
