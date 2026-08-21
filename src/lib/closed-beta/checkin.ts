@@ -33,6 +33,11 @@ export const CHECKIN_RATING_MAX = 5;
 const ACTIVE_EDITION_TTL_MS = 30_000;
 
 let activeEditionCache: { id: string | null; expiresAt: number } | null = null;
+export const CHECKIN_REQUIRED_ENV_FLAG = "CHECKIN_REQUIRED";
+
+export function isCheckinKillSwitchActive(): boolean {
+  return process.env[CHECKIN_REQUIRED_ENV_FLAG] === "false";
+}
 
 export function invalidateActiveCheckinEditionCache(): void {
   activeEditionCache = null;
@@ -194,6 +199,7 @@ function missingRequiredQuestions(
 }
 
 export async function getActiveCheckinEdition() {
+  if (isCheckinKillSwitchActive()) return null;
   const now = Date.now();
   if (activeEditionCache && activeEditionCache.expiresAt > now) {
     if (!activeEditionCache.id) return null;

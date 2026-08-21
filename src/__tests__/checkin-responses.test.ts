@@ -15,6 +15,7 @@ const prismaMock = vi.hoisted(() => {
       findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
     closedBetaEnrollment: {
       count: vi.fn(),
@@ -84,6 +85,7 @@ beforeEach(() => {
   resetMocks(prismaMock);
   auditMock.recordClosedBetaAudit.mockReset();
   auditMock.recordClosedBetaAudit.mockResolvedValue(undefined);
+  prismaMock.closedBetaCheckinWorkspaceState.updateMany.mockResolvedValue({ count: 0 });
   prismaMock.$transaction.mockImplementation((fn: unknown) =>
     (fn as (client: unknown) => unknown)(prismaMock),
   );

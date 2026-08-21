@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../../prisma/client";
-import { CheckinNotFoundError } from "./checkin";
+import { CheckinNotFoundError, expireCheckinExemptions } from "./checkin";
 
 export interface CheckinResponsesFilter {
   editionId: string;
@@ -160,6 +160,7 @@ export async function getCheckinResponseGrouping(
 export async function getCheckinEditionMetrics(
   editionId: string,
 ): Promise<CheckinEditionMetrics> {
+  await expireCheckinExemptions();
   await getEditionQuestions(editionId);
   const [states, enrollments] = await Promise.all([
     prisma.closedBetaCheckinWorkspaceState.findMany({

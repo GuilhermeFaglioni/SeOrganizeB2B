@@ -5,6 +5,7 @@ import { CheckoutReturnView } from "./return-view";
 
 export const metadata: Metadata = {
   title: "Pagamento",
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
