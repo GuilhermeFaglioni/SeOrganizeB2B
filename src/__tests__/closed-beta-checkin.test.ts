@@ -792,6 +792,10 @@ describe("getWorkspaceCheckin", () => {
 
 describe("check-in exemptions", () => {
   it("grants a temporary exemption with reason, expiry and audit", async () => {
+    prismaMock.closedBetaEnrollment.findUnique.mockResolvedValue({
+      id: "enrollment-1",
+      status: "active",
+    });
     prismaMock.closedBetaCheckinEdition.findUnique.mockResolvedValue(
       editionRow({ status: "published" }),
     );

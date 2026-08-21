@@ -23,7 +23,14 @@ export interface CheckinGroupedQuestion {
   type: string;
   theme: string | null;
   options: string[] | null;
-  responses: Array<{ workspaceId: string; workspaceName: string; value: unknown }>;
+  responses: Array<{
+    responseId: string;
+    workspaceId: string;
+    workspaceName: string;
+    responderEmail: string;
+    responderName: string | null;
+    value: unknown;
+  }>;
 }
 
 export interface CheckinEditionMetrics {

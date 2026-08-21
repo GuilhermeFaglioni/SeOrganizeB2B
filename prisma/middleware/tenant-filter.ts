@@ -93,6 +93,7 @@ const EXEMPT_MODELS = new Set([
   "ClosedBetaRateLimit",
   "ClosedBetaCheckinEdition",
   "ClosedBetaCheckinQuestion",
+  "ClosedBetaQuestionBank",
   "ClosedBetaCheckinResponse",
   "ClosedBetaCheckinWorkspaceState",
 ]);

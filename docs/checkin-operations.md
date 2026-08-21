@@ -6,7 +6,7 @@ This runbook covers the weekly mandatory check-in for Closed Beta workspaces. It
 
 1. **Create** a draft edition in `/admin/closed-beta/checkins`.
 2. **Publish** the edition: set an open window (`opensAt` optional, `closesAt` optional). The first published mandatory edition becomes active. Only one mandatory edition can be published at a time.
-3. **Monitor** responses in `/admin/closed-beta/checkins/[id]/responses`. The `completionRate` field shows (completed / total active workspaces) * 100.
+3. **Monitor** responses in `/admin/closed-beta/responses`. The `completionRate` field shows (completed / total active workspaces) * 100.
 4. **Close** the edition when the window expires or you need to end the cycle. Closing stops blocking immediately and preserves all submitted answers.
 
 ## Exemptions

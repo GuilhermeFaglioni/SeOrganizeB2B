@@ -167,6 +167,7 @@ describe("getCheckinResponseGrouping", () => {
         workspaceId: "w1",
         answers: { "q-rating": 5 },
         workspace: { id: "w1", name: "Acme" },
+        profile: { email: "a@acme.com", name: "Ana" },
       },
     ]);
 
@@ -176,6 +177,8 @@ describe("getCheckinResponseGrouping", () => {
     const rating = grouped.find((g) => g.questionId === "q-rating");
     expect(rating?.responses).toHaveLength(1);
     expect(rating?.responses[0].value).toBe(5);
+    expect(rating?.responses[0].responseId).toBe("r1");
+    expect(rating?.responses[0].responderName).toBe("Ana");
     const suggestion = grouped.find((g) => g.questionId === "q-suggestion");
     expect(suggestion?.responses).toHaveLength(0);
   });
@@ -226,6 +229,11 @@ describe("exportCheckinResponses", () => {
     expect(rows[0].questionText).toBe("Como avalia o valor?");
     expect(rows[0].answer).toBe("5");
     expect(rows[1].answer).toBe("Integração");
+    expect(prismaMock.closedBetaCheckinResponse.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { editionId: "edition-1", isCurrent: true },
+      }),
+    );
   });
 });
 

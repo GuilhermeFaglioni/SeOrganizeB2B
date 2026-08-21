@@ -437,6 +437,12 @@
         "totalWorkspaces": "Companies",
         "responseTime": "Average response time",
         "responseCount": "{count} responses",
+        "types": {
+          "rating": "Rating 1–5",
+          "single_choice": "Single choice",
+          "multiple_choice": "Multiple choice",
+          "short_text": "Short text"
+        },
         "notAvailable": "Not available",
         "retry": "Retry",
         "detailTitle": "Response detail",

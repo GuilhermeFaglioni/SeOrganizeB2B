@@ -64,16 +64,19 @@ export function normalizeBankQuestion(
   if (input.isSuggestionQuestion && input.type !== "short_text") {
     throw new QuestionBankValidationError("Suggestion questions must use short text");
   }
+  const options = Array.isArray(input.options)
+    ? input.options.map((option) => String(option).trim()).filter(Boolean)
+    : [];
   if (
     (input.type === "single_choice" || input.type === "multiple_choice") &&
-    (!Array.isArray(input.options) || input.options.length === 0)
+    options.length === 0
   ) {
     throw new QuestionBankValidationError("Choice questions require options");
   }
   return {
     text: input.text.trim(),
     type: input.type,
-    options: Array.isArray(input.options) ? input.options.map((option) => String(option).trim()).filter(Boolean) : [],
+    options,
     required: input.required ?? true,
     theme: input.theme ?? null,
     isSuggestionQuestion: input.isSuggestionQuestion ?? false,

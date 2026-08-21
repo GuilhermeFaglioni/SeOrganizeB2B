@@ -30,7 +30,14 @@ export interface CheckinGroupedQuestion {
   type: string;
   theme: string | null;
   options: string[] | null;
-  responses: Array<{ workspaceId: string; workspaceName: string; value: unknown }>;
+  responses: Array<{
+    responseId: string;
+    workspaceId: string;
+    workspaceName: string;
+    responderEmail: string;
+    responderName: string | null;
+    value: unknown;
+  }>;
 }
 
 export interface CheckinEditionMetrics {
@@ -187,18 +194,24 @@ export async function getCheckinResponseGrouping(
   const edition = await getEditionQuestions(editionId);
   const responses = await prisma.closedBetaCheckinResponse.findMany({
     where: { editionId, isCurrent: true },
-    include: { workspace: { select: { id: true, name: true } } },
+    include: {
+      workspace: { select: { id: true, name: true } },
+      profile: { select: { email: true, name: true } },
+    },
     orderBy: { createdAt: "asc" },
   });
   return edition.questions.map((question) => {
-    const entries: Array<{ workspaceId: string; workspaceName: string; value: unknown }> = [];
+    const entries: CheckinGroupedQuestion["responses"] = [];
     for (const response of responses) {
       const answers = response.answers as Record<string, unknown> | null;
       const value = answers?.[question.id];
       if (value === undefined) continue;
       entries.push({
+        responseId: response.id,
         workspaceId: response.workspaceId,
         workspaceName: response.workspace.name,
+        responderEmail: response.profile.email,
+        responderName: response.profile.name,
         value,
       });
     }
@@ -278,7 +291,7 @@ export interface CheckinExportRow {
 export async function exportCheckinResponses(editionId: string): Promise<CheckinExportRow[]> {
   const edition = await getEditionQuestions(editionId);
   const responses = await prisma.closedBetaCheckinResponse.findMany({
-    where: { editionId },
+    where: { editionId, isCurrent: true },
     include: {
       workspace: { select: { name: true } },
       profile: { select: { email: true } },

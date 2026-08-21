@@ -117,6 +117,15 @@ describe("question bank CRUD", () => {
     ).rejects.toBeInstanceOf(QuestionBankValidationError);
   });
 
+  it("rejects choice questions whose options are only whitespace", async () => {
+    await expect(
+      createQuestionBankItem(
+        { text: "Qual?", type: "single_choice", options: ["  "] },
+        actor,
+      ),
+    ).rejects.toBeInstanceOf(QuestionBankValidationError);
+  });
+
   it("rejects a suggestion question with a non-text type", async () => {
     await expect(
       createQuestionBankItem(

@@ -123,16 +123,19 @@ function normalizeQuestions(questions: CheckinQuestionInput[]): CheckinQuestionI
     if (question.isSuggestionQuestion && question.type !== "short_text") {
       throw new CheckinValidationError("Suggestion questions must use short text");
     }
+    const options = Array.isArray(question.options)
+      ? question.options.map((option) => String(option).trim()).filter(Boolean)
+      : [];
     if (
       (question.type === "single_choice" || question.type === "multiple_choice") &&
-      (!Array.isArray(question.options) || question.options.length === 0)
+      options.length === 0
     ) {
       throw new CheckinValidationError("Choice questions require options");
     }
     return {
       text: question.text.trim(),
       type: question.type,
-      options: question.options ?? undefined,
+      options: options.length > 0 ? options : undefined,
       required: question.required ?? true,
       position: question.position ?? index,
       theme: question.theme ?? null,
@@ -651,10 +654,14 @@ export async function submitCheckinResponse(input: SubmitCheckinResponseInput) {
     where: { id: input.workspaceId },
     select: { deletedAt: true, cancelledAt: true, status: true },
   });
-  if (!enrollmentWorkspace || enrollmentWorkspace.deletedAt || (enrollmentWorkspace.status === "cancelled" && enrollmentWorkspace.cancelledAt)) {
+  if (
+    !enrollmentWorkspace ||
+    enrollmentWorkspace.deletedAt ||
+    enrollmentWorkspace.cancelledAt ||
+    enrollmentWorkspace.status === "cancelled"
+  ) {
     throw new CheckinValidationError("This workspace is not enrolled in Closed Beta");
   }
-
   const profile = await prisma.profile.findUnique({
     where: { id: input.profileId },
     select: { tenantId: true, removedAt: true },
@@ -820,11 +827,23 @@ export async function grantCheckinExemption(input: GrantCheckinExemptionInput) {
   if (!input.expiresAt || Number.isNaN(input.expiresAt.getTime())) {
     throw new CheckinValidationError("An expiration date is required");
   }
-  const enrollmentWorkspace = await prisma.workspace.findUnique({
-    where: { id: input.workspaceId },
-    select: { deletedAt: true, cancelledAt: true, status: true },
-  });
-  if (!enrollmentWorkspace || enrollmentWorkspace.deletedAt || (enrollmentWorkspace.status === "cancelled" && enrollmentWorkspace.cancelledAt)) {
+  const [workspace, enrollment] = await Promise.all([
+    prisma.workspace.findUnique({
+      where: { id: input.workspaceId },
+      select: { deletedAt: true, cancelledAt: true, status: true },
+    }),
+    prisma.closedBetaEnrollment.findUnique({
+      where: { workspaceId: input.workspaceId },
+      select: { id: true, status: true },
+    }),
+  ]);
+  if (
+    !workspace ||
+    workspace.deletedAt ||
+    workspace.cancelledAt ||
+    workspace.status === "cancelled" ||
+    enrollment?.status !== "active"
+  ) {
     throw new CheckinValidationError("This workspace is not enrolled in Closed Beta");
   }
   return prisma.$transaction(async (client) => {

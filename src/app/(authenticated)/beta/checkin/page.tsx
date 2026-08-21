@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
-import { toastError } from "@/lib/toast";
+import { toastError, toastSuccess } from "@/lib/toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -322,7 +322,7 @@ export default function BetaCheckinPage() {
     try {
       const res = await fetch("/api/closed-beta/exit", { method: "POST" });
       if (!res.ok) throw new Error();
-      toastError(t("exitDone"));
+      toastSuccess(t("exitDone"));
       router.push("/app");
     } catch {
       toastError(t("exitFailed"));

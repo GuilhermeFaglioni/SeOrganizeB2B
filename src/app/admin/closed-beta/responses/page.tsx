@@ -81,6 +81,7 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
 
 export default function AdminResponsesPage() {
   const t = useTranslations("admin.pages.responses");
+  const typeLabel = (type: string) => t(`types.${type}`);
   const editions = useAdminCheckinEditions();
   const [editionId, setEditionId] = useState<string | null>(null);
   const [mode, setMode] = useState<"list" | "grouped" | "metrics">("list");
@@ -330,13 +331,13 @@ export default function AdminResponsesPage() {
               <div key={question.questionId} className="rounded-lg border border-border p-4">
                 <p className="font-medium text-text-primary">{question.text}</p>
                 <p className="text-xs text-text-secondary">
-                  {question.type}
+                  {typeLabel(question.type)}
                   {question.theme ? ` · ${question.theme}` : ""} · {t("responseCount", { count: question.responses.length })}
                 </p>
                 <ul className="mt-2 list-inside list-disc text-sm text-text-secondary">
                   {question.responses.map((entry) => (
-                    <li key={`${question.questionId}-${entry.workspaceId}`}>
-                      {entry.workspaceName}: {Array.isArray(entry.value) ? entry.value.join(", ") : String(entry.value)}
+                    <li key={entry.responseId}>
+                      {entry.workspaceName} · {entry.responderName || entry.responderEmail}: {Array.isArray(entry.value) ? entry.value.join(", ") : String(entry.value)}
                     </li>
                   ))}
                 </ul>
