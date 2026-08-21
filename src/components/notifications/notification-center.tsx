@@ -13,6 +13,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export function NotificationCenter() {
   const router = useRouter();
@@ -36,28 +38,42 @@ export function NotificationCenter() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          className="relative flex h-10 w-10 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-page"
+        <Button
+          type="button"
+          variant="text"
+          color="neutral"
+          size="icon"
+          className="relative text-balsa-muted-foreground hover:bg-balsa-muted hover:text-balsa-foreground"
           aria-label={t("unreadAria", { count: data?.unreadCount ?? 0 })}
         >
-          <Bell className="h-4 w-4" />
+          <Bell className="h-4 w-4" aria-hidden="true" />
           {!!data?.unreadCount && (
-            <span className="absolute right-1.5 top-1.5 min-w-4 rounded-full bg-danger px-1 text-center text-[10px] font-bold leading-4 text-white">
+            <Badge
+              variant="solid"
+              color="destructive"
+              size="sm"
+              className="absolute right-0.5 top-0.5 min-w-4 px-1 py-0 text-[10px] leading-4"
+            >
               {Math.min(data.unreadCount, 99)}
-            </span>
+            </Badge>
           )}
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[380px] max-w-[calc(100vw-24px)] p-0">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <p className="text-sm font-semibold text-text-primary">{t("title")}</p>
-          <button
+        <div className="flex items-center justify-between border-b border-balsa-border px-4 py-3">
+          <p className="font-balsa-title text-sm font-semibold text-balsa-foreground">{t("title")}</p>
+          <Button
+            type="button"
+            variant="text"
+            color="primary"
+            size="sm"
+            prefixIcon={CheckCheck}
             onClick={() => markAll.mutate()}
             disabled={!data?.unreadCount}
-            className="flex items-center gap-1 text-xs font-medium text-accent disabled:opacity-40"
+            className="min-h-8 px-0 text-xs font-medium disabled:opacity-40"
           >
-            <CheckCheck className="h-3.5 w-3.5" /> {t("markAll")}
-          </button>
+            {t("markAll")}
+          </Button>
         </div>
         <div className="max-h-[440px] overflow-y-auto" aria-live="polite">
           {isLoading && (
@@ -76,14 +92,15 @@ export function NotificationCenter() {
               onClick={() =>
                 openNotification(item.id, item.activity.entityType)
               }
-              className={`block w-full border-b border-border px-4 py-3 text-left hover:bg-page ${
-                item.readAt ? "bg-page-alt" : "bg-brand-50/60"
-              }`}
-            >
-              <p className="text-sm text-text-primary">
-                {item.activity.summary}
-              </p>
-              <p className="mt-1 text-xs text-text-secondary">
+               data-balsa="link"
+               className={`block w-full border-b border-balsa-border px-4 py-3 text-left transition-colors hover:bg-balsa-muted ${
+                 item.readAt ? "bg-balsa-surface" : "bg-balsa-primary/10"
+               }`}
+             >
+               <p className="text-sm text-balsa-foreground">
+                 {item.activity.summary}
+               </p>
+               <p className="mt-1 text-xs text-balsa-muted-foreground">
                 {item.activity.actor?.name || t("system")} ·{" "}
                 {new Date(item.createdAt).toLocaleString("pt-BR")}
               </p>

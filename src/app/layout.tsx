@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 import { SwRegister } from "@/components/sw-register";
+import { BalsaPortalScope } from "@/components/ui/BalsaPortalScope";
+import { BalsaThemeProvider } from "@/components/ui/BalsaThemeProvider";
 import { createThemeScope } from "@/components/ui/theme";
 import { ThemeWatcher } from "@/components/theme-watcher";
 import { I18nProvider } from "@/i18n/provider";
@@ -113,11 +115,18 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: localeScript }} />
       </head>
       <body>
-        <I18nProvider>
-          <ThemeWatcher />
-          <SwRegister />
-          {children}
-        </I18nProvider>
+        <BalsaThemeProvider
+          theme={seOrganizeMaisDesignSystemTheme}
+          data-palette="se-organize-mais-design-system"
+        >
+          <BalsaPortalScope>
+            <I18nProvider>
+              <ThemeWatcher />
+              <SwRegister />
+              {children}
+            </I18nProvider>
+          </BalsaPortalScope>
+        </BalsaThemeProvider>
       </body>
     </html>
   );

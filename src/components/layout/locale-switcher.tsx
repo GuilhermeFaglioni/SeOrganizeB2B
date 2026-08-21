@@ -5,6 +5,7 @@ import { useI18n } from "@/i18n/provider";
 import { localeNativeNames, locales } from "@/i18n/config";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function LocaleSwitcher() {
   const { locale, setLocale } = useI18n();
@@ -12,32 +13,35 @@ export function LocaleSwitcher() {
 
   return (
     <div
-      className="flex shrink-0 items-center gap-0.5 rounded-md border border-border bg-page px-1 py-0.5"
+      className="flex shrink-0 items-center gap-0.5 rounded-balsa-control border border-balsa-border bg-balsa-background px-1 py-0.5"
       role="group"
       aria-label={t("label")}
       title={t("title")}
     >
       <Languages
         size={14}
-        className="ml-1 text-text-muted"
+        className="ml-1 text-balsa-muted-foreground"
         aria-hidden="true"
       />
       {locales.map((code) => (
-        <button
+        <Button
           key={code}
           type="button"
+          variant={locale === code ? "solid" : "text"}
+          color={locale === code ? "primary" : "neutral"}
+          size="sm"
           onClick={() => setLocale(code)}
           aria-pressed={locale === code}
           aria-label={code}
           className={cn(
-            "min-h-[30px] min-w-[32px] rounded px-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
+            "min-w-8 rounded-balsa-control px-1.5 text-xs font-semibold",
             locale === code
-              ? "bg-accent text-white"
-              : "text-text-secondary hover:bg-page hover:text-text-primary"
+              ? "text-balsa-primary-foreground"
+              : "text-balsa-muted-foreground hover:bg-balsa-muted hover:text-balsa-foreground"
           )}
         >
           {localeNativeNames[code]}
-        </button>
+        </Button>
       ))}
     </div>
   );

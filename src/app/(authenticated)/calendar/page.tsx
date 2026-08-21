@@ -104,18 +104,18 @@ export default function CalendarPage() {
       data-testid="calendar-page"
       className="flex h-full min-h-0 flex-col gap-4 overflow-hidden p-5 xl:flex-row"
     >
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-page-alt p-4 shadow-card">
+      <section className="balsa-surface flex min-h-0 flex-1 flex-col overflow-hidden rounded-balsa-panel p-4">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-label uppercase text-text-muted">{t("eyebrow")}</p>
-            <h2 className="text-display text-text-primary">
+            <p className="text-balsa-2xs uppercase tracking-balsa-label text-balsa-muted-foreground">{t("eyebrow")}</p>
+            <h2 className="font-balsa-title text-balsa-3xl text-balsa-foreground">
               {t("title")}
             </h2>
           </div>
           <div className="flex items-center gap-2">
             {!isLoading && auth?.connected && (
               <>
-                <span className="hidden max-w-[220px] truncate text-xs text-text-secondary sm:inline">
+                <span className="hidden max-w-[220px] truncate text-balsa-xs text-balsa-muted-foreground sm:inline">
                   {auth.email ?? t("connectedAccountUnknown")}
                 </span>
                 <Button
@@ -143,25 +143,25 @@ export default function CalendarPage() {
           </div>
         </div>
         {!isLoading && auth?.status === "reconnect_required" && (
-          <div className="mb-4 rounded-xl border border-danger/20 bg-danger-bg px-4 py-3 text-sm text-danger">
+          <div className="mb-4 rounded-balsa-surface border border-balsa-destructive/20 bg-balsa-destructive/10 px-4 py-3 text-sm text-balsa-destructive">
             <p className="font-semibold">{t("reconnectRequired")}</p>
             <p className="mt-1 text-xs">{t("reconnectRequiredHint")}</p>
           </div>
         )}
         {!isLoading && !auth?.connected && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-balsa-surface border border-balsa-primary/20 bg-balsa-primary/10 px-4 py-3">
             <div>
-              <p className="text-sm font-semibold text-brand-900">
+              <p className="text-sm font-semibold text-balsa-primary">
                 {t("localCalendarActive")}
               </p>
-              <p className="text-xs text-brand-700">
+              <p className="text-balsa-xs text-balsa-primary">
                 {t("localCalendarHint")}
               </p>
             </div>
             <button
               type="button"
               onClick={openConnectDisclosure}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700"
+              className="inline-flex items-center gap-1 text-balsa-xs font-semibold text-balsa-primary"
             >
               {t("connectNow")}
               <ExternalLink className="h-3 w-3" />
@@ -181,7 +181,7 @@ export default function CalendarPage() {
           />
         </div>
       </section>
-      <aside className="min-h-0 w-full shrink-0 overflow-y-auto rounded-2xl border border-border bg-page-alt p-4 xl:w-[330px]">
+      <aside className="balsa-surface min-h-0 w-full shrink-0 overflow-y-auto rounded-balsa-panel p-4 xl:w-[330px]">
         <UpcomingTasksPanel
           tasks={upcomingTasks}
           isLoading={tasksLoading}
@@ -205,13 +205,13 @@ export default function CalendarPage() {
             <DialogTitle>{t("connectDisclosureTitle")}</DialogTitle>
             <DialogDescription>{t("connectDisclosureDescription")}</DialogDescription>
           </DialogHeader>
-          <ul className="space-y-2 text-sm text-text-secondary">
+          <ul className="space-y-2 text-sm text-balsa-muted-foreground">
             <li>{t("connectDisclosureData")}</li>
             <li>{t("connectDisclosurePurpose")}</li>
             <li>{t("connectDisclosureScope")}</li>
           </ul>
-          <p className="text-sm text-text-secondary">
-            <Link href="/privacy" className="text-accent hover:underline">
+          <p className="text-sm text-balsa-muted-foreground">
+            <Link href="/privacy" className="text-balsa-primary hover:underline">
               {t("connectDisclosurePrivacy")}
             </Link>
           </p>

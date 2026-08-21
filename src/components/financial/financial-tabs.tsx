@@ -30,11 +30,12 @@ export function FinancialTabs() {
             key={tab.href}
             href={tab.href}
             aria-current={active ? "page" : undefined}
+            data-balsa="link"
             className={cn(
-              "flex min-h-[44px] items-center rounded-md px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
+              "flex min-h-[44px] items-center rounded-balsa-control px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-balsa-focus-ring focus-visible:ring-2 focus-visible:ring-balsa-focus-ring/30",
               active
-                ? "bg-accent text-white"
-                : "text-text-secondary hover:bg-bg-secondary"
+                ? "bg-balsa-primary text-balsa-primary-foreground shadow-balsa-detail"
+                : "text-balsa-muted-foreground hover:bg-balsa-muted hover:text-balsa-foreground"
             )}
           >
             {t(tab.labelKey)}

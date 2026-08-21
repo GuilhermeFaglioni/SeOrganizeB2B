@@ -4,6 +4,7 @@ import { CalendarDays, Clock3 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCalendarEvents } from "@/hooks/use-calendar";
 import { LoadingState } from "@/components/shared/loading-state";
+import { Button } from "@/components/ui/button";
 
 function todayRange() {
   const start = new Date();
@@ -21,22 +22,26 @@ export function TodayAgenda() {
     range.end
   );
   return (
-    <section className="rounded-2xl border border-border bg-page-alt p-5 shadow-card">
+    <section className="balsa-surface rounded-balsa-panel p-5">
       <div className="mb-4 flex items-center gap-2">
-        <CalendarDays className="h-4 w-4 text-accent" />
-        <h3 className="text-heading-1 text-text-primary">{t("heading")}</h3>
+        <CalendarDays className="h-4 w-4 text-balsa-primary" />
+        <h3 className="font-balsa-title text-lg font-semibold text-balsa-foreground">{t("heading")}</h3>
       </div>
       {isLoading && <LoadingState />}
       {error && (
-        <button
-          className="text-sm text-danger underline"
+        <Button
+          type="button"
+          variant="text"
+          color="destructive"
+          size="sm"
+          className="px-0 text-sm underline"
           onClick={() => refetch()}
         >
           {t("loadFailed")}
-        </button>
+        </Button>
       )}
       {!isLoading && !error && data.length === 0 && (
-        <p className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-text-secondary">
+        <p className="rounded-balsa-surface border border-dashed border-balsa-border py-10 text-center text-sm text-balsa-muted-foreground">
           {t("empty")}
         </p>
       )}
@@ -44,14 +49,14 @@ export function TodayAgenda() {
         {data.map((event) => (
           <div
             key={event.id}
-            className="flex gap-3 rounded-xl border border-border bg-page-alt p-3"
+            className="flex gap-3 rounded-balsa-surface border border-balsa-border bg-balsa-surface/70 p-3"
           >
-            <Clock3 className="mt-0.5 h-4 w-4 text-accent" />
+            <Clock3 className="mt-0.5 h-4 w-4 text-balsa-primary" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-text-primary">
+              <p className="truncate text-sm font-semibold text-balsa-foreground">
                 {event.title}
               </p>
-              <p className="text-xs text-text-secondary">
+              <p className="text-balsa-xs text-balsa-muted-foreground">
                 {event.allDay
                   ? t("allDay")
                   : new Date(event.startTime).toLocaleTimeString("pt-BR", {

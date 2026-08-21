@@ -23,7 +23,7 @@ export function PlansReturnView({ status }: { status: string | null }) {
     <div className="flex min-h-full items-center justify-center p-6">
       <div
         data-testid="plans-return"
-        className="w-full max-w-md space-y-4 rounded-xl border border-border bg-white p-6 text-center shadow-card"
+        className="balsa-surface w-full max-w-md space-y-4 rounded-balsa-surface p-6 text-center"
       >
         <div
           className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${

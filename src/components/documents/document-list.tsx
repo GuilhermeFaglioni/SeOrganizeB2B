@@ -7,6 +7,7 @@ import { useProjects } from "@/hooks/use-projects";
 import { DocumentRow } from "./document-row";
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 
 export function DocumentList({
   onSelectDoc,
@@ -31,33 +32,39 @@ export function DocumentList({
     <div data-testid="document-list">
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-1 overflow-x-auto">
-          <button
+          <Button
+            type="button"
+            variant={activeProjectId ? "soft" : "solid"}
+            color={activeProjectId ? "neutral" : "primary"}
+            size="sm"
             onClick={() => handleSetFilter(null)}
-            className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap ${
-              !activeProjectId ? "bg-accent text-white" : "bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
-            }`}
+            className="rounded-balsa-control whitespace-nowrap"
           >
             {t("allDocuments")}
-          </button>
+          </Button>
           {projects?.map((p: { id: string; name: string }) => (
-            <button
+            <Button
               key={p.id}
+              type="button"
+              variant={activeProjectId === p.id ? "solid" : "soft"}
+              color={activeProjectId === p.id ? "primary" : "neutral"}
+              size="sm"
               onClick={() => handleSetFilter(p.id)}
-              className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap ${
-                activeProjectId === p.id ? "bg-accent text-white" : "bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
-              }`}
+              className="rounded-balsa-control whitespace-nowrap"
             >
               {p.name}
-            </button>
+            </Button>
           ))}
           {can("documents.create") && (
-          <button
+          <Button
+            type="button"
+            size="sm"
+            prefixIcon={Plus}
             onClick={onNewDoc}
-            className="ml-2 flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-accent text-white hover:bg-accent/90"
+            className="ml-2 rounded-balsa-control"
           >
-            <Plus size={16} />
             {t("new")}
-          </button>
+          </Button>
           )}
         </div>
       </div>
@@ -67,7 +74,7 @@ export function DocumentList({
       )}
 
       {!isLoading && documents && documents.length > 0 && (
-        <div className="border border-border rounded-lg overflow-hidden">
+        <div className="balsa-surface overflow-hidden rounded-balsa-surface">
           {documents.map((doc: DocumentData) => (
             <DocumentRow
               key={doc.id}
