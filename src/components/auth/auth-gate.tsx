@@ -11,10 +11,11 @@ import { useCheckinStatus } from "@/hooks/use-checkin";
 import { WorkspaceProvider } from "@/stores/workspace-context";
 import { GracePeriodBanner } from "@/components/billing/grace-period-banner";
 import { UpgradeBanner } from "@/components/billing/upgrade-banner";
-import { ExpirationBanner } from "@/components/billing/expiration-banner";
-import { LoadingState } from "@/components/shared/loading-state";
-import { Button } from "@/components/ui/button";
-import { getWorkspaceAccessMode } from "@/lib/workspace/access";
+  import { ExpirationBanner } from "@/components/billing/expiration-banner";
+  import { CheckinReminderBanner } from "@/components/beta/checkin-reminder-banner";
+  import { LoadingState } from "@/components/shared/loading-state";
+  import { Button } from "@/components/ui/button";
+  import { getWorkspaceAccessMode } from "@/lib/workspace/access";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -41,6 +42,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   const mode = getWorkspaceAccessMode(workspaceQuery.data);
   const checkinBlocked = checkinQuery.data?.blocked === true;
+  const checkinReminder = checkinQuery.data && !checkinBlocked && checkinQuery.data.phase === "open" && checkinQuery.data.workspaceStatus === "pending" && !checkinQuery.data.memberSubmitted;
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -142,15 +144,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   const readOnly = mode === "readonly";
 
-  return (
-    <WorkspaceProvider
-      workspace={workspaceQuery.data ?? null}
-      readOnly={readOnly}
-    >
-      {mode === "grace" && <GracePeriodBanner />}
-      {<UpgradeBanner />}
-      {mode === "readonly" && <ExpirationBanner />}
-      {children}
-    </WorkspaceProvider>
-  );
+    return (
+        <WorkspaceProvider
+          workspace={workspaceQuery.data ?? null}
+          readOnly={readOnly}
+        >
+          {mode === "grace" && <GracePeriodBanner />}
+          {checkinReminder && pathname !== "/beta/checkin" && <CheckinReminderBanner />}
+          {<UpgradeBanner />}
+          {mode === "readonly" && <ExpirationBanner />}
+          {children}
+        </WorkspaceProvider>
+      );
 }
