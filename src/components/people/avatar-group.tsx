@@ -42,7 +42,7 @@ export function AvatarGroup({
         <Avatar
           key={person.id}
           className={cn(
-            "border-2 border-white bg-brand-100",
+            "border-2 border-balsa-surface bg-balsa-primary/10",
             size === "xs" ? "h-5 w-5" : "h-7 w-7"
           )}
           title={person.name || person.email}
@@ -50,7 +50,7 @@ export function AvatarGroup({
           {person.avatarUrl && (
             <AvatarImage src={person.avatarUrl} alt={person.name || person.email} />
           )}
-          <AvatarFallback className="bg-brand-100 text-[9px] font-semibold text-brand-700">
+          <AvatarFallback className="bg-balsa-primary/10 text-[9px] font-semibold text-balsa-primary">
             {initials(person)}
           </AvatarFallback>
         </Avatar>
@@ -58,7 +58,7 @@ export function AvatarGroup({
       {remaining > 0 && (
         <span
           className={cn(
-            "relative grid place-items-center rounded-full border-2 border-white bg-slate-100 font-semibold text-slate-600",
+            "relative grid place-items-center rounded-balsa-pill border-2 border-balsa-surface bg-balsa-muted font-semibold text-balsa-muted-foreground",
             size === "xs" ? "h-5 min-w-5 px-1 text-[8px]" : "h-7 min-w-7 px-1 text-[9px]"
           )}
         >

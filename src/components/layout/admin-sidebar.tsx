@@ -34,20 +34,20 @@ export function AdminSidebar() {
   return (
     <aside
       data-testid="admin-sidebar"
-      className="flex h-full w-[240px] shrink-0 flex-col bg-sidebar"
+      className="flex h-full w-[240px] shrink-0 flex-col bg-balsa-inverse text-balsa-inverse-foreground"
     >
       <div
         data-testid="admin-sidebar-logo"
-        className="flex h-14 items-center gap-3 border-b border-sidebar-divider px-4"
+        className="flex h-14 items-center gap-3 border-b border-balsa-inverse-foreground/15 px-4"
       >
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-page-alt text-sidebar shadow-sm">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-balsa-control bg-balsa-inverse-foreground/10 text-balsa-inverse-foreground shadow-balsa-detail">
           <span className="text-sm font-bold">S+</span>
         </div>
         <div className="min-w-0">
-          <span className="block truncate text-sm font-semibold text-sidebar-text">
+          <span className="block truncate font-balsa-title text-sm font-semibold">
             {APP_NAME}
           </span>
-          <span className="block truncate text-xs text-sidebar-text-muted">
+          <span className="block truncate text-xs text-balsa-inverse-foreground/65">
             {t("label")}
           </span>
         </div>
@@ -65,10 +65,10 @@ export function AdminSidebar() {
               href={item.href}
               data-testid={item.testId}
               className={cn(
-                "relative isolate flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "relative isolate flex items-center gap-3 rounded-balsa-control px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-sidebar-active text-sidebar-text"
-                  : "text-sidebar-text-muted hover:bg-sidebar-hover"
+                  ? "bg-balsa-primary/20 text-balsa-inverse-foreground shadow-balsa-detail"
+                  : "text-balsa-inverse-foreground/70 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />

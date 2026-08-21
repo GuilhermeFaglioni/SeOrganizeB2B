@@ -57,11 +57,11 @@ export function SettingsSection({
   className,
 }: SettingsSectionProps) {
   return (
-    <section className={cn("rounded-xl border border-border bg-page-alt p-5 shadow-card sm:p-6", className)}>
+    <section className={cn("balsa-surface rounded-balsa-surface p-5 sm:p-6", className)}>
       {title || description ? (
         <div className="mb-5 space-y-1">
-          {title ? <h2 className="text-lg font-semibold text-text-primary">{title}</h2> : null}
-          {description ? <p className="text-sm text-text-secondary">{description}</p> : null}
+          {title ? <h2 className="font-balsa-title text-lg font-semibold text-balsa-foreground">{title}</h2> : null}
+          {description ? <p className="text-sm text-balsa-muted-foreground">{description}</p> : null}
         </div>
       ) : null}
       {children}
@@ -78,7 +78,8 @@ export function SettingsBackLink({ href = "/settings", label }: SettingsBackLink
   return (
     <Link
       href={href}
-      className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
+      data-balsa="link"
+      className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-balsa-muted-foreground transition-colors hover:text-balsa-foreground"
     >
       <ArrowLeft className="h-4 w-4" aria-hidden="true" />
       {label}

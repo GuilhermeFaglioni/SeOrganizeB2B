@@ -11,7 +11,6 @@ import { TaskForm } from "@/components/kanban/task-form";
 import { TaskDetailPanel } from "@/components/kanban/task-detail-panel";
 import { LoadingState } from "@/components/shared/loading-state";
 import { useDeleteTask, useUpdateTask } from "@/hooks/use-tasks";
-import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -261,18 +260,17 @@ export default function BoardPage() {
           </div>
            <div className="flex items-center gap-2">
             {filterButtons.map((f) => (
-              <button
+              <Button
                 key={f.key || "all"}
+                type="button"
+                variant={activeFilter === f.key || (!activeFilter && !f.key) ? "solid" : "soft"}
+                color={activeFilter === f.key || (!activeFilter && !f.key) ? "primary" : "neutral"}
+                size="sm"
                 onClick={() => setFilter(f.key)}
-                className={cn(
-                  "px-3 py-1.5 text-sm rounded-md transition-colors",
-                  activeFilter === f.key || (!activeFilter && !f.key)
-                    ? "bg-accent text-white"
-                    : "bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
-                )}
+                className="rounded-balsa-control"
               >
                 {f.label}
-              </button>
+              </Button>
             ))}
            </div>
            <SavedViewControl
@@ -434,7 +432,7 @@ function ProjectBoardSection({
   if (taskCount === 0) return null;
 
   return (
-    <div className="bg-page-alt border border-border rounded-xl p-5">
+    <div className="balsa-surface rounded-balsa-surface p-5">
       <button
         onClick={() => router.push(`/board/${projectId}`)}
         className="flex items-center gap-2 text-base font-semibold text-text-primary hover:text-accent mb-4"

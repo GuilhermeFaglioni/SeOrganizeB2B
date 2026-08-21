@@ -6,8 +6,8 @@ import { ActivityFeed } from "@/components/activity/activity-feed";
 export function TodayActivity() {
   const t = useTranslations("today.activity");
   return (
-    <section className="rounded-2xl border border-border bg-page-alt p-5 shadow-card">
-      <h3 className="mb-4 text-heading-1 text-text-primary">
+    <section className="balsa-surface rounded-balsa-panel p-5">
+      <h3 className="mb-4 font-balsa-title text-lg font-semibold text-balsa-foreground">
         {t("heading")}
       </h3>
       <ActivityFeed limit={12} />

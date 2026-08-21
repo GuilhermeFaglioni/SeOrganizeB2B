@@ -19,16 +19,19 @@ describe("Executive Quartz contracts", () => {
     expect(layout).toContain('default: "SeOrganize+"');
   });
 
-  it("defines the approved color foundations", () => {
+  it("routes legacy utility names through the active Balsa palette", () => {
     const globals = read("src/app/globals.css");
-    expect(globals).toContain("--color-page: #F4F7FB");
-    expect(globals).toContain("--color-sidebar: #10233F");
-    expect(globals).toContain("--color-accent: #2F6FED");
+    expect(globals).toContain("--color-page: var(--color-balsa-background)");
+    expect(globals).toContain("--color-sidebar: var(--color-balsa-inverse)");
+    expect(globals).toContain("--color-accent: var(--color-balsa-primary)");
   });
 
-  it("keeps the application shell out of the shadcn token bridge", () => {
+  it("activates the Balsa theme and shadcn bridge at the application root", () => {
     const globals = read("src/app/globals.css");
-    expect(globals).not.toContain("balsa-shadcn-bridge.css");
+    expect(globals).toContain("balsa-shadcn-bridge.css");
+    const layout = read("src/app/layout.tsx");
+    expect(layout).toContain("BalsaThemeProvider");
+    expect(layout).toContain("BalsaPortalScope");
     expect(read("src/components/ui/button.tsx")).toContain("bg-balsa");
   });
 

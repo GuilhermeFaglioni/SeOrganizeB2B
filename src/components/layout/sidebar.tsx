@@ -14,7 +14,6 @@ import {
   CreditCard,
   X,
   LogOut,
-  User as UserIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_NAME } from "@/lib/constants";
@@ -23,6 +22,8 @@ import { useAuth } from "@/stores/auth-context";
 import { useCan, hasFinancialView } from "@/hooks/use-permissions";
 import { useAllowedModules } from "@/hooks/use-allowed-modules";
 import { motion } from "motion/react";
+import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 function isRouteActive(pathname: string, href: string) {
   return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
@@ -44,6 +45,7 @@ export function Sidebar({
   const t = useTranslations("layout.sidebar");
   const { can, data } = useCan();
   const { isModuleAllowed, isAnyFinancialAllowed } = useAllowedModules();
+  const userLabel = user?.user_metadata?.full_name || user?.email || t("user");
 
   const navItems = [
     { href: "/app", label: t("today"), icon: SunMedium, testId: "nav-today", visible: can("tasks.view") && isModuleAllowed("tasks") },
@@ -62,25 +64,33 @@ export function Sidebar({
         {mobileOpen && (
           <>
             <div
-              className="fixed inset-0 z-40 bg-black/50"
+              className="fixed inset-0 z-40 bg-balsa-overlay backdrop-balsa-overlay"
               onClick={() => onMobileOpenChange?.(false)}
             />
             <aside
               data-testid="sidebar"
-              className="fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[240px] shrink-0 flex-col bg-sidebar"
+              className="fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[240px] shrink-0 flex-col bg-balsa-inverse text-balsa-inverse-foreground"
             >
-              <div data-testid="sidebar-logo" className="h-14 flex items-center justify-between px-4 border-b border-sidebar-divider">
+              <div data-testid="sidebar-logo" className="flex h-14 items-center justify-between border-b border-balsa-inverse-foreground/15 px-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-page-alt text-sidebar shadow-sm">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-balsa-control bg-balsa-inverse-foreground/10 text-balsa-inverse-foreground shadow-balsa-detail">
                     <span className="text-sm font-bold">S+</span>
                   </div>
-                  <span className="text-sidebar-text text-sm font-semibold">{APP_NAME}</span>
+                  <span className="font-balsa-title text-sm font-semibold">{APP_NAME}</span>
                 </div>
-                <button onClick={() => onMobileOpenChange?.(false)} className="flex min-h-[44px] min-w-[44px] items-center justify-center text-white" aria-label={t("closeMenu")}>
+                <Button
+                  type="button"
+                  variant="text"
+                  color="neutral"
+                  size="icon"
+                  onClick={() => onMobileOpenChange?.(false)}
+                  className="text-balsa-inverse-foreground/70 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
+                  aria-label={t("closeMenu")}
+                >
                   <X size={20} />
-                </button>
+                </Button>
               </div>
-              <nav className="flex-1 overflow-y-auto p-3 space-y-1" aria-label={t("mainNavigation")}>
+              <nav className="flex-1 space-y-1 overflow-y-auto p-3" aria-label={t("mainNavigation")}>
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = isRouteActive(pathname, item.href);
@@ -90,15 +100,18 @@ export function Sidebar({
                       href={item.href}
                       data-testid={item.testId}
                       onClick={() => onMobileOpenChange?.(false)}
+                      data-balsa="link"
                       className={cn(
-                        "relative isolate flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                        isActive ? "text-sidebar-text" : "text-sidebar-text-muted hover:bg-sidebar-hover"
+                        "relative isolate flex min-h-[44px] items-center gap-3 rounded-balsa-control px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "text-balsa-inverse-foreground"
+                          : "text-balsa-inverse-foreground/70 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
                       )}
                     >
                       {isActive && (
                         <motion.span
                           layoutId="sidebar-active-route"
-                          className="absolute inset-0 -z-10 rounded-md bg-sidebar-active shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07)]"
+                          className="absolute inset-0 -z-10 rounded-balsa-control bg-balsa-primary/20 shadow-balsa-detail"
                           transition={{
                             type: "spring",
                             stiffness: 420,
@@ -106,30 +119,37 @@ export function Sidebar({
                           }}
                         />
                       )}
-                      <Icon className="relative z-10 w-4 h-4 shrink-0" aria-hidden="true" />
+                      <Icon className="relative z-10 h-4 w-4 shrink-0" aria-hidden="true" />
                       <span className="relative z-10">{item.label}</span>
                     </Link>
                   );
                 })}
               </nav>
-              <div className="border-t border-sidebar-divider px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+              <div className="border-t border-balsa-inverse-foreground/15 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
-                      <UserIcon size={14} className="text-sidebar-text" />
-                    </div>
-                    <span className="text-sm text-sidebar-text truncate">
-                      {user?.user_metadata?.full_name || user?.email || t("user")}
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Avatar
+                      size="sm"
+                      label={userLabel}
+                      fallback={userLabel}
+                      className="size-7 border-transparent bg-balsa-primary/20 text-balsa-inverse-foreground"
+                    />
+                    <span className="truncate text-sm text-balsa-inverse-foreground">
+                      {userLabel}
                     </span>
                   </div>
-                  <button
+                  <Button
+                    type="button"
+                    variant="text"
+                    color="neutral"
+                    size="icon"
                     onClick={() => signOut()}
-                    className="text-sidebar-text-muted hover:text-sidebar-text transition-colors p-1"
+                    className="text-balsa-inverse-foreground/65 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
                     title={t("signOut")}
                     aria-label={t("signOut")}
                   >
                     <LogOut size={16} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </aside>
@@ -143,16 +163,16 @@ export function Sidebar({
     <aside
       data-testid="sidebar"
       className={cn(
-        "h-full bg-sidebar flex flex-col shrink-0 transition-all duration-200",
+        "flex h-full shrink-0 flex-col bg-balsa-inverse text-balsa-inverse-foreground transition-[width] duration-balsa-normal",
         isTablet ? "w-16" : "w-[240px]"
       )}
     >
-      <div data-testid="sidebar-logo" className={cn("h-14 flex items-center border-b border-sidebar-divider", isTablet ? "justify-center px-2" : "gap-3 px-4")}>
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-page-alt text-sidebar shadow-sm">
+      <div data-testid="sidebar-logo" className={cn("flex h-14 items-center border-b border-balsa-inverse-foreground/15", isTablet ? "justify-center px-2" : "gap-3 px-4")}>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-balsa-control bg-balsa-inverse-foreground/10 text-balsa-inverse-foreground shadow-balsa-detail">
           <span className="text-sm font-bold">S+</span>
         </div>
         {!isTablet && (
-          <span className="text-sidebar-text text-sm font-semibold">{APP_NAME}</span>
+          <span className="font-balsa-title text-sm font-semibold">{APP_NAME}</span>
         )}
       </div>
 
@@ -166,16 +186,19 @@ export function Sidebar({
               href={item.href}
               data-testid={item.testId}
               title={isTablet ? item.label : undefined}
+              data-balsa="link"
               className={cn(
-                "relative isolate flex items-center gap-3 rounded-md text-sm font-medium transition-colors",
+                "relative isolate flex items-center gap-3 rounded-balsa-control text-sm font-medium transition-colors",
                 isTablet ? "justify-center px-2 py-2" : "px-3 py-2",
-                isActive ? "text-sidebar-text" : "text-sidebar-text-muted hover:bg-sidebar-hover"
+                isActive
+                  ? "text-balsa-inverse-foreground"
+                  : "text-balsa-inverse-foreground/70 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
               )}
             >
               {isActive && (
                 <motion.span
                   layoutId="sidebar-active-route"
-                  className="absolute inset-0 -z-10 rounded-md bg-sidebar-active shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07)]"
+                  className="absolute inset-0 -z-10 rounded-balsa-control bg-balsa-primary/20 shadow-balsa-detail"
                   transition={{
                     type: "spring",
                     stiffness: 420,
@@ -183,7 +206,7 @@ export function Sidebar({
                   }}
                 />
               )}
-              <Icon className="relative z-10 w-4 h-4 shrink-0" aria-hidden="true" />
+              <Icon className="relative z-10 h-4 w-4 shrink-0" aria-hidden="true" />
               {!isTablet && <span className="relative z-10">{item.label}</span>}
             </Link>
           );
@@ -192,34 +215,45 @@ export function Sidebar({
 
       <div className="flex-1" />
 
-      <div className={cn("border-t border-sidebar-divider p-3", isTablet && "flex justify-center")}>
+      <div className={cn("border-t border-balsa-inverse-foreground/15 p-3", isTablet && "flex justify-center")}>
         {isTablet ? (
-          <button
+          <Button
+            type="button"
+            variant="text"
+            color="neutral"
+            size="icon"
             onClick={() => signOut()}
-            className="text-sidebar-text-muted hover:text-sidebar-text transition-colors"
+            className="text-balsa-inverse-foreground/65 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
             title={t("signOut")}
             aria-label={t("signOut")}
           >
             <LogOut size={18} />
-          </button>
+          </Button>
         ) : (
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
-                <UserIcon size={14} className="text-sidebar-text" />
-              </div>
-              <span className="text-sm text-sidebar-text truncate">
-                {user?.user_metadata?.full_name || user?.email || "User"}
+            <div className="flex min-w-0 items-center gap-2">
+              <Avatar
+                size="sm"
+                label={userLabel}
+                fallback={userLabel}
+                className="size-7 border-transparent bg-balsa-primary/20 text-balsa-inverse-foreground"
+              />
+              <span className="truncate text-sm text-balsa-inverse-foreground">
+                {userLabel}
               </span>
             </div>
-            <button
+            <Button
+              type="button"
+              variant="text"
+              color="neutral"
+              size="icon"
               onClick={() => signOut()}
-              className="text-sidebar-text-muted hover:text-sidebar-text transition-colors p-1"
+              className="text-balsa-inverse-foreground/65 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
               title={t("signOut")}
               aria-label={t("signOut")}
             >
               <LogOut size={16} />
-            </button>
+            </Button>
           </div>
         )}
       </div>

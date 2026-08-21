@@ -26,7 +26,7 @@ export default async function AdminLayout({
     <AdminProviders>
       <div className="flex h-[100dvh] min-h-[100dvh] overflow-hidden">
         <AdminSidebar />
-        <main className="min-h-0 flex-1 overflow-auto bg-page">{children}</main>
+        <main className="min-h-0 flex-1 overflow-auto bg-balsa-background">{children}</main>
       </div>
     </AdminProviders>
   );

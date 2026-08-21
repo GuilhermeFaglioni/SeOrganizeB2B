@@ -15,15 +15,15 @@ export function TodayTasks() {
   const { data = [], isLoading, error, refetch } = useTodayTasks();
 
   return (
-    <section className="rounded-2xl border border-border bg-page-alt p-5 shadow-card">
+    <section className="balsa-surface rounded-balsa-panel p-5">
       <div className="mb-4 flex items-center gap-2">
-        <CheckSquare2 className="h-4 w-4 text-accent" />
-        <h3 className="text-heading-1 text-text-primary">{t("heading")}</h3>
-        <span className="ml-auto text-xs text-text-secondary">{data.length}</span>
+        <CheckSquare2 className="h-4 w-4 text-balsa-primary" />
+        <h3 className="font-balsa-title text-lg font-semibold text-balsa-foreground">{t("heading")}</h3>
+        <span className="ml-auto text-balsa-xs text-balsa-muted-foreground">{data.length}</span>
       </div>
       {isLoading && <LoadingState />}
       {error && (
-        <div className="flex items-center justify-between rounded-xl bg-danger-bg p-3 text-sm text-danger">
+        <div className="flex items-center justify-between rounded-balsa-control bg-balsa-destructive/10 p-3 text-sm text-balsa-destructive">
           <span className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" /> {t("loadFailed")}
           </span>
@@ -33,15 +33,20 @@ export function TodayTasks() {
         </div>
       )}
       {!isLoading && !error && data.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border py-10 text-center">
-          <p className="text-sm text-text-secondary">{t("empty")}</p>
-          <Link
-            href="/projects"
-            className="mt-2 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        <div className="rounded-balsa-surface border border-dashed border-balsa-border py-10 text-center">
+          <p className="text-sm text-balsa-muted-foreground">{t("empty")}</p>
+          <Button
+            asChild
+            variant="text"
+            color="primary"
+            size="sm"
+            className="mt-2"
           >
+            <Link href="/projects">
             {t("emptyAction")}
-            <ArrowRight size={14} />
-          </Link>
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </Button>
         </div>
       )}
       <div className="grid gap-3 md:grid-cols-2">

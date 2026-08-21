@@ -8,6 +8,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { TodaySavedViews } from "@/components/today/today-saved-views";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
 
 export default function AuthenticatedHome() {
   const t = useTranslations("today.page");
@@ -23,17 +24,20 @@ export default function AuthenticatedHome() {
       <div className="mx-auto max-w-[1440px]">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-label uppercase tracking-[0.12em] text-text-muted">
+            <p className="text-balsa-2xs uppercase tracking-balsa-label text-balsa-muted-foreground">
               {t("executiveCockpit")}
             </p>
-            <h2 className="text-display capitalize text-text-primary">{today}</h2>
+            <h2 className="font-balsa-title text-balsa-3xl capitalize text-balsa-foreground">{today}</h2>
           </div>
-          <div
-            className="rounded-full border border-border bg-page-alt px-3 py-1.5 text-xs font-medium text-text-secondary shadow-card"
+          <Badge
+            variant="glass"
+            color="secondary"
+            size="md"
+            className="shrink-0"
             aria-live="polite"
           >
             {t("unreadNotifications", { count: notifications?.unreadCount ?? 0 })}
-          </div>
+          </Badge>
         </div>
         <OnboardingWizard />
         <TodaySavedViews />

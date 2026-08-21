@@ -10,7 +10,6 @@ import { TaskForm } from "@/components/kanban/task-form";
 import { TaskDetailPanel } from "@/components/kanban/task-detail-panel";
 import { LoadingState } from "@/components/shared/loading-state";
 import { useDeleteTask, useUpdateTask } from "@/hooks/use-tasks";
-import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -107,18 +106,17 @@ export default function BoardPage() {
       <div className="flex-1 p-4 overflow-hidden flex flex-col">
         <div className="flex items-center gap-2 mb-3 shrink-0">
           {filterButtons.map((f) => (
-            <button
+            <Button
               key={f.key || "all"}
+              type="button"
+              variant={activeFilter === f.key || (!activeFilter && !f.key) ? "solid" : "soft"}
+              color={activeFilter === f.key || (!activeFilter && !f.key) ? "primary" : "neutral"}
+              size="sm"
               onClick={() => setFilter(f.key)}
-              className={cn(
-                "px-3 py-1.5 text-sm rounded-md transition-colors",
-                activeFilter === f.key || (!activeFilter && !f.key)
-                  ? "bg-accent text-white"
-                  : "bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
-              )}
+              className="rounded-balsa-control"
             >
               {f.label}
-            </button>
+            </Button>
           ))}
         </div>
         <div className="flex-1 overflow-hidden">

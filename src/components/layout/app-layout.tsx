@@ -65,7 +65,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   };
 
   return (
-    <div className="flex h-[100dvh] min-h-[100dvh] overflow-hidden">
+    <div data-balsa="app-shell" className="flex h-[100dvh] min-h-[100dvh] overflow-hidden bg-balsa-background">
       <Sidebar
         mobileOpen={mobileMenuOpen}
         onMobileOpenChange={setMobileMenuOpen}
@@ -77,7 +77,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
           onNewClick={pageMeta.action ? handleNewClick : undefined}
           onMenuClick={() => setMobileMenuOpen(true)}
         />
-        <main className="min-h-0 flex-1 overflow-hidden bg-page">
+        <main className="min-h-0 flex-1 overflow-hidden bg-balsa-background">
           <AnimatedPage pageKey={pathname}>{children}</AnimatedPage>
         </main>
       </div>

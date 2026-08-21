@@ -2,105 +2,103 @@
 @import "../styles/balsa-palette.css";
 @import "../styles/balsa-theme.css";
 @import "../styles/se-organize-mais-design-system-palette.css";
+@import "../styles/balsa-shadcn-bridge.css";
 
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
 
-/* ===== Light theme (default) ===== */
+/* Legacy utility names stay as aliases so existing product surfaces inherit the
+ * active Balsa theme while their markup is migrated incrementally. */
 :root {
-  --color-sidebar: #10233F;
-  --color-sidebar-hover: rgba(255,255,255,0.08);
-  --color-sidebar-active: rgba(255,255,255,0.13);
-  --color-sidebar-text: #ffffff;
-  --color-sidebar-text-muted: rgba(255,255,255,0.4);
-  --color-sidebar-divider: rgba(255,255,255,0.1);
-  --color-page: #F4F7FB;
-  --color-page-alt: #F8FAFD;
-  --color-bg-secondary: #F4F7FB;
-  --color-bg-tertiary: #EAF0F7;
-  --color-accent: #2F6FED;
-  --color-accent-hover: #245FD1;
-  --color-text-primary: #132238;
-  --color-text-secondary: #64748b;
-  --color-text-muted: #94a3b8;
-  --color-text-inverse: #ffffff;
-  --color-border: #DCE4EF;
-  --color-border-dark: #C8D4E3;
-  --color-success: #16845B;
-  --color-success-bg: #f0fdf4;
-  --color-warning: #B66A12;
-  --color-warning-bg: #fffbeb;
-  --color-danger: #C93C48;
-  --color-danger-bg: #fef2f2;
-  --color-info: #0284c7;
-  --color-info-bg: #f0f9ff;
-  --color-brand-50: #F0F5FF;
-  --color-brand-100: #DFE9FF;
-  --color-brand-200: #BED2FF;
-  --color-brand-300: #91B3FF;
-  --color-brand-400: #6392F7;
-  --color-brand-500: #2F6FED;
-  --color-brand-600: #245FD1;
-  --color-brand-700: #1D4EA8;
-  --color-brand-800: #193F84;
-  --color-brand-900: #17376D;
-  --shadow-card: 0 1px 2px rgba(16,35,63,0.04), 0 8px 24px rgba(16,35,63,0.04);
-  --shadow-elevated: 0 12px 32px rgba(16,35,63,0.10);
-  --shadow-modal: 0 24px 64px rgba(16,35,63,0.18);
-  --shadow-toast: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.04);
+  --color-sidebar: var(--color-balsa-inverse);
+  --color-sidebar-hover: color-mix(in oklab, var(--color-balsa-inverse-foreground) 10%, transparent);
+  --color-sidebar-active: color-mix(in oklab, var(--color-balsa-primary) 20%, transparent);
+  --color-sidebar-text: var(--color-balsa-inverse-foreground);
+  --color-sidebar-text-muted: color-mix(in oklab, var(--color-balsa-inverse-foreground) 68%, transparent);
+  --color-sidebar-divider: color-mix(in oklab, var(--color-balsa-inverse-foreground) 16%, transparent);
+  --color-page: var(--color-balsa-background);
+  --color-page-alt: var(--color-balsa-surface);
+  --color-bg-secondary: var(--color-balsa-muted);
+  --color-bg-tertiary: var(--color-balsa-surface-elevated);
+  --color-accent: var(--color-balsa-primary);
+  --color-accent-hover: var(--color-balsa-primary-hover);
+  --color-text-primary: var(--color-balsa-foreground);
+  --color-text-secondary: var(--color-balsa-muted-foreground);
+  --color-text-muted: color-mix(in oklab, var(--color-balsa-muted-foreground) 72%, transparent);
+  --color-text-inverse: var(--color-balsa-inverse-foreground);
+  --color-border: var(--color-balsa-border);
+  --color-border-dark: var(--color-balsa-border-strong);
+  --color-success: var(--color-balsa-success);
+  --color-success-bg: color-mix(in oklab, var(--color-balsa-success) 10%, transparent);
+  --color-warning: var(--color-balsa-warning);
+  --color-warning-bg: color-mix(in oklab, var(--color-balsa-warning) 10%, transparent);
+  --color-danger: var(--color-balsa-destructive);
+  --color-danger-bg: color-mix(in oklab, var(--color-balsa-destructive) 10%, transparent);
+  --color-info: var(--color-balsa-info);
+  --color-info-bg: color-mix(in oklab, var(--color-balsa-info) 10%, transparent);
+  --color-brand-50: color-mix(in oklab, var(--color-balsa-background) 92%, var(--color-balsa-primary));
+  --color-brand-100: color-mix(in oklab, var(--color-balsa-background) 84%, var(--color-balsa-primary));
+  --color-brand-200: color-mix(in oklab, var(--color-balsa-background) 72%, var(--color-balsa-primary));
+  --color-brand-300: color-mix(in oklab, var(--color-balsa-background) 60%, var(--color-balsa-primary));
+  --color-brand-400: color-mix(in oklab, var(--color-balsa-background) 42%, var(--color-balsa-primary));
+  --color-brand-500: var(--color-balsa-primary);
+  --color-brand-600: var(--color-balsa-primary-hover);
+  --color-brand-700: var(--color-balsa-primary-active);
+  --color-brand-800: color-mix(in oklab, var(--color-balsa-primary) 78%, var(--color-balsa-foreground));
+  --color-brand-900: color-mix(in oklab, var(--color-balsa-primary) 62%, var(--color-balsa-foreground));
+  --shadow-card: var(--balsa-shadow-surface);
+  --shadow-elevated: var(--balsa-shadow-panel);
+  --shadow-modal: var(--balsa-shadow-panel);
+  --shadow-toast: var(--balsa-shadow-panel);
   color-scheme: light;
 }
 
-/* ===== Dark theme ===== */
-.dark {
-  --color-sidebar: #0c1524;
-  --color-sidebar-hover: rgba(255,255,255,0.06);
-  --color-sidebar-active: rgba(255,255,255,0.10);
-  --color-sidebar-text: #e2e8f0;
-  --color-sidebar-text-muted: rgba(255,255,255,0.35);
-  --color-sidebar-divider: rgba(255,255,255,0.08);
-  --color-page: #0f172a;
-  --color-page-alt: #1e293b;
-  --color-bg-secondary: #0f172a;
-  --color-bg-tertiary: #1e293b;
-  --color-accent: #60a5fa;
-  --color-accent-hover: #93bbfd;
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
-  --color-text-inverse: #0f172a;
-  --color-border: #334155;
-  --color-border-dark: #475569;
-  --color-success: #34d399;
-  --color-success-bg: rgba(52,211,153,0.1);
-  --color-warning: #fbbf24;
-  --color-warning-bg: rgba(251,191,36,0.1);
-  --color-danger: #f87171;
-  --color-danger-bg: rgba(248,113,113,0.1);
-  --color-info: #38bdf8;
-  --color-info-bg: rgba(56,189,248,0.1);
-  --color-brand-50: rgba(47,111,237,0.1);
-  --color-brand-100: rgba(47,111,237,0.15);
-  --color-brand-200: rgba(47,111,237,0.2);
-  --color-brand-300: rgba(96,165,250,0.4);
-  --color-brand-400: #60a5fa;
-  --color-brand-500: #60a5fa;
-  --color-brand-600: #93bbfd;
-  --color-brand-700: #bfdbfe;
-  --color-brand-800: #dbeafe;
-  --color-brand-900: #eff6ff;
-  --shadow-card: 0 1px 2px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.2);
-  --shadow-elevated: 0 12px 32px rgba(0,0,0,0.3);
-  --shadow-modal: 0 24px 64px rgba(0,0,0,0.4);
-  --shadow-toast: 0 20px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.15);
+.dark,
+.dark [data-palette="se-organize-mais-design-system"] {
+  --balsa-color-background: #0f172a;
+  --balsa-color-foreground: #f1f5f9;
+  --balsa-color-surface: #1e293b;
+  --balsa-color-muted: #334155;
+  --balsa-color-primary: #60a5fa;
+  --balsa-color-secondary: #94a3b8;
+  --balsa-color-accent: #60a5fa;
   color-scheme: dark;
 }
 
 @layer base {
   body {
-    @apply bg-page text-text-primary antialiased;
+    @apply antialiased;
+    background-color: var(--color-balsa-background);
+    color: var(--color-balsa-foreground);
     font-family: var(--font-balsa-body);
     font-feature-settings: "ss01" 1, "cv02" 1, "cv03" 1;
+  }
+
+  :where(input:not([data-balsa-control]), textarea:not([data-balsa-control]), select:not([data-balsa-control])) {
+    border: var(--balsa-border-width) solid var(--color-balsa-input-border);
+    border-radius: var(--balsa-radius-control);
+    background-color: var(--color-balsa-input);
+    color: var(--color-balsa-input-foreground);
+    font-family: var(--balsa-control-font-family);
+  }
+
+  :where(input:not([data-balsa-control]), textarea:not([data-balsa-control]), select:not([data-balsa-control])):focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--color-balsa-focus-ring) 35%, transparent);
+    outline-offset: 2px;
+    border-color: var(--color-balsa-focus-ring);
+  }
+
+  :where(button:not([data-balsa])) {
+    border-radius: var(--balsa-radius-control);
+    font-family: var(--balsa-control-font-family);
+    font-weight: var(--balsa-control-font-weight);
+    transition-duration: var(--balsa-motion-fast);
+    transition-timing-function: var(--balsa-motion-easing);
+  }
+
+  :where(button:not([data-balsa])):focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--color-balsa-focus-ring) 35%, transparent);
+    outline-offset: 2px;
   }
 
   ::selection {
@@ -113,12 +111,21 @@
 }
 
 @layer components {
+  .balsa-surface,
   .executive-surface {
-    @apply rounded-xl border border-border bg-white shadow-card;
+    border: var(--balsa-border-width) solid var(--color-balsa-border);
+    border-radius: var(--balsa-radius-surface);
+    background-color: var(--color-balsa-surface);
+    color: var(--color-balsa-surface-foreground);
+    box-shadow: var(--balsa-shadow-surface);
+    -webkit-backdrop-filter: var(--balsa-backdrop-filter);
+    backdrop-filter: var(--balsa-backdrop-filter);
   }
 
-  .dark .executive-surface {
-    @apply bg-page-alt;
+  /* Existing page surfaces now participate in the active material recipe. */
+  .bg-page-alt {
+    -webkit-backdrop-filter: var(--balsa-backdrop-filter);
+    backdrop-filter: var(--balsa-backdrop-filter);
   }
 
   .executive-calendar {
@@ -145,7 +152,7 @@
   }
 
   .executive-calendar .fc-button {
-    @apply rounded-md px-3 py-2 text-xs font-semibold shadow-none transition-colors;
+    @apply rounded-balsa-control px-3 py-2 text-xs font-semibold shadow-none transition-colors;
     text-transform: none;
   }
 

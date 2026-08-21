@@ -161,7 +161,7 @@ export default function PlansPage() {
                 <div
                   ref={mountRef}
                   data-testid="plans-payment-element"
-                  className="rounded-xl border border-border bg-white p-4 shadow-card"
+                  className="balsa-surface rounded-balsa-surface p-4"
                 />
                 <div className="flex items-center gap-3">
                   <Button disabled={confirming} onClick={handleConfirm}>
@@ -183,8 +183,8 @@ export default function PlansPage() {
                   key={plan.id}
                   data-testid={`plan-${plan.id}`}
                   className={cn(
-                    "flex flex-col gap-3 rounded-xl border border-border bg-white p-5 shadow-card",
-                    isCurrent && "ring-1 ring-accent"
+                    "balsa-surface flex flex-col gap-3 rounded-balsa-surface p-5",
+                    isCurrent && "ring-1 ring-balsa-primary"
                   )}
                 >
                   <div className="flex items-center justify-between">
