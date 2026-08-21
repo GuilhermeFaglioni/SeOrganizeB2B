@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
     closedBetaCheckinEdition: { findUnique: vi.fn() },
     closedBetaEnrollment: { findUnique: vi.fn() },
     profile: { findUnique: vi.fn() },
+    workspace: { findUnique: vi.fn().mockResolvedValue({ deletedAt: null, cancelledAt: null, status: "active" }) },
     closedBetaCheckinResponse: {
       findFirst: vi.fn(),
       create: vi.fn(),
@@ -51,6 +52,7 @@ beforeEach(() => {
   mocks.prismaClient.closedBetaCheckinEdition.findUnique.mockResolvedValue(edition);
   mocks.prismaClient.closedBetaEnrollment.findUnique.mockResolvedValue(enrollment);
   mocks.prismaClient.profile.findUnique.mockResolvedValue(profileA);
+  mocks.prismaClient.workspace.findUnique.mockResolvedValue({ deletedAt: null, cancelledAt: null, status: "active" });
   mocks.prismaClient.closedBetaCheckinWorkspaceState.update.mockResolvedValue({});
 });
 

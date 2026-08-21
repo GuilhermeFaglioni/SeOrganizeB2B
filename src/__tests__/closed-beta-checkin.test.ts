@@ -33,6 +33,9 @@ const prismaMock = vi.hoisted(() => {
     profile: {
       findUnique: vi.fn(),
     },
+    workspace: {
+      findUnique: vi.fn(),
+    },
     $transaction: vi.fn(),
     $executeRaw: vi.fn(),
     $queryRaw: vi.fn(),
@@ -131,6 +134,11 @@ beforeEach(() => {
     (fn as (client: unknown) => unknown)(prismaMock),
   );
   prismaMock.$executeRaw.mockResolvedValue(undefined);
+  prismaMock.workspace.findUnique.mockResolvedValue({
+    deletedAt: null,
+    cancelledAt: null,
+    status: "active",
+  });
   auditMock.recordClosedBetaAudit.mockResolvedValue(undefined);
 });
 
@@ -340,6 +348,11 @@ describe("submitCheckinResponse", () => {
   };
 
   beforeEach(() => {
+    prismaMock.workspace.findUnique.mockResolvedValue({
+      deletedAt: null,
+      cancelledAt: null,
+      status: "active",
+    });
     prismaMock.closedBetaCheckinEdition.findUnique.mockResolvedValue(
       publishedEdition({ closesAt: new Date("2099-08-25T00:00:00Z") }),
     );
@@ -644,6 +657,42 @@ describe("submitCheckinResponse", () => {
       }),
     ).rejects.toBeInstanceOf(CheckinEditionClosedError);
   });
+
+  it("rejects submissions for a cancelled workspace", async () => {
+    prismaMock.workspace.findUnique.mockResolvedValue({
+      deletedAt: null,
+      cancelledAt: new Date("2026-08-10T00:00:00Z"),
+      status: "cancelled",
+    });
+
+    await expect(
+      submitCheckinResponse({
+        editionId: "edition-1",
+        workspaceId: "workspace-1",
+        profileId: "profile-1",
+        answers: validAnswers,
+        actor,
+      }),
+    ).rejects.toBeInstanceOf(CheckinValidationError);
+  });
+
+  it("rejects submissions for a deleted workspace", async () => {
+    prismaMock.workspace.findUnique.mockResolvedValue({
+      deletedAt: new Date("2026-08-10T00:00:00Z"),
+      cancelledAt: null,
+      status: "active",
+    });
+
+    await expect(
+      submitCheckinResponse({
+        editionId: "edition-1",
+        workspaceId: "workspace-1",
+        profileId: "profile-1",
+        answers: validAnswers,
+        actor,
+      }),
+    ).rejects.toBeInstanceOf(CheckinValidationError);
+  });
 });
 
 describe("getWorkspaceCheckin", () => {
@@ -713,6 +762,30 @@ describe("getWorkspaceCheckin", () => {
     const status = await getWorkspaceCheckin("workspace-1", now);
     expect(status.blocked).toBe(false);
     expect(status.editionId).toBeNull();
+    expect(status.workspaceStatus).toBe("not_applicable");
+  });
+
+  it("never blocks a cancelled workspace", async () => {
+    prismaMock.workspace.findUnique.mockResolvedValue({
+      deletedAt: null,
+      cancelledAt: new Date("2026-08-10T00:00:00Z"),
+      status: "cancelled",
+    });
+
+    const status = await getWorkspaceCheckin("workspace-1", now);
+    expect(status.blocked).toBe(false);
+    expect(status.workspaceStatus).toBe("not_applicable");
+  });
+
+  it("never blocks a deleted workspace", async () => {
+    prismaMock.workspace.findUnique.mockResolvedValue({
+      deletedAt: new Date("2026-08-10T00:00:00Z"),
+      cancelledAt: null,
+      status: "active",
+    });
+
+    const status = await getWorkspaceCheckin("workspace-1", now);
+    expect(status.blocked).toBe(false);
     expect(status.workspaceStatus).toBe("not_applicable");
   });
 });

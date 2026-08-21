@@ -212,16 +212,45 @@ export async function getActiveCheckinEdition() {
   const now = Date.now();
   if (activeEditionCache && activeEditionCache.expiresAt > now) {
     if (!activeEditionCache.id) return null;
-    return prisma.closedBetaCheckinEdition.findUnique({
+    const cached = await prisma.closedBetaCheckinEdition.findUnique({
       where: { id: activeEditionCache.id },
       include: { questions: { orderBy: { position: "asc" } } },
     });
+    if (!cached) return null;
+  if (cached.status !== "published" || !cached.isMandatory) return null;
+  if (cached.opensAt && cached.opensAt.getTime() > Date.now()) return null;
+  return cached;
   }
-  const edition = await prisma.closedBetaCheckinEdition.findFirst({
-    where: { status: "published", isMandatory: true },
+  let edition = await prisma.closedBetaCheckinEdition.findFirst({
+    where: {
+      status: "published",
+      isMandatory: true,
+      OR: [{ opensAt: null }, { opensAt: { lte: new Date() } }],
+    },
     orderBy: [{ opensAt: "desc" }, { createdAt: "desc" }],
     include: { questions: { orderBy: { position: "asc" } } },
   });
+  if (!edition) {
+    const scheduled = await prisma.closedBetaCheckinEdition.findFirst({
+      where: {
+        status: "scheduled",
+        isMandatory: true,
+        opensAt: { lte: new Date() },
+      },
+      orderBy: [{ opensAt: "desc" }, { createdAt: "desc" }],
+      include: { questions: { orderBy: { position: "asc" } } },
+    });
+    if (scheduled) {
+      await prisma.closedBetaCheckinEdition.update({
+        where: { id: scheduled.id },
+        data: { status: "published" },
+      });
+      edition = await prisma.closedBetaCheckinEdition.findUnique({
+        where: { id: scheduled.id },
+        include: { questions: { orderBy: { position: "asc" } } },
+      });
+    }
+  }
   activeEditionCache = {
     id: edition?.id ?? null,
     expiresAt: now + ACTIVE_EDITION_TTL_MS,
@@ -240,10 +269,19 @@ export function getCheckinEditionPhase(
 }
 
 async function getWorkspaceEnrollmentStatus(workspaceId: string): Promise<string | null> {
-  const enrollment = await prisma.closedBetaEnrollment.findUnique({
-    where: { workspaceId },
-    select: { status: true },
-  });
+  const [enrollment, workspace] = await Promise.all([
+    prisma.closedBetaEnrollment.findUnique({
+      where: { workspaceId },
+      select: { status: true },
+    }),
+    prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { deletedAt: true, cancelledAt: true, status: true },
+    }),
+  ]);
+  if (!workspace) return null;
+  if (workspace.deletedAt) return null;
+  if (workspace.status === "cancelled" && workspace.cancelledAt) return null;
   return enrollment?.status ?? null;
 }
 
@@ -532,12 +570,15 @@ export async function publishCheckinEdition(
       throw new CheckinValidationError("closesAt must be after opensAt");
     }
 
+    const opensAt = input.opensAt ?? edition.opensAt ?? now;
+    const closesAt = input.closesAt ?? edition.closesAt ?? null;
+    const publishedStatus = (opensAt && opensAt > now) ? "scheduled" : "published";
     const published = await client.closedBetaCheckinEdition.update({
       where: { id: editionId },
       data: {
-        status: "published",
-        opensAt: input.opensAt ?? edition.opensAt ?? now,
-        closesAt: input.closesAt ?? edition.closesAt ?? null,
+        status: publishedStatus,
+        opensAt,
+        closesAt,
       },
     });
     await recordClosedBetaAudit(client, {
@@ -604,6 +645,13 @@ export async function submitCheckinResponse(input: SubmitCheckinResponseInput) {
     select: { status: true },
   });
   if (!enrollment || enrollment.status !== "active") {
+    throw new CheckinValidationError("This workspace is not enrolled in Closed Beta");
+  }
+  const enrollmentWorkspace = await prisma.workspace.findUnique({
+    where: { id: input.workspaceId },
+    select: { deletedAt: true, cancelledAt: true, status: true },
+  });
+  if (!enrollmentWorkspace || enrollmentWorkspace.deletedAt || (enrollmentWorkspace.status === "cancelled" && enrollmentWorkspace.cancelledAt)) {
     throw new CheckinValidationError("This workspace is not enrolled in Closed Beta");
   }
 
@@ -771,6 +819,13 @@ export async function grantCheckinExemption(input: GrantCheckinExemptionInput) {
   requireReason(input.reason);
   if (!input.expiresAt || Number.isNaN(input.expiresAt.getTime())) {
     throw new CheckinValidationError("An expiration date is required");
+  }
+  const enrollmentWorkspace = await prisma.workspace.findUnique({
+    where: { id: input.workspaceId },
+    select: { deletedAt: true, cancelledAt: true, status: true },
+  });
+  if (!enrollmentWorkspace || enrollmentWorkspace.deletedAt || (enrollmentWorkspace.status === "cancelled" && enrollmentWorkspace.cancelledAt)) {
+    throw new CheckinValidationError("This workspace is not enrolled in Closed Beta");
   }
   return prisma.$transaction(async (client) => {
     const edition = await client.closedBetaCheckinEdition.findUnique({
