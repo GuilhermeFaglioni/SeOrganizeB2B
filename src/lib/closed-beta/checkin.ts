@@ -674,15 +674,47 @@ export async function submitCheckinResponse(input: SubmitCheckinResponseInput) {
       state.status !== "completed" &&
       !(state.status === "exempt" && state.exemption_expires_at && state.exemption_expires_at > now);
 
-    const response = await client.closedBetaCheckinResponse.create({
-      data: {
-        editionId: input.editionId,
-        workspaceId: input.workspaceId,
-        profileId: input.profileId,
-        answers: storedAnswers as Prisma.InputJsonValue,
-        isPrimary: canComplete,
-      },
-    });
+    let response: { id: string; editionId: string; workspaceId: string; profileId: string; answers: Prisma.JsonValue; isPrimary: boolean; createdAt: Date; updatedAt: Date };
+    try {
+      response = await client.closedBetaCheckinResponse.create({
+        data: {
+          editionId: input.editionId,
+          workspaceId: input.workspaceId,
+          profileId: input.profileId,
+          answers: storedAnswers as Prisma.InputJsonValue,
+          isPrimary: canComplete,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        const existing = await client.closedBetaCheckinResponse.findUnique({
+          where: {
+            editionId_profileId: {
+              editionId: input.editionId,
+              profileId: input.profileId,
+            },
+          },
+        });
+        const existingState = await client.closedBetaCheckinWorkspaceState.findUnique({
+          where: {
+            editionId_workspaceId: {
+              editionId: input.editionId,
+              workspaceId: input.workspaceId,
+            },
+          },
+        });
+        return {
+          response: existing!,
+          completedWorkspace: existingState?.status === "completed",
+          workspaceStatus: (existingState?.status ?? "pending") as CheckinWorkspaceStatus,
+          duplicate: true,
+        };
+      }
+      throw error;
+    }
 
     let workspaceStatus: CheckinWorkspaceStatus =
       state.status === "completed"

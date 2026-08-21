@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
     profile: { findFirst: vi.fn(), update: vi.fn() },
     workspace: { findUnique: vi.fn() },
     invite: { updateMany: vi.fn(), count: vi.fn() },
-    $transaction: vi.fn(async (fn: unknown) => fn(mocks.prismaClient)),
+    $transaction: vi.fn(async (fn: (client: typeof mocks.prismaClient) => Promise<unknown>) => fn(mocks.prismaClient)),
     $queryRaw: vi.fn(),
   },
 }));
