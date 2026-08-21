@@ -171,6 +171,12 @@ export default function ClosedBetaPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" asChild>
+            <Link href="/admin/closed-beta/questions">{t("questionsLink")}</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/admin/closed-beta/responses">{t("responsesLink")}</Link>
+          </Button>
+          <Button variant="outline" asChild>
             <Link href="/admin/closed-beta/checkins">{t("checkinsLink")}</Link>
           </Button>
           <Badge variant={statusVariant(config.status)}>

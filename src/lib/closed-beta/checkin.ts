@@ -5,6 +5,7 @@ import {
   recordClosedBetaAudit,
   type ClosedBetaActor,
 } from "./service";
+import { getActiveQuestionBankItems } from "./question-bank";
 
 export const CHECKIN_EDITION_STATUSES = ["draft", "scheduled", "published", "closed"] as const;
 export type CheckinEditionStatus = (typeof CHECKIN_EDITION_STATUSES)[number];
@@ -57,7 +58,8 @@ export interface CheckinQuestionInput {
 export interface CreateCheckinEditionInput {
   title: string;
   isMandatory?: boolean;
-  questions: CheckinQuestionInput[];
+  questions?: CheckinQuestionInput[];
+  questionBankIds?: string[];
 }
 
 export interface UpdateCheckinEditionInput {
@@ -282,7 +284,7 @@ export async function createCheckinEdition(
   if (typeof input.title !== "string" || input.title.trim() === "") {
     throw new CheckinValidationError("An edition title is required");
   }
-  const questions = normalizeQuestions(input.questions);
+  const questions = await resolveEditionQuestions(input);
   return prisma.$transaction(async (client) => {
     const edition = await client.closedBetaCheckinEdition.create({
       data: {
@@ -311,6 +313,75 @@ export async function createCheckinEdition(
       afterValue: { title: edition.title, questionCount: questions.length },
     });
     return getCheckinEdition(edition.id, client);
+  });
+}
+
+async function resolveEditionQuestions(
+  input: CreateCheckinEditionInput,
+): Promise<CheckinQuestionInput[]> {
+  const hasInline = Array.isArray(input.questions) && input.questions.length > 0;
+  const hasBank = Array.isArray(input.questionBankIds) && input.questionBankIds.length > 0;
+  if (!hasInline && !hasBank) {
+    throw new CheckinValidationError("An edition requires at least one question");
+  }
+  if (hasInline) {
+    return normalizeQuestions(input.questions as CheckinQuestionInput[]);
+  }
+  const bankItems = await getActiveQuestionBankItems(input.questionBankIds as string[]);
+  if (bankItems.length !== (input.questionBankIds as string[]).length) {
+    throw new CheckinValidationError("Some selected questions are not available in the bank");
+  }
+  return normalizeQuestions(
+    bankItems.map((item, index) => ({
+      text: item.text,
+      type: item.type as CheckinQuestionType,
+      options: item.options ?? undefined,
+      required: item.required,
+      position: index,
+      theme: item.theme,
+      isSuggestionQuestion: item.isSuggestionQuestion,
+    })),
+  );
+}
+
+export async function duplicateCheckinEdition(
+  editionId: string,
+  actor: ClosedBetaActor,
+) {
+  return prisma.$transaction(async (client) => {
+    const source = await client.closedBetaCheckinEdition.findUnique({
+      where: { id: editionId },
+      include: { questions: { orderBy: { position: "asc" } } },
+    });
+    if (!source) throw new CheckinNotFoundError("Check-in edition not found");
+    const duplicate = await client.closedBetaCheckinEdition.create({
+      data: {
+        title: `${source.title} (cópia)`,
+        isMandatory: source.isMandatory,
+        status: "draft",
+      },
+    });
+    await client.closedBetaCheckinQuestion.createMany({
+      data: source.questions.map((question) => ({
+        editionId: duplicate.id,
+        text: question.text,
+        type: question.type,
+        options: question.options as Prisma.InputJsonValue | undefined,
+        required: question.required,
+        position: question.position,
+        theme: question.theme,
+        isSuggestionQuestion: question.isSuggestionQuestion,
+      })),
+    });
+    await recordClosedBetaAudit(client, {
+      actor,
+      action: "checkin.edition.duplicated",
+      targetType: "closed_beta_checkin_edition",
+      targetId: duplicate.id,
+      metadata: { sourceEditionId: source.id },
+      afterValue: { title: duplicate.title, questionCount: source.questions.length },
+    });
+    return getCheckinEdition(duplicate.id, client);
   });
 }
 
@@ -747,4 +818,67 @@ export async function expireCheckinExemptions(now = new Date()) {
     data: { status: "pending" },
   });
   return { count: result.count };
+}
+
+export async function resetCheckinResponse(
+  editionId: string,
+  workspaceId: string,
+  actor: ClosedBetaActor,
+) {
+  return prisma.$transaction(async (client) => {
+    const edition = await client.closedBetaCheckinEdition.findUnique({
+      where: { id: editionId },
+      select: { id: true, status: true },
+    });
+    if (!edition) throw new CheckinNotFoundError("Check-in edition not found");
+
+    const state = await client.closedBetaCheckinWorkspaceState.findUnique({
+      where: { editionId_workspaceId: { editionId, workspaceId } },
+    });
+    if (!state) {
+      throw new CheckinNotFoundError("No check-in state for this workspace");
+    }
+    if (state.status !== "completed") {
+      throw new CheckinValidationError("Only completed workspaces can be reset");
+    }
+
+    const responses = await client.closedBetaCheckinResponse.findMany({
+      where: { editionId, workspaceId },
+      select: { id: true, profileId: true, isPrimary: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const updated = await client.closedBetaCheckinWorkspaceState.update({
+      where: { id: state.id },
+      data: {
+        status: "pending",
+        completedByProfileId: null,
+        completedAt: null,
+        exemptionReason: null,
+        exemptionExpiresAt: null,
+        grantedByUserId: null,
+        grantedByEmail: null,
+      },
+    });
+
+    await recordClosedBetaAudit(client, {
+      actor,
+      action: "checkin.response.reset",
+      targetType: "closed_beta_checkin_workspace_state",
+      targetId: state.id,
+      beforeValue: {
+        workspaceId,
+        status: state.status,
+        completedByProfileId: state.completedByProfileId,
+        completedAt: state.completedAt?.toISOString() ?? null,
+        responseCount: responses.length,
+      },
+      afterValue: { workspaceId, status: updated.status },
+    });
+
+    return {
+      state: updated,
+      preservedResponses: responses.map((response) => response.id),
+    };
+  });
 }

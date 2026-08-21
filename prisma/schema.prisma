@@ -342,6 +342,23 @@ model ClosedBetaCheckinQuestion {
   @@map("closed_beta_checkin_questions")
 }
 
+model ClosedBetaQuestionBank {
+  id                   String   @id @default(uuid())
+  text                 String
+  type                 String
+  options              Json?
+  required             Boolean  @default(true)
+  theme                String?
+  isSuggestionQuestion Boolean  @default(false) @map("is_suggestion_question")
+  status               String   @default("active")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([theme])
+  @@map("closed_beta_question_bank")
+}
+
 model ClosedBetaCheckinResponse {
   id          String   @id @default(uuid())
   editionId   String   @map("edition_id")
