@@ -53,7 +53,7 @@ const makeRequest = (body: string, signature = "t=123,v1=abc") =>
   });
 
 const makeEvent = (type: string, object: unknown): Stripe.Event =>
-  ({
+  (({
     id: `evt_${type.replaceAll(".", "_")}`,
     object: "event",
     api_version: "2024-12-18.acacia",
@@ -62,8 +62,8 @@ const makeEvent = (type: string, object: unknown): Stripe.Event =>
     livemode: false,
     pending_webhooks: 0,
     request: null,
-    type,
-  }) as Stripe.Event;
+    type
+  }) as Stripe.Event);
 
 const makeInvoice = (customer: string) => ({
   id: "in_1",

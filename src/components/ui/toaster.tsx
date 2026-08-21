@@ -1,22 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Toast,
-  ToastClose,
-  ToastDescription,
-  ToastProvider,
-  ToastTitle,
-  ToastViewport,
-} from "@/components/ui/toast";
+import { ToastViewport, type ToastItem as BalsaToastItem } from "@/components/ui/ToastViewport";
 import type { AppToastDetail } from "@/lib/toast";
 
-interface ToastItem extends AppToastDetail {
+interface AppToastItem extends AppToastDetail {
   id: string;
 }
 
 export function Toaster() {
-  const [items, setItems] = useState<ToastItem[]>([]);
+  const [items, setItems] = useState<AppToastItem[]>([]);
 
   useEffect(() => {
     function handleToast(event: Event) {
@@ -34,39 +27,26 @@ export function Toaster() {
     return () => window.removeEventListener("app-toast", handleToast);
   }, []);
 
+  const renderedItems: BalsaToastItem[] = items.map((item) => ({
+    id: item.id,
+    title: item.message,
+    description: item.description,
+    color: item.type === "error"
+      ? "destructive"
+      : item.type === "success"
+        ? "success"
+        : "info",
+    duration: 5_000,
+  }));
+
   return (
-    <ToastProvider swipeDirection="right">
-      {items.map((item) => (
-        <Toast
-          key={item.id}
-          defaultOpen
-          duration={5_000}
-          role={item.type === "error" ? "alert" : "status"}
-          variant={
-            item.type === "error"
-              ? "destructive"
-              : item.type === "success"
-                ? "success"
-                : "default"
-          }
-          onOpenChange={(open) => {
-            if (!open) {
-              setItems((current) =>
-                current.filter((toast) => toast.id !== item.id),
-              );
-            }
-          }}
-        >
-          <div className="grid gap-1">
-            <ToastTitle>{item.message}</ToastTitle>
-            {item.description && (
-              <ToastDescription>{item.description}</ToastDescription>
-            )}
-          </div>
-          <ToastClose />
-        </Toast>
-      ))}
-      <ToastViewport aria-live="polite" />
-    </ToastProvider>
+    <ToastViewport
+      value={renderedItems}
+      aria-live="polite"
+      onValueChange={(next) => {
+        const remaining = new Set(next.map((item) => item.id));
+        setItems((current) => current.filter((item) => remaining.has(item.id)));
+      }}
+    />
   );
 }

@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import type { CSSProperties } from "react";
 import { SwRegister } from "@/components/sw-register";
+import { createThemeScope } from "@/components/ui/theme";
 import { ThemeWatcher } from "@/components/theme-watcher";
 import { I18nProvider } from "@/i18n/provider";
 import { getSiteUrl } from "@/lib/site-url";
+import { seOrganizeMaisDesignSystemTheme } from "@/themes/se-organize-mais-design-system";
 import "./globals.css";
 
 // The whole app renders client-side with next-intl's client provider.
@@ -12,17 +14,7 @@ import "./globals.css";
 // and fail with next-intl ENVIRONMENT_FALLBACK.
 export const dynamic = "force-dynamic";
 
-const geist = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-mono",
-  display: "swap",
-});
+const balsaThemeScope = createThemeScope(seOrganizeMaisDesignSystemTheme);
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
@@ -100,7 +92,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    <html
+      lang="pt-BR"
+      data-balsa-adapt
+      data-theme="se-organize-mais-design-system"
+      data-palette="se-organize-mais-design-system"
+      style={balsaThemeScope.presentation.style as CSSProperties}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script dangerouslySetInnerHTML={{ __html: localeScript }} />

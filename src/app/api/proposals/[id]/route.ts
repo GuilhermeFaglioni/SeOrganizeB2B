@@ -75,10 +75,8 @@ function parseUpdateInput(body: Record<string, unknown>) {
   return { errors, input };
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json(
@@ -126,10 +124,8 @@ export async function GET(
   return NextResponse.json({ data: proposal, error: null });
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json(
@@ -176,10 +172,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json(

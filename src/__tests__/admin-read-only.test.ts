@@ -61,7 +61,7 @@ const makeGrantRequest = (body?: unknown) =>
     headers: { "content-type": "application/json" },
   });
 
-const grantParams = { params: { id: "ws_1" } };
+const grantParams = { params: Promise.resolve({ id: "ws_1" }) };
 
 function resetMocks() {
   Object.values(mocks).forEach((mock) => mock.mockReset());

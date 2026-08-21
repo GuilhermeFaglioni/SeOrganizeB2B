@@ -52,7 +52,7 @@ describe("Closed Beta primary acceptance API", () => {
     mocks.getPrimaryInvitationByToken.mockResolvedValue(null);
 
     const response = await lookup(new NextRequest("http://localhost/invite"), {
-      params: { token: "invalid-token" },
+      params: Promise.resolve({ token: "invalid-token" }),
     });
     const body = await response.json();
 

@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "palette": {
+    "schemaVersion": 1,
+    "base": "light",
+    "colors": {
+      "background": "#f4f7fb",
+      "foreground": "#17233a",
+      "surface": "#ffffff",
+      "muted": "#e7edf6",
+      "primary": "#3f6fe5",
+      "secondary": "#64748b",
+      "accent": "#3f8a64"
+    }
+  },
+  "theme": {
+    "schemaVersion": 1,
+    "base": "modern-flat",
+    "options": {
+      "typography": "modern",
+      "size": "compact",
+      "spacing": "balanced",
+      "border": "soft",
+      "elevation": "soft",
+      "motion": "fluid",
+      "material": "glass"
+    },
+    "overrides": {
+      "tokens": {
+        "typography": {
+          "titleFonts": [
+            "Raleway",
+            "sans-serif"
+          ],
+          "bodyFonts": [
+            "Inter",
+            "sans-serif"
+          ],
+          "controlFonts": [
+            "Inter",
+            "sans-serif"
+          ]
+        },
+        "radius": {
+          "control": 12,
+          "surface": 21,
+          "panel": 27,
+          "badge": 9999,
+          "toggle": 9999,
+          "codeControl": 8
+        }
+      }
+    }
+  },
+  "tokenBridge": {
+    "stylesheet": "src/styles/balsa-shadcn-bridge.css",
+    "colors": {
+      "background": "--color-balsa-background",
+      "foreground": "--color-balsa-foreground",
+      "card": "--color-balsa-surface",
+      "card-foreground": "--color-balsa-surface-foreground",
+      "popover": "--color-balsa-surface-elevated",
+      "popover-foreground": "--color-balsa-surface-elevated-foreground",
+      "primary": "--color-balsa-primary",
+      "primary-foreground": "--color-balsa-primary-foreground",
+      "secondary": "--color-balsa-secondary",
+      "secondary-foreground": "--color-balsa-secondary-foreground",
+      "muted": "--color-balsa-muted",
+      "muted-foreground": "--color-balsa-muted-foreground",
+      "accent": "--color-balsa-accent",
+      "accent-foreground": "--color-balsa-accent-foreground",
+      "destructive": "--color-balsa-destructive",
+      "destructive-foreground": "--color-balsa-destructive-foreground",
+      "border": "--color-balsa-border",
+      "input": "--color-balsa-input-border",
+      "ring": "--color-balsa-focus-ring"
+    },
+    "charts": {
+      "chart-1": "--color-balsa-primary",
+      "chart-2": "--color-balsa-secondary",
+      "chart-3": "--color-balsa-accent",
+      "chart-4": "--color-balsa-info",
+      "chart-5": "--color-balsa-success"
+    },
+    "sidebar": {
+      "sidebar": "--color-balsa-surface",
+      "sidebar-foreground": "--color-balsa-surface-foreground",
+      "sidebar-primary": "--color-balsa-primary",
+      "sidebar-primary-foreground": "--color-balsa-primary-foreground",
+      "sidebar-accent": "--color-balsa-selected",
+      "sidebar-accent-foreground": "--color-balsa-selected-foreground",
+      "sidebar-border": "--color-balsa-border",
+      "sidebar-ring": "--color-balsa-focus-ring"
+    },
+    "radius": {
+      "--radius": "--balsa-radius-surface"
+    }
+  },
+  "extendedDimensions": {
+    "typography": [
+      "--balsa-font-title",
+      "--balsa-font-body"
+    ],
+    "spacing": [
+      "--balsa-space-unit",
+      "--balsa-space-md",
+      "--balsa-space-section-md",
+      "--balsa-inset-md"
+    ],
+    "shape": [
+      "--balsa-radius-control",
+      "--balsa-radius-surface",
+      "--balsa-radius-panel",
+      "--balsa-radius-badge",
+      "--balsa-radius-toggle"
+    ],
+    "border": [
+      "--balsa-border-style",
+      "--balsa-border-width",
+      "--balsa-border-opacity"
+    ],
+    "elevation": [
+      "--balsa-shadow-sm",
+      "--balsa-shadow-md",
+      "--balsa-shadow-lg",
+      "--balsa-shadow-control",
+      "--balsa-shadow-surface",
+      "--balsa-shadow-panel"
+    ],
+    "motion": [
+      "--balsa-motion-fast",
+      "--balsa-motion-normal",
+      "--balsa-motion-slow",
+      "--balsa-motion-easing"
+    ]
+  },
+  "supportedModes": [
+    "light",
+    "dark"
+  ],
+  "integration": {
+    "strategy": "token-bridge",
+    "alwaysApplied": {
+      "selector": ":root",
+      "reaches": [
+        "palette colors",
+        "focus ring",
+        "base radius",
+        "chart and sidebar scales"
+      ]
+    },
+    "optIn": {
+      "selector": "[data-balsa-adapt]",
+      "reaches": [
+        "control and surface radius",
+        "body font family",
+        "control font weight",
+        "motion duration and easing"
+      ],
+      "note": "These redefine Tailwind's own theme variables, which cascade to every utility including the consumer's own markup, so they are scoped rather than applied at :root. Put the attribute on <html> for the whole application, or on a wrapper for one subtree.",
+      "adapterBridge": {
+        "radius-sm": "--balsa-radius-badge",
+        "radius-md": "--balsa-radius-control",
+        "radius-lg": "--balsa-radius-surface",
+        "radius-xl": "--balsa-radius-panel",
+        "font-sans": "--balsa-font-body",
+        "font-weight-medium": "--balsa-control-font-weight",
+        "default-transition-duration": "--balsa-motion-normal",
+        "default-transition-timing-function": "--balsa-motion-easing"
+      }
+    },
+    "doesNotReach": {
+      "density": "Tailwind spends control heights as calc(var(--spacing) * n), where --spacing is a grid base unit. Balsa expresses density as absolute gap values (0.25rem, 0.5rem, 0.75rem), not as a base unit, so mapping it onto --spacing would multiply every upstream dimension: a comfortable density would render h-9 at 6.75rem.",
+      "typographyScale": "Utilities read --text-sm and similar. Balsa defines font families, weight, letter spacing and case, but no numeric type scale, so there is nothing to map without inventing one.",
+      "borderWidth": "Tailwind's .border compiles to a literal border-width: 1px, with only the style exposed as a variable. Reaching Balsa's border widths needs a source patch.",
+      "elevation": "Shadow utilities compile to literal offsets and a literal shadow color; only --tw-shadow-color is overridable. Reaching Balsa's elevation recipes needs a source patch.",
+      "material": "Material direction changes which surface treatment a component uses, which is a composition decision rather than a token value."
+    },
+    "note": "An upstream component is color- and radius-correct through the bridge alone, and additionally font- and motion-correct inside the adapter scope. Density, type scale, border width and elevation cannot be carried by redefining a variable and need a deterministic source patch.",
+    "scopedThemes": "The bridge reads scoped Balsa tokens through the cascade, so a scoped palette or theme reaches upstream components inside that scope.",
+    "portals": "Portalled content inherits the bridge from :root. Content teleported outside a scoped theme falls back to the root design system, which is the same behavior Balsa's own portalled components have. The adapter scope does not follow a teleport, so a scope on <html> covers portals while a scope on a subtree does not; install @balsa/balsa-portal-scope to forward a subtree scope onto teleported content."
+  }
+}

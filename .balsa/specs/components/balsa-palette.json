@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "name": "balsa-palette",
+  "title": "Balsa palette",
+  "category": "theme",
+  "classification": "balsa-addition",
+  "status": "beta",
+  "version": "0.1.0",
+  "purpose": "Provide the optional explicit Balsa light and dark palette presets.",
+  "tokens": [
+    "--balsa-color-background",
+    "--balsa-color-foreground",
+    "--balsa-color-surface",
+    "--balsa-color-primary",
+    "--balsa-color-secondary",
+    "--balsa-color-accent"
+  ],
+  "publicApi": {
+    "source": "src/styles/balsa-palette.css"
+  }
+}

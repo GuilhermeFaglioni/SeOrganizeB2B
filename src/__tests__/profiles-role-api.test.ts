@@ -97,7 +97,7 @@ describe("PATCH /api/profiles/[id]/role — multi-tenant role assignment", () =>
 
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/member-1/role", { roleId: "r1" }),
-      { params: { id: "member-1" } }
+      { params: Promise.resolve({ id: "member-1" }) }
     );
 
     expect(res.status).toBe(200);
@@ -116,7 +116,7 @@ describe("PATCH /api/profiles/[id]/role — multi-tenant role assignment", () =>
 
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/member-1/role", { roleId: "r1" }),
-      { params: { id: "member-1" } }
+      { params: Promise.resolve({ id: "member-1" }) }
     );
 
     expect(res.status).toBe(403);
@@ -138,7 +138,7 @@ describe("PATCH /api/profiles/[id]/role — multi-tenant role assignment", () =>
 
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/member-1/role", { roleId: "r2" }),
-      { params: { id: "member-1" } }
+      { params: Promise.resolve({ id: "member-1" }) }
     );
 
     expect(res.status).toBe(400);
@@ -154,7 +154,7 @@ describe("PATCH /api/profiles/[id]/role — multi-tenant role assignment", () =>
 
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/member-1/role", { roleId: "r1" }),
-      { params: { id: "member-1" } }
+      { params: Promise.resolve({ id: "member-1" }) }
     );
 
     expect(res.status).toBe(400);
@@ -166,7 +166,7 @@ describe("PATCH /api/profiles/[id]/role — multi-tenant role assignment", () =>
 
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/ghost/role", { roleId: "r1" }),
-      { params: { id: "ghost" } }
+      { params: Promise.resolve({ id: "ghost" }) }
     );
 
     expect(res.status).toBe(404);
@@ -182,7 +182,7 @@ describe("PATCH /api/profiles/[id]/role — multi-tenant role assignment", () =>
 
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/member-9/role", { roleId: "r1" }),
-      { params: { id: "member-9" } }
+      { params: Promise.resolve({ id: "member-9" }) }
     );
 
     expect(res.status).toBe(404);
@@ -202,7 +202,7 @@ describe("PATCH /api/profiles/[id]/role — multi-tenant role assignment", () =>
 
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/member-1/role", { roleId: null }),
-      { params: { id: "member-1" } }
+      { params: Promise.resolve({ id: "member-1" }) }
     );
 
     expect(res.status).toBe(200);
