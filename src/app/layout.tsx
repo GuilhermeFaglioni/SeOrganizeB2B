@@ -8,6 +8,14 @@ import { getSiteUrl } from "@/lib/site-url";
 import { seOrganizeMaisDesignSystemTheme } from "@/themes/se-organize-mais-design-system";
 import "./globals.css";
 
+import "@fontsource/raleway/400.css";
+import "@fontsource/raleway/500.css";
+import "@fontsource/raleway/600.css";
+import "@fontsource/raleway/700.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+
 // The whole app renders client-side with next-intl's client provider.
 // Force dynamic rendering so pages are never statically prerendered, which
 // would run useTranslations in a server context without the request config
