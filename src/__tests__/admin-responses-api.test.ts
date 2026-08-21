@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 const mocks = vi.hoisted(() => ({
   requireClosedBetaAdmin: vi.fn(),
   listCheckinResponses: vi.fn(),
+  getCheckinResponseDetail: vi.fn(),
   getCheckinResponseGrouping: vi.fn(),
   getCheckinEditionMetrics: vi.fn(),
   exportCheckinResponses: vi.fn(),
@@ -18,6 +19,7 @@ vi.mock("@/lib/closed-beta/admin", () => ({
 
 vi.mock("@/lib/closed-beta/responses", () => ({
   listCheckinResponses: mocks.listCheckinResponses,
+  getCheckinResponseDetail: mocks.getCheckinResponseDetail,
   getCheckinResponseGrouping: mocks.getCheckinResponseGrouping,
   getCheckinEditionMetrics: mocks.getCheckinEditionMetrics,
   exportCheckinResponses: mocks.exportCheckinResponses,
@@ -94,6 +96,18 @@ describe("admin responses API", () => {
       { params: { id: "e1" } } as never,
     );
     expect((await res.json()).data).toHaveLength(1);
+  });
+
+  it("returns a response detail for a company", async () => {
+    mocks.getCheckinResponseDetail.mockResolvedValue({ id: "r1", workspaceId: "w1" });
+    const res = await responses(
+      request("http://x/x?mode=detail&workspaceId=w1", "GET"),
+      { params: { id: "e1" } } as never,
+    );
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).data.id).toBe("r1");
+    expect(mocks.getCheckinResponseDetail).toHaveBeenCalledWith("e1", "w1");
   });
 
   it("returns metrics", async () => {

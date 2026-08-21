@@ -19,7 +19,7 @@ export interface CheckinResponseRow {
   responderEmail: string;
   responderName: string | null;
   isPrimary: boolean;
-  createdAt: Date;
+  createdAt: Date | null;
   answers: Prisma.JsonValue;
   workspaceStatus: string;
 }
@@ -52,30 +52,68 @@ async function getEditionQuestions(editionId: string) {
   return edition;
 }
 
+function hasAnswerForQuestionTheme(
+  answers: Prisma.JsonValue,
+  questionIds: ReadonlySet<string>,
+): boolean {
+  if (!answers || typeof answers !== "object" || Array.isArray(answers)) return false;
+  let found = false;
+  questionIds.forEach((questionId) => {
+    if (Object.prototype.hasOwnProperty.call(answers, questionId)) found = true;
+  });
+  return found;
+}
+
 export async function listCheckinResponses(
   filter: CheckinResponsesFilter,
 ): Promise<CheckinResponseRow[]> {
-  await getEditionQuestions(filter.editionId);
-  const responses = await prisma.closedBetaCheckinResponse.findMany({
-    where: {
-      editionId: filter.editionId,
-      ...(filter.workspaceId ? { workspaceId: filter.workspaceId } : {}),
-      ...(filter.from || filter.to
-        ? { createdAt: { ...(filter.from ? { gte: filter.from } : {}), ...(filter.to ? { lte: filter.to } : {}) } }
-        : {}),
-    },
-    include: {
-      workspace: { select: { id: true, name: true, slug: true } },
-      profile: { select: { id: true, email: true, name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-  const states = await prisma.closedBetaCheckinWorkspaceState.findMany({
-    where: { editionId: filter.editionId },
-    select: { workspaceId: true, status: true },
-  });
+  const edition = await getEditionQuestions(filter.editionId);
+  const [responses, states, enrollments] = await Promise.all([
+    prisma.closedBetaCheckinResponse.findMany({
+      where: {
+        editionId: filter.editionId,
+        isCurrent: true,
+        ...(filter.workspaceId ? { workspaceId: filter.workspaceId } : {}),
+        ...(filter.from || filter.to
+          ? { createdAt: { ...(filter.from ? { gte: filter.from } : {}), ...(filter.to ? { lte: filter.to } : {}) } }
+          : {}),
+      },
+      include: {
+        workspace: { select: { id: true, name: true, slug: true } },
+        profile: { select: { id: true, email: true, name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.closedBetaCheckinWorkspaceState.findMany({
+      where: { editionId: filter.editionId },
+      select: { workspaceId: true, status: true },
+    }),
+    prisma.closedBetaEnrollment.findMany({
+      where: {
+        status: "active",
+        ...(filter.workspaceId ? { workspaceId: filter.workspaceId } : {}),
+      },
+      include: {
+        workspace: { select: { id: true, name: true } },
+        owner: { select: { id: true, email: true, name: true } },
+      },
+      orderBy: { joinedAt: "asc" },
+    }),
+  ]);
   const statusByWorkspace = new Map(states.map((state) => [state.workspaceId, state.status]));
-  return responses.map((response) => ({
+  const themeQuestionIds = filter.theme
+    ? new Set(
+        edition.questions
+          .filter((question) => question.theme === filter.theme)
+          .map((question) => question.id),
+      )
+    : null;
+  const filteredResponses = themeQuestionIds
+    ? responses.filter((response) =>
+        hasAnswerForQuestionTheme(response.answers, themeQuestionIds),
+      )
+    : responses;
+  const responseRows = filteredResponses.map((response) => ({
     id: response.id,
     editionId: response.editionId,
     workspaceId: response.workspaceId,
@@ -88,6 +126,26 @@ export async function listCheckinResponses(
     answers: response.answers,
     workspaceStatus: statusByWorkspace.get(response.workspaceId) ?? "pending",
   }));
+  if (filter.from || filter.to || filter.theme) return responseRows;
+
+  const responseWorkspaceIds = new Set(filteredResponses.map((response) => response.workspaceId));
+  const pendingRows = enrollments
+    .filter((enrollment) => !responseWorkspaceIds.has(enrollment.workspaceId))
+    .map((enrollment) => ({
+      id: `pending:${filter.editionId}:${enrollment.workspaceId}`,
+      editionId: filter.editionId,
+      workspaceId: enrollment.workspaceId,
+      workspaceName: enrollment.workspace.name,
+      responderId: enrollment.owner.id,
+      responderEmail: enrollment.owner.email,
+      responderName: enrollment.owner.name,
+      isPrimary: false,
+      createdAt: null,
+      answers: {},
+      workspaceStatus: statusByWorkspace.get(enrollment.workspaceId) ?? "pending",
+    }));
+
+  return [...responseRows, ...pendingRows];
 }
 
 export async function getCheckinResponseDetail(
@@ -96,7 +154,7 @@ export async function getCheckinResponseDetail(
 ): Promise<CheckinResponseRow | null> {
   await getEditionQuestions(editionId);
   const response = await prisma.closedBetaCheckinResponse.findFirst({
-    where: { editionId, workspaceId },
+    where: { editionId, workspaceId, isCurrent: true },
     include: {
       workspace: { select: { id: true, name: true, slug: true } },
       profile: { select: { id: true, email: true, name: true } },
@@ -128,7 +186,7 @@ export async function getCheckinResponseGrouping(
 ): Promise<CheckinGroupedQuestion[]> {
   const edition = await getEditionQuestions(editionId);
   const responses = await prisma.closedBetaCheckinResponse.findMany({
-    where: { editionId },
+    where: { editionId, isCurrent: true },
     include: { workspace: { select: { id: true, name: true } } },
     orderBy: { createdAt: "asc" },
   });
@@ -161,13 +219,17 @@ export async function getCheckinEditionMetrics(
   editionId: string,
 ): Promise<CheckinEditionMetrics> {
   await expireCheckinExemptions();
-  await getEditionQuestions(editionId);
-  const [states, enrollments] = await Promise.all([
+  const edition = await getEditionQuestions(editionId);
+  const [states, enrollments, primaryResponses] = await Promise.all([
     prisma.closedBetaCheckinWorkspaceState.findMany({
       where: { editionId },
-      select: { status: true, completedAt: true, createdAt: true },
+      select: { status: true },
     }),
     prisma.closedBetaEnrollment.count({ where: { status: "active" } }),
+    prisma.closedBetaCheckinResponse.findMany({
+      where: { editionId, isPrimary: true, isCurrent: true },
+      select: { createdAt: true },
+    }),
   ]);
 
   let totalWorkspaces = enrollments;
@@ -176,20 +238,20 @@ export async function getCheckinEditionMetrics(
     return acc;
   }, {});
   const completed = stateCounts["completed"] ?? 0;
-  const pending = stateCounts["pending"] ?? 0;
   const exempt = stateCounts["exempt"] ?? 0;
   if (totalWorkspaces === 0) totalWorkspaces = states.length;
+  const pending = Math.max(totalWorkspaces - completed - exempt, 0);
 
   const completionRate = totalWorkspaces > 0 ? Math.round((completed / totalWorkspaces) * 1000) / 10 : null;
 
   let averageResponseSeconds: number | null = null;
-  const completedStates = states.filter((state) => state.status === "completed" && state.completedAt && state.createdAt);
-  if (completedStates.length > 0) {
-    const totalSeconds = completedStates.reduce(
-      (sum, state) => sum + Math.max(0, state.completedAt!.getTime() - state.createdAt.getTime()) / 1000,
+  if (primaryResponses.length > 0) {
+    const totalSeconds = primaryResponses.reduce(
+      (sum, response) =>
+        sum + Math.max(0, response.createdAt.getTime() - edition.createdAt.getTime()) / 1000,
       0,
     );
-    averageResponseSeconds = Math.round((totalSeconds / completedStates.length) * 10) / 10;
+    averageResponseSeconds = Math.round((totalSeconds / primaryResponses.length) * 10) / 10;
   }
 
   return {

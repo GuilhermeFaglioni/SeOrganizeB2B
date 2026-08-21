@@ -415,6 +415,11 @@
         "grouped": "Por pergunta",
         "metrics": "Métricas",
         "company": "Empresa",
+        "allCompanies": "Todas as empresas",
+        "theme": "Tema",
+        "allThemes": "Todos os temas",
+        "from": "De",
+        "to": "Até",
         "responder": "Respondente",
         "date": "Data",
         "status": "Estado",
@@ -430,6 +435,15 @@
         "completionRate": "Taxa de conclusão",
         "totalWorkspaces": "Empresas",
         "responseTime": "Tempo médio de resposta",
+        "responseCount": "{count} respostas",
+        "notAvailable": "Não disponível",
+        "retry": "Tentar novamente",
+        "detailTitle": "Detalhe da resposta",
+        "detailDescription": "Resposta completa enviada pela empresa.",
+        "detailLoadFailed": "Não foi possível carregar o detalhe da resposta.",
+        "detailNotFound": "Nenhuma resposta encontrada para esta empresa.",
+        "close": "Fechar",
+        "didNotUse": "A empresa informou que não usou o produto nesta semana.",
         "grantExemption": "Conceder exceção",
         "grantExemptionFailed": "Não foi possível conceder a exceção.",
         "revokeExemption": "Revogar exceção",
@@ -438,8 +452,7 @@
         "resetConfirm": "Reabrir a resposta desta empresa? O histórico será preservado.",
         "resetFailed": "Não foi possível reabrir a resposta.",
         "reason": "Motivo",
-        "expiresAt": "Expira em",
-        "cancel": "Cancelar"
+        "expiresAt": "Expira em"
       }
     },
     "forbidden": {

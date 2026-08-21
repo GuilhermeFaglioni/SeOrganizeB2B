@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
     closedBetaEnrollment: { findUnique: vi.fn() },
     profile: { findUnique: vi.fn() },
     closedBetaCheckinResponse: {
-      findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
     },
     closedBetaCheckinWorkspaceState: { findUnique: vi.fn(), update: vi.fn() },
@@ -57,7 +57,7 @@ beforeEach(() => {
 describe("check-in real concurrency via P2002", () => {
   it("two concurrent submissions for the same member: second recovers from P2002 as duplicate", async () => {
     // Both findUnique calls return null (no prior response)
-    mocks.prismaClient.closedBetaCheckinResponse.findUnique
+    mocks.prismaClient.closedBetaCheckinResponse.findFirst
       .mockResolvedValue(null);
 
     // FOR UPDATE returns pending state for both
@@ -78,7 +78,7 @@ describe("check-in real concurrency via P2002", () => {
     );
 
     // Recovery path: findUnique returns the existing response, findUnique on state returns completed
-    mocks.prismaClient.closedBetaCheckinResponse.findUnique
+    mocks.prismaClient.closedBetaCheckinResponse.findFirst
       .mockResolvedValueOnce(null) // first findUnique in txn
       .mockResolvedValueOnce(null) // second findUnique in txn (P2002 recovery)
       .mockResolvedValue({ id: "resp-1", editionId: "ed-1", workspaceId: "ws-1", profileId: "user-a", answers: {}, isPrimary: true, createdAt: new Date(), updatedAt: new Date() }); // recovery findUnique
@@ -131,7 +131,7 @@ describe("check-in real concurrency via P2002", () => {
 
   it("two concurrent submissions for different members: second sees completed state via FOR UPDATE", async () => {
     // Both findUnique return null (no prior response for either member)
-    mocks.prismaClient.closedBetaCheckinResponse.findUnique
+    mocks.prismaClient.closedBetaCheckinResponse.findFirst
       .mockResolvedValue(null);
 
     // Simulate FOR UPDATE serialization: first call sees pending, second sees completed
@@ -196,7 +196,7 @@ describe("check-in real concurrency via P2002", () => {
 
   it("same member re-submission finds existing response without P2002 (pre-check path)", async () => {
     // First findUnique returns null, second returns existing
-    mocks.prismaClient.closedBetaCheckinResponse.findUnique
+    mocks.prismaClient.closedBetaCheckinResponse.findFirst
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce({ id: "resp-1", editionId: "ed-1", workspaceId: "ws-1", profileId: "user-a", answers: {}, isPrimary: true, createdAt: new Date(), updatedAt: new Date() });
 

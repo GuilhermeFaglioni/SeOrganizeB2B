@@ -415,6 +415,11 @@
         "grouped": "By question",
         "metrics": "Metrics",
         "company": "Company",
+        "allCompanies": "All companies",
+        "theme": "Theme",
+        "allThemes": "All themes",
+        "from": "From",
+        "to": "To",
         "responder": "Respondent",
         "date": "Date",
         "status": "Status",
@@ -430,6 +435,15 @@
         "completionRate": "Completion rate",
         "totalWorkspaces": "Companies",
         "responseTime": "Average response time",
+        "responseCount": "{count} responses",
+        "notAvailable": "Not available",
+        "retry": "Retry",
+        "detailTitle": "Response detail",
+        "detailDescription": "The complete response sent by the company.",
+        "detailLoadFailed": "Failed to load response details.",
+        "detailNotFound": "No response found for this company.",
+        "close": "Close",
+        "didNotUse": "The company reported that it did not use the product this week.",
         "grantExemption": "Grant exemption",
         "grantExemptionFailed": "Failed to grant exemption.",
         "revokeExemption": "Revoke exemption",
@@ -438,8 +452,7 @@
         "resetConfirm": "Reopen this company's response? History will be preserved.",
         "resetFailed": "Failed to reopen response.",
         "reason": "Reason",
-        "expiresAt": "Expires on",
-        "cancel": "Cancel"
+        "expiresAt": "Expires on"
       }
     },
     "forbidden": {

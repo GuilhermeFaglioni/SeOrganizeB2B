@@ -10,6 +10,7 @@ const prismaMock = vi.hoisted(() => {
     closedBetaCheckinResponse: {
       findMany: vi.fn(),
       findFirst: vi.fn(),
+      updateMany: vi.fn(),
     },
     closedBetaCheckinWorkspaceState: {
       findMany: vi.fn(),
@@ -19,6 +20,7 @@ const prismaMock = vi.hoisted(() => {
     },
     closedBetaEnrollment: {
       count: vi.fn(),
+      findMany: vi.fn(),
     },
     $transaction: vi.fn(),
   };
@@ -45,6 +47,7 @@ const edition = {
   id: "edition-1",
   title: "Check-in Semana 1",
   status: "published",
+  createdAt: new Date("2026-08-18T09:00:00Z"),
   questions: [
     {
       id: "q-rating",
@@ -86,6 +89,7 @@ beforeEach(() => {
   auditMock.recordClosedBetaAudit.mockReset();
   auditMock.recordClosedBetaAudit.mockResolvedValue(undefined);
   prismaMock.closedBetaCheckinWorkspaceState.updateMany.mockResolvedValue({ count: 0 });
+  prismaMock.closedBetaEnrollment.findMany.mockResolvedValue([]);
   prismaMock.$transaction.mockImplementation((fn: unknown) =>
     (fn as (client: unknown) => unknown)(prismaMock),
   );
@@ -126,6 +130,32 @@ describe("listCheckinResponses", () => {
     prismaMock.closedBetaCheckinEdition.findUnique.mockResolvedValue(null);
     await expect(listCheckinResponses({ editionId: "missing" })).rejects.toThrow();
   });
+
+  it("includes active companies that have not submitted a response", async () => {
+    prismaMock.closedBetaCheckinEdition.findUnique.mockResolvedValue(edition);
+    prismaMock.closedBetaCheckinResponse.findMany.mockResolvedValue([]);
+    prismaMock.closedBetaCheckinWorkspaceState.findMany.mockResolvedValue([]);
+    prismaMock.closedBetaEnrollment.findMany.mockResolvedValue([
+      {
+        workspaceId: "w2",
+        workspace: { id: "w2", name: "Beta Co" },
+        owner: { id: "p2", email: "owner@beta.co", name: "Bia" },
+      },
+    ]);
+
+    const rows = await listCheckinResponses({ editionId: "edition-1" });
+
+    expect(rows).toEqual([
+      expect.objectContaining({
+        id: "pending:edition-1:w2",
+        workspaceId: "w2",
+        workspaceName: "Beta Co",
+        responderEmail: "owner@beta.co",
+        createdAt: null,
+        workspaceStatus: "pending",
+      }),
+    ]);
+  });
 });
 
 describe("getCheckinResponseGrouping", () => {
@@ -162,7 +192,9 @@ describe("getCheckinEditionMetrics", () => {
       },
       { status: "pending", completedAt: null, createdAt: new Date("2026-08-18T09:00:00Z") },
     ]);
-    prismaMock.closedBetaCheckinResponse.findMany.mockResolvedValue([]);
+    prismaMock.closedBetaCheckinResponse.findMany.mockResolvedValue([
+      { createdAt: new Date("2026-08-18T10:00:00Z") },
+    ]);
     prismaMock.closedBetaEnrollment.count.mockResolvedValue(2);
 
     const metrics = await getCheckinEditionMetrics("edition-1");
@@ -225,6 +257,10 @@ describe("resetCheckinResponse", () => {
         data: expect.objectContaining({ status: "pending", completedAt: null }),
       }),
     );
+    expect(prismaMock.closedBetaCheckinResponse.updateMany).toHaveBeenCalledWith({
+      where: { editionId: "edition-1", workspaceId: "w1", isCurrent: true },
+      data: { isCurrent: false },
+    });
     expect(auditMock.recordClosedBetaAudit).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ action: "checkin.response.reset" }),

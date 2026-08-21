@@ -12,7 +12,7 @@ export interface CheckinResponseRow {
   responderEmail: string;
   responderName: string | null;
   isPrimary: boolean;
-  createdAt: string;
+  createdAt: string | null;
   answers: Record<string, unknown>;
   workspaceStatus: string;
 }
@@ -77,6 +77,20 @@ export function useCheckinResponseGrouping(editionId: string | null) {
         `/api/admin/closed-beta/checkins/${editionId}/responses?mode=grouped`,
       ),
     enabled: Boolean(editionId),
+  });
+}
+
+export function useCheckinResponseDetail(
+  editionId: string | null,
+  workspaceId: string | null,
+) {
+  return useQuery<CheckinResponseRow | null>({
+    queryKey: [...responsesKey(editionId ?? ""), "detail", workspaceId ?? ""],
+    queryFn: () =>
+      fetchJson<CheckinResponseRow | null>(
+        `/api/admin/closed-beta/checkins/${editionId}/responses?mode=detail&workspaceId=${encodeURIComponent(workspaceId ?? "")}`,
+      ),
+    enabled: Boolean(editionId && workspaceId),
   });
 }
 

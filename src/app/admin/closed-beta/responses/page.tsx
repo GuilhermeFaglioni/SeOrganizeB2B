@@ -6,6 +6,7 @@ import { Download, ShieldCheck } from "lucide-react";
 import { useAdminCheckinEditions } from "@/hooks/use-checkin-admin";
 import {
   useCheckinEditionMetrics,
+  useCheckinResponseDetail,
   useCheckinResponseGrouping,
   useCheckinResponses,
   useExportCheckinResponses,
@@ -16,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Modal } from "@/components/ui/Modal";
 import { LoadingState } from "@/components/shared/loading-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { toastSuccess } from "@/lib/toast";
@@ -28,6 +30,33 @@ function statusLabel(status: string, t: (key: string) => string) {
     not_applicable: t("not_applicable"),
   };
   return map[status] ?? status;
+}
+
+function QueryErrorState({
+  title,
+  description,
+  onRetry,
+  retryLabel,
+}: {
+  title: string;
+  description: string;
+  onRetry: () => void;
+  retryLabel: string;
+}) {
+  return (
+    <div className="space-y-3">
+      <EmptyState icon={ShieldCheck} title={title} description={description} />
+      <Button variant="outline" onClick={onRetry}>
+        {retryLabel}
+      </Button>
+    </div>
+  );
+}
+
+function formatAnswer(value: unknown): string {
+  if (Array.isArray(value)) return value.join(", ");
+  if (value === "") return "-";
+  return String(value);
 }
 
 function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
@@ -57,17 +86,39 @@ export default function AdminResponsesPage() {
   const [mode, setMode] = useState<"list" | "grouped" | "metrics">("list");
   const [workspaceFilter, setWorkspaceFilter] = useState("");
   const [themeFilter, setThemeFilter] = useState("");
+  const [fromFilter, setFromFilter] = useState("");
+  const [toFilter, setToFilter] = useState("");
+  const [detailWorkspaceId, setDetailWorkspaceId] = useState<string | null>(null);
 
   const responses = useCheckinResponses(
     editionId,
-    { workspaceId: workspaceFilter || undefined, theme: themeFilter || undefined },
+    {
+      workspaceId: workspaceFilter || undefined,
+      theme: themeFilter || undefined,
+      from: fromFilter || undefined,
+      to: toFilter || undefined,
+    },
   );
+  const detail = useCheckinResponseDetail(editionId, detailWorkspaceId);
   const grouped = useCheckinResponseGrouping(editionId);
   const metrics = useCheckinEditionMetrics(editionId);
   const grantExemption = useGrantCheckinExemption(editionId ?? "");
   const revokeExemption = useRevokeCheckinExemption(editionId ?? "");
   const resetResponse = useResetCheckinResponse(editionId ?? "");
   const exporter = useExportCheckinResponses();
+  const selectedEdition = editions.data?.find((edition) => edition.id === editionId);
+  const themeOptions = Array.from(
+    new Set(
+      selectedEdition?.questions
+        .map((question) => question.theme)
+        .filter((theme): theme is string => Boolean(theme)) ?? [],
+    ),
+  );
+  const companyOptions = Array.from(
+    new Map(
+      (responses.data ?? []).map((response) => [response.workspaceId, response.workspaceName]),
+    ).entries(),
+  );
 
   const [grantWorkspaceId, setGrantWorkspaceId] = useState("");
   const [grantReason, setGrantReason] = useState("");
@@ -112,7 +163,12 @@ export default function AdminResponsesPage() {
   if (editions.isError || !editions.data) {
     return (
       <div className="p-6" data-testid="admin-responses-page">
-        <EmptyState icon={ShieldCheck} title={t("title")} description={t("loadFailed")} />
+        <QueryErrorState
+          title={t("title")}
+          description={t("loadFailed")}
+          retryLabel={t("retry")}
+          onRetry={() => void editions.refetch()}
+        />
       </div>
     );
   }
@@ -127,13 +183,20 @@ export default function AdminResponsesPage() {
       </div>
 
       <div className="mt-6 space-y-4 rounded-lg border border-border p-4">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-5">
           <div className="space-y-1.5">
             <Label htmlFor="responses-edition">{t("selectEdition")}</Label>
             <select
               id="responses-edition"
               value={editionId ?? ""}
-              onChange={(event) => setEditionId(event.target.value || null)}
+              onChange={(event) => {
+                setEditionId(event.target.value || null);
+                setWorkspaceFilter("");
+                setThemeFilter("");
+                setFromFilter("");
+                setToFilter("");
+                setDetailWorkspaceId(null);
+              }}
               className="h-10 w-full rounded-md border border-border bg-page px-3 text-sm text-text-primary"
             >
               <option value="">{t("selectEdition")}</option>
@@ -146,20 +209,52 @@ export default function AdminResponsesPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="responses-workspace">{t("company")}</Label>
-            <Input
+            <select
               id="responses-workspace"
               value={workspaceFilter}
               onChange={(event) => setWorkspaceFilter(event.target.value)}
-              placeholder={t("company")}
-            />
+              className="h-10 w-full rounded-md border border-border bg-page px-3 text-sm text-text-primary"
+            >
+              <option value="">{t("allCompanies")}</option>
+              {companyOptions.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="responses-theme">{t("grouped")}</Label>
-            <Input
+            <Label htmlFor="responses-theme">{t("theme")}</Label>
+            <select
               id="responses-theme"
               value={themeFilter}
               onChange={(event) => setThemeFilter(event.target.value)}
-              placeholder="theme"
+              className="h-10 w-full rounded-md border border-border bg-page px-3 text-sm text-text-primary"
+            >
+              <option value="">{t("allThemes")}</option>
+              {themeOptions.map((theme) => (
+                <option key={theme} value={theme}>
+                  {theme}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="responses-from">{t("from")}</Label>
+            <Input
+              id="responses-from"
+              type="date"
+              value={fromFilter}
+              onChange={(event) => setFromFilter(event.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="responses-to">{t("to")}</Label>
+            <Input
+              id="responses-to"
+              type="date"
+              value={toFilter}
+              onChange={(event) => setToFilter(event.target.value)}
             />
           </div>
         </div>
@@ -186,37 +281,57 @@ export default function AdminResponsesPage() {
           <EmptyState icon={ShieldCheck} title={t("selectEdition")} description={t("description")} />
         </div>
       ) : mode === "metrics" ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-border bg-page-alt p-5 shadow-card">
-            <p className="text-sm text-text-secondary">{t("completionRate")}</p>
-            <p className="mt-2 text-heading-1 font-semibold text-text-primary">
-              {metrics.data?.completionRate == null ? "—" : `${metrics.data.completionRate}%`}
-            </p>
-          </div>
-          <div className="rounded-xl border border-border bg-page-alt p-5 shadow-card">
-            <p className="text-sm text-text-secondary">{t("totalWorkspaces")}</p>
-            <p className="mt-2 text-heading-1 font-semibold text-text-primary">
-              {metrics.data?.totalWorkspaces ?? "—"} · {metrics.data?.completed ?? 0} {t("completed")} · {metrics.data?.pending ?? 0} {t("pending")} · {metrics.data?.exempt ?? 0} {t("exempt")}
-            </p>
-          </div>
-          <div className="rounded-xl border border-border bg-page-alt p-5 shadow-card">
-            <p className="text-sm text-text-secondary">{t("responseTime")}</p>
-            <p className="mt-2 text-heading-1 font-semibold text-text-primary">
-              {metrics.data?.averageResponseSeconds == null ? "—" : `${Math.round(metrics.data.averageResponseSeconds)}s`}
-            </p>
-          </div>
+        <div className="mt-6">
+          {metrics.isLoading ? (
+            <LoadingState />
+          ) : metrics.isError ? (
+            <QueryErrorState
+              title={t("title")}
+              description={t("loadFailed")}
+              retryLabel={t("retry")}
+              onRetry={() => void metrics.refetch()}
+            />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-xl border border-border bg-page-alt p-5 shadow-card">
+                <p className="text-sm text-text-secondary">{t("completionRate")}</p>
+                <p className="mt-2 text-heading-1 font-semibold text-text-primary">
+                  {metrics.data?.completionRate == null ? t("notAvailable") : `${metrics.data.completionRate}%`}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-page-alt p-5 shadow-card">
+                <p className="text-sm text-text-secondary">{t("totalWorkspaces")}</p>
+                <p className="mt-2 text-heading-1 font-semibold text-text-primary">
+                  {metrics.data?.totalWorkspaces ?? t("notAvailable")} · {metrics.data?.completed ?? 0} {t("completed")} · {metrics.data?.pending ?? 0} {t("pending")} · {metrics.data?.exempt ?? 0} {t("exempt")}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-page-alt p-5 shadow-card">
+                <p className="text-sm text-text-secondary">{t("responseTime")}</p>
+                <p className="mt-2 text-heading-1 font-semibold text-text-primary">
+                  {metrics.data?.averageResponseSeconds == null ? t("notAvailable") : `${Math.round(metrics.data.averageResponseSeconds)}s`}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       ) : mode === "grouped" ? (
         <div className="mt-6 space-y-4">
           {grouped.isLoading ? (
             <LoadingState />
+          ) : grouped.isError ? (
+            <QueryErrorState
+              title={t("title")}
+              description={t("loadFailed")}
+              retryLabel={t("retry")}
+              onRetry={() => void grouped.refetch()}
+            />
           ) : grouped.data && grouped.data.length > 0 ? (
             grouped.data.map((question) => (
               <div key={question.questionId} className="rounded-lg border border-border p-4">
                 <p className="font-medium text-text-primary">{question.text}</p>
                 <p className="text-xs text-text-secondary">
                   {question.type}
-                  {question.theme ? ` · ${question.theme}` : ""} · {question.responses.length} respostas
+                  {question.theme ? ` · ${question.theme}` : ""} · {t("responseCount", { count: question.responses.length })}
                 </p>
                 <ul className="mt-2 list-inside list-disc text-sm text-text-secondary">
                   {question.responses.map((entry) => (
@@ -235,6 +350,13 @@ export default function AdminResponsesPage() {
         <div className="mt-6 space-y-4">
           {responses.isLoading ? (
             <LoadingState />
+          ) : responses.isError ? (
+            <QueryErrorState
+              title={t("title")}
+              description={t("loadFailed")}
+              retryLabel={t("retry")}
+              onRetry={() => void responses.refetch()}
+            />
           ) : responses.data && responses.data.length > 0 ? (
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full min-w-[720px] border-collapse text-sm">
@@ -255,13 +377,22 @@ export default function AdminResponsesPage() {
                         {response.responderName || response.responderEmail}
                       </td>
                       <td className="px-4 py-3 text-text-secondary">
-                        {new Date(response.createdAt).toLocaleString()}
+                        {response.createdAt ? new Date(response.createdAt).toLocaleString() : "-"}
                       </td>
                       <td className="px-4 py-3 text-text-secondary">
                         {statusLabel(response.workspaceStatus, t)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-2">
+                          {response.createdAt && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setDetailWorkspaceId(response.workspaceId)}
+                            >
+                              {t("view")}
+                            </Button>
+                          )}
                           {response.workspaceStatus === "completed" && (
                             <Button
                               size="sm"
@@ -349,6 +480,70 @@ export default function AdminResponsesPage() {
           </div>
         </form>
       )}
+
+      <Modal
+        id="checkin-response-detail"
+        title={t("detailTitle")}
+        description={t("detailDescription")}
+        closeLabel={t("close")}
+        size="lg"
+        open={Boolean(detailWorkspaceId)}
+        onOpenChange={(open) => {
+          if (!open) setDetailWorkspaceId(null);
+        }}
+      >
+        {detail.isLoading ? (
+          <LoadingState />
+        ) : detail.isError ? (
+          <QueryErrorState
+            title={t("detailTitle")}
+            description={t("detailLoadFailed")}
+            retryLabel={t("retry")}
+            onRetry={() => void detail.refetch()}
+          />
+        ) : detail.data ? (
+          <div className="space-y-4">
+            <div className="grid gap-2 text-sm text-text-secondary sm:grid-cols-2">
+              <p>
+                <span className="font-medium text-text-primary">{t("company")}:</span>{" "}
+                {detail.data.workspaceName}
+              </p>
+              <p>
+                <span className="font-medium text-text-primary">{t("responder")}:</span>{" "}
+                {detail.data.responderName || detail.data.responderEmail}
+              </p>
+              <p>
+                <span className="font-medium text-text-primary">{t("date")}:</span>{" "}
+                {detail.data.createdAt ? new Date(detail.data.createdAt).toLocaleString() : t("notAvailable")}
+              </p>
+              <p>
+                <span className="font-medium text-text-primary">{t("status")}:</span>{" "}
+                {statusLabel(detail.data.workspaceStatus, t)}
+              </p>
+            </div>
+            <div className="space-y-3">
+              {Object.entries(detail.data.answers)
+                .filter(([questionId]) => !questionId.startsWith("__"))
+                .map(([questionId, value]) => {
+                  const question = selectedEdition?.questions.find((item) => item.id === questionId);
+                  return (
+                    <div key={questionId} className="rounded-lg border border-border p-3">
+                      <p className="text-sm font-medium text-text-primary">
+                        {question?.text ?? questionId}
+                      </p>
+                      <p className="mt-1 text-sm text-text-secondary">{formatAnswer(value)}</p>
+                    </div>
+                  );
+                })}
+              {Object.prototype.hasOwnProperty.call(detail.data.answers, "__did_not_use__") && (
+                <p className="text-sm text-text-secondary">{t("didNotUse")}</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-text-secondary">{t("detailNotFound")}</p>
+        )}
+      </Modal>
     </div>
   );
 }

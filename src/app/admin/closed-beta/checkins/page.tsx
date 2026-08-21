@@ -101,7 +101,8 @@ export default function AdminCheckinsPage() {
         required: question.required,
         position: question.position,
         theme: question.theme ?? undefined,
-        isSuggestionQuestion: question.isSuggestionQuestion,
+        isSuggestionQuestion:
+          question.type === "short_text" && question.isSuggestionQuestion,
       })),
     );
     setShowForm(true);
@@ -227,7 +228,7 @@ export default function AdminCheckinsPage() {
         required: item.required,
         position: next.length,
         theme: item.theme,
-        isSuggestionQuestion: item.isSuggestionQuestion,
+        isSuggestionQuestion: item.type === "short_text" && item.isSuggestionQuestion,
       });
     });
     setQuestions(next.map((question, index) => ({ ...question, position: index })));
@@ -320,11 +321,13 @@ export default function AdminCheckinsPage() {
                   />
                   <select
                     value={question.type}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      const type = event.target.value as CheckinQuestionType;
                       updateQuestion(index, {
-                        type: event.target.value as CheckinQuestionType,
-                      })
-                    }
+                        type,
+                        ...(type === "short_text" ? {} : { isSuggestionQuestion: false }),
+                      });
+                    }}
                     className="h-10 w-40 rounded-md border border-border bg-page px-2 text-sm text-text-primary"
                   >
                     {QUESTION_TYPES.map((type) => (
@@ -365,6 +368,7 @@ export default function AdminCheckinsPage() {
                   <label className="flex cursor-pointer items-center gap-1.5">
                     <Checkbox
                       checked={Boolean(question.isSuggestionQuestion)}
+                      disabled={question.type !== "short_text"}
                       onCheckedChange={(checked) =>
                         updateQuestion(index, {
                           isSuggestionQuestion: Boolean(checked),

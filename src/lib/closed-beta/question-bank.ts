@@ -61,6 +61,9 @@ export function normalizeBankQuestion(
   if (!SUPPORTED_QUESTION_TYPES.includes(input.type)) {
     throw new QuestionBankValidationError(`Unsupported question type: ${input.type}`);
   }
+  if (input.isSuggestionQuestion && input.type !== "short_text") {
+    throw new QuestionBankValidationError("Suggestion questions must use short text");
+  }
   if (
     (input.type === "single_choice" || input.type === "multiple_choice") &&
     (!Array.isArray(input.options) || input.options.length === 0)

@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   submitCheckinResponse: vi.fn(),
   profileFindUnique: vi.fn(),
   editionFindUnique: vi.fn(),
-  responseFindUnique: vi.fn(),
+  responseFindFirst: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({ getUser: mocks.getUser }));
@@ -31,7 +31,7 @@ vi.mock("../../prisma/client", () => ({
   prisma: {
     profile: { findUnique: mocks.profileFindUnique },
     closedBetaCheckinEdition: { findUnique: mocks.editionFindUnique },
-    closedBetaCheckinResponse: { findUnique: mocks.responseFindUnique },
+    closedBetaCheckinResponse: { findFirst: mocks.responseFindFirst },
   },
 }));
 
@@ -94,7 +94,7 @@ describe("beta check-in API", () => {
       blocked: true,
     });
     mocks.editionFindUnique.mockResolvedValue(edition);
-    mocks.responseFindUnique.mockResolvedValue(null);
+    mocks.responseFindFirst.mockResolvedValue(null);
 
     const res = await GET();
     const body = await res.json();
@@ -114,7 +114,7 @@ describe("beta check-in API", () => {
       blocked: false,
     });
     mocks.editionFindUnique.mockResolvedValue(edition);
-    mocks.responseFindUnique.mockResolvedValue({ id: "response-1" });
+    mocks.responseFindFirst.mockResolvedValue({ id: "response-1" });
 
     const body = await (await GET()).json();
     expect(body.data.memberSubmitted).toBe(true);

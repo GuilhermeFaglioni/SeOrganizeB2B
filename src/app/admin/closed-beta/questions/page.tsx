@@ -57,7 +57,7 @@ export default function AdminQuestionBankPage() {
       options: item.options ?? undefined,
       required: item.required,
       theme: item.theme,
-      isSuggestionQuestion: item.isSuggestionQuestion,
+      isSuggestionQuestion: item.type === "short_text" && item.isSuggestionQuestion,
     });
     setShowForm(true);
   }
@@ -151,7 +151,13 @@ export default function AdminQuestionBankPage() {
                 id="bank-question-type"
                 value={form.type}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, type: event.target.value }))
+                  setForm((current) => ({
+                    ...current,
+                    type: event.target.value,
+                    ...(event.target.value === "short_text"
+                      ? {}
+                      : { isSuggestionQuestion: false }),
+                  }))
                 }
                 className="h-10 w-full rounded-md border border-border bg-page px-3 text-sm text-text-primary"
               >
@@ -201,6 +207,7 @@ export default function AdminQuestionBankPage() {
             <label className="flex cursor-pointer items-center gap-1.5">
               <Checkbox
                 checked={Boolean(form.isSuggestionQuestion)}
+                disabled={form.type !== "short_text"}
                 onCheckedChange={(checked) =>
                   setForm((current) => ({ ...current, isSuggestionQuestion: Boolean(checked) }))
                 }

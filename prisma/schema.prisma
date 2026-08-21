@@ -366,6 +366,7 @@ model ClosedBetaCheckinResponse {
   profileId   String   @map("profile_id")
   answers     Json
   isPrimary   Boolean  @default(false) @map("is_primary")
+  isCurrent   Boolean  @default(true) @map("is_current")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -373,7 +374,7 @@ model ClosedBetaCheckinResponse {
   workspace Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   profile   Profile                  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  @@unique([editionId, profileId])
+  @@index([editionId, profileId])
   @@index([editionId, workspaceId])
   @@index([workspaceId])
   @@index([profileId])

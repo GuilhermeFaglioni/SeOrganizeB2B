@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireClosedBetaAdmin } from "@/lib/closed-beta/admin";
+import {
+  closedBetaAdminErrorResponse,
+  requireClosedBetaAdmin,
+} from "@/lib/closed-beta/admin";
 import { mapCheckinError } from "@/lib/closed-beta/checkin-http";
 import {
   getCheckinEdition,
@@ -22,16 +25,7 @@ export async function GET(
   const params = await props.params;
   const gate = await requireClosedBetaAdmin();
   if (!gate.ok) {
-    return NextResponse.json(
-      {
-        data: null,
-        error: {
-          code: gate.reason === "unauthorized" ? "AUTH_ERROR" : "FORBIDDEN",
-          message: gate.reason === "unauthorized" ? "Unauthorized" : "Forbidden",
-        },
-      },
-      { status: gate.reason === "unauthorized" ? 401 : 403 },
-    );
+    return closedBetaAdminErrorResponse(gate);
   }
   try {
     const edition = await getCheckinEdition(params.id);
@@ -48,16 +42,7 @@ export async function PATCH(
   const params = await props.params;
   const gate = await requireClosedBetaAdmin();
   if (!gate.ok) {
-    return NextResponse.json(
-      {
-        data: null,
-        error: {
-          code: gate.reason === "unauthorized" ? "AUTH_ERROR" : "FORBIDDEN",
-          message: gate.reason === "unauthorized" ? "Unauthorized" : "Forbidden",
-        },
-      },
-      { status: gate.reason === "unauthorized" ? 401 : 403 },
-    );
+    return closedBetaAdminErrorResponse(gate);
   }
 
   const body = await request.json().catch(() => null);

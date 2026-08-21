@@ -7,6 +7,10 @@ const migration = readFileSync(
   resolve(__dirname, "../migrations/20260818090000_closed_beta_checkin/migration.sql"),
   "utf-8",
 );
+const reopenMigration = readFileSync(
+  resolve(__dirname, "../migrations/20260821130000_allow_closed_beta_response_reopen/migration.sql"),
+  "utf-8",
+);
 
 describe("Closed Beta check-in schema contract", () => {
   it("defines editions with a publish/close lifecycle", () => {
@@ -41,7 +45,7 @@ describe("Closed Beta check-in schema contract", () => {
     expect(migration).toContain('CREATE TABLE "closed_beta_checkin_questions"');
   });
 
-  it("keeps one response per member per edition and flags the completing one", () => {
+  it("keeps one current response per member and preserves reopened history", () => {
     const response = schema.match(
       /model ClosedBetaCheckinResponse \{([\s\S]*?)\n\}/,
     )?.[1];
@@ -51,11 +55,17 @@ describe("Closed Beta check-in schema contract", () => {
     expect(response).toContain('@map("profile_id")');
     expect(response).toContain("answers     Json");
     expect(response).toContain('@map("is_primary")');
-    expect(response).toContain("@@unique([editionId, profileId])");
+    expect(response).toContain('@map("is_current")');
+    expect(response).toContain("@@index([editionId, profileId])");
     expect(migration).toContain('CREATE TABLE "closed_beta_checkin_responses"');
     expect(migration).toContain(
       '"closed_beta_checkin_responses_edition_id_profile_id_key"',
     );
+    expect(reopenMigration).toContain('ADD COLUMN "is_current" BOOLEAN NOT NULL DEFAULT true');
+    expect(reopenMigration).toContain(
+      '"closed_beta_checkin_responses_current_edition_id_profile_id_key"',
+    );
+    expect(reopenMigration).toContain('WHERE "is_current" = true');
   });
 
   it("stores per-workspace completion and exemption state", () => {

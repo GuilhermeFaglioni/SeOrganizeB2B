@@ -4,15 +4,19 @@ import { CheckinNotFoundError } from "@/lib/closed-beta/checkin";
 import {
   exportCheckinResponses,
   getCheckinEditionMetrics,
+  getCheckinResponseDetail,
   getCheckinResponseGrouping,
   listCheckinResponses,
 } from "@/lib/closed-beta/responses";
 
 export const dynamic = "force-dynamic";
 
-function parseDate(value: string | null): Date | undefined {
+function parseDate(value: string | null, endOfDay = false): Date | undefined {
   if (!value) return undefined;
-  const date = new Date(value);
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const date = new Date(
+    endOfDay && dateOnly ? `${value}T23:59:59.999Z` : value,
+  );
   if (Number.isNaN(date.getTime())) return undefined;
   return date;
 }
@@ -39,7 +43,7 @@ export async function GET(
   const workspaceId = url.searchParams.get("workspaceId") ?? undefined;
   const theme = url.searchParams.get("theme") ?? undefined;
   const from = parseDate(url.searchParams.get("from"));
-  const to = parseDate(url.searchParams.get("to"));
+  const to = parseDate(url.searchParams.get("to"), true);
   const mode = url.searchParams.get("mode") ?? "list";
 
   try {
@@ -50,6 +54,15 @@ export async function GET(
       data = await getCheckinEditionMetrics(params.id);
     } else if (mode === "export") {
       data = await exportCheckinResponses(params.id);
+    } else if (mode === "detail") {
+      const detailWorkspaceId = url.searchParams.get("workspaceId");
+      if (!detailWorkspaceId) {
+        return NextResponse.json(
+          { data: null, error: { code: "VALIDATION_ERROR", message: "workspaceId is required" } },
+          { status: 400 },
+        );
+      }
+      data = await getCheckinResponseDetail(params.id, detailWorkspaceId);
     } else {
       data = await listCheckinResponses({
         editionId: params.id,

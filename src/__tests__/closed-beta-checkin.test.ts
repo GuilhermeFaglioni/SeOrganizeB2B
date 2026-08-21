@@ -17,7 +17,9 @@ const prismaMock = vi.hoisted(() => {
     },
     closedBetaCheckinResponse: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
+      updateMany: vi.fn(),
     },
     closedBetaCheckinWorkspaceState: {
       findUnique: vi.fn(),
@@ -215,6 +217,18 @@ describe("createCheckinEdition", () => {
       ),
     ).rejects.toBeInstanceOf(CheckinValidationError);
   });
+
+  it("rejects a suggestion question with a non-text type", async () => {
+    await expect(
+      createCheckinEdition(
+        {
+          title: "Sugestão inválida",
+          questions: [{ text: "Qual?", type: "rating", isSuggestionQuestion: true }],
+        },
+        actor,
+      ),
+    ).rejects.toBeInstanceOf(CheckinValidationError);
+  });
 });
 
 describe("publishCheckinEdition", () => {
@@ -327,7 +341,7 @@ describe("submitCheckinResponse", () => {
 
   beforeEach(() => {
     prismaMock.closedBetaCheckinEdition.findUnique.mockResolvedValue(
-      publishedEdition(),
+      publishedEdition({ closesAt: new Date("2099-08-25T00:00:00Z") }),
     );
     prismaMock.closedBetaEnrollment.findUnique.mockResolvedValue({
       status: "active",
@@ -339,7 +353,7 @@ describe("submitCheckinResponse", () => {
   });
 
   it("completes the workspace with the first valid response", async () => {
-    prismaMock.closedBetaCheckinResponse.findUnique.mockResolvedValue(null);
+    prismaMock.closedBetaCheckinResponse.findFirst.mockResolvedValue(null);
     prismaMock.$queryRaw.mockResolvedValue([
       { id: "state-1", status: "pending", exemption_expires_at: null },
     ]);
@@ -384,7 +398,7 @@ describe("submitCheckinResponse", () => {
   });
 
   it("stores an optional response when the company is already complete", async () => {
-    prismaMock.closedBetaCheckinResponse.findUnique.mockResolvedValue(null);
+    prismaMock.closedBetaCheckinResponse.findFirst.mockResolvedValue(null);
     prismaMock.$queryRaw.mockResolvedValue([
       { id: "state-1", status: "completed", exemption_expires_at: null },
     ]);
@@ -412,7 +426,7 @@ describe("submitCheckinResponse", () => {
   });
 
   it("is idempotent for the same member and edition", async () => {
-    prismaMock.closedBetaCheckinResponse.findUnique.mockResolvedValue({
+    prismaMock.closedBetaCheckinResponse.findFirst.mockResolvedValue({
       id: "response-1",
       isPrimary: true,
     });
@@ -458,6 +472,56 @@ describe("submitCheckinResponse", () => {
     ).rejects.toBeInstanceOf(CheckinValidationError);
   });
 
+  it("accepts a submission that omits optional questions", async () => {
+    prismaMock.closedBetaCheckinEdition.findUnique.mockResolvedValue(
+      publishedEdition({
+        closesAt: new Date("2099-08-25T00:00:00Z"),
+        questions: [
+          {
+            id: "q-rating",
+            text: "Como avalia o valor?",
+            type: "rating",
+            options: null,
+            required: true,
+            position: 1,
+            theme: "value",
+            isSuggestionQuestion: false,
+          },
+          suggestionQuestion,
+          {
+            id: "q-optional",
+            text: "Outro comentario",
+            type: "short_text",
+            options: null,
+            required: false,
+            position: 2,
+            theme: "feedback",
+            isSuggestionQuestion: false,
+          },
+        ],
+      }),
+    );
+    prismaMock.closedBetaCheckinResponse.findFirst.mockResolvedValue(null);
+    prismaMock.$queryRaw.mockResolvedValue([
+      { id: "state-1", status: "pending", exemption_expires_at: null },
+    ]);
+    prismaMock.closedBetaCheckinResponse.create.mockResolvedValue({
+      id: "response-1",
+      isPrimary: true,
+    });
+
+    const result = await submitCheckinResponse({
+      editionId: "edition-1",
+      workspaceId: "workspace-1",
+      profileId: "profile-1",
+      answers: validAnswers,
+      now: new Date("2026-08-18T12:00:00Z"),
+      actor,
+    });
+
+    expect(result.completedWorkspace).toBe(true);
+  });
+
   it("rejects a rating outside the allowed range", async () => {
     await expect(
       submitCheckinResponse({
@@ -471,7 +535,7 @@ describe("submitCheckinResponse", () => {
   });
 
   it("accepts an empty answer as a no-suggestion response", async () => {
-    prismaMock.closedBetaCheckinResponse.findUnique.mockResolvedValue(null);
+    prismaMock.closedBetaCheckinResponse.findFirst.mockResolvedValue(null);
     prismaMock.$queryRaw.mockResolvedValue([
       { id: "state-1", status: "pending", exemption_expires_at: null },
     ]);
@@ -491,8 +555,53 @@ describe("submitCheckinResponse", () => {
     expect(result.completedWorkspace).toBe(true);
   });
 
+  it("allows a pending workspace to submit after closesAt and unlock", async () => {
+    prismaMock.closedBetaCheckinEdition.findUnique.mockResolvedValue(
+      publishedEdition({ closesAt: new Date("2026-08-17T00:00:00Z") }),
+    );
+    prismaMock.closedBetaCheckinResponse.findFirst.mockResolvedValue(null);
+    prismaMock.$queryRaw.mockResolvedValue([
+      { id: "state-1", status: "pending", exemption_expires_at: null },
+    ]);
+    prismaMock.closedBetaCheckinResponse.create.mockResolvedValue({
+      id: "response-after",
+      isPrimary: true,
+    });
+    prismaMock.closedBetaCheckinWorkspaceState.findUnique.mockResolvedValue(null);
+
+    const result = await submitCheckinResponse({
+      editionId: "edition-1",
+      workspaceId: "workspace-1",
+      profileId: "profile-1",
+      answers: validAnswers,
+      now: new Date("2026-08-18T12:00:00Z"),
+      actor,
+    });
+
+    expect(result.completedWorkspace).toBe(true);
+    expect(result.duplicate).toBe(false);
+  });
+
+  it("rejects submissions when the edition itself is closed", async () => {
+    prismaMock.closedBetaCheckinEdition.findUnique.mockResolvedValue({
+      ...publishedEdition({ closesAt: new Date("2026-08-17T00:00:00Z") }),
+      status: "closed",
+    });
+
+    await expect(
+      submitCheckinResponse({
+        editionId: "edition-1",
+        workspaceId: "workspace-1",
+        profileId: "profile-1",
+        answers: validAnswers,
+        now: new Date("2026-08-18T12:00:00Z"),
+        actor,
+      }),
+    ).rejects.toBeInstanceOf(CheckinEditionClosedError);
+  });
+
   it("accepts a did-not-use submission without required answers", async () => {
-    prismaMock.closedBetaCheckinResponse.findUnique.mockResolvedValue(null);
+    prismaMock.closedBetaCheckinResponse.findFirst.mockResolvedValue(null);
     prismaMock.$queryRaw.mockResolvedValue([
       { id: "state-1", status: "pending", exemption_expires_at: null },
     ]);

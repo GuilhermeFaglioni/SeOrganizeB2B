@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
   requireClosedBetaAdmin: vi.fn(),
+  closedBetaAdminErrorResponse: vi.fn((gate: { reason: "unauthorized" | "forbidden" }) =>
+    new Response(null, { status: gate.reason === "unauthorized" ? 401 : 403 })),
   listCheckinEditions: vi.fn(),
   createCheckinEdition: vi.fn(),
   getCheckinEdition: vi.fn(),
@@ -18,12 +20,13 @@ const mocks = vi.hoisted(() => ({
   submitCheckinResponse: vi.fn(),
   profileFindUnique: vi.fn(),
   editionFindUnique: vi.fn(),
-  responseFindUnique: vi.fn(),
+  responseFindFirst: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({ getUser: mocks.getUser }));
 vi.mock("@/lib/closed-beta/admin", () => ({
   requireClosedBetaAdmin: mocks.requireClosedBetaAdmin,
+  closedBetaAdminErrorResponse: mocks.closedBetaAdminErrorResponse,
 }));
 
 vi.mock("@/lib/closed-beta/checkin", () => {
@@ -59,7 +62,7 @@ vi.mock("../../prisma/client", () => ({
   prisma: {
     profile: { findUnique: mocks.profileFindUnique },
     closedBetaCheckinEdition: { findUnique: mocks.editionFindUnique },
-    closedBetaCheckinResponse: { findUnique: mocks.responseFindUnique },
+    closedBetaCheckinResponse: { findFirst: mocks.responseFindFirst },
   },
 }));
 
@@ -194,7 +197,7 @@ describe("member check-in cross-tenant isolation", () => {
       blocked: false,
     });
     mocks.editionFindUnique.mockResolvedValue(null);
-    mocks.responseFindUnique.mockResolvedValue(null);
+    mocks.responseFindFirst.mockResolvedValue(null);
 
     const res = await memberCheckinGET();
     const body = await res.json();

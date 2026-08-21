@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
-import { getEffectivePermissions } from "@/lib/authz/authz";
+import { denyFor, getEffectivePermissions } from "@/lib/authz/authz";
 import {
   createInvite,
   getWorkspaceIdForUser,
@@ -18,6 +18,8 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+  const denied = await denyFor(user.id, "manage_roles");
+  if (denied) return denied;
   const effective = await getEffectivePermissions(user.id);
   if (!effective.isAdmin) {
     return NextResponse.json({ data: null, error: { code: "FORBIDDEN", message: "Only admins can manage invites" } }, { status: 403 });
@@ -36,6 +38,8 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
   }
+  const denied = await denyFor(user.id, "manage_roles");
+  if (denied) return denied;
   const effective = await getEffectivePermissions(user.id);
   if (!effective.isAdmin) {
     return NextResponse.json({ data: null, error: { code: "FORBIDDEN", message: "Only admins can invite collaborators" } }, { status: 403 });

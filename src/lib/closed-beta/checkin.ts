@@ -120,6 +120,9 @@ function normalizeQuestions(questions: CheckinQuestionInput[]): CheckinQuestionI
     if (!CHECKIN_QUESTION_TYPES.includes(question.type)) {
       throw new CheckinValidationError(`Unsupported question type: ${question.type}`);
     }
+    if (question.isSuggestionQuestion && question.type !== "short_text") {
+      throw new CheckinValidationError("Suggestion questions must use short text");
+    }
     if (
       (question.type === "single_choice" || question.type === "multiple_choice") &&
       (!Array.isArray(question.options) || question.options.length === 0)
@@ -152,21 +155,21 @@ function validateAnswers(
     }
   }
   for (const question of questions) {
+    const value = answers[question.id];
+    if (value === undefined || value === null) continue;
+
     if (question.type === "rating") {
-      const value = answers[question.id];
       if (typeof value !== "number" || value < CHECKIN_RATING_MIN || value > CHECKIN_RATING_MAX) {
         throw new CheckinValidationError(
           `Rating must be a number between ${CHECKIN_RATING_MIN} and ${CHECKIN_RATING_MAX}`
         );
       }
     } else if (question.type === "single_choice") {
-      const value = answers[question.id];
       const options = (question.options as string[]) ?? [];
       if (typeof value !== "string" || !options.includes(value)) {
         throw new CheckinValidationError("Single choice must be one of the options");
       }
     } else if (question.type === "multiple_choice") {
-      const value = answers[question.id];
       const options = (question.options as string[]) ?? [];
       if (
         !Array.isArray(value) ||
@@ -176,7 +179,6 @@ function validateAnswers(
         throw new CheckinValidationError("Multiple choice must be a subset of the options");
       }
     } else if (question.type === "short_text") {
-      const value = answers[question.id];
       if (typeof value !== "string") {
         throw new CheckinValidationError("Short text answers must be a string");
       }
@@ -185,7 +187,7 @@ function validateAnswers(
 }
 
 function missingRequiredQuestions(
-  questions: { id: string; required: boolean; isSuggestionQuestion: boolean }[],
+  questions: { id: string; type: string; required: boolean; isSuggestionQuestion: boolean }[],
   answers: Record<string, unknown>,
 ): string[] {
   return questions
@@ -193,7 +195,14 @@ function missingRequiredQuestions(
       if (!question.required) return false;
       const value = answers[question.id];
       if (value === undefined || value === null) return true;
-      return value === "" && !question.isSuggestionQuestion;
+      if (question.isSuggestionQuestion) return false;
+      if (question.type === "multiple_choice") {
+        return !Array.isArray(value) || value.length === 0;
+      }
+      if (question.type === "short_text") {
+        return typeof value !== "string" || value.trim() === "";
+      }
+      return value === "";
     })
     .map((question) => question.id);
 }
@@ -612,6 +621,7 @@ export async function submitCheckinResponse(input: SubmitCheckinResponseInput) {
     const missing = missingRequiredQuestions(
       edition.questions.map((question) => ({
         id: question.id,
+        type: question.type,
         required: question.required,
         isSuggestionQuestion: question.isSuggestionQuestion,
       })),
@@ -626,12 +636,11 @@ export async function submitCheckinResponse(input: SubmitCheckinResponseInput) {
     : input.answers;
 
   return prisma.$transaction(async (client) => {
-    const existing = await client.closedBetaCheckinResponse.findUnique({
+    const existing = await client.closedBetaCheckinResponse.findFirst({
       where: {
-        editionId_profileId: {
-          editionId: input.editionId,
-          profileId: input.profileId,
-        },
+        editionId: input.editionId,
+        profileId: input.profileId,
+        isCurrent: true,
       },
     });
     if (existing) {
@@ -690,12 +699,11 @@ export async function submitCheckinResponse(input: SubmitCheckinResponseInput) {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        const existing = await client.closedBetaCheckinResponse.findUnique({
+        const existing = await client.closedBetaCheckinResponse.findFirst({
           where: {
-            editionId_profileId: {
-              editionId: input.editionId,
-              profileId: input.profileId,
-            },
+            editionId: input.editionId,
+            profileId: input.profileId,
+            isCurrent: true,
           },
         });
         const existingState = await client.closedBetaCheckinWorkspaceState.findUnique({
@@ -882,7 +890,7 @@ export async function resetCheckinResponse(
 
     const responses = await client.closedBetaCheckinResponse.findMany({
       where: { editionId, workspaceId },
-      select: { id: true, profileId: true, isPrimary: true, createdAt: true },
+      select: { id: true, profileId: true, isPrimary: true, isCurrent: true, createdAt: true },
       orderBy: { createdAt: "asc" },
     });
 
@@ -897,6 +905,10 @@ export async function resetCheckinResponse(
         grantedByUserId: null,
         grantedByEmail: null,
       },
+    });
+    await client.closedBetaCheckinResponse.updateMany({
+      where: { editionId, workspaceId, isCurrent: true },
+      data: { isCurrent: false },
     });
 
     await recordClosedBetaAudit(client, {

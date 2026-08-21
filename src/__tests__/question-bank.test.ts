@@ -117,6 +117,15 @@ describe("question bank CRUD", () => {
     ).rejects.toBeInstanceOf(QuestionBankValidationError);
   });
 
+  it("rejects a suggestion question with a non-text type", async () => {
+    await expect(
+      createQuestionBankItem(
+        { text: "Qual?", type: "rating", isSuggestionQuestion: true },
+        actor,
+      ),
+    ).rejects.toBeInstanceOf(QuestionBankValidationError);
+  });
+
   it("updates a question bank item and preserves the id", async () => {
     prismaMock.closedBetaQuestionBank.findUnique.mockResolvedValue(bankRow());
     prismaMock.closedBetaQuestionBank.update.mockResolvedValue(

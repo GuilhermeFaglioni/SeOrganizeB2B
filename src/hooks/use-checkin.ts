@@ -31,6 +31,8 @@ export interface CheckinStatus {
   phase: "upcoming" | "open" | "overdue" | null;
   workspaceStatus: CheckinWorkspaceStatus;
   editionId: string | null;
+  workspaceId: string;
+  profileId: string;
   edition: CheckinEdition | null;
   memberSubmitted: boolean;
 }

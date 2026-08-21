@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { getSuperAdminStatus } from "@/lib/admin/super-admin";
 import { getUser } from "@/lib/supabase/server";
 
@@ -12,4 +13,18 @@ export async function requireClosedBetaAdmin(): Promise<ClosedBetaAdminGate> {
     return { ok: false, reason: "forbidden" };
   }
   return { ok: true, user };
+}
+
+export function closedBetaAdminErrorResponse(gate: Extract<ClosedBetaAdminGate, { ok: false }>) {
+  const unauthorized = gate.reason === "unauthorized";
+  return NextResponse.json(
+    {
+      data: null,
+      error: {
+        code: unauthorized ? "AUTH_ERROR" : "FORBIDDEN",
+        message: unauthorized ? "Unauthorized" : "Forbidden",
+      },
+    },
+    { status: unauthorized ? 401 : 403 },
+  );
 }

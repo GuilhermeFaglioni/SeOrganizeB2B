@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
 import {
   getWorkspaceSettings,
@@ -52,6 +53,8 @@ export async function PATCH(request: NextRequest) {
   const ctx = await getTenantContext(user.id);
   if (!ctx.tenantId) return notFound();
   if (!ctx.isAdmin) return forbidden();
+  const denied = await denyFor(user.id, "manage_roles");
+  if (denied) return denied;
 
   const body = await request.json();
   const input: {
