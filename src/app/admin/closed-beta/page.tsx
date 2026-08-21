@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Copy, Gauge, Mail, RefreshCw, ShieldCheck, Users, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
@@ -168,9 +169,20 @@ export default function ClosedBetaPage() {
           <h1 className="text-heading-1 font-semibold text-text-primary">{t("title")}</h1>
           <p className="mt-1 text-body-small text-text-secondary">{t("description")}</p>
         </div>
-        <Badge variant={statusVariant(config.status)}>
-          {t(`status.${config.status}`)}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/admin/closed-beta/questions">{t("questionsLink")}</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/admin/closed-beta/responses">{t("responsesLink")}</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/admin/closed-beta/checkins">{t("checkinsLink")}</Link>
+          </Button>
+          <Badge variant={statusVariant(config.status)}>
+            {t(`status.${config.status}`)}
+          </Badge>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

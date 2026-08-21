@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
-import { getEffectivePermissions } from "@/lib/authz/authz";
+import { denyFor, getEffectivePermissions } from "@/lib/authz/authz";
 import { prisma, withTenant } from "../../../../prisma/client";
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -141,6 +141,8 @@ export async function PATCH(request: NextRequest) {
 
   const effective = await getEffectivePermissions(user.id);
   if (!effective.isAdmin) return forbidden();
+  const denied = await denyFor(user.id, "manage_roles");
+  if (denied) return denied;
 
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {

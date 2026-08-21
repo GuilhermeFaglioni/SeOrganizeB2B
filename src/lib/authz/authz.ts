@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma, withTenant, withTenantBypass } from "../../../prisma/client";
 import { isWorkspaceAccessBlocked } from "../tenant";
+import { isWorkspaceCheckinBlocked } from "../closed-beta/checkin";
 import {
   normalizePermissions,
   permissionKey,
@@ -389,6 +390,18 @@ export async function denyFor(
           error: {
             code: "WORKSPACE_CANCELLED",
             message: "This workspace has been cancelled",
+          },
+        },
+        { status: 403 }
+      );
+    }
+    if (await isWorkspaceCheckinBlocked(effective.tenantId)) {
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            code: "CHECKIN_REQUIRED",
+            message: "This workspace must complete the weekly beta check-in",
           },
         },
         { status: 403 }

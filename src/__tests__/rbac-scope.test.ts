@@ -9,6 +9,7 @@ import {
   getUserProjectIds,
 } from "../lib/authz/authz";
 import { applyScopeFilter, getUserScope } from "../lib/authz/scope-filter";
+import { invalidateActiveCheckinEditionCache } from "../lib/closed-beta/checkin";
 
 const mocks = vi.hoisted(() => ({
   mockProfileFindFirst: vi.fn(),
@@ -19,6 +20,9 @@ const mocks = vi.hoisted(() => ({
   mockTaskFindUnique: vi.fn(),
   mockProjectFindUnique: vi.fn(),
   mockDocumentFindUnique: vi.fn(),
+  mockCheckinEditionFindFirst: vi.fn(),
+  mockCheckinEnrollmentFindUnique: vi.fn(),
+  mockCheckinStateFindUnique: vi.fn(),
   mockIsWorkspaceAccessBlocked: vi.fn(),
 }));
 
@@ -32,6 +36,11 @@ vi.mock("../../prisma/client", () => ({
     task: { findUnique: mocks.mockTaskFindUnique },
     project: { findUnique: mocks.mockProjectFindUnique },
     document: { findUnique: mocks.mockDocumentFindUnique },
+    closedBetaCheckinEdition: { findFirst: mocks.mockCheckinEditionFindFirst },
+    closedBetaEnrollment: { findUnique: mocks.mockCheckinEnrollmentFindUnique },
+    closedBetaCheckinWorkspaceState: {
+      findUnique: mocks.mockCheckinStateFindUnique,
+    },
   },
   withTenant: (_tenantId: string, fn: () => unknown) => fn(),
   withTenantBypass: (fn: () => unknown) => fn(),
@@ -58,6 +67,9 @@ beforeEach(() => {
   mocks.mockTeamMemberAreaFindMany.mockResolvedValue([]);
   mocks.mockProjectMemberFindMany.mockResolvedValue([]);
   mocks.mockIsWorkspaceAccessBlocked.mockReturnValue(false);
+  mocks.mockCheckinEditionFindFirst.mockResolvedValue(null);
+  mocks.mockCheckinEnrollmentFindUnique.mockResolvedValue(null);
+  mocks.mockCheckinStateFindUnique.mockResolvedValue(null);
 });
 
 describe("hasPermission (async by userId) — checklist", () => {
@@ -429,5 +441,62 @@ describe("denyFor", () => {
     });
     await expect(denyFor("user-1", "tasks.view")).resolves.toBeNull();
     expect(mocks.mockWorkspaceFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("returns a 403 CHECKIN_REQUIRED response while the beta check-in is overdue and pending", async () => {
+    mocks.mockProfileFindFirst.mockResolvedValue(
+      profileWith([{ resource: "tasks", action: "view", scope: "all" }])
+    );
+    mocks.mockWorkspaceFindUnique.mockResolvedValue({
+      status: "ACTIVE",
+      cancelledAt: null,
+    });
+    invalidateActiveCheckinEditionCache();
+    mocks.mockCheckinEditionFindFirst.mockResolvedValue({
+      id: "edition-1",
+      status: "published",
+      isMandatory: true,
+      opensAt: new Date("2026-08-10T00:00:00Z"),
+      closesAt: new Date("2026-08-17T00:00:00Z"),
+      createdAt: new Date("2026-08-10T00:00:00Z"),
+      updatedAt: new Date("2026-08-10T00:00:00Z"),
+      questions: [],
+    });
+    mocks.mockCheckinEnrollmentFindUnique.mockResolvedValue({ status: "active" });
+    mocks.mockCheckinStateFindUnique.mockResolvedValue(null);
+
+    const res = await denyFor("user-1", "tasks.view");
+    expect(res).not.toBeNull();
+    expect(res!.status).toBe(403);
+    await expect(res!.json()).resolves.toEqual(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "CHECKIN_REQUIRED" }),
+      })
+    );
+  });
+
+  it("does not block a beta workspace whose check-in is completed", async () => {
+    mocks.mockProfileFindFirst.mockResolvedValue(
+      profileWith([{ resource: "tasks", action: "view", scope: "all" }])
+    );
+    mocks.mockWorkspaceFindUnique.mockResolvedValue({
+      status: "ACTIVE",
+      cancelledAt: null,
+    });
+    invalidateActiveCheckinEditionCache();
+    mocks.mockCheckinEditionFindFirst.mockResolvedValue({
+      id: "edition-1",
+      status: "published",
+      isMandatory: true,
+      opensAt: new Date("2026-08-10T00:00:00Z"),
+      closesAt: new Date("2026-08-17T00:00:00Z"),
+      createdAt: new Date("2026-08-10T00:00:00Z"),
+      updatedAt: new Date("2026-08-10T00:00:00Z"),
+      questions: [],
+    });
+    mocks.mockCheckinEnrollmentFindUnique.mockResolvedValue({ status: "active" });
+    mocks.mockCheckinStateFindUnique.mockResolvedValue({ status: "completed" });
+
+    await expect(denyFor("user-1", "tasks.view")).resolves.toBeNull();
   });
 });

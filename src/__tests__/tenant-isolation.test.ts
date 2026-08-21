@@ -35,6 +35,14 @@ async function run(params: MiddlewareParams) {
 }
 
 describe("tenantFilter — reads inject tenantId into WHERE", () => {
+  it("does not require tenant context for the global question bank", async () => {
+    const { next } = await run(
+      makeParams({ model: "ClosedBetaQuestionBank", action: "findMany" }),
+    );
+
+    expect(next).toHaveBeenCalledOnce();
+  });
+
   it("findMany merges tenantId into where, preserving existing filters", async () => {
     const { args, params } = await withTenant("tenant-a", async () =>
       run(
