@@ -37,6 +37,7 @@
     "didNotUseHint": "Selecione esta opção se não houve tempo para usar o SeOrganize+ nesta semana.",
     "noSuggestion": "Não tenho uma sugestão nesta semana.",
     "privacyHint": "Não inclua senhas, segredos ou dados desnecessários de clientes neste campo.",
+    "ratingLabel": "Nota {rating} de 5",
     "optional": "opcional",
     "progress": "{answered}/{total}",
     "progressAria": "Check-in {answered} de {total} perguntas respondidas",

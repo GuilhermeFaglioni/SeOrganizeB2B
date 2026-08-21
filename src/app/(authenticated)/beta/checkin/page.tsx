@@ -31,22 +31,36 @@ function QuestionControl({
   question,
   value,
   onChange,
+  questionIndex,
 }: {
   question: CheckinQuestion;
   value: unknown;
+  questionIndex: number;
   onChange: (value: unknown) => void;
 }) {
   const t = useTranslations("checkin");
   if (question.type === "rating") {
     return (
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label={question.text}>
         {[1, 2, 3, 4, 5].map((rating) => (
           <Button
             key={rating}
             type="button"
             size="sm"
+            role="radio"
             variant={value === rating ? "default" : "outline"}
+            aria-checked={value === rating}
+            aria-label={t("ratingLabel", { rating })}
             onClick={() => onChange(rating)}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+                event.preventDefault();
+                onChange(rating > 1 ? rating - 1 : 5);
+              } else if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+                event.preventDefault();
+                onChange(rating < 5 ? rating + 1 : 1);
+              }
+            }}
           >
             {rating}
           </Button>
@@ -100,12 +114,17 @@ function QuestionControl({
   }
   return (
     <div className="space-y-2">
+      <label htmlFor={`answer-${question.id}`} className="sr-only">
+        {question.text}
+      </label>
       <textarea
+        id={`answer-${question.id}`}
         value={typeof value === "string" ? value : ""}
         onChange={(event) => onChange(event.target.value)}
         rows={3}
         maxLength={300}
-        className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm text-text-primary"
+        className="w-full rounded-md border border-border bg-page px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+        aria-labelledby={`q-${question.id}`}
         aria-describedby={`hint-${question.id}`}
       />
       <p id={`hint-${question.id}`} className="text-xs text-text-muted">
@@ -348,7 +367,7 @@ export default function BetaCheckinPage() {
         <div className="space-y-6">
           {edition.questions.map((question, index) => (
             <div key={question.id} className="space-y-2">
-              <p className="font-medium text-text-primary">
+              <p id={`q-${question.id}`} className="font-medium text-text-primary">
                 {index + 1}. {question.text}
                 {!question.required && (
                   <span className="ml-1 text-xs text-text-muted">
@@ -358,6 +377,7 @@ export default function BetaCheckinPage() {
               </p>
               <QuestionControl
                 question={question}
+                questionIndex={index}
                 value={answers[question.id]}
                 onChange={(value) =>
                   setAnswers((current) => ({ ...current, [question.id]: value }))
