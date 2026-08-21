@@ -26,6 +26,12 @@ describe("Executive Quartz contracts", () => {
     expect(globals).toContain("--color-accent: #2F6FED");
   });
 
+  it("keeps the application shell out of the shadcn token bridge", () => {
+    const globals = read("src/app/globals.css");
+    expect(globals).not.toContain("balsa-shadcn-bridge.css");
+    expect(read("src/components/ui/button.tsx")).toContain("bg-balsa");
+  });
+
   it("uses reduced-motion-aware Motion transitions", () => {
     const page = read("src/components/shared/animated-page.tsx");
     const sidebar = read("src/components/layout/sidebar.tsx");
