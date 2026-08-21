@@ -8,7 +8,8 @@ import { noWorkspaceResponse } from "@/lib/authz/http";
 import { recordActivity } from "@/lib/activity/record";
 import { sendPushToUsers, buildPushPayload } from "@/lib/push";
 
-export async function GET(request: NextRequest, { params }: { params: { taskId: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ taskId: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });
@@ -40,7 +41,8 @@ export async function GET(request: NextRequest, { params }: { params: { taskId: 
   });
 }
 
-export async function POST(request: NextRequest, { params }: { params: { taskId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ taskId: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });

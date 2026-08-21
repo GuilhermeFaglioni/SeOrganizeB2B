@@ -6,10 +6,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _request: Request,
-  { params }: { params: { token: string } },
-) {
+export async function GET(_request: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const ip = requestIp(_request);
   if (!(await consumeClosedBetaRateLimit(`primary-lookup:${ip}`, 60, 60 * 1000))) {
     return NextResponse.json(

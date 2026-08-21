@@ -178,7 +178,7 @@ describe("route scope filtering — individual access", () => {
 
     const res = await taskGET(
       new NextRequest("http://x/api/tasks/task-1"),
-      { params: { taskId: "task-1" } }
+      { params: Promise.resolve({ taskId: "task-1" }) }
     );
     expect(res.status).toBe(404);
     const json = await res.json();
@@ -226,7 +226,7 @@ describe("route scope filtering — financial tenant-only fallback", () => {
 
     const res = await contractGET(
       new NextRequest("http://x/api/contracts/ctr-1"),
-      { params: { id: "ctr-1" } }
+      { params: Promise.resolve({ id: "ctr-1" }) }
     );
     expect(res.status).toBe(200);
   });

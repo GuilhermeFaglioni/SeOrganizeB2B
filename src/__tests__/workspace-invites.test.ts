@@ -21,6 +21,18 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("@/lib/authz/authz", () => ({
   getEffectivePermissions: mocks.mockGetEffectivePermissions,
+  denyFor: vi.fn(async () => {
+    const eff = await mocks.mockGetEffectivePermissions();
+    if (eff?.isAdmin) return null;
+    const has = eff?.permissions?.some?.(
+      (p: { resource: string; action: string }) => `${p.resource}.${p.action}` === "manage_roles" || p.action === "manage_roles",
+    );
+    if (has) return null;
+    if (!eff?.isAdmin) {
+      return { status: 403, json: async () => ({ data: null, error: { code: "FORBIDDEN" } }) } as unknown as Response;
+    }
+    return null;
+  }),
 }));
 
 vi.mock("../../prisma/client", () => ({
@@ -179,7 +191,7 @@ describe("workspace invites API", () => {
 
     const res = await cancelInviteDELETE(
       makeRequest("http://x/api/workspace/invites/inv-cancel"),
-      { params: { id: "inv-cancel" } } as never,
+      { params: Promise.resolve({ id: "inv-cancel" }) } as never,
     );
 
     expect(res.status).toBe(200);

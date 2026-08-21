@@ -54,8 +54,9 @@ async function requireSuperAdmin(): Promise<GateResult> {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string; limitId: string } }
+  props: { params: Promise<{ id: string; limitId: string }> }
 ) {
+  const params = await props.params;
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
 
@@ -69,8 +70,9 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string; limitId: string } }
+  props: { params: Promise<{ id: string; limitId: string }> }
 ) {
+  const params = await props.params;
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
 
@@ -131,8 +133,9 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string; limitId: string } }
+  props: { params: Promise<{ id: string; limitId: string }> }
 ) {
+  const params = await props.params;
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate.response;
 

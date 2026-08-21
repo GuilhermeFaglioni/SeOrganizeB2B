@@ -53,12 +53,11 @@ export async function GET() {
         where: { id: status.editionId },
         include: { questions: { orderBy: { position: "asc" } } },
       });
-      const existing = await prisma.closedBetaCheckinResponse.findUnique({
+      const existing = await prisma.closedBetaCheckinResponse.findFirst({
         where: {
-          editionId_profileId: {
-            editionId: status.editionId,
-            profileId: user.id,
-          },
+          editionId: status.editionId,
+          profileId: user.id,
+          isCurrent: true,
         },
         select: { id: true },
       });
@@ -70,6 +69,8 @@ export async function GET() {
         phase: status.phase,
         workspaceStatus: status.workspaceStatus,
         editionId: status.editionId,
+        workspaceId: profile.tenantId,
+        profileId: user.id,
         edition,
         memberSubmitted,
       },

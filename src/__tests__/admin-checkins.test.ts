@@ -3,6 +3,8 @@ import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
   requireClosedBetaAdmin: vi.fn(),
+  closedBetaAdminErrorResponse: vi.fn((gate: { reason: "unauthorized" | "forbidden" }) =>
+    new Response(null, { status: gate.reason === "unauthorized" ? 401 : 403 })),
   listCheckinEditions: vi.fn(),
   createCheckinEdition: vi.fn(),
   getCheckinEdition: vi.fn(),
@@ -13,6 +15,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/closed-beta/admin", () => ({
   requireClosedBetaAdmin: mocks.requireClosedBetaAdmin,
+  closedBetaAdminErrorResponse: mocks.closedBetaAdminErrorResponse,
 }));
 
 vi.mock("@/lib/closed-beta/checkin", () => {

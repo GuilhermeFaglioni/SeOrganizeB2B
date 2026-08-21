@@ -6,7 +6,11 @@ import { getTenantContext } from "@/lib/authz/tenant-context";
 import { noWorkspaceResponse } from "@/lib/authz/http";
 import { recordActivity } from "@/lib/activity/record";
 
-export async function DELETE(request: NextRequest, { params }: { params: { taskId: string; commentId: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  props: { params: Promise<{ taskId: string; commentId: string }> }
+) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ data: null, error: { code: "AUTH_ERROR", message: "Unauthorized" } }, { status: 401 });

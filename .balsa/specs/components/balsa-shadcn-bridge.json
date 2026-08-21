@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "balsa-shadcn-bridge",
+  "title": "Balsa shadcn token bridge",
+  "category": "theme",
+  "classification": "balsa-addition",
+  "status": "beta",
+  "version": "0.1.0",
+  "purpose": "Map Balsa semantic tokens onto the existing shadcn variable contract.",
+  "tokens": [
+    "--background",
+    "--foreground",
+    "--primary",
+    "--secondary",
+    "--accent",
+    "--border",
+    "--ring"
+  ],
+  "publicApi": {
+    "source": "src/styles/balsa-shadcn-bridge.css"
+  }
+}

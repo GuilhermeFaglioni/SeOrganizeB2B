@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { CalendarClock, Eye, Plus, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { CalendarClock, Copy, Eye, Plus, ShieldCheck } from "lucide-react";
 import {
   useAdminCheckinEditions,
   useCloseCheckinEdition,
   useCreateCheckinEdition,
+  useDuplicateCheckinEdition,
   usePublishCheckinEdition,
   useUpdateCheckinEdition,
 } from "@/hooks/use-checkin-admin";
+import { useQuestionBank } from "@/hooks/use-question-bank";
 import type {
   AdminCheckinEdition,
   CheckinQuestionInput,
@@ -62,12 +65,16 @@ export default function AdminCheckinsPage() {
   const updateEdition = useUpdateCheckinEdition();
   const publishEdition = usePublishCheckinEdition();
   const closeEdition = useCloseCheckinEdition();
+  const duplicateEdition = useDuplicateCheckinEdition();
+  const bank = useQuestionBank();
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [isMandatory, setIsMandatory] = useState(true);
   const [questions, setQuestions] = useState<CheckinQuestionInput[]>([]);
+  const [showBankPicker, setShowBankPicker] = useState(false);
+  const [selectedBankIds, setSelectedBankIds] = useState<string[]>([]);
 
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [opensAt, setOpensAt] = useState("");
@@ -94,7 +101,8 @@ export default function AdminCheckinsPage() {
         required: question.required,
         position: question.position,
         theme: question.theme ?? undefined,
-        isSuggestionQuestion: question.isSuggestionQuestion,
+        isSuggestionQuestion:
+          question.type === "short_text" && question.isSuggestionQuestion,
       })),
     );
     setShowForm(true);
@@ -197,6 +205,36 @@ export default function AdminCheckinsPage() {
     });
   }
 
+  function handleDuplicate(edition: AdminCheckinEdition) {
+    if (!window.confirm(t("duplicateConfirm", { title: edition.title }))) return;
+    duplicateEdition.mutate(edition.id, {
+      onSuccess: () => toastSuccess(t("duplicateSuccess")),
+    });
+  }
+
+  function openBankPicker() {
+    setSelectedBankIds([]);
+    setShowBankPicker(true);
+  }
+
+  function addSelectedBankQuestions() {
+    const items = bank.data?.filter((item) => selectedBankIds.includes(item.id)) ?? [];
+    const next = [...questions];
+    items.forEach((item) => {
+      next.push({
+        text: item.text,
+        type: item.type as CheckinQuestionType,
+        options: item.options ?? undefined,
+        required: item.required,
+        position: next.length,
+        theme: item.theme,
+        isSuggestionQuestion: item.type === "short_text" && item.isSuggestionQuestion,
+      });
+    });
+    setQuestions(next.map((question, index) => ({ ...question, position: index })));
+    setShowBankPicker(false);
+  }
+
   if (editions.isLoading) {
     return (
       <div className="p-6" data-testid="admin-checkins-page">
@@ -283,11 +321,13 @@ export default function AdminCheckinsPage() {
                   />
                   <select
                     value={question.type}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      const type = event.target.value as CheckinQuestionType;
                       updateQuestion(index, {
-                        type: event.target.value as CheckinQuestionType,
-                      })
-                    }
+                        type,
+                        ...(type === "short_text" ? {} : { isSuggestionQuestion: false }),
+                      });
+                    }}
                     className="h-10 w-40 rounded-md border border-border bg-page px-2 text-sm text-text-primary"
                   >
                     {QUESTION_TYPES.map((type) => (
@@ -328,6 +368,7 @@ export default function AdminCheckinsPage() {
                   <label className="flex cursor-pointer items-center gap-1.5">
                     <Checkbox
                       checked={Boolean(question.isSuggestionQuestion)}
+                      disabled={question.type !== "short_text"}
                       onCheckedChange={(checked) =>
                         updateQuestion(index, {
                           isSuggestionQuestion: Boolean(checked),
@@ -370,6 +411,10 @@ export default function AdminCheckinsPage() {
             <Button type="button" variant="outline" onClick={addQuestion}>
               <Plus className="mr-2 h-4 w-4" />
               {t("addQuestion")}
+            </Button>
+            <Button type="button" variant="outline" onClick={openBankPicker}>
+              <Copy className="mr-2 h-4 w-4" />
+              {t("addFromBank")}
             </Button>
           </div>
 
@@ -435,15 +480,25 @@ export default function AdminCheckinsPage() {
                     <Button size="sm" variant="outline" onClick={() => startEdit(edition)}>
                       {t("edit")}
                     </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleDuplicate(edition)}>
+                      <Copy className="mr-1.5 h-3.5 w-3.5" />
+                      {t("duplicate")}
+                    </Button>
                     <Button size="sm" variant="default" onClick={() => startPublish(edition)}>
                       {t("publish")}
                     </Button>
                   </>
                 )}
                 {edition.status === "published" && (
-                  <Button size="sm" variant="outline" onClick={() => handleClose(edition)}>
-                    {t("close")}
-                  </Button>
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => handleDuplicate(edition)}>
+                      <Copy className="mr-1.5 h-3.5 w-3.5" />
+                      {t("duplicate")}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleClose(edition)}>
+                      {t("close")}
+                    </Button>
+                  </>
                 )}
               </div>
 
@@ -528,6 +583,66 @@ export default function AdminCheckinsPage() {
             <div className="mt-4 flex justify-end">
               <Button variant="outline" onClick={() => setPreviewId(null)}>
                 {t("close")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBankPicker && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setShowBankPicker(false)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-page p-6 shadow-card"
+            onClick={(event) => event.stopPropagation()}
+            data-testid="bank-picker"
+          >
+            <h2 className="text-heading-2 font-semibold text-text-primary">{t("selectFromBank")}</h2>
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" asChild size="sm">
+                <Link href="/admin/closed-beta/questions">{t("bankLink")}</Link>
+              </Button>
+            </div>
+            <div className="mt-3 space-y-2">
+              {bank.data && bank.data.length > 0 ? (
+                bank.data
+                  .filter((item) => item.status === "active")
+                  .map((item) => (
+                    <label
+                      key={item.id}
+                      className="flex cursor-pointer items-start gap-2 rounded-lg border border-border p-3"
+                    >
+                      <Checkbox
+                        checked={selectedBankIds.includes(item.id)}
+                        onCheckedChange={(checked) =>
+                          setSelectedBankIds((current) =>
+                            checked
+                              ? [...current, item.id]
+                              : current.filter((id) => id !== item.id),
+                          )
+                        }
+                      />
+                      <span className="text-sm text-text-primary">
+                        {item.text}
+                        <span className="ml-1 text-xs text-text-secondary">
+                          {t(`types.${item.type as CheckinQuestionType}`)}
+                          {item.theme ? ` · ${item.theme}` : ""}
+                        </span>
+                      </span>
+                    </label>
+                  ))
+              ) : (
+                <p className="text-sm text-text-secondary">{t("emptyHint")}</p>
+              )}
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowBankPicker(false)}>
+                {t("cancel")}
+              </Button>
+              <Button onClick={addSelectedBankQuestions} disabled={selectedBankIds.length === 0}>
+                {t("addQuestion")}
               </Button>
             </div>
           </div>

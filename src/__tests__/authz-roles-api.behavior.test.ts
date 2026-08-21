@@ -150,7 +150,7 @@ describe("roles API", () => {
     });
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/u1/role", { roleId: "admin" }),
-      { params: { id: "u1" } }
+      { params: Promise.resolve({ id: "u1" }) }
     );
     expect(res.status).toBe(403);
     expect(mocks.mockProfileFindUnique).not.toHaveBeenCalled();
@@ -182,7 +182,7 @@ describe("roles API", () => {
     });
     const res = await assignRolePATCH(
       makeRequest("http://x/api/profiles/u1/role", { roleId: "admin" }),
-      { params: { id: "u1" } }
+      { params: Promise.resolve({ id: "u1" }) }
     );
     expect(res.status).toBe(200);
     expect(mocks.mockProfileUpdate).toHaveBeenCalledWith(

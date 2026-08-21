@@ -8,7 +8,7 @@ import {
   useCheckinStatus,
   useSubmitCheckin,
 } from "@/hooks/use-checkin";
-import type { CheckinQuestion } from "@/hooks/use-checkin";
+import type { CheckinQuestion, CheckinStatus } from "@/hooks/use-checkin";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingState } from "@/components/shared/loading-state";
@@ -26,6 +26,11 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const DRAFT_STORAGE_KEY = "beta-checkin-draft";
+
+function getDraftStorageKey(data: Pick<CheckinStatus, "editionId" | "workspaceId" | "profileId">) {
+  if (!data.editionId) return null;
+  return `${DRAFT_STORAGE_KEY}:${data.workspaceId}:${data.profileId}:${data.editionId}`;
+}
 
 function QuestionControl({
   question,
@@ -157,12 +162,13 @@ export default function BetaCheckinPage() {
 
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const draftSavedAt = useRef<number>(0);
+  const draftStorageKey = data ? getDraftStorageKey(data) : null;
 
   // Restore draft from localStorage
   useEffect(() => {
-    if (!data?.editionId) return;
+    if (!draftStorageKey) return;
     try {
-      const raw = localStorage.getItem(`${DRAFT_STORAGE_KEY}:${data.editionId}`);
+      const raw = localStorage.getItem(draftStorageKey);
       if (raw) {
         const draft = JSON.parse(raw) as { answers?: Record<string, unknown>; didNotUse?: boolean };
         if (draft.answers && Object.keys(draft.answers).length > 0) {
@@ -171,28 +177,28 @@ export default function BetaCheckinPage() {
         }
       }
     } catch { /* ignore corrupt drafts */ }
-  }, [data?.editionId]);
+  }, [draftStorageKey]);
 
   // Persist draft to localStorage
   useEffect(() => {
-    if (!data?.editionId || submitted || data.memberSubmitted) return;
+    if (!draftStorageKey || submitted || data?.memberSubmitted) return;
     if (draftTimer.current) clearTimeout(draftTimer.current);
     draftTimer.current = setTimeout(() => {
       localStorage.setItem(
-        `${DRAFT_STORAGE_KEY}:${data.editionId}`,
+        draftStorageKey,
         JSON.stringify({ answers, didNotUse }),
       );
       draftSavedAt.current = Date.now();
     }, 1000);
     return () => { if (draftTimer.current) clearTimeout(draftTimer.current); };
-  }, [answers, didNotUse, data?.editionId, submitted, data?.memberSubmitted]);
+  }, [answers, didNotUse, draftStorageKey, submitted, data?.memberSubmitted]);
 
   // Clear draft on successful submit
   useEffect(() => {
-    if ((submitted || data?.memberSubmitted) && data?.editionId) {
-      localStorage.removeItem(`${DRAFT_STORAGE_KEY}:${data.editionId}`);
+    if ((submitted || data?.memberSubmitted) && draftStorageKey) {
+      localStorage.removeItem(draftStorageKey);
     }
-  }, [submitted, data?.memberSubmitted, data?.editionId]);
+  }, [submitted, data?.memberSubmitted, draftStorageKey]);
 
   if (isLoading) {
     return (
@@ -294,6 +300,12 @@ export default function BetaCheckinPage() {
     const value = answers[question.id];
     return value !== undefined && value !== null && value !== "";
   }).length;
+  const hasMissingRequired = edition.questions.some((question) => {
+    if (!question.required) return false;
+    const value = answers[question.id];
+    if (value === undefined || value === null) return true;
+    return value === "" && !question.isSuggestionQuestion;
+  });
 
   const handleSubmit = () => {
     submit.mutate(
@@ -390,7 +402,7 @@ export default function BetaCheckinPage() {
 
       <Button
         className="w-full"
-        disabled={submit.isPending || (didNotUse ? false : answered < total)}
+        disabled={submit.isPending || (didNotUse ? false : hasMissingRequired)}
         onClick={handleSubmit}
       >
         {submit.isPending ? t("submitting") : t("submit")}

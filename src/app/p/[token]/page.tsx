@@ -17,9 +17,10 @@ export const dynamic = "force-dynamic";
 export default async function PublicProposalPage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
-  const proposal = await getProposalPublic(params.token);
+  const { token } = await params;
+  const proposal = await getProposalPublic(token);
 
   if (!proposal || proposal.status === "draft") {
     return <PublicProposalUnavailable />;
@@ -31,7 +32,7 @@ export default async function PublicProposalPage({
     <PublicLocaleProvider locale={locale}>
       <PublicProposalView
         proposal={proposal as PublicProposalData}
-        token={params.token}
+        token={token}
       />
     </PublicLocaleProvider>
   );

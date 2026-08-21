@@ -143,3 +143,19 @@ export function useCloseCheckinEdition() {
     onError: () => toastError(t("closeFailed")),
   });
 }
+
+export function useDuplicateCheckinEdition() {
+  const queryClient = useQueryClient();
+  const t = useTranslations("admin.pages.checkins");
+  return useMutation({
+    mutationFn: (id: string) =>
+      fetchJson<AdminCheckinEdition>(
+        `/api/admin/closed-beta/checkins/${id}/duplicate`,
+        { method: "POST" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: checkinsKey });
+    },
+    onError: () => toastError(t("duplicateFailed")),
+  });
+}

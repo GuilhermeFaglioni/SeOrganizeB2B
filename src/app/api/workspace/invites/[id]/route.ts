@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
-import { getEffectivePermissions } from "@/lib/authz/authz";
+import { denyFor, getEffectivePermissions } from "@/lib/authz/authz";
 import {
   cancelInvite,
   getWorkspaceIdForUser,
@@ -8,10 +8,8 @@ import {
   InviteValidationError,
 } from "@/lib/invites/service";
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getUser();
   if (!user) {
     return NextResponse.json(
@@ -19,6 +17,9 @@ export async function DELETE(
       { status: 401 },
     );
   }
+
+  const denied = await denyFor(user.id, "manage_roles");
+  if (denied) return denied;
 
   const permissions = await getEffectivePermissions(user.id);
   if (!permissions.isAdmin) {

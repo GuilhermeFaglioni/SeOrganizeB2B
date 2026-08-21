@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 const mocks = vi.hoisted(() => ({
   mockGetUser: vi.fn(),
   mockGetEffectivePermissions: vi.fn(),
+  mockDenyFor: vi.fn(),
   mockProfileFindUnique: vi.fn(),
   mockProfileCount: vi.fn(),
   mockTaskCount: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("@/lib/authz/authz", () => ({
   getEffectivePermissions: mocks.mockGetEffectivePermissions,
+  denyFor: mocks.mockDenyFor,
 }));
 
 vi.mock("../../prisma/client", () => ({
@@ -166,6 +168,7 @@ describe("PATCH /api/workspace", () => {
     });
     mocks.mockGetUser.mockResolvedValue(makeUser());
     mocks.mockGetEffectivePermissions.mockResolvedValue(makeAdmin());
+    mocks.mockDenyFor.mockResolvedValue(null);
     mocks.mockWithTenant.mockImplementation(async (_tenantId: string, fn: () => unknown) => fn());
   });
 
@@ -221,6 +224,16 @@ describe("PATCH /api/workspace", () => {
     expect(res.status).toBe(403);
     expect(mocks.mockWorkspaceUpdate).not.toHaveBeenCalled();
     expect(mocks.mockProfileFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("returns the check-in block before mutating a workspace", async () => {
+    mocks.mockDenyFor.mockResolvedValue(new Response(null, { status: 403 }));
+
+    const res = await PATCH(makeRequest({ name: "Acme 2" }));
+
+    expect(res.status).toBe(403);
+    expect(mocks.mockDenyFor).toHaveBeenCalledWith("user_1", "manage_roles");
+    expect(mocks.mockWorkspaceUpdate).not.toHaveBeenCalled();
   });
 
   it("returns 409 when the slug is already used by another workspace", async () => {

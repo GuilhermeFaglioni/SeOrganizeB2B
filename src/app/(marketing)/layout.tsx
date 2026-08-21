@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 function BrandMark() {
   return (
     <span className="flex items-center gap-2.5">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white shadow-card">
+      <span className="flex h-8 w-8 items-center justify-center rounded-balsa-surface bg-balsa-primary text-balsa-sm font-balsa-body font-bold text-balsa-primary-foreground shadow-balsa-md">
         S+
       </span>
-      <span className="text-[15px] font-semibold tracking-tight text-text-primary">
+      <span className="text-balsa-base font-balsa-title font-semibold tracking-tight text-balsa-foreground">
         {APP_NAME}
       </span>
     </span>
@@ -36,23 +36,23 @@ export default function MarketingLayout({
   }, []);
 
   return (
-    <div className="min-h-[100dvh] bg-page text-text-primary">
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-page/90 backdrop-blur">
+    <div className="min-h-[100dvh] bg-balsa-background text-balsa-foreground">
+      <header className="sticky top-0 z-40 border-b border-balsa-border/60 bg-balsa-background/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" aria-label={APP_NAME}>
             <BrandMark />
           </Link>
           <nav
-            className="hidden items-center gap-8 text-body-small font-medium text-text-secondary md:flex"
+            className="hidden items-center gap-8 text-balsa-sm font-balsa-body font-medium text-balsa-muted-foreground md:flex"
             aria-label={t("nav.aria")}
           >
-            <a href="#modules" className="transition-colors hover:text-text-primary">
+            <a href="#modules" className="transition-colors hover:text-balsa-foreground">
               {t("nav.modules")}
             </a>
-            <a href="#how" className="transition-colors hover:text-text-primary">
+            <a href="#how" className="transition-colors hover:text-balsa-foreground">
               {t("nav.how")}
             </a>
-            <a href="#pricing" className="transition-colors hover:text-text-primary">
+            <a href="#pricing" className="transition-colors hover:text-balsa-foreground">
               {t("nav.pricing")}
             </a>
           </nav>
@@ -73,27 +73,27 @@ export default function MarketingLayout({
 
       {children}
 
-      <footer className="border-t border-border bg-page-alt">
+      <footer className="border-t border-balsa-border bg-balsa-muted/30">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-10 text-center sm:px-6">
           <BrandMark />
-          <p className="text-body-small text-text-muted">{t("footer.tagline")}</p>
-          <div className="flex items-center gap-4 text-body-small text-text-secondary">
-            <Link href="/login" className="transition-colors hover:text-text-primary">
+          <p className="text-balsa-sm font-balsa-body text-balsa-muted-foreground">{t("footer.tagline")}</p>
+          <div className="flex items-center gap-4 text-balsa-sm font-balsa-body text-balsa-muted-foreground">
+            <Link href="/login" className="transition-colors hover:text-balsa-foreground">
               {t("nav.signIn")}
             </Link>
             <Link
               href="/login?mode=register"
-              className="transition-colors hover:text-text-primary"
+              className="transition-colors hover:text-balsa-foreground"
             >
               {t("nav.cta")}
             </Link>
-            <Link href="/privacy" className="transition-colors hover:text-text-primary">
+            <Link href="/privacy" className="transition-colors hover:text-balsa-foreground">
               {t("footer.privacy")}
             </Link>
-            <Link href="/terms" className="transition-colors hover:text-text-primary">
+            <Link href="/terms" className="transition-colors hover:text-balsa-foreground">
               {t("footer.terms")}
             </Link>
-            <Link href="/contact" className="transition-colors hover:text-text-primary">
+            <Link href="/contact" className="transition-colors hover:text-balsa-foreground">
               {t("footer.contact")}
             </Link>
           </div>
