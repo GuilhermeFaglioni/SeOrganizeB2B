@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Sparkles, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
   useDeleteProposalTemplate,
@@ -45,12 +45,22 @@ export function ProposalTemplatesList() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-lg font-semibold text-text-primary">{t("title")}</h1>
         {can("financial.proposals.manageTemplates") && (
-          <Link
-            href="/financial/proposals/templates/new"
-            className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          >
-            <Plus size={16} aria-hidden="true" /> {t("newTemplate")}
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {can("financial.proposals.generateWithAi") && (
+              <Link
+                href="/financial/proposals/templates/ai-studio"
+                className="flex min-h-[44px] items-center gap-2 rounded-md border border-accent px-3 py-2 text-sm font-medium text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              >
+                <Sparkles size={16} aria-hidden="true" /> {t("aiStudio")}
+              </Link>
+            )}
+            <Link
+              href="/financial/proposals/templates/new"
+              className="flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              <Plus size={16} aria-hidden="true" /> {t("newTemplate")}
+            </Link>
+          </div>
         )}
       </div>
 

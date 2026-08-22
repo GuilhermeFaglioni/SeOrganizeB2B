@@ -29,3 +29,5 @@ export const ERROR_CODES = {
   AUTH_ERROR: "AUTH_ERROR",
   INTERNAL_ERROR: "INTERNAL_ERROR",
 } as const;
+
+export const AI_DIRECTIVE_MAX_LENGTH = 4000;

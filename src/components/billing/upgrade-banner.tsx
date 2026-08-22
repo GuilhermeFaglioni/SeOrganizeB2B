@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useWorkspaceContext } from "@/stores/workspace-context";
 import { Button } from "@/components/ui/button";
 import { warningLimits } from "@/lib/workspace/limits";
+import { pushWithAIStudioGuard } from "@/lib/ai/studio-router-guard";
 
 export function UpgradeBanner() {
   const t = useTranslations("billing.upgradeBanner");
@@ -23,8 +24,7 @@ export function UpgradeBanner() {
     : resource;
 
   function handleUpgrade() {
-    setIsRedirecting(true);
-    router.push("/plans");
+    if (pushWithAIStudioGuard(router, "/plans")) setIsRedirecting(true);
   }
 
   return (

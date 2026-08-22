@@ -147,6 +147,7 @@ export function Sidebar({
                     className="text-balsa-inverse-foreground/65 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
                     title={t("signOut")}
                     aria-label={t("signOut")}
+                    data-ai-studio-exit="true"
                   >
                     <LogOut size={16} />
                   </Button>
@@ -225,7 +226,8 @@ export function Sidebar({
             onClick={() => signOut()}
             className="text-balsa-inverse-foreground/65 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
             title={t("signOut")}
-            aria-label={t("signOut")}
+             aria-label={t("signOut")}
+             data-ai-studio-exit="true"
           >
             <LogOut size={18} />
           </Button>
@@ -251,6 +253,7 @@ export function Sidebar({
               className="text-balsa-inverse-foreground/65 hover:bg-balsa-inverse-foreground/10 hover:text-balsa-inverse-foreground"
               title={t("signOut")}
               aria-label={t("signOut")}
+              data-ai-studio-exit="true"
             >
               <LogOut size={16} />
             </Button>

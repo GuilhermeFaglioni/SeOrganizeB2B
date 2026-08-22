@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/stores/auth-context";
 import { useProfile } from "@/hooks/use-profile";
 import { useOnboardingStatus } from "@/hooks/use-onboarding-status";
-import { useWorkspace } from "@/hooks/use-workspace";
+import { useWorkspace, type WorkspaceData } from "@/hooks/use-workspace";
 import { useCheckinStatus } from "@/hooks/use-checkin";
 import { WorkspaceProvider } from "@/stores/workspace-context";
 import { GracePeriodBanner } from "@/components/billing/grace-period-banner";
@@ -15,7 +15,12 @@ import { UpgradeBanner } from "@/components/billing/upgrade-banner";
   import { CheckinReminderBanner } from "@/components/beta/checkin-reminder-banner";
   import { LoadingState } from "@/components/shared/loading-state";
   import { Button } from "@/components/ui/button";
-  import { getWorkspaceAccessMode } from "@/lib/workspace/access";
+import { getWorkspaceAccessMode } from "@/lib/workspace/access";
+import {
+  pushWithAIStudioGuard,
+  replaceWithAIStudioGuard,
+  shouldPreserveAIStudioParentChildren,
+} from "@/lib/ai/studio-router-guard";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -33,6 +38,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         onboardingStatus === "workspace_creation_required"),
   });
   const workspaceQuery = useWorkspace({ enabled: authReady && profileQuery.isSuccess });
+  const { refetch: refetchWorkspace } = workspaceQuery;
   const checkinQuery = useCheckinStatus({
     enabled: authReady && profileQuery.isSuccess && workspaceQuery.isSuccess,
   });
@@ -43,54 +49,97 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const mode = getWorkspaceAccessMode(workspaceQuery.data);
   const checkinBlocked = checkinQuery.data?.blocked === true;
   const checkinReminder = checkinQuery.data && !checkinBlocked && checkinQuery.data.phase === "open" && checkinQuery.data.workspaceStatus === "pending" && !checkinQuery.data.memberSubmitted;
+  const [redirecting, setRedirecting] = useState(false);
+  const [workspaceReadyForUser, setWorkspaceReadyForUser] = useState<string | null>(null);
+  const hasRenderedChildren = useRef(false);
+  const previousWorkspace = useRef<WorkspaceData | null>(null);
+  const previousMode = useRef(mode);
+  const renderedUserId = useRef<string | null>(null);
+  const renderedWorkspaceId = useRef<string | null>(null);
+  const workspaceRequestUserId = useRef<string | null>(null);
+  if (renderedUserId.current !== null && renderedUserId.current !== user?.id) {
+    previousWorkspace.current = null;
+    previousMode.current = "active";
+  }
+  if (workspaceQuery.data) {
+    previousWorkspace.current = workspaceQuery.data;
+    previousMode.current = mode;
+  }
+  const preservedWorkspace = workspaceQuery.data ?? previousWorkspace.current;
+  const preservedMode = workspaceQuery.data ? mode : previousMode.current;
+  const redirectHref = !isLoading && !user
+    ? "/login"
+    : user && needsBinding && pathname !== "/onboarding/bind"
+      ? "/onboarding/bind"
+      : user && !workspaceQuery.isLoading && mode === "expired" && pathname !== "/expired"
+        ? "/expired"
+        : user && checkinBlocked && pathname !== "/beta/checkin"
+          ? "/beta/checkin"
+          : null;
+  const redirectMethod = redirectHref === "/login" ? "push" : redirectHref ? "replace" : null;
+  const readOnly = preservedMode === "readonly";
+  const content = (
+    <WorkspaceProvider workspace={preservedWorkspace} readOnly={readOnly}>
+      {preservedMode === "grace" && <GracePeriodBanner />}
+      {checkinReminder && pathname !== "/beta/checkin" && <CheckinReminderBanner />}
+      <UpgradeBanner />
+      {preservedMode === "readonly" && <ExpirationBanner />}
+      {children}
+    </WorkspaceProvider>
+  );
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
+    if (!user) {
+      workspaceRequestUserId.current = null;
+      setWorkspaceReadyForUser(null);
+      return;
     }
-  }, [user, isLoading, router]);
+    if (!profileQuery.isSuccess || workspaceRequestUserId.current === user.id) return;
+    workspaceRequestUserId.current = user.id;
+    setWorkspaceReadyForUser(null);
+    void refetchWorkspace().then(({ data }) => {
+      if (workspaceRequestUserId.current === user.id && data) setWorkspaceReadyForUser(user.id);
+    }).catch(() => {
+      if (workspaceRequestUserId.current === user.id) workspaceRequestUserId.current = null;
+    });
+  }, [profileQuery.isSuccess, refetchWorkspace, user, workspaceQuery.isError]);
 
   useEffect(() => {
-    if (
+    if (!redirectHref || !redirectMethod) {
+      setRedirecting(false);
+      return;
+    }
+    const scheduled = redirectMethod === "push"
+      ? pushWithAIStudioGuard(router, redirectHref)
+      : replaceWithAIStudioGuard(router, redirectHref);
+    setRedirecting(scheduled);
+  }, [redirectHref, redirectMethod, router]);
+
+  const preserveMountedContent = shouldPreserveAIStudioParentChildren({
+    hasRenderedChildren: hasRenderedChildren.current,
+    redirecting,
+    sameIdentity: Boolean(
       user &&
-      needsBinding &&
-      pathname !== "/onboarding/bind"
-    ) {
-      router.replace("/onboarding/bind");
-    }
-  }, [user, needsBinding, pathname, router]);
-
-  useEffect(() => {
-    if (
-      user &&
-      !workspaceQuery.isLoading &&
-      mode === "expired" &&
-      pathname !== "/expired"
-    ) {
-      router.replace("/expired");
-    }
-  }, [user, workspaceQuery.isLoading, mode, pathname, router]);
-
-  useEffect(() => {
-    if (user && checkinBlocked && pathname !== "/beta/checkin") {
-      router.replace("/beta/checkin");
-    }
-  }, [user, checkinBlocked, pathname, router]);
+      renderedUserId.current === user.id &&
+      workspaceReadyForUser === user.id &&
+      (!workspaceQuery.data || workspaceQuery.data.id === renderedWorkspaceId.current),
+    ),
+  });
 
   if (isLoading) {
-    return <LoadingState text={t("checkingAuth")} />;
+    return preserveMountedContent ? content : <LoadingState text={t("checkingAuth")} />;
   }
 
   if (!user) {
-    return null;
+    return preserveMountedContent ? content : null;
   }
 
   if (onboardingQuery.isLoading) {
-    return <LoadingState text={t("checkingWorkspace")} />;
+    return preserveMountedContent ? content : <LoadingState text={t("checkingWorkspace")} />;
   }
 
   if (onboardingQuery.isError) {
-    return (
+    return preserveMountedContent ? content : (
       <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 p-6 text-center">
         <p className="text-body text-text-secondary">{t("workspaceLoadFailed")}</p>
         <Button type="button" onClick={() => onboardingQuery.refetch()}>
@@ -101,15 +150,15 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   if (needsBinding) {
-    return <LoadingState text={t("checkingWorkspace")} />;
+    return preserveMountedContent ? content : <LoadingState text={t("checkingWorkspace")} />;
   }
 
   if (profileQuery.isLoading) {
-    return <LoadingState text={t("checkingWorkspace")} />;
+    return preserveMountedContent ? content : <LoadingState text={t("checkingWorkspace")} />;
   }
 
   if (profileQuery.isError) {
-    return (
+    return preserveMountedContent ? content : (
       <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 p-6 text-center">
         <p className="text-body text-text-secondary">{t("workspaceLoadFailed")}</p>
         <Button type="button" onClick={() => profileQuery.refetch()}>
@@ -120,11 +169,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   if (workspaceQuery.isLoading) {
-    return <LoadingState text={t("checkingWorkspace")} />;
+    return preserveMountedContent ? content : <LoadingState text={t("checkingWorkspace")} />;
   }
 
   if (workspaceQuery.isError) {
-    return (
+    return preserveMountedContent ? content : (
       <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 p-6 text-center">
         <p className="text-body text-text-secondary">{t("workspaceLoadFailed")}</p>
         <Button type="button" onClick={() => workspaceQuery.refetch()}>
@@ -139,21 +188,14 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     checkinQuery.isLoading &&
     pathname !== "/beta/checkin"
   ) {
-    return <LoadingState text={t("checkingWorkspace")} />;
+    return preserveMountedContent ? content : <LoadingState text={t("checkingWorkspace")} />;
   }
 
-  const readOnly = mode === "readonly";
-
-    return (
-        <WorkspaceProvider
-          workspace={workspaceQuery.data ?? null}
-          readOnly={readOnly}
-        >
-          {mode === "grace" && <GracePeriodBanner />}
-          {checkinReminder && pathname !== "/beta/checkin" && <CheckinReminderBanner />}
-          {<UpgradeBanner />}
-          {mode === "readonly" && <ExpirationBanner />}
-          {children}
-        </WorkspaceProvider>
-      );
+  if (redirecting || workspaceReadyForUser !== user?.id) {
+    return <LoadingState text={t("checkingWorkspace")} />;
+  }
+  hasRenderedChildren.current = true;
+  renderedUserId.current = user?.id ?? null;
+  renderedWorkspaceId.current = preservedWorkspace?.id ?? null;
+  return content;
 }

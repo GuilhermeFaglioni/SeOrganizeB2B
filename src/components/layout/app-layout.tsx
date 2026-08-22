@@ -9,6 +9,7 @@ import { useCreateDocument } from "@/hooks/use-documents";
 import { AnimatedPage } from "@/components/shared/animated-page";
 import { useScheduleEventDialog } from "@/stores/schedule-event-context";
 import { useQuickCapture } from "@/hooks/use-quick-capture";
+import { pushWithAIStudioGuard } from "@/lib/ai/studio-router-guard";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -54,13 +55,13 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       openScheduleEvent();
     } else if (pathname.startsWith("/documents")) {
       const doc = await createDoc.mutateAsync({ title: "Untitled Document" }) as { id: string };
-      router.push(`/documents/${doc.id}`);
+      pushWithAIStudioGuard(router, `/documents/${doc.id}`);
     } else if (pathname.startsWith("/board")) {
-      router.push("/board");
+      pushWithAIStudioGuard(router, "/board");
     } else if (pathname === "/projects") {
-      router.push("/projects?newProject=true");
+      pushWithAIStudioGuard(router, "/projects?newProject=true");
     } else {
-      router.push("/board");
+      pushWithAIStudioGuard(router, "/board");
     }
   };
 

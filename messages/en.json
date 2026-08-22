@@ -600,16 +600,46 @@
       "updated": "Version: August 17, 2026",
       "intro": "This policy explains how SeOrganize+ handles company, team and authorized integration data, including Google Calendar.",
       "sections": {
-        "controller": {"title": "Controller", "body": "The controller is 55.823.385 GUILHERME COSTA BARBOSA FAGLIONI, CNPJ 55.823.385/0001-89, at Rua José Gerardo Bessa, Silveira, Belo Horizonte, Minas Gerais, Brazil, ZIP 31140-390. General contact: guilhermefaglioni.contato@gmail.com. Privacy contact: guilhermefaglioni.contato@gmail.com."},
-        "googleData": {"title": "Google data", "body": "When you authorize Google Calendar, we may receive the stable Google account identifier, verified email, access and refresh tokens, event identifiers, titles, descriptions, times, timezone, attendees and response status."},
-        "calendarUse": {"title": "How we use Google Calendar", "body": "We use this data to show calendar events, detect conflicts, create events, update events, delete events and send invitations when you request those actions. We do not use Google data for advertising, sale, credit profiling or purposes not described here."},
-        "storage": {"title": "Storage and security", "body": "Tokens are stored encrypted in the application environment. Events and attendees may have a local copy to connect the calendar to company work. Access is protected by authentication, permissions and company isolation."},
-        "sharing": {"title": "Sharing and providers", "body": "Data is processed by Google for the authorized integration and by providers needed to operate the service, such as Supabase, hosting, database and billing providers. We do not sell Google data or transfer it for advertising."},
-        "retention": {"title": "Retention and deletion", "body": "When Google Calendar is disconnected, we immediately delete credentials and Google-derived event and attendee mirrors; locally created events are preserved. We retain personal data while needed to provide the service and comply with legal obligations. After access ends, we delete or anonymize data when no legal, regulatory or rights-defense need requires retention. Fiscal, financial and audit records are retained for the applicable legal periods."},
-        "rights": {"title": "Rights and revocation", "body": "Under the LGPD, you may request confirmation, access, correction, portability, information about sharing or deletion, and revoke Google access from company settings. To exercise rights, contact guilhermefaglioni.contato@gmail.com."},
-        "internationalTransfers": {"title": "International transfers", "body": "Because we use global providers, data may be processed outside Brazil. We apply the contractual and technical safeguards required for international transfers under the LGPD and applicable rules."},
-        "limitedUse": {"title": "Google data policy", "body": "Use of Google API data follows the Google API Services User Data Policy, including Limited Use requirements. We use this data only to provide or improve visible features and do not transfer it for advertising."},
-        "changes": {"title": "Changes", "body": "Material changes to this policy will be published on this page and may require renewed consent when they change the purpose of Google data use."}
+        "controller": {
+          "title": "Controller",
+          "body": "The controller is 55.823.385 GUILHERME COSTA BARBOSA FAGLIONI, CNPJ 55.823.385/0001-89, at Rua José Gerardo Bessa, Silveira, Belo Horizonte, Minas Gerais, Brazil, ZIP 31140-390. General contact: guilhermefaglioni.contato@gmail.com. Privacy contact: guilhermefaglioni.contato@gmail.com."
+        },
+        "googleData": {
+          "title": "Google data",
+          "body": "When you authorize Google Calendar, we may receive the stable Google account identifier, verified email, access and refresh tokens, event identifiers, titles, descriptions, times, timezone, attendees and response status."
+        },
+        "calendarUse": {
+          "title": "How we use Google Calendar",
+          "body": "We use this data to show calendar events, detect conflicts, create events, update events, delete events and send invitations when you request those actions. We do not use Google data for advertising, sale, credit profiling or purposes not described here."
+        },
+        "storage": {
+          "title": "Storage and security",
+          "body": "Tokens are stored encrypted in the application environment. Events and attendees may have a local copy to connect the calendar to company work. Access is protected by authentication, permissions and company isolation."
+        },
+        "sharing": {
+          "title": "Sharing and providers",
+          "body": "Data is processed by Google for the authorized integration and by providers needed to operate the service, such as Supabase, hosting, database and billing providers. We do not sell Google data or transfer it for advertising."
+        },
+        "retention": {
+          "title": "Retention and deletion",
+          "body": "When Google Calendar is disconnected, we immediately delete credentials and Google-derived event and attendee mirrors; locally created events are preserved. We retain personal data while needed to provide the service and comply with legal obligations. After access ends, we delete or anonymize data when no legal, regulatory or rights-defense need requires retention. Fiscal, financial and audit records are retained for the applicable legal periods."
+        },
+        "rights": {
+          "title": "Rights and revocation",
+          "body": "Under the LGPD, you may request confirmation, access, correction, portability, information about sharing or deletion, and revoke Google access from company settings. To exercise rights, contact guilhermefaglioni.contato@gmail.com."
+        },
+        "internationalTransfers": {
+          "title": "International transfers",
+          "body": "Because we use global providers, data may be processed outside Brazil. We apply the contractual and technical safeguards required for international transfers under the LGPD and applicable rules."
+        },
+        "limitedUse": {
+          "title": "Google data policy",
+          "body": "Use of Google API data follows the Google API Services User Data Policy, including Limited Use requirements. We use this data only to provide or improve visible features and do not transfer it for advertising."
+        },
+        "changes": {
+          "title": "Changes",
+          "body": "Material changes to this policy will be published on this page and may require renewed consent when they change the purpose of Google data use."
+        }
       }
     },
     "terms": {
@@ -618,15 +648,42 @@
       "updated": "Version: August 17, 2026",
       "intro": "These terms define the rules for use of SeOrganize+ by digital service providers, companies and teams.",
       "sections": {
-        "service": {"title": "The service", "body": "SeOrganize+ provides tools for tasks, projects, documents, calendar, proposals, contracts and receivables. The service does not replace professional legal, accounting or financial advice."},
-        "access": {"title": "Access and companies", "body": "Users must provide truthful information, protect credentials and use only companies and data they are authorized to access. Each company is responsible for permissions granted to its members. By creating or using access, users state that they have read and agree to these Terms. The current version is identified on this page, and material changes will be communicated through available channels before taking effect."},
-        "acceptableUse": {"title": "Acceptable use", "body": "You may not use the service for fraud, abuse, rights violations, unauthorized access attempts, malware distribution or integrations that conflict with provider policies."},
-        "integrations": {"title": "Integrations", "body": "Google Calendar and other providers are third-party services. By connecting an integration, you authorize the actions described in the product and may disconnect it at any time."},
-        "billing": {"title": "Plans and billing", "body": "Plans, prices, activation, cancellation and access periods are presented in the product. The company is responsible for payments and use by its members."},
-        "content": {"title": "Content", "body": "The company retains rights to its content and is responsible for authorization to store and share information entered into the service, including client and attendee data."},
-        "availability": {"title": "Availability", "body": "The service depends on our infrastructure and third parties. We may perform maintenance, apply limits or suspend features to protect users, data and operations."},
-        "termination": {"title": "Termination", "body": "Access may be terminated by the company or the service under these terms. Data handling and deletion after termination follow the Privacy Policy."},
-        "changes": {"title": "Changes to the terms", "body": "We may update these terms. Material changes will be communicated through available product channels or this page."}
+        "service": {
+          "title": "The service",
+          "body": "SeOrganize+ provides tools for tasks, projects, documents, calendar, proposals, contracts and receivables. The service does not replace professional legal, accounting or financial advice."
+        },
+        "access": {
+          "title": "Access and companies",
+          "body": "Users must provide truthful information, protect credentials and use only companies and data they are authorized to access. Each company is responsible for permissions granted to its members. By creating or using access, users state that they have read and agree to these Terms. The current version is identified on this page, and material changes will be communicated through available channels before taking effect."
+        },
+        "acceptableUse": {
+          "title": "Acceptable use",
+          "body": "You may not use the service for fraud, abuse, rights violations, unauthorized access attempts, malware distribution or integrations that conflict with provider policies."
+        },
+        "integrations": {
+          "title": "Integrations",
+          "body": "Google Calendar and other providers are third-party services. By connecting an integration, you authorize the actions described in the product and may disconnect it at any time."
+        },
+        "billing": {
+          "title": "Plans and billing",
+          "body": "Plans, prices, activation, cancellation and access periods are presented in the product. The company is responsible for payments and use by its members."
+        },
+        "content": {
+          "title": "Content",
+          "body": "The company retains rights to its content and is responsible for authorization to store and share information entered into the service, including client and attendee data."
+        },
+        "availability": {
+          "title": "Availability",
+          "body": "The service depends on our infrastructure and third parties. We may perform maintenance, apply limits or suspend features to protect users, data and operations."
+        },
+        "termination": {
+          "title": "Termination",
+          "body": "Access may be terminated by the company or the service under these terms. Data handling and deletion after termination follow the Privacy Policy."
+        },
+        "changes": {
+          "title": "Changes to the terms",
+          "body": "We may update these terms. Material changes will be communicated through available product channels or this page."
+        }
       }
     },
     "contact": {
@@ -635,9 +692,18 @@
       "updated": "Official information: guilhermefaglioni.contato@gmail.com",
       "intro": "Use the contacts below for support, privacy and legal matters.",
       "sections": {
-        "support": {"title": "Support", "body": "Support email: guilhermefaglioni.contato@gmail.com\nDescribe the company, access and problem without sending passwords, tokens or unnecessary data."},
-        "privacy": {"title": "Privacy and Google data", "body": "For access, correction, deletion or revocation requests involving personal data and Google Calendar: guilhermefaglioni.contato@gmail.com."},
-        "legal": {"title": "Legal matters", "body": "Controller: 55.823.385 GUILHERME COSTA BARBOSA FAGLIONI\nCompany document: 55.823.385/0001-89\nAddress: Rua José Gerardo Bessa, Silveira, Belo Horizonte, Minas Gerais, Brazil, ZIP 31140-390"}
+        "support": {
+          "title": "Support",
+          "body": "Support email: guilhermefaglioni.contato@gmail.com\nDescribe the company, access and problem without sending passwords, tokens or unnecessary data."
+        },
+        "privacy": {
+          "title": "Privacy and Google data",
+          "body": "For access, correction, deletion or revocation requests involving personal data and Google Calendar: guilhermefaglioni.contato@gmail.com."
+        },
+        "legal": {
+          "title": "Legal matters",
+          "body": "Controller: 55.823.385 GUILHERME COSTA BARBOSA FAGLIONI\nCompany document: 55.823.385/0001-89\nAddress: Rua José Gerardo Bessa, Silveira, Belo Horizonte, Minas Gerais, Brazil, ZIP 31140-390"
+        }
       }
     }
   },
@@ -1103,6 +1169,12 @@
     },
     "invites": {
       "createFailed": "Failed to send invite"
+    },
+    "ai": {
+      "directiveSaved": "Directive saved",
+      "directiveSaveFailed": "Failed to save directive",
+      "directiveCleared": "Directive cleared",
+      "directiveClearFailed": "Failed to clear directive"
     }
   },
   "today": {
@@ -1606,6 +1678,14 @@
       "roles": {
         "title": "Permissions",
         "description": "Create custom permissions and define what each one can do"
+      },
+      "aiConnections": {
+        "title": "AI Integrations",
+        "description": "Connect OpenAI and manage workspace AI providers"
+      },
+      "aiDirective": {
+        "title": "Workspace directive",
+        "description": "Set the guidance used by AI Studio template sessions"
       }
     },
     "profile": {
@@ -1707,6 +1787,74 @@
       "save": "Save",
       "saved": "Settings saved",
       "saveFailed": "Failed to save company settings"
+    },
+    "ai": {
+      "backToSettings": "Back to Settings",
+      "title": "AI Integrations",
+      "subtitle": "Connect an official provider API key for use across the workspace.",
+      "sectionTitle": "Provider connection",
+      "sectionDescription": "The API key is validated and stored encrypted on the server. It is never returned to the browser.",
+      "providerLabel": "Provider",
+      "modelLabel": "Model",
+      "apiKeyLabel": "API key",
+      "apiKeyPlaceholder": "sk-...",
+      "apiKeyHint": "Use an official provider API key. Passwords, cookies and extracted session tokens are not accepted.",
+      "connect": "Connect",
+      "replace": "Replace connection",
+      "saving": "Connecting...",
+      "connectionsTitle": "Connections",
+      "noConnections": "No AI provider connected yet.",
+      "method": "Method",
+      "defaultModel": "Default model",
+      "validatedAt": "Validated",
+      "validate": "Validate",
+      "revoke": "Revoke",
+      "vision": "Vision",
+      "connectedSuccess": "Provider connection active.",
+      "replacedSuccess": "Provider connection replaced.",
+      "validatedSuccess": "Connection validated.",
+      "revokedSuccess": "Connection revoked.",
+      "loadFailed": "Could not load AI integrations.",
+      "retry": "Retry",
+      "noPermission": "You do not have permission to manage AI connections.",
+      "apiKeyMethodLabel": "API key",
+      "oauthMethodLabel": "OAuth",
+      "oauthAvailableTitle": "OAuth available",
+      "oauthUnavailableTitle": "OAuth unavailable",
+      "oauthUnavailableOAuthConditionNotMet": "This provider does not offer official third-party OAuth for programmatic API access. Use an API key instead.",
+      "oauthUnavailableHint": "OAuth remains unavailable until the provider officially documents third-party application OAuth.",
+      "oauthNoCollectionNotice": "Do not collect passwords, cookies or personal account tokens for this provider.",
+      "status": {
+        "active": "Active",
+        "invalid": "Invalid",
+        "expired": "Expired",
+        "revoked": "Revoked",
+        "disabled": "Disabled"
+      }
+    },
+    "aiDirective": {
+      "backToSettings": "Back to Settings",
+      "title": "Workspace directive",
+      "subtitle": "Persistent guidance for style, tone, structure and conventions used by AI Studio sessions. It does not override technical, security or renderer rules.",
+      "sectionTitle": "Template directive",
+      "sectionDescription": "Plain text only. The directive is passed to the AI as untrusted guidance and can never replace sanitization, variables, limits or security rules.",
+      "contentLabel": "Directive",
+      "counter": "{current} of {max} characters",
+      "tooLong": "The directive exceeds the character limit.",
+      "lastUpdated": "Last updated {updatedAt}",
+      "saving": "Saving...",
+      "save": "Save",
+      "clear": "Clear directive",
+      "clearing": "Clearing...",
+      "cancel": "Cancel",
+      "confirmClear": "Clear",
+      "confirmClearTitle": "Clear the workspace directive?",
+      "confirmClearDescription": "The workspace will go back to the platform baseline. This action cannot be undone.",
+      "loadFailed": "Failed to load the directive. Try again.",
+      "retry": "Try again",
+      "usageTitle": "How it is used",
+      "usageDescription": "New AI Studio sessions capture a snapshot of the current directive. Existing sessions are not affected by later changes.",
+      "usageBody": "The directive guides generated style, tone, structure and conventions. It is optional: without one, AI Studio uses the platform baseline."
     }
   },
   "proposals": {
@@ -1782,8 +1930,8 @@
       "deleted": "Proposal deleted",
       "rejected": "Proposal rejected",
       "linkCopied": "Link copied",
-      "confirmDelete": "Delete proposal {code}? This action cannot be undone."
-      ,"confirmContractTitle": "Confirm contract",
+      "confirmDelete": "Delete proposal {code}? This action cannot be undone.",
+      "confirmContractTitle": "Confirm contract",
       "confirmContractDescription": "Choose duration and billing. The client, items, and value came from the accepted proposal.",
       "durationType": "Duration",
       "durationFixed": "Fixed term",
@@ -1834,6 +1982,7 @@
     "templates": {
       "title": "Proposal templates",
       "subtitle": "Create HTML templates with {{variable}} placeholders to generate personalized proposals.",
+      "aiStudio": "AI Studio",
       "newTemplate": "New template",
       "emptyTitle": "No templates created yet",
       "listAria": "Proposal templates",
@@ -1881,6 +2030,128 @@
       "customVar": "custom",
       "systemVar": "system",
       "saving": "Saving..."
+    },
+    "aiStudio": {
+      "eyebrow": "AI Studio",
+      "title": "Create a template with AI",
+      "choiceDescription": "Describe the proposal in natural language. The result is a reviewable candidate; nothing is saved until you confirm it.",
+      "newTemplateTitle": "New template",
+      "newTemplateDescription": "Start from a text briefing and generate the first reusable layout.",
+      "startNewTemplate": "Start new template",
+      "refineTemplateTitle": "Refine an existing template",
+      "refineTemplateDescription": "Pick a workspace template as a sanitized base and iterate over its design and copy.",
+      "backToTemplates": "Back to templates",
+      "backToChoices": "Back to choices",
+      "featureGatedTitle": "Proposal module not enabled",
+      "featureGatedDescription": "AI Studio requires the financial proposals module to be active for this company.",
+      "goToPlans": "View plans",
+      "notAuthorizedTitle": "You cannot use AI Studio",
+      "notAuthorizedDescription": "You need permission to manage templates and generate with AI.",
+      "loadingTitle": "Loading AI Studio",
+      "loadingDescription": "Checking company connections, permissions and settings.",
+      "loadFailedTitle": "Could not load AI Studio",
+      "loadFailedDescription": "Check the connection and try again.",
+      "retry": "Retry",
+      "disabledTitle": "Generations temporarily disabled",
+      "disabledDescription": "The kill switch is active. Existing templates remain available.",
+      "noProviderTitle": "Connect an AI provider",
+      "noProviderDescription": "AI Studio uses an official company connection. It does not use a built-in provider or implicit fallback.",
+      "configureProvider": "Open AI Integrations",
+      "providerLabel": "Provider",
+      "modelLabel": "Model",
+      "defaultModel": "default",
+      "directiveSnapshot": "The current directive was captured as this session's snapshot.",
+      "noDirectiveWarning": "No directive is configured; the platform baseline will be used.",
+      "briefingLabel": "What do you want to create?",
+      "briefingPlaceholder": "Example: Create an elegant product consultancy proposal with cover, problem, approach, investment and next steps. Use a clear tone and client/items placeholders.",
+      "briefingHint": "{count}/8000 characters",
+      "consentText": "I authorize sending this message, the candidate HTML and any attached images to the selected external provider ({provider}), solely to generate or refine the template. Images are temporary and are not persisted.",
+      "dataMinimizationWarning": "Do not send client data, real proposals, documents, tasks, prices or secrets. The session is not persisted.",
+      "vision": "Vision",
+      "imageTitle": "Visual references",
+      "imageCount": "{count}/3 images",
+      "imageAttach": "Attach images",
+      "imageUploading": "Uploading...",
+      "imageAttachAria": "Attach reference images (PNG, JPEG or WebP)",
+      "imageVisionBlocked": "This model has no vision. Attachments stay blocked until you choose a vision model.",
+      "imageVisionSwitchWarning": "Remove the attached images or switch to a vision model to continue.",
+      "imageVisionRequired": "This model does not support images. Choose a vision model or remove the images.",
+      "imageMaxReached": "The 3-image-per-message limit is reached.",
+      "imageUploadFailed": "Could not attach the image. The last state was preserved.",
+      "imageListAria": "Attached images",
+      "imageRemove": "Remove {name}",
+      "imagePrivacyHint": "Images are used only as visual references, are sent only to the selected provider and are removed at the end of the session. They are not persisted.",
+      "imageErrorTooLarge": "The image exceeds the 5 MB limit.",
+      "imageErrorTooMany": "At most 3 images per message.",
+      "imageErrorUnsupportedFormat": "Unsupported format. Use PNG, JPEG or WebP.",
+      "imageErrorMismatchedFormat": "The file content does not match the declared format.",
+      "imageErrorInvalidDimensions": "The image exceeds the maximum allowed dimensions.",
+      "imageErrorEmpty": "The image is empty or invalid.",
+      "imageErrorExpired": "Some images expired or were already used. Attach them again before generating.",
+      "sessionSnapshotInvalid": "This AI Studio session expired or is no longer valid. A fresh context was started; attach images again if needed.",
+      "consentRequired": "Confirm external processing consent to continue.",
+      "briefingRequired": "Write a briefing before generating.",
+      "generate": "Generate candidate",
+      "generating": "Generating...",
+      "streamingSupported": "Streaming is available for this model",
+      "candidateTitle": "Candidate ready for review",
+      "applyCandidate": "Apply candidate",
+      "discardCandidate": "Undo generation",
+      "warningsAria": "Candidate warnings",
+      "customVariablesTitle": "Custom variables",
+      "customVariablesPending": "These variables remain pending and do not block saving the template.",
+      "editorTitle": "Manual editing",
+      "undo": "Undo",
+      "nameLabel": "Template name",
+      "namePlaceholder": "e.g. Product consultancy proposal",
+      "htmlLabel": "Candidate HTML",
+      "htmlPlaceholder": "Apply a candidate or edit the HTML manually.",
+      "saveAsNew": "Save as new template",
+      "saving": "Saving...",
+      "resetConversation": "Reset conversation",
+      "previewTitle": "Responsive preview",
+      "syntheticValues": "Synthetic values",
+      "previewEmpty": "Generate and apply a candidate to preview the template.",
+      "previewFailed": "Failed to generate preview",
+      "desktop": "Desktop",
+      "mobile": "Mobile",
+      "streamFailed": "The stream was interrupted.",
+      "generationFailed": "Could not generate the candidate. The last draft was preserved.",
+      "startRefineTemplate": "Start refinement",
+      "refinePickTitle": "Choose a template to refine",
+      "refinePickDescription": "Only templates from this workspace appear here. The chosen HTML is sanitized on the server before the session starts.",
+      "pickTemplate": "Use this template",
+      "pickLoading": "Preparing base...",
+      "pickFailed": "Could not load the base template.",
+      "loadingTemplates": "Loading templates...",
+      "templatesEmpty": "No templates were found in this workspace. Create a template manually or with AI Studio before refining.",
+      "refiningBase": "Session base: {name}",
+      "refinementBriefingLabel": "What do you want to change?",
+      "refinementBriefingPlaceholder": "Example: Make the layout leaner, use navy tones and highlight the investment section.",
+      "variableDiffTitle": "Variable comparison",
+      "variablesAdded": "New variables",
+      "variablesRemoved": "Removed variables",
+      "variablesPreserved": "Preserved variables",
+      "confirmRemovedVariables": "I understand these variables will be removed from the template and I confirm applying.",
+      "saveAsNewHint": "Saving as new is the default and preserves the original template.",
+      "saveHint": "The template is created as a new record in the workspace.",
+      "updateOriginalTitle": "Update original template",
+      "updateOriginalDescription": "Replaces the base template HTML. Sent or accepted proposals remain protected by their own snapshots.",
+      "updateConfirm": "I confirm updating the original template.",
+      "updateOriginal": "Update original template",
+      "updating": "Updating...",
+      "updateFailed": "Could not update the original template.",
+      "draftImpactWarning": "This template is referenced by {count} draft proposal(s); their next renders may change.",
+      "draftImpactNone": "No draft proposal references this template.",
+      "exitConfirm": "There are unsaved changes in this session. Leaving discards the candidate and the conversation without changing any template. Leave anyway?",
+      "contextCompacting": "Compacting context; the current HTML remains preserved.",
+      "contextCompacted": "Context compacted — older messages were summarized; the current HTML remains the source of truth.",
+      "contextCompactionError": "Compaction failed; the last candidate was preserved. Try again.",
+      "contextWindow": "Context window: {count}/{max} recent messages",
+      "retryGeneration": "Try again",
+      "payloadLimitError": "The session context exceeded the payload limit. Shorten the HTML or use \"New conversation with this draft\" to start a fresh context.",
+      "newConversationKeepDraft": "New conversation with this draft",
+      "providerSwitchContext": "Switching providers does not transfer the transcript or images; the current draft was preserved."
     },
     "public": {
       "for": "Proposal for",
@@ -1987,7 +2258,8 @@
             "send": "Send proposal",
             "acceptReject": "Accept/reject proposal",
             "clone": "Clone proposal",
-            "manageTemplates": "Manage proposal templates"
+            "manageTemplates": "Manage proposal templates",
+            "generateWithAi": "Generate templates with AI"
           }
         },
         "manage_roles": "Manage permissions"

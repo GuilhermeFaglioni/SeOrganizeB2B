@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "fs";
 import { getWorkspaceAccessMode } from "../lib/workspace/access";
+import { shouldPreserveAIStudioParentChildren } from "../lib/ai/studio-router-guard";
 import type { WorkspaceData } from "../hooks/use-workspace";
 
 const authGateSource = readFileSync(
@@ -61,8 +62,8 @@ describe("AuthGate workspace status gating", () => {
   });
 
   it("renders children for active workspaces without banners", () => {
-    expect(authGateSource).toContain("mode === \"grace\" && <GracePeriodBanner />");
-    expect(authGateSource).toContain("mode === \"readonly\" && <ExpirationBanner />");
+    expect(authGateSource).toContain("preservedMode === \"grace\" && <GracePeriodBanner />");
+    expect(authGateSource).toContain("preservedMode === \"readonly\" && <ExpirationBanner />");
     expect(authGateSource).toContain("{children}");
   });
 
@@ -72,13 +73,13 @@ describe("AuthGate workspace status gating", () => {
   });
 
   it("redirects cancelled workspaces past 30 days to the expiration page", () => {
-    expect(authGateSource).toContain("router.replace(\"/expired\")");
+    expect(authGateSource).toContain("replaceWithAIStudioGuard(router, redirectHref)");
     expect(authGateSource).toContain("pathname !== \"/expired\"");
     expect(accessSource).toContain("daysLeft > CANCELLED_READONLY_DAYS");
   });
 
   it("enables read-only mode for cancelled workspaces within 30 days", () => {
-    expect(authGateSource).toContain("const readOnly = mode === \"readonly\"");
+    expect(authGateSource).toContain("const readOnly = preservedMode === \"readonly\"");
     expect(authGateSource).toContain("readOnly={readOnly}");
     expect(authGateSource).toContain("WorkspaceProvider");
   });
@@ -102,6 +103,19 @@ describe("AuthGate workspace status gating", () => {
   });
 
   it("keeps redirecting unauthenticated users to /login", () => {
-    expect(authGateSource).toContain("router.push(\"/login\")");
+    expect(authGateSource).toContain("pushWithAIStudioGuard(router, redirectHref)");
+  });
+
+  it("preserves mounted children until auth status redirects settle", () => {
+    expect(authGateSource).toContain("const hasRenderedChildren = useRef(false)");
+    expect(authGateSource).toContain("const renderedUserId = useRef<string | null>(null)");
+    expect(authGateSource).toContain("const [workspaceReadyForUser, setWorkspaceReadyForUser]");
+    expect(authGateSource).toContain("workspaceQuery.refetch()");
+    expect(authGateSource).toContain("const redirectHref =");
+    expect(authGateSource).toContain("setRedirecting(scheduled)");
+    expect(authGateSource).toContain("shouldPreserveAIStudioParentChildren");
+    expect(shouldPreserveAIStudioParentChildren({ hasRenderedChildren: true, redirecting: false, sameIdentity: true })).toBe(true);
+    expect(shouldPreserveAIStudioParentChildren({ hasRenderedChildren: true, redirecting: false, sameIdentity: false })).toBe(false);
+    expect(shouldPreserveAIStudioParentChildren({ hasRenderedChildren: true, redirecting: true, sameIdentity: true })).toBe(false);
   });
 });

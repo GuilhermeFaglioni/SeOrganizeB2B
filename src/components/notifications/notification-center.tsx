@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { pushWithAIStudioGuard } from "@/lib/ai/studio-router-guard";
 
 export function NotificationCenter() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export function NotificationCenter() {
 
   async function openNotification(id: string, entityType: string) {
     await markOne.mutateAsync(id);
-    router.push(
+    pushWithAIStudioGuard(router,
       entityType === "document"
         ? "/documents"
         : entityType === "calendar_event"

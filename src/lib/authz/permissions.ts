@@ -30,6 +30,9 @@ export const SPECIAL_PERMISSIONS = [
   "financial.proposals.acceptReject",
   "financial.proposals.clone",
   "financial.proposals.manageTemplates",
+  "financial.proposals.generateWithAi",
+  "ai.manageConnections",
+  "ai.manageDirectives",
   "manage_roles",
 ] as const;
 

@@ -45,6 +45,11 @@ model Profile {
   contractAudits         ContractAudit[]         @relation("ContractAuditActor")
   proposalTemplates      ProposalTemplate[]      @relation("ProposalTemplateCreator")
   proposals              Proposal[]              @relation("ProposalCreator")
+  aiProviderConnections  AiProviderConnection[]  @relation("AiProviderConnectionCreator")
+  aiConnectionAudits     AiProviderConnectionAudit[] @relation("AiProviderConnectionAuditActor")
+  editedDirectives       WorkspaceDirective[]    @relation("WorkspaceDirectiveEditor")
+  aiStudioUsageEvents    AiStudioUsageEvent[]    @relation("AiStudioUsageEventActor")
+  aiStudioConsents       AiStudioConsent[]       @relation("AiStudioConsentActor")
   projectMembers         ProjectMember[]
   closedBetaOwnedEnrollment ClosedBetaEnrollment? @relation("ClosedBetaOwner")
   checkinResponses       ClosedBetaCheckinResponse[]
@@ -127,6 +132,11 @@ model Workspace {
   proposalTemplates     ProposalTemplate[]
   proposals             Proposal[]
   proposalItems         ProposalItem[]
+  aiProviderConnections AiProviderConnection[]
+  aiConnectionAudits    AiProviderConnectionAudit[]
+  directive             WorkspaceDirective?
+  aiStudioUsageEvents   AiStudioUsageEvent[]
+  aiStudioConsents      AiStudioConsent[]
   invites               Invite[]
   readOnlyAccesses      ReadOnlyAccess[]
   closedBetaEnrollment  ClosedBetaEnrollment?
@@ -1034,4 +1044,106 @@ model ProposalItem {
   @@index([proposalId])
   @@index([tenantId])
   @@map("proposal_items")
+}
+
+model AiProviderConnection {
+  id              String    @id @default(uuid())
+  tenantId        String    @map("tenant_id")
+  provider        String
+  authMethod      String    @default("api_key") @map("auth_method")
+  encryptedSecret String?   @map("encrypted_secret")
+  defaultModel    String?   @map("default_model")
+  status          String    @default("active")
+  createdBy       String    @map("created_by")
+  validatedAt     DateTime? @map("validated_at")
+  lastErrorCode   String?   @map("last_error_code")
+  revokedAt       DateTime? @map("revoked_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  tenant  Workspace @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  creator Profile   @relation("AiProviderConnectionCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  audits  AiProviderConnectionAudit[]
+
+  @@unique([tenantId, provider])
+  @@index([tenantId])
+  @@map("ai_provider_connections")
+}
+
+model AiProviderConnectionAudit {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  provider    String
+  action      String
+  actorId     String?  @map("actor_id")
+  result      String   @default("success")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  connectionId String               @map("connection_id")
+  connection   AiProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  tenant       Workspace            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  actor        Profile?             @relation("AiProviderConnectionAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([provider])
+  @@index([connectionId])
+  @@map("ai_provider_connection_audits")
+}
+
+model WorkspaceDirective {
+  id        String   @id @default(uuid())
+  tenantId  String   @unique @map("tenant_id")
+  content   String
+  updatedBy String   @map("updated_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Workspace @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  editor Profile  @relation("WorkspaceDirectiveEditor", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@map("workspace_directives")
+}
+
+model AiStudioUsageEvent {
+  id                String   @id @default(uuid())
+  tenantId          String   @map("tenant_id")
+  actorId           String   @map("actor_id")
+  provider          String
+  authMethod        String   @map("auth_method")
+  model             String
+  requestId         String   @unique @map("request_id")
+  promptBaseVersion String   @map("prompt_base_version")
+  requestSizeBytes  Int      @map("request_size_bytes")
+  responseSizeBytes Int      @map("response_size_bytes")
+  latencyMs         Int      @map("latency_ms")
+  status            String
+  errorCategory     String?  @map("error_category")
+  inputTokens       Int?     @map("input_tokens")
+  outputTokens      Int?     @map("output_tokens")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  tenant Workspace @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  actor  Profile   @relation("AiStudioUsageEventActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, actorId, createdAt])
+  @@map("ai_studio_usage_events")
+}
+
+model AiStudioConsent {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  provider    String
+  version     String
+  consentedBy String   @map("consented_by")
+  consentedAt DateTime @map("consented_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  tenant Workspace @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  actor  Profile   @relation("AiStudioConsentActor", fields: [consentedBy], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, provider, version])
+  @@index([tenantId, provider, consentedAt])
+  @@map("ai_studio_consents")
 }
