@@ -10,5 +10,5 @@
       "path": "/api/cron/ai-studio-retention",
       "schedule": "0 3 * * *"
     }
-  }
+  ]
 }
