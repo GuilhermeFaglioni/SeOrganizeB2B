@@ -60,10 +60,12 @@ export function ProposalHtmlPreview({
   html,
   className,
   immersive = false,
+  title = "Preview",
 }: {
   html: string;
   className?: string;
   immersive?: boolean;
+  title?: string;
 }) {
   const reactId = useId();
   const frameId = `proposal-${reactId}`;
@@ -88,7 +90,7 @@ export function ProposalHtmlPreview({
   return (
     <iframe
       ref={frameRef}
-      title="Preview"
+      title={title}
       sandbox={
         immersive
           ? "allow-scripts allow-popups allow-popups-to-escape-sandbox"

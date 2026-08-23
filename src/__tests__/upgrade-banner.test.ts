@@ -100,7 +100,7 @@ describe("UpgradeBanner UI", () => {
   });
 
   it("navigates to the plans page to upgrade", () => {
-    expect(bannerSource).toContain('router.push("/plans")');
+    expect(bannerSource).toContain('pushWithAIStudioGuard(router, "/plans")');
     expect(bannerSource).toContain("useRouter");
   });
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Building2, MapPin, ShieldCheck, UserRound, Users } from "lucide-react";
+import { Bot, Building2, MapPin, ShieldCheck, Sparkles, UserRound, Users } from "lucide-react";
 import { useCan } from "@/hooks/use-permissions";
 import { SettingsHeader, SettingsShell } from "@/components/settings/settings-shell";
 
@@ -16,6 +16,8 @@ export default function SettingsPage() {
     { key: "team", permission: can("manage_roles"), title: t("team.title"), description: t("team.description"), href: "/settings/team", icon: Users },
     { key: "workspace", permission: can("manage_roles"), title: t("workspace.title"), description: t("workspace.description"), href: "/settings/workspace", icon: Building2 },
     { key: "roles", permission: can("manage_roles"), title: t("roles.title"), description: t("roles.description"), href: "/settings/roles", icon: ShieldCheck },
+    { key: "aiConnections", permission: can("ai.manageConnections"), title: t("aiConnections.title"), description: t("aiConnections.description"), href: "/settings/ai", icon: Sparkles },
+    { key: "aiDirective", permission: can("ai.manageDirectives"), title: t("aiDirective.title"), description: t("aiDirective.description"), href: "/settings/ai-directive", icon: Bot },
   ].filter((card) => card.permission);
 
   return (

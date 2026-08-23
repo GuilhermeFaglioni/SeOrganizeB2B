@@ -25,6 +25,7 @@ import { useCreateTask } from "@/hooks/use-tasks";
 import { useCreateDocument } from "@/hooks/use-documents";
 import { useScheduleEventDialog } from "@/stores/schedule-event-context";
 import { toastError, toastSuccess } from "@/lib/toast";
+import { pushWithAIStudioGuard } from "@/lib/ai/studio-router-guard";
 
 type CaptureType = "task" | "event" | "document";
 
@@ -66,7 +67,7 @@ export function QuickCaptureDialog({
         })) as { id: string };
         onOpenChange(false);
         setTitle("");
-        router.push(`/documents/${document.id}`);
+        pushWithAIStudioGuard(router, `/documents/${document.id}`);
         toastSuccess(t("documentCreated"));
         return;
       }
@@ -87,7 +88,7 @@ export function QuickCaptureDialog({
       onOpenChange(false);
       setTitle("");
       toastSuccess(t("taskCaptured"));
-      router.push(`/board?project=${projectId}`);
+      pushWithAIStudioGuard(router, `/board?project=${projectId}`);
     } catch (error) {
       toastError(
         t("captureFailed"),

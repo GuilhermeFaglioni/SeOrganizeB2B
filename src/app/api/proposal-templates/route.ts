@@ -6,6 +6,8 @@ import {
   listProposalTemplates,
 } from "@/lib/financial/proposal-templates-service";
 import { sanitizeProposalHtml } from "@/lib/financial/proposals";
+import { sanitizeAIStudioHtml } from "@/lib/ai/studio-service";
+import { mapAIStudioError } from "@/lib/ai/studio-http";
 import { mapFinancialError } from "@/lib/financial/http";
 import { denyFor } from "@/lib/authz/authz";
 import { getTenantContext } from "@/lib/authz/tenant-context";
@@ -65,12 +67,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let sanitizedHtml: string;
+  try {
+    sanitizedHtml = body.source === "ai-studio"
+      ? sanitizeAIStudioHtml(body.html).html
+      : sanitizeProposalHtml(body.html);
+  } catch (error) {
+    if (body.source === "ai-studio") return mapAIStudioError(error);
+    return mapFinancialError(error);
+  }
+
   try {
     const template = await withTenant(ctx.tenantId, () =>
       createProposalTemplate(
         {
           name: body.name,
-          html: sanitizeProposalHtml(body.html),
+          html: sanitizedHtml,
         },
         user.id
       )

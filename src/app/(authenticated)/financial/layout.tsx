@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { FinancialTabs } from "@/components/financial/financial-tabs";
 import { useAllowedModules } from "@/hooks/use-allowed-modules";
+import { replaceWithAIStudioGuard } from "@/lib/ai/studio-router-guard";
 
 export default function FinancialLayout({
   children,
@@ -15,7 +16,7 @@ export default function FinancialLayout({
 
   useEffect(() => {
     if (!isAnyFinancialAllowed()) {
-      router.replace("/plans?module=financial");
+      replaceWithAIStudioGuard(router, "/plans?module=financial");
     }
   }, [isAnyFinancialAllowed, router]);
 

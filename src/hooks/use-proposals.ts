@@ -95,7 +95,7 @@ export function useCreateProposalTemplate() {
   const t = useTranslations("hooks.proposals");
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; html: string }) =>
+    mutationFn: (data: { name: string; html: string; source?: "ai-studio" }) =>
       fetchJson("/api/proposal-templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

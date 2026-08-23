@@ -87,7 +87,7 @@ describe("grace period access mode", () => {
 
   it("redirects expired workspaces (including expired grace) to the expiration page", () => {
     expect(authGateSource).toContain("mode === \"expired\"");
-    expect(authGateSource).toContain("router.replace(\"/expired\")");
+    expect(authGateSource).toContain("replaceWithAIStudioGuard(router, redirectHref)");
   });
 });
 
@@ -111,6 +111,6 @@ describe("GracePeriodBanner UI", () => {
   });
 
   it("is rendered at the top of the layout for grace workspaces", () => {
-    expect(authGateSource).toContain('mode === "grace" && <GracePeriodBanner />');
+    expect(authGateSource).toContain('preservedMode === "grace" && <GracePeriodBanner />');
   });
 });
