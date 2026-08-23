@@ -60,6 +60,19 @@ jobs:
       - name: Verify migrations apply cleanly
         run: npx prisma migrate deploy
 
+      - name: Ensure authenticated role can access public schema
+        run: |
+          PGPASSWORD=ci psql -h localhost -U ci -d ci -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+              CREATE ROLE authenticated NOLOGIN;
+            END IF;
+          END $$;
+          GRANT USAGE ON SCHEMA public TO authenticated;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+          SQL
+
       - name: Run tests
         run: npm test
 
