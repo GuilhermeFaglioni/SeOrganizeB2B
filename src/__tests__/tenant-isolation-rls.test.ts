@@ -285,7 +285,7 @@ describe("RLS — direct DB queries without the middleware are gated (defense-in
 
           await transaction.$executeRaw`RESET app.current_tenant_id`;
           const unset = await transaction.$queryRaw<Array<{ unset: boolean }>>`
-            SELECT current_setting('app.current_tenant_id', true) IS NULL AS unset`;
+            SELECT NULLIF(current_setting('app.current_tenant_id', true), '') IS NULL AS unset`;
           expect(unset[0]?.unset).toBe(true);
           for (const table of AI_STUDIO_TABLES) {
             expect(await countRows(transaction, table)).toBe(0);
@@ -363,7 +363,7 @@ describe("RLS — direct DB queries without the middleware are gated (defense-in
   it("denies by default when app.current_tenant_id is unset", async (ctx) => {
     await withDb(ctx, async () => {
       const unset = await prisma.$queryRaw<{ guc_unset: boolean }[]>`
-        SELECT current_setting('app.current_tenant_id', true) IS NULL AS guc_unset`;
+        SELECT NULLIF(current_setting('app.current_tenant_id', true), '') IS NULL AS guc_unset`;
       expect(unset[0].guc_unset).toBe(true);
 
       const denied = await prisma.$queryRaw<{ c: number }[]>`
