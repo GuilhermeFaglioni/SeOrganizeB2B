@@ -8,12 +8,13 @@ import {
 } from "./studio-contract";
 
 /**
- * In-memory, process-local holder for uploaded reference images. Images live
- * only for the duration of the browser session window: they are never written
- * to the database, transcripts, usage events or logs and they disappear on TTL
- * sweep, on explicit cleanup, or when the process restarts. Keys are scoped to
- * a single tenant+actor so one workspace member can never address another
- * workspace's image bytes.
+ * In-memory, process-local holder for uploaded reference image metadata and a
+ * same-process fallback. Generation submits the browser-held File bytes
+ * directly, so correctness never depends on this map surviving a serverless
+ * invocation boundary. Images are never written to the database, transcripts,
+ * usage events or logs and disappear on TTL sweep, explicit cleanup, or process
+ * restart. Keys are scoped to a single tenant+actor so one workspace member
+ * can never address another workspace's image bytes.
  */
 
 interface StoredImage extends AIStudioImageAsset {

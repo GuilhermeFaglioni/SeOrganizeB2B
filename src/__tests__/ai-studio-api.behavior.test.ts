@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   getTenantContext: vi.fn(),
   checkFeature: vi.fn(),
   getAIStudioConfig: vi.fn(),
+  getAIStudioMaxRequestBytes: vi.fn(),
   recordAIStudioConsent: vi.fn(),
   generateTemplateCandidate: vi.fn(),
   renderAIStudioSyntheticPreview: vi.fn(),
@@ -25,6 +26,7 @@ vi.mock("@/lib/authz/tenant-context", () => ({ getTenantContext: mocks.getTenant
 vi.mock("@/lib/features", () => ({ checkFeature: mocks.checkFeature }));
 vi.mock("@/lib/ai/studio-service", () => ({
   getAIStudioConfig: mocks.getAIStudioConfig,
+  getAIStudioMaxRequestBytes: mocks.getAIStudioMaxRequestBytes,
   recordAIStudioConsent: mocks.recordAIStudioConsent,
   generateTemplateCandidate: mocks.generateTemplateCandidate,
   renderAIStudioSyntheticPreview: mocks.renderAIStudioSyntheticPreview,
@@ -69,6 +71,7 @@ describe("AI Studio API", () => {
     mocks.getTenantContext.mockResolvedValue({ tenantId: "tenant-1" });
     mocks.checkFeature.mockResolvedValue(true);
     mocks.getAIStudioConfig.mockResolvedValue({ enabled: true, connections: [], consents: {} });
+    mocks.getAIStudioMaxRequestBytes.mockReturnValue(240_000);
     mocks.recordAIStudioConsent.mockResolvedValue({ provider: "openai", version: "v1" });
     mocks.generateTemplateCandidate.mockResolvedValue({ requestId: "req-1", candidate: { html: "<p>ok</p>" } });
     mocks.renderAIStudioSyntheticPreview.mockReturnValue({ html: "<p>Cliente Exemplo</p>", warnings: [] });
@@ -99,10 +102,47 @@ describe("AI Studio API", () => {
     expect(mocks.recordAIStudioConsent).toHaveBeenCalledWith({ tenantId: "tenant-1", actorId: "user-1", provider: "openai", version: "v1" });
   });
 
+  it("blocks consent-less generation preconditions with 428", async () => {
+    const response = await consentPOST(request("http://x/api/ai/studio/consent", { provider: "openai", version: "v1" }));
+    expect(response?.status).toBe(428);
+    expect(mocks.recordAIStudioConsent).not.toHaveBeenCalled();
+  });
+
   it("passes the tenant and actor boundary into generation", async () => {
     const response = await generatePOST(request("http://x/api/ai/studio/generate", { provider: "openai", model: "gpt-4o", message: "Briefing", consentVersion: "v1" }));
     expect(response?.status).toBe(200);
     expect(mocks.generateTemplateCandidate).toHaveBeenCalledWith(expect.objectContaining({ tenantId: "tenant-1", actorId: "user-1", message: "Briefing" }));
+  });
+
+  it("passes multipart image bytes directly into generation", async () => {
+    const form = new FormData();
+    form.append("provider", "openai");
+    form.append("model", "gpt-4o");
+    form.append("message", "Briefing com imagem");
+    form.append("consentVersion", "v1");
+    form.append("stream", "false");
+    form.append("recentMessages", "[]");
+    form.append("sessionSummary", "null");
+    form.append("imageIds", JSON.stringify(["img-1"]));
+    form.append("imageFiles", new File([new Uint8Array([1, 2, 3])], "ref.png", { type: "image/png" }));
+
+    const response = await generatePOST(
+      new NextRequest("http://x/api/ai/studio/generate", { method: "POST", body: form }),
+    );
+
+    expect(response?.status).toBe(200);
+    expect(mocks.generateTemplateCandidate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: "tenant-1",
+        actorId: "user-1",
+        message: "Briefing com imagem",
+        imageIds: ["img-1"],
+        imageFiles: [expect.objectContaining({ name: "ref.png", contentType: "image/png" })],
+      }),
+    );
+    expect(mocks.generateTemplateCandidate.mock.calls[0][0].imageFiles[0].data).toEqual(
+      Buffer.from([1, 2, 3]),
+    );
   });
 
   it("passes the ephemeral context snapshot to generation without adding a history endpoint", async () => {
@@ -187,6 +227,75 @@ describe("AI Studio API", () => {
     expect(payload.error).toMatchObject({ code: "PAYLOAD_LIMITED" });
   });
 
+  it.each([
+    ["CONSENT_REQUIRED", 428],
+    ["RATE_LIMITED", 429],
+    ["PAYLOAD_LIMITED", 413],
+  ] as const)("preserves the HTTP status for a streaming %s failure", async (code, status) => {
+    mocks.generateTemplateCandidate.mockRejectedValue(new AIStudioError(code, "Generation blocked."));
+
+    const response = await generatePOST(request("http://x/api/ai/studio/generate", {
+      provider: "openai",
+      model: "gpt-4o",
+      message: "Briefing",
+      consentVersion: "v1",
+      stream: true,
+    }));
+
+    expect(response?.status).toBe(status);
+    expect((await response?.json()).error).toMatchObject({ code });
+  });
+
+  it("keeps a started stream at 200 and emits a localized error event after a delta", async () => {
+    mocks.generateTemplateCandidate.mockImplementation(async (_input, hooks) => {
+      hooks?.onPartial?.("partial");
+      throw new AIStudioError("PROVIDER_ERROR", "Provider detail must not reach the client.");
+    });
+
+    const response = await generatePOST(request("http://x/api/ai/studio/generate", {
+      provider: "openai",
+      model: "gpt-4o",
+      message: "Briefing",
+      consentVersion: "v1",
+      stream: true,
+    }));
+
+    expect(response?.status).toBe(200);
+    const events = (await response!.text())
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as { type: string; text?: string; error?: { code?: string } });
+    expect(events[0]).toEqual({ type: "delta", text: "partial" });
+    expect(events[1]).toMatchObject({ type: "error", error: { code: "PROVIDER_ERROR" } });
+    expect(JSON.stringify(events)).not.toContain("Provider detail must not reach the client.");
+  });
+
+  it("rejects an oversized JSON request before the service boundary", async () => {
+    const response = await generatePOST(request("http://x/api/ai/studio/generate", {
+      provider: "openai",
+      message: "x".repeat(240_001),
+      consentVersion: "v1",
+    }));
+
+    expect(response?.status).toBe(413);
+    expect(mocks.generateTemplateCandidate).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized recent-message list at the HTTP boundary", async () => {
+    const response = await generatePOST(request("http://x/api/ai/studio/generate", {
+      provider: "openai",
+      message: "Continue.",
+      consentVersion: "v1",
+      recentMessages: Array.from({ length: 9 }, (_, index) => ({
+        role: "user",
+        content: `turn-${index}`,
+      })),
+    }));
+
+    expect(response?.status).toBe(413);
+    expect(mocks.generateTemplateCandidate).not.toHaveBeenCalled();
+  });
+
   it("passes a multipart image upload to the attach seam within the tenant and actor boundary", async () => {
     mocks.attachAIStudioImage.mockResolvedValue({ id: "img-1", fileName: "ref.png", format: "png", width: 120, height: 90, sizeBytes: 4 });
 
@@ -207,6 +316,17 @@ describe("AI Studio API", () => {
     const form = new FormData();
     const response = await imagesPOST(new NextRequest("http://x/api/ai/studio/images", { method: "POST", body: form }));
     expect(response?.status).toBe(422);
+    expect(mocks.attachAIStudioImage).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized image before buffering it for the service", async () => {
+    const form = new FormData();
+    form.append("file", new File([new Uint8Array(5 * 1024 * 1024 + 1)], "ref.png", { type: "image/png" }));
+    const response = await imagesPOST(new NextRequest("http://x/api/ai/studio/images", { method: "POST", body: form }));
+
+    expect(response?.status).toBe(422);
+    const payload = await response?.json();
+    expect(payload.error).toMatchObject({ code: "IMAGE_VALIDATION_ERROR", detailCode: "TOO_LARGE" });
     expect(mocks.attachAIStudioImage).not.toHaveBeenCalled();
   });
 

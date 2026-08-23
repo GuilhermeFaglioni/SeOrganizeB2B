@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { denyFor } from "../authz/authz";
 import { getTenantContext } from "../authz/tenant-context";
 import { noWorkspaceResponse } from "../authz/http";
-import { AIStudioError, type AIStudioErrorCode } from "./studio-service";
+import { AIStudioError, getAIStudioMaxRequestBytes, type AIStudioErrorCode } from "./studio-service";
 import { checkFeature } from "../features";
+import {
+  AI_STUDIO_MAX_GENERATION_REQUEST_BYTES,
+  AI_STUDIO_MAX_RECENT_MESSAGES,
+} from "./studio-contract";
 
 const STATUS_BY_CODE: Record<AIStudioErrorCode, number> = {
   VALIDATION_ERROR: 400,
@@ -40,7 +44,6 @@ export function mapAIStudioError(error: unknown): NextResponse {
         data: null,
         error: {
           code: error.code,
-          message: error.message,
           ...(error.providerErrorCode ? { providerErrorCode: error.providerErrorCode } : {}),
           ...(error.detailCode ? { detailCode: error.detailCode } : {}),
           ...(error.retryAfterSeconds ? { retryAfterSeconds: error.retryAfterSeconds } : {}),
@@ -88,13 +91,80 @@ export async function requireAIStudioAccess(userId: string) {
   return { tenantId: context.tenantId } as const;
 }
 
-export async function readJsonBody(request: Request): Promise<Record<string, unknown> | null> {
+export async function readJsonBody(
+  request: Request,
+  maxBytes = getAIStudioMaxRequestBytes(),
+): Promise<Record<string, unknown> | null> {
   try {
-    const body = await request.json();
-    return body && typeof body === "object" && !Array.isArray(body)
-      ? (body as Record<string, unknown>)
-      : null;
-  } catch {
+    const raw = new TextDecoder().decode(await readRequestBodyBytes(request, maxBytes));
+    const body = JSON.parse(raw) as unknown;
+    if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+    const record = body as Record<string, unknown>;
+    if (Array.isArray(record.recentMessages) && record.recentMessages.length > AI_STUDIO_MAX_RECENT_MESSAGES) {
+      throw new AIStudioError(
+        "PAYLOAD_LIMITED",
+        "A sessão excede o limite de mensagens recentes. Comece uma nova conversa.",
+      );
+    }
+    return record;
+  } catch (error) {
+    if (error instanceof AIStudioError) throw error;
     return null;
   }
+}
+
+export async function readRequestBodyBytes(request: Request, maxBytes: number): Promise<Uint8Array> {
+  const contentLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    throw new AIStudioError("PAYLOAD_LIMITED", "O corpo da requisição excede o limite permitido.");
+  }
+
+  if (!request.body) return new Uint8Array();
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        try {
+          await reader.cancel();
+        } catch {
+          // The payload is already rejected; cancellation is best effort.
+        }
+        throw new AIStudioError("PAYLOAD_LIMITED", "O corpo da requisição excede o limite permitido.");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  if (chunks.length === 0) return new Uint8Array();
+  if (chunks.length === 1) return chunks[0];
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes;
+}
+
+export async function readMultipartFormData(
+  request: Request,
+  maxBytes = AI_STUDIO_MAX_GENERATION_REQUEST_BYTES,
+): Promise<FormData> {
+  const body = await readRequestBodyBytes(request, maxBytes);
+  const buffer = new ArrayBuffer(body.byteLength);
+  new Uint8Array(buffer).set(body);
+  return new Request(request.url, {
+    method: request.method,
+    headers: request.headers,
+    body: buffer,
+  }).formData();
 }

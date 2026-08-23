@@ -597,7 +597,7 @@
     "privacy": {
       "eyebrow": "Privacy",
       "title": "Privacy Policy",
-      "updated": "Version: August 17, 2026",
+        "updated": "Version: August 22, 2026",
       "intro": "This policy explains how SeOrganize+ handles company, team and authorized integration data, including Google Calendar.",
       "sections": {
         "controller": {
@@ -624,6 +624,26 @@
           "title": "Retention and deletion",
           "body": "When Google Calendar is disconnected, we immediately delete credentials and Google-derived event and attendee mirrors; locally created events are preserved. We retain personal data while needed to provide the service and comply with legal obligations. After access ends, we delete or anonymize data when no legal, regulatory or rights-defense need requires retention. Fiscal, financial and audit records are retained for the applicable legal periods."
         },
+        "aiStudioProviders": {
+          "title": "AI Studio and providers",
+          "body": "AI Studio can use OpenAI or Anthropic through the official connection selected by the company. At launch, API Key is the functional path. OAuth will be offered only when the provider officially documents and enables OAuth for third-party applications; this capability is currently unavailable in the catalog. The product does not collect passwords, cookies or personal account tokens to enable this integration."
+        },
+        "aiStudioProcessing": {
+          "title": "AI Studio processing",
+          "body": "To generate or refine a candidate, we send the current briefing, sanitized base HTML, attached reference images and, when applicable, the company directive, session summary and compacted session messages only to the selected provider model for that action. We do not send the same content to both providers, use implicit fallback or include client data, real proposals or secrets by default. The candidate and edited HTML remain in the browser until you choose to save."
+        },
+        "aiStudioRetention": {
+          "title": "Ephemeral AI Studio data",
+          "body": "The encrypted session snapshot and reference images are temporary, with a 30-minute TTL. Images exist only in process memory, are released after generation, reset or exit, and are removed on expiry or process restart. Briefings, HTML, images, summaries and transcripts are not written to the database, usage events or logs, and discarded content is not resent to another provider. The company directive is an existing setting and is read only to compose the authorized request."
+        },
+        "aiStudioTelemetry": {
+          "title": "Operational telemetry",
+          "body": "We record only operational metadata such as company, operator, provider, authentication method, model, request, sizes, latency, status, error category and token counts when supplied. Prompts, HTML, images, transcripts and secrets are not included in telemetry. Operational events are retained for no more than 90 days."
+        },
+        "aiStudioCosts": {
+          "title": "Company costs",
+          "body": "The company is responsible for charges, limits and usage policies of the provider connected to the company. SeOrganize+ applies its own operational limits but does not control OpenAI or Anthropic pricing, availability or billing."
+        },
         "rights": {
           "title": "Rights and revocation",
           "body": "Under the LGPD, you may request confirmation, access, correction, portability, information about sharing or deletion, and revoke Google access from company settings. To exercise rights, contact guilhermefaglioni.contato@gmail.com."
@@ -645,7 +665,7 @@
     "terms": {
       "eyebrow": "Service use",
       "title": "Terms of Service",
-      "updated": "Version: August 17, 2026",
+        "updated": "Version: August 22, 2026",
       "intro": "These terms define the rules for use of SeOrganize+ by digital service providers, companies and teams.",
       "sections": {
         "service": {
@@ -663,6 +683,18 @@
         "integrations": {
           "title": "Integrations",
           "body": "Google Calendar and other providers are third-party services. By connecting an integration, you authorize the actions described in the product and may disconnect it at any time."
+        },
+        "aiStudioUse": {
+          "title": "AI Studio use",
+          "body": "AI Studio generates reviewable candidates for proposal templates. The company must be authorized to use the submitted briefing, HTML, images, directive and session context, avoid personal data or secrets, and review the result before saving or sharing it. AI output may be incomplete or incorrect and does not replace professional review."
+        },
+        "aiStudioProviderAuth": {
+          "title": "AI provider authentication",
+          "body": "OpenAI and Anthropic are independent providers. API Key is the functional launch method. The product may offer OAuth only when official support for third-party applications is documented; until that condition is met, the interface states that it is unavailable and does not request personal passwords, cookies or tokens."
+        },
+        "aiStudioCosts": {
+          "title": "AI costs",
+          "body": "The company responsible for the connection is responsible for provider charges and limits. Each generation uses only the provider selected in the session, with no automatic fallback to another provider."
         },
         "billing": {
           "title": "Plans and billing",
@@ -2052,6 +2084,7 @@
       "loadFailedTitle": "Could not load AI Studio",
       "loadFailedDescription": "Check the connection and try again.",
       "retry": "Retry",
+      "operationFailed": "The operation could not be completed.",
       "disabledTitle": "Generations temporarily disabled",
       "disabledDescription": "The kill switch is active. Existing templates remain available.",
       "noProviderTitle": "Connect an AI provider",
@@ -2065,7 +2098,12 @@
       "briefingLabel": "What do you want to create?",
       "briefingPlaceholder": "Example: Create an elegant product consultancy proposal with cover, problem, approach, investment and next steps. Use a clear tone and client/items placeholders.",
       "briefingHint": "{count}/8000 characters",
-      "consentText": "I authorize sending this message, the candidate HTML and any attached images to the selected external provider ({provider}), solely to generate or refine the template. Images are temporary and are not persisted.",
+      "consentText": "I authorize sending this message, candidate HTML, attached images and, when applicable, the company directive, session summary and compacted session messages to the selected external provider ({provider}), solely to generate or refine the template. Images and session context are temporary and are not persisted.",
+      "consentLegalPrefix": "Also read the",
+      "consentLegalAnd": "and the",
+      "consentPrivacyLink": "Privacy Policy",
+      "consentTermsLink": "Terms of Service",
+      "consentVersion": "Consent version: {version}",
       "dataMinimizationWarning": "Do not send client data, real proposals, documents, tasks, prices or secrets. The session is not persisted.",
       "vision": "Vision",
       "imageTitle": "Visual references",
@@ -2093,7 +2131,15 @@
       "briefingRequired": "Write a briefing before generating.",
       "generate": "Generate candidate",
       "generating": "Generating...",
+      "generationStatus": "Generation in progress",
       "streamingSupported": "Streaming is available for this model",
+      "streamingOutputAria": "Partial generation output",
+      "invalidOutput": "The provider returned invalid output. The last draft was preserved.",
+      "generationTimeout": "The generation timed out. Try again.",
+      "rateLimited": "The company generation limit was reached. Try again later.",
+      "providerFailed": "The provider could not complete generation. Try again or switch providers.",
+      "connectionUnavailable": "The provider connection is unavailable. Validate it in AI settings.",
+      "sanitizationWarning": "Some incompatible elements or external resources were removed from the output.",
       "candidateTitle": "Candidate ready for review",
       "applyCandidate": "Apply candidate",
       "discardCandidate": "Undo generation",
@@ -2115,6 +2161,8 @@
       "previewFailed": "Failed to generate preview",
       "desktop": "Desktop",
       "mobile": "Mobile",
+      "desktopPreviewTitle": "Desktop template preview",
+      "mobilePreviewTitle": "Mobile template preview",
       "streamFailed": "The stream was interrupted.",
       "generationFailed": "Could not generate the candidate. The last draft was preserved.",
       "startRefineTemplate": "Start refinement",

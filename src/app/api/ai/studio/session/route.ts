@@ -14,8 +14,8 @@ export async function DELETE(request: Request) {
   const access = await requireAIStudioAccess(user.id);
   if ("response" in access) return access.response;
 
-  const body = await readJsonBody(request);
   try {
+    const body = await readJsonBody(request);
     discardAIStudioSession(access.tenantId, user.id, body?.sessionId);
     return Response.json({ data: null, error: null });
   } catch (error) {

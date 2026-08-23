@@ -10,6 +10,10 @@ const mocks = vi.hoisted(() => ({
   usageDeleteMany: vi.fn(),
   usageCount: vi.fn(),
   usageCreate: vi.fn(),
+  usageUpdateMany: vi.fn(),
+  queryRaw: vi.fn(),
+  transaction: vi.fn(),
+  workspaceFindMany: vi.fn(),
   workspaceDirectiveFindUnique: vi.fn(),
   checkFeature: vi.fn(),
   getAIProvider: vi.fn(),
@@ -20,6 +24,7 @@ const mocks = vi.hoisted(() => ({
       : "sk-secret",
   ),
   withTenant: vi.fn((_tenantId: string, fn: () => unknown) => fn()),
+  withTenantBypass: vi.fn((fn: () => unknown) => fn()),
   generateStructured: vi.fn(),
   generateStructuredStream: vi.fn(),
   proposalTemplateFindUnique: vi.fn(),
@@ -42,6 +47,10 @@ vi.mock("../../prisma/client", () => ({
       deleteMany: mocks.usageDeleteMany,
       count: mocks.usageCount,
       create: mocks.usageCreate,
+      updateMany: mocks.usageUpdateMany,
+    },
+    workspace: {
+      findMany: mocks.workspaceFindMany,
     },
     proposalTemplate: {
       findUnique: mocks.proposalTemplateFindUnique,
@@ -50,8 +59,10 @@ vi.mock("../../prisma/client", () => ({
     proposal: {
       count: mocks.proposalCount,
     },
+    $transaction: mocks.transaction,
   },
   withTenant: mocks.withTenant,
+  withTenantBypass: mocks.withTenantBypass,
 }));
 
 vi.mock("../lib/features", () => ({ checkFeature: mocks.checkFeature }));
@@ -70,7 +81,10 @@ vi.mock("../lib/ai/providers", () => ({
 
 import {
   generateTemplateCandidate,
+  getAIStudioUsageRetentionCutoff,
   getAIStudioRefinementBase,
+  pruneAllAIStudioUsageEvents,
+  pruneAIStudioUsageEvents,
   resetAIStudioRuntimeState,
   sanitizeAIStudioHtml,
   updateRefinedTemplate,
@@ -134,6 +148,18 @@ describe("AI Studio service", () => {
     mocks.usageDeleteMany.mockResolvedValue({ count: 0 });
     mocks.usageCount.mockResolvedValue(0);
     mocks.usageCreate.mockResolvedValue({ id: "usage-1" });
+    mocks.usageUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.queryRaw.mockResolvedValue([{ id: "tenant-1" }]);
+    mocks.transaction.mockImplementation(async (callback: (transaction: unknown) => unknown) =>
+      callback({
+        $queryRaw: mocks.queryRaw,
+        aiStudioUsageEvent: {
+          deleteMany: mocks.usageDeleteMany,
+          count: mocks.usageCount,
+          create: mocks.usageCreate,
+        },
+      }),
+    );
     mocks.getAIProvider.mockReturnValue(provider);
     mocks.generateStructured.mockResolvedValue({ text: validProviderText, inputTokens: 10, outputTokens: 20 });
   });
@@ -164,8 +190,10 @@ describe("AI Studio service", () => {
         userPrompt: expect.stringContaining("Crie uma proposta de consultoria."),
       }),
     );
-    const usage = mocks.usageCreate.mock.calls[0][0].data;
-    expect(usage).toMatchObject({ tenantId: "tenant-1", actorId: "user-1", status: "success" });
+    const reservation = mocks.usageCreate.mock.calls[0][0].data;
+    expect(reservation).toMatchObject({ tenantId: "tenant-1", actorId: "user-1", status: "in_flight" });
+    const usage = mocks.usageUpdateMany.mock.calls[0][0].data;
+    expect(usage).toMatchObject({ status: "success" });
     expect(JSON.stringify(usage)).not.toContain("Crie uma proposta");
     expect(JSON.stringify(usage)).not.toContain("{{proposta.titulo}}");
   });
@@ -197,6 +225,7 @@ describe("AI Studio service", () => {
       tenantId: "tenant-1", actorId: "user-1", provider: "openai", message: "Briefing", consentVersion: AI_STUDIO_CONSENT_VERSION,
     })).rejects.toMatchObject({ code: "RATE_LIMITED" });
     expect(mocks.generateStructured).not.toHaveBeenCalled();
+    expect(mocks.transaction).toHaveBeenCalled();
   });
 
   it("preserves the last valid candidate when the provider returns an invalid contract", async () => {
@@ -204,7 +233,7 @@ describe("AI Studio service", () => {
     await expect(generateTemplateCandidate({
       tenantId: "tenant-1", actorId: "user-1", provider: "openai", message: "Briefing", consentVersion: AI_STUDIO_CONSENT_VERSION,
     })).rejects.toMatchObject({ code: "INVALID_STRUCTURED_OUTPUT" });
-    expect(mocks.usageCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: "error", errorCategory: "INVALID_STRUCTURED_OUTPUT" }) }));
+    expect(mocks.usageUpdateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: "error", errorCategory: "INVALID_STRUCTURED_OUTPUT" }) }));
   });
 
   it("uses provider streaming deltas without treating partial text as HTML", async () => {
@@ -288,11 +317,43 @@ describe("AI Studio service", () => {
   });
 
   it("honors the kill switch before touching the provider", async () => {
-    process.env.AI_STUDIO_ENABLED = "false";
+    process.env.AI_STUDIO_KILL_SWITCH = "true";
     await expect(generateTemplateCandidate({
       tenantId: "tenant-1", actorId: "user-1", provider: "openai", message: "Briefing", consentVersion: AI_STUDIO_CONSENT_VERSION,
     })).rejects.toMatchObject({ code: "KILL_SWITCHED" });
     expect(mocks.generateStructured).not.toHaveBeenCalled();
+  });
+
+  it("uses a fixed 90-day usage retention cutoff", () => {
+    const now = new Date("2026-08-22T12:00:00.000Z");
+    expect(getAIStudioUsageRetentionCutoff(now)).toEqual(new Date("2026-05-24T12:00:00.000Z"));
+  });
+
+  it("prunes only the current tenant's usage events before the retention cutoff", async () => {
+    const now = new Date("2026-08-22T12:00:00.000Z");
+    await pruneAIStudioUsageEvents("tenant-1", now);
+
+    expect(mocks.usageDeleteMany).toHaveBeenCalledWith({
+      where: { createdAt: { lt: new Date("2026-05-24T12:00:00.000Z") } },
+    });
+  });
+
+  it("prunes usage events for every workspace, including inactive workspaces", async () => {
+    const now = new Date("2026-08-22T12:00:00.000Z");
+    mocks.workspaceFindMany.mockResolvedValue([
+      { id: "tenant-1", status: "active", deletedAt: null },
+      { id: "tenant-2", status: "cancelled", deletedAt: new Date("2026-08-01T00:00:00.000Z") },
+    ]);
+    mocks.withTenantBypass.mockImplementation((fn: () => unknown) => fn());
+
+    await expect(pruneAllAIStudioUsageEvents(now)).resolves.toBe(2);
+
+    expect(mocks.workspaceFindMany).toHaveBeenCalledWith({
+      select: { id: true, status: true, deletedAt: true },
+    });
+    expect(mocks.withTenant).toHaveBeenCalledWith("tenant-1", expect.any(Function));
+    expect(mocks.withTenant).toHaveBeenCalledWith("tenant-2", expect.any(Function));
+    expect(mocks.usageDeleteMany).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -313,6 +374,18 @@ describe("AI Studio continuous session service", () => {
     mocks.usageDeleteMany.mockResolvedValue({ count: 0 });
     mocks.usageCount.mockResolvedValue(0);
     mocks.usageCreate.mockResolvedValue({ id: "usage-1" });
+    mocks.usageUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.queryRaw.mockResolvedValue([{ id: "tenant-1" }]);
+    mocks.transaction.mockImplementation(async (callback: (transaction: unknown) => unknown) =>
+      callback({
+        $queryRaw: mocks.queryRaw,
+        aiStudioUsageEvent: {
+          deleteMany: mocks.usageDeleteMany,
+          count: mocks.usageCount,
+          create: mocks.usageCreate,
+        },
+      }),
+    );
     mocks.getAIProvider.mockReturnValue(provider);
     mocks.generateStructured.mockResolvedValue({ text: validProviderText, inputTokens: 10, outputTokens: 20 });
   });
@@ -443,7 +516,7 @@ describe("AI Studio continuous session service", () => {
       sessionSummary: { ...validSessionSummary, focus: "Resumo da sessão." },
     })).rejects.toMatchObject({ code: "PAYLOAD_LIMITED" });
     expect(mocks.generateStructured).not.toHaveBeenCalled();
-    expect(mocks.usageCreate).toHaveBeenCalledWith(
+    expect(mocks.usageUpdateMany).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "error", errorCategory: "PAYLOAD_LIMITED" }) }),
     );
   });
@@ -473,11 +546,14 @@ describe("AI Studio continuous session service", () => {
       sessionSummary: { ...validSessionSummary, focus: "MARCADOR-RESUMO-CONFIDENCIAL" },
     });
 
-    const usage = JSON.stringify(mocks.usageCreate.mock.calls[0][0]);
+    const usage = JSON.stringify({
+      reservation: mocks.usageCreate.mock.calls[0][0],
+      final: mocks.usageUpdateMany.mock.calls[0][0],
+    });
     expect(usage).not.toContain("MARCADOR-BRIEFING-CONFIDENCIAL");
     expect(usage).not.toContain("MARCADOR-TRANSCRIPT-CONFIDENCIAL");
     expect(usage).not.toContain("MARCADOR-RESUMO-CONFIDENCIAL");
-    expect(mocks.usageCreate.mock.calls[0][0].data).toMatchObject({ status: "success" });
+    expect(mocks.usageUpdateMany.mock.calls[0][0].data).toMatchObject({ status: "success" });
   });
 
   it("records the text payload size for the continuing session without image bytes", async () => {
@@ -491,7 +567,7 @@ describe("AI Studio continuous session service", () => {
       sessionSummary: { ...validSessionSummary, focus: "Resumo compacto." },
     });
 
-    const usage = mocks.usageCreate.mock.calls[0][0].data;
+    const usage = mocks.usageUpdateMany.mock.calls[0][0].data;
     expect(usage.requestSizeBytes).toBeGreaterThan(0);
     expect(usage.requestSizeBytes).toBeLessThanOrEqual(240_000);
   });
@@ -516,6 +592,18 @@ describe("AI Studio refinement service", () => {
     mocks.usageDeleteMany.mockResolvedValue({ count: 0 });
     mocks.usageCount.mockResolvedValue(0);
     mocks.usageCreate.mockResolvedValue({ id: "usage-1" });
+    mocks.usageUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.queryRaw.mockResolvedValue([{ id: "tenant-1" }]);
+    mocks.transaction.mockImplementation(async (callback: (transaction: unknown) => unknown) =>
+      callback({
+        $queryRaw: mocks.queryRaw,
+        aiStudioUsageEvent: {
+          deleteMany: mocks.usageDeleteMany,
+          count: mocks.usageCount,
+          create: mocks.usageCreate,
+        },
+      }),
+    );
     mocks.getAIProvider.mockReturnValue(provider);
     mocks.generateStructured.mockResolvedValue({ text: validProviderText, inputTokens: 10, outputTokens: 20 });
     mocks.proposalTemplateFindUnique.mockResolvedValue({ id: "template-1", name: "Base executiva", html: baseTemplateHtml });

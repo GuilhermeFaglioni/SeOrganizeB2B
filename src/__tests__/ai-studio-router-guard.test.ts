@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   pushWithAIStudioGuard,
   registerAIStudioRouterGuard,
+  releaseAIStudioRouterGuard,
   shouldPreserveAIStudioParentChildren,
 } from "../lib/ai/studio-router-guard";
 import {
@@ -55,6 +56,23 @@ describe("AI Studio programmatic navigation guard", () => {
     expect(pushWithAIStudioGuard(router, "/board")).toBe(true);
     expect(order).toEqual(["release", "leave"]);
     expect(router.push).toHaveBeenCalledWith("/board");
+    dispose();
+  });
+
+  it("releases a sign-out handoff before the parent auth redirect can prompt again", () => {
+    const router = { push: vi.fn(), replace: vi.fn() };
+    const leaveSession = vi.fn();
+    const dispose = registerAIStudioRouterGuard({
+      confirmExit: () => true,
+      leaveSession,
+      releaseForNavigation: (onReleased) => onReleased(),
+    });
+
+    releaseAIStudioRouterGuard();
+
+    expect(pushWithAIStudioGuard(router, "/login")).toBe(true);
+    expect(leaveSession).not.toHaveBeenCalled();
+    expect(router.push).toHaveBeenCalledWith("/login");
     dispose();
   });
 

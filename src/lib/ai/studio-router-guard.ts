@@ -20,6 +20,10 @@ export function shouldPreserveAIStudioParentChildren(input: {
   return input.hasRenderedChildren && !input.redirecting && input.sameIdentity;
 }
 
+export function releaseAIStudioRouterGuard(): void {
+  activeGuard = null;
+}
+
 export function registerAIStudioRouterGuard(input: {
   confirmExit(): boolean;
   leaveSession(): void;
@@ -61,6 +65,7 @@ function navigateWithAIStudioGuard(
   if (guard && !guard.confirmExit()) return false;
   if (guard) {
     guard.releaseForNavigation(() => {
+      releaseAIStudioRouterGuard();
       guard.leaveSession();
       router[method](href);
     });

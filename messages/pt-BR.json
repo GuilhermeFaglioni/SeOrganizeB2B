@@ -597,7 +597,7 @@
     "privacy": {
       "eyebrow": "Privacidade",
       "title": "Política de Privacidade",
-      "updated": "Versão: 17/08/2026",
+        "updated": "Versão: 22/08/2026",
       "intro": "Esta política explica como o SeOrganize+ trata dados da empresa, da equipe e das integrações autorizadas pelo usuário, incluindo o Google Calendar.",
       "sections": {
         "controller": {
@@ -624,6 +624,26 @@
           "title": "Retenção e exclusão",
           "body": "Ao desconectar o Google Calendar, excluímos imediatamente as credenciais e os espelhos de eventos e participantes derivados do Google; eventos criados localmente são preservados. Mantemos dados pessoais enquanto necessários para prestar o serviço e cumprir obrigações legais. Após o encerramento, excluímos ou anonimizamos os dados quando não houver obrigação legal, regulatória ou necessidade de defesa de direitos. Dados fiscais, financeiros e de auditoria permanecem pelos prazos legais aplicáveis."
         },
+        "aiStudioProviders": {
+          "title": "AI Studio e providers",
+          "body": "O AI Studio pode usar OpenAI ou Anthropic por meio da conexão oficial escolhida pela empresa. No lançamento, o caminho funcional é API Key. OAuth só será oferecido quando o provider documentar e habilitar oficialmente OAuth para aplicações terceiras; atualmente essa capacidade permanece indisponível no catálogo. O produto não coleta senhas, cookies ou tokens de contas pessoais para habilitar essa integração."
+        },
+        "aiStudioProcessing": {
+          "title": "Processamento no AI Studio",
+          "body": "Para gerar ou refinar um candidato, enviamos o briefing atual, o HTML-base sanitizado, as imagens de referência anexadas e, quando aplicável, a diretriz da empresa, o resumo e as mensagens compactadas da sessão somente ao modelo do provider selecionado para aquela ação. Não enviamos o mesmo conteúdo a ambos os providers, não fazemos fallback implícito e não incluímos dados de clientes, propostas reais ou segredos por padrão. O candidato e o HTML editado permanecem no navegador até que você escolha salvar."
+        },
+        "aiStudioRetention": {
+          "title": "Dados efêmeros do AI Studio",
+          "body": "O snapshot criptografado da sessão e as imagens de referência são temporários, com TTL de 30 minutos. Imagens ficam apenas em memória do processo, são liberadas após a geração, reset ou saída e são removidas por expiração ou reinício do processo. Briefings, HTML, imagens, resumo e transcript não são gravados em banco, eventos de uso ou logs, e conteúdo descartado não é reenviado a outro provider. A diretriz da empresa é uma configuração já existente e é lida somente para compor a solicitação autorizada."
+        },
+        "aiStudioTelemetry": {
+          "title": "Telemetria operacional",
+          "body": "Registramos apenas metadados operacionais do uso, como empresa, operador, provider, método de autenticação, modelo, request, tamanhos, latência, status, categoria de erro e contagens de tokens quando fornecidas. Prompts, HTML, imagens, transcript e segredos não entram na telemetria. Eventos operacionais são retidos por no máximo 90 dias."
+        },
+        "aiStudioCosts": {
+          "title": "Custos da empresa",
+          "body": "A empresa é responsável pelas cobranças, limites e políticas de uso do provider conectado à empresa. O SeOrganize+ aplica limites operacionais próprios, mas não controla preços, disponibilidade ou cobrança de OpenAI e Anthropic."
+        },
         "rights": {
           "title": "Direitos e revogação",
           "body": "Nos termos da LGPD, você pode solicitar confirmação, acesso, correção, portabilidade, informação sobre compartilhamento ou exclusão, além de revogar o acesso do Google nas configurações da empresa. Para exercer direitos, use guilhermefaglioni.contato@gmail.com."
@@ -645,7 +665,7 @@
     "terms": {
       "eyebrow": "Uso do serviço",
       "title": "Termos de Serviço",
-      "updated": "Versão: 17/08/2026",
+        "updated": "Versão: 22/08/2026",
       "intro": "Estes termos definem as regras para uso do SeOrganize+ por prestadores digitais, empresas e equipes.",
       "sections": {
         "service": {
@@ -663,6 +683,18 @@
         "integrations": {
           "title": "Integrações",
           "body": "O Google Calendar e outros provedores são serviços de terceiros. Ao conectar uma integração, a pessoa usuária autoriza as ações descritas na tela e pode desconectar a integração a qualquer momento."
+        },
+        "aiStudioUse": {
+          "title": "Uso do AI Studio",
+          "body": "O AI Studio gera candidatos revisáveis para templates de proposta. A empresa deve ter autorização para usar o briefing, o HTML, as imagens, a diretriz e o contexto da sessão enviados, evitar dados pessoais ou segredos e revisar o resultado antes de salvar ou compartilhar. A saída da IA pode estar incompleta ou incorreta e não substitui a revisão profissional."
+        },
+        "aiStudioProviderAuth": {
+          "title": "Autenticação dos providers de IA",
+          "body": "OpenAI e Anthropic são providers independentes. API Key é o método funcional de lançamento. O produto só poderá oferecer OAuth se houver suporte oficial documentado para aplicações terceiras; enquanto essa condição não for atendida, a interface informa a indisponibilidade e não solicita senhas, cookies ou tokens pessoais."
+        },
+        "aiStudioCosts": {
+          "title": "Custos de IA",
+          "body": "A empresa responsável pela conexão responde por custos e limites cobrados pelo provider selecionado. Cada geração usa somente o provider escolhido na sessão, sem fallback automático para outro provider."
         },
         "billing": {
           "title": "Planos e cobrança",
@@ -2052,6 +2084,7 @@
       "loadFailedTitle": "Não foi possível carregar o AI Studio",
       "loadFailedDescription": "Verifique a conexão e tente novamente.",
       "retry": "Tentar novamente",
+      "operationFailed": "Não foi possível concluir a operação.",
       "disabledTitle": "Gerações temporariamente desativadas",
       "disabledDescription": "O kill switch está ativo. Templates existentes continuam disponíveis.",
       "noProviderTitle": "Configure um provider de IA",
@@ -2065,7 +2098,12 @@
       "briefingLabel": "O que você quer criar?",
       "briefingPlaceholder": "Ex.: Crie uma proposta elegante para consultoria de produto, com capa, problema, abordagem, investimento e próximos passos. Use tom claro e placeholders de cliente e itens.",
       "briefingHint": "{count}/8000 caracteres",
-      "consentText": "Autorizo o envio desta mensagem, do candidato HTML e das imagens anexadas ao provider externo selecionado ({provider}), exclusivamente para gerar ou refinar o template. As imagens são temporárias e não são persistidas.",
+      "consentText": "Autorizo o envio desta mensagem, do candidato HTML, das imagens anexadas e, quando aplicável, da diretriz da empresa, do resumo e das mensagens compactadas da sessão ao provider externo selecionado ({provider}), exclusivamente para gerar ou refinar o template. As imagens e o contexto da sessão são temporários e não são persistidos.",
+      "consentLegalPrefix": "Consulte também a",
+      "consentLegalAnd": "e os",
+      "consentPrivacyLink": "Política de Privacidade",
+      "consentTermsLink": "Termos de Serviço",
+      "consentVersion": "Versão do consentimento: {version}",
       "dataMinimizationWarning": "Não envie dados de clientes, propostas reais, documentos, tarefas, preços ou segredos. A sessão não é persistida.",
       "vision": "Visão",
       "imageTitle": "Referências visuais",
@@ -2093,7 +2131,15 @@
       "briefingRequired": "Escreva um briefing antes de gerar.",
       "generate": "Gerar candidato",
       "generating": "Gerando...",
+      "generationStatus": "Geração em andamento",
       "streamingSupported": "Streaming disponível para este modelo",
+      "streamingOutputAria": "Saída parcial da geração",
+      "invalidOutput": "O provider retornou uma saída inválida. O último rascunho foi preservado.",
+      "generationTimeout": "A geração excedeu o tempo limite. Tente novamente.",
+      "rateLimited": "O limite de gerações da empresa foi atingido. Tente novamente mais tarde.",
+      "providerFailed": "O provider não concluiu a geração. Tente novamente ou troque de provider.",
+      "connectionUnavailable": "A conexão do provider não está disponível. Valide-a nas configurações de IA.",
+      "sanitizationWarning": "Alguns elementos incompatíveis ou recursos externos foram removidos da saída.",
       "candidateTitle": "Candidato pronto para revisão",
       "applyCandidate": "Aplicar candidato",
       "discardCandidate": "Desfazer geração",
@@ -2115,6 +2161,8 @@
       "previewFailed": "Falha ao gerar o preview",
       "desktop": "Desktop",
       "mobile": "Mobile",
+      "desktopPreviewTitle": "Pré-visualização desktop do template",
+      "mobilePreviewTitle": "Pré-visualização mobile do template",
       "streamFailed": "O streaming foi interrompido.",
       "generationFailed": "Não foi possível gerar o candidato. O último rascunho foi preservado.",
       "startRefineTemplate": "Começar refinamento",

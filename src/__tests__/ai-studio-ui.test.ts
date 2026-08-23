@@ -41,7 +41,7 @@ describe("AI Studio #173 refinement UI seams", () => {
 
   it("starts the refinement session without a prior transcript", () => {
     const source = page();
-    expect(source).toContain('useState<SessionMessage[]>([])');
+     expect(source).toContain('useState<AIStudioSessionMessage[]>([])');
     expect(source).toContain("useState<string | null>(null)");
     expect(source).toContain("useState(refinement?.html ?? \"\")");
   });
@@ -98,6 +98,8 @@ describe("AI Studio #172 vision UI seams", () => {
     expect(source).toContain("/api/ai/studio/images");
     expect(source).toContain('accept="image/png,image/jpeg,image/webp"');
     expect(source).toContain("imageIds: attachedImages.map((image) => image.id)");
+    expect(source).toContain('form.append("imageFiles"');
+    expect(source).toContain("attachedImageFilesRef");
     expect(source).toContain("AI_STUDIO_MAX_IMAGES_PER_MESSAGE");
   });
 
@@ -150,8 +152,8 @@ describe("AI Studio #172 vision UI seams", () => {
   it("makes consent explicitly cover image processing and bumps the disclosure version", () => {
     const contract = read("src/lib/ai/studio-contract.ts");
     expect(contract).toContain("ai-studio-provider-disclosure-v2");
-    expect(pt()).toContain("das imagens anexadas ao provider externo selecionado");
-    expect(en()).toContain("any attached images to the selected external provider");
+    expect(pt()).toContain("das imagens anexadas e, quando aplicável");
+    expect(en()).toContain("attached images and, when applicable");
   });
 
   it("serves the image upload, list and release lifecycle through a dedicated route", () => {
@@ -174,7 +176,7 @@ describe("AI Studio #174 integration wiring", () => {
   it("keeps TemplateStudio connected to the tested lifecycle seams", () => {
     const source = read("src/components/financial/proposals/ai-studio.tsx");
 
-    expect(source).toContain("createAIStudioPagehideHandler({");
+     expect(source).toContain("createAIStudioPagehideHandler(createCleanupInput())");
     expect(source).toContain("handleAIStudioExitClick(exitEvent");
     expect(source).toContain("recoverAIStudioContext<Candidate>({");
     expect(source).toContain("isAIStudioCandidateActionDisabled({");
@@ -182,7 +184,8 @@ describe("AI Studio #174 integration wiring", () => {
     expect(source).toContain("isAIStudioUndoDisabled({ isGenerating, historyLength: history.length, hasCandidate: candidate !== null })");
     expect(source).toContain("releaseForNavigation: (onReleased)");
     expect(source).toContain("isAIStudioRemovalConfirmed(candidate, confirmedRemovalCandidate)");
-    expect(source).toContain("navigateAfterAIStudioCommit({");
+     expect(source).toContain("navigateAfterAIStudioCommit({");
+     expect(source).toContain("releaseAIStudioRouterGuard");
   });
 
   it("routes shared shell exits through the global programmatic guard", () => {
@@ -199,10 +202,68 @@ describe("AI Studio #174 integration wiring", () => {
     for (const [path, seam] of files) expect(read(path)).toContain(seam);
   });
 
+  it("keeps the global bridge active when switching providers with dirty work", () => {
+    const source = read("src/components/financial/proposals/ai-studio.tsx");
+    const handlerStart = source.indexOf("function handleProviderChange");
+    const handlerEnd = source.indexOf("async function readGenerationResponse", handlerStart);
+    const handler = source.slice(handlerStart, handlerEnd);
+
+    expect(source).toContain("const dirty = isAIStudioDirty({");
+    expect(handler).toContain("leaveSession();");
+    expect(handler).toContain("switchAIStudioProviderContext<Candidate>({");
+    expect(handler).not.toContain("releaseRouterGuard");
+    expect(source).toContain("if (options.releaseRouterGuard) releaseAIStudioRouterGuard();");
+  });
+
   it("keeps a mounted module child available for the guarded redirect effect", () => {
     const source = read("src/components/layout/module-gate.tsx");
     expect(source).toContain("const hasRenderedChildren = useRef(false)");
     expect(source).toContain("setRedirecting(replaceWithAIStudioGuard");
     expect(source).toContain("shouldPreserveAIStudioParentChildren");
+  });
+});
+
+describe("AI Studio #176 hardening UI seams", () => {
+  it("shows versioned blocking consent with public legal links", () => {
+    const source = read("src/components/financial/proposals/ai-studio.tsx");
+    const http = read("src/lib/ai/studio-http.ts");
+    expect(source).toContain('href="/privacy"');
+    expect(source).toContain('href="/terms"');
+    expect(source).toContain("ai-studio-consent-version");
+    expect(source).toContain("config.consentVersion");
+    expect(source).toContain("required aria-required=\"true\"");
+    expect(source).toContain("|| !consentChecked");
+    expect(http).toContain("CONSENT_REQUIRED: 428");
+  });
+
+  it("covers accessible loading, streaming, error, focus, sanitization and responsive preview states", () => {
+    const source = read("src/components/financial/proposals/ai-studio.tsx");
+    const preview = read("src/components/financial/proposals/proposal-html-preview.tsx");
+    const pt = read("messages/pt-BR.json");
+    const en = read("messages/en.json");
+
+    expect(source).toContain("aria-live=\"polite\"");
+    expect(source).toContain('role="status"');
+    expect(source).toContain('role="alert"');
+    expect(source).toContain("candidateTitleRef.current?.focus()");
+    expect(source).toContain("errorRef.current?.focus()");
+    expect(source).toContain("invalidOutput");
+    expect(source).toContain("sanitizationWarning");
+    expect(source).toContain('t("operationFailed")');
+    expect(source).toContain("localizedStudioError");
+    expect(source).toContain("setPreviewError(localizedStudioError");
+    expect(source).toContain("setError(localizedStudioError(updateError");
+    expect(source).not.toContain("payload.error?.message ?? fallbackMessage");
+    expect(source).not.toContain("attachError.message");
+    expect(source).not.toContain("event.error?.message");
+    expect(read("src/lib/ai/studio-http.ts")).not.toContain("message: error.message");
+    expect(source).not.toContain("Não foi possível concluir a operação.");
+    expect(source).toContain("desktopPreviewTitle");
+    expect(source).toContain("mobilePreviewTitle");
+    expect(preview).toContain("title = \"Preview\"");
+    expect(pt).toContain('"generationStatus"');
+    expect(en).toContain('"generationStatus"');
+    expect(pt).toContain('"invalidOutput"');
+    expect(en).toContain('"invalidOutput"');
   });
 });

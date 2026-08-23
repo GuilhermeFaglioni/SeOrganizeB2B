@@ -5,13 +5,19 @@ import {
   clearAIStudioImages,
   discardAIStudioImage,
   listAIStudioImages,
+  AIStudioError,
 } from "@/lib/ai/studio-service";
 import {
   mapAIStudioError,
+  readMultipartFormData,
   readJsonBody,
   requireAIStudioAccess,
   unauthorizedResponse,
 } from "@/lib/ai/studio-http";
+import {
+  AI_STUDIO_MAX_IMAGE_REQUEST_BYTES,
+  AI_STUDIO_MAX_IMAGE_SIZE_BYTES,
+} from "@/lib/ai/studio-contract";
 
 export const maxDuration = 30;
 
@@ -24,8 +30,9 @@ export async function POST(request: Request) {
 
   let form: FormData;
   try {
-    form = await request.formData();
-  } catch {
+    form = await readMultipartFormData(request, AI_STUDIO_MAX_IMAGE_REQUEST_BYTES);
+  } catch (error) {
+    if (error instanceof AIStudioError) return mapAIStudioError(error);
     return NextResponse.json(
       {
         data: null,
@@ -50,6 +57,13 @@ export async function POST(request: Request) {
         },
       },
       { status: 422 },
+    );
+  }
+  if (file.size > AI_STUDIO_MAX_IMAGE_SIZE_BYTES) {
+    return mapAIStudioError(
+      new AIStudioError("IMAGE_VALIDATION_ERROR", "A imagem excede o limite de 5 MB por arquivo.", {
+        detailCode: "TOO_LARGE",
+      }),
     );
   }
 
@@ -87,7 +101,12 @@ export async function DELETE(request: Request) {
   const access = await requireAIStudioAccess(user.id);
   if ("response" in access) return access.response;
 
-  const body = await readJsonBody(request);
+  let body: Awaited<ReturnType<typeof readJsonBody>>;
+  try {
+    body = await readJsonBody(request);
+  } catch (error) {
+    return mapAIStudioError(error);
+  }
   const imageIds = body?.imageIds;
   if (imageIds === undefined || imageIds === null) {
     clearAIStudioImages(access.tenantId, user.id);

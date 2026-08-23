@@ -15,7 +15,12 @@ export async function POST(request: Request) {
   const access = await requireAIStudioAccess(user.id);
   if ("response" in access) return access.response;
 
-  const body = await readJsonBody(request);
+  let body: Awaited<ReturnType<typeof readJsonBody>>;
+  try {
+    body = await readJsonBody(request);
+  } catch (error) {
+    return mapAIStudioError(error);
+  }
   if (!body || body.accepted !== true) {
     return NextResponse.json(
       {

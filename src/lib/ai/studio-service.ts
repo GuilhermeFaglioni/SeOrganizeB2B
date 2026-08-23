@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { prisma, withTenant } from "../../../prisma/client";
+import type { Prisma } from "@prisma/client";
+import { prisma, withTenant, withTenantBypass } from "../../../prisma/client";
 import { checkFeature } from "../features";
 import { getWorkspaceDirective } from "./directives-service";
 import { decryptAiSecret } from "./crypto";
@@ -143,6 +144,7 @@ export interface GenerateTemplateInput {
   baseHtml?: unknown;
   stream?: boolean;
   imageIds?: unknown;
+  imageFiles?: unknown;
 }
 
 export interface GeneratedTemplateResult {
@@ -368,6 +370,33 @@ function normalizeImageIds(value: unknown): string[] {
     ids.push(item);
   }
   return ids;
+}
+
+function normalizeImageFiles(value: unknown): Array<{
+  name: string;
+  data: Buffer;
+  contentType?: unknown;
+}> {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) {
+    throw new AIStudioError("VALIDATION_ERROR", "Arquivos de imagem inválidos.");
+  }
+  if (value.length > AI_STUDIO_MAX_IMAGES_PER_MESSAGE) {
+    throw new AIStudioError(
+      "IMAGE_VALIDATION_ERROR",
+      `No máximo ${AI_STUDIO_MAX_IMAGES_PER_MESSAGE} imagens por mensagem.`,
+    );
+  }
+  return value.map((item) => {
+    if (!item || typeof item !== "object") {
+      throw new AIStudioError("VALIDATION_ERROR", "Arquivo de imagem inválido.");
+    }
+    const file = item as { name?: unknown; data?: unknown; contentType?: unknown };
+    if (typeof file.name !== "string" || !Buffer.isBuffer(file.data)) {
+      throw new AIStudioError("VALIDATION_ERROR", "Arquivo de imagem inválido.");
+    }
+    return { name: file.name, data: file.data, contentType: file.contentType };
+  });
 }
 
 function estimateImagePayloadBytes(images: AIStudioImageAsset[]): number {
@@ -660,26 +689,83 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
   };
 }
 
-async function pruneUsageEvents(tenantId: string): Promise<void> {
-  const cutoff = new Date(Date.now() - AI_STUDIO_USAGE_RETENTION_DAYS * 24 * 60 * 60 * 1_000);
+export function getAIStudioUsageRetentionCutoff(now = new Date()): Date {
+  return new Date(now.getTime() - AI_STUDIO_USAGE_RETENTION_DAYS * 24 * 60 * 60 * 1_000);
+}
+
+export async function pruneAIStudioUsageEvents(tenantId: string, now = new Date()): Promise<void> {
+  const cutoff = getAIStudioUsageRetentionCutoff(now);
   await withTenant(tenantId, () =>
     prisma.aiStudioUsageEvent.deleteMany({ where: { createdAt: { lt: cutoff } } }),
   );
 }
 
-async function assertWorkspaceRateLimit(tenantId: string): Promise<void> {
-  await pruneUsageEvents(tenantId);
-  const since = new Date(Date.now() - 60 * 60 * 1_000);
-  const count = await withTenant(tenantId, () =>
-    prisma.aiStudioUsageEvent.count({ where: { createdAt: { gte: since } } }),
+export async function pruneAllAIStudioUsageEvents(now = new Date()): Promise<number> {
+  const workspaces = await withTenantBypass(() =>
+    prisma.workspace.findMany({ select: { id: true, status: true, deletedAt: true } }),
   );
-  if (count >= getAIStudioRateLimit()) {
-    throw new AIStudioError(
-      "RATE_LIMITED",
-      "O limite de gerações desta empresa foi atingido. Tente novamente mais tarde.",
-      { retryAfterSeconds: 60 * 60 },
-    );
+  for (const workspace of workspaces) {
+    await pruneAIStudioUsageEvents(workspace.id, now);
   }
+  return workspaces.length;
+}
+
+async function reserveUsageEvent(input: {
+  tenantId: string;
+  actorId: string;
+  provider: AIProviderId;
+  authMethod: string;
+  model: string;
+  requestId: string;
+}): Promise<void> {
+  const since = new Date(Date.now() - 60 * 60 * 1_000);
+  const retentionCutoff = getAIStudioUsageRetentionCutoff();
+
+  await withTenant(input.tenantId, () =>
+    prisma.$transaction(async (transaction: Prisma.TransactionClient) => {
+      // Serialize reservations for a workspace so separate actors and app
+      // instances cannot pass the same usage count concurrently.
+      const workspaces = await transaction.$queryRaw<Array<{ id: string }>>`
+        SELECT id FROM "workspaces" WHERE id = ${input.tenantId} FOR UPDATE
+      `;
+      if (workspaces.length === 0) {
+        throw new AIStudioError("INTERNAL_ERROR", "A empresa da sessão não foi encontrada.");
+      }
+
+      await transaction.aiStudioUsageEvent.deleteMany({
+        where: { tenantId: input.tenantId, createdAt: { lt: retentionCutoff } },
+      });
+      const count = await transaction.aiStudioUsageEvent.count({
+        where: { tenantId: input.tenantId, createdAt: { gte: since } },
+      });
+      if (count >= getAIStudioRateLimit()) {
+        throw new AIStudioError(
+          "RATE_LIMITED",
+          "O limite de gerações desta empresa foi atingido. Tente novamente mais tarde.",
+          { retryAfterSeconds: 60 * 60 },
+        );
+      }
+
+      await transaction.aiStudioUsageEvent.create({
+        data: {
+          tenantId: input.tenantId,
+          actorId: input.actorId,
+          provider: input.provider,
+          authMethod: input.authMethod,
+          model: input.model,
+          requestId: input.requestId,
+          promptBaseVersion: AI_STUDIO_PROMPT_BASE_VERSION,
+          requestSizeBytes: 0,
+          responseSizeBytes: 0,
+          latencyMs: 0,
+          status: "in_flight",
+          errorCategory: null,
+          inputTokens: null,
+          outputTokens: null,
+        },
+      });
+    }),
+  );
 }
 
 async function recordUsageEvent(input: {
@@ -699,15 +785,9 @@ async function recordUsageEvent(input: {
 }): Promise<void> {
   try {
     await withTenant(input.tenantId, () =>
-      prisma.aiStudioUsageEvent.create({
+      prisma.aiStudioUsageEvent.updateMany({
+        where: { tenantId: input.tenantId, requestId: input.requestId },
         data: {
-          tenantId: input.tenantId,
-          actorId: input.actorId,
-          provider: input.provider,
-          authMethod: input.authMethod,
-          model: input.model,
-          requestId: input.requestId,
-          promptBaseVersion: AI_STUDIO_PROMPT_BASE_VERSION,
           requestSizeBytes: input.requestSizeBytes,
           responseSizeBytes: input.responseSizeBytes,
           latencyMs: input.latencyMs,
@@ -772,6 +852,7 @@ export async function generateTemplateCandidate(
   const recentMessages = normalizeRecentMessages(input.recentMessages);
   const sessionSummary = normalizeSessionSummary(input.sessionSummary);
   const imageIds = normalizeImageIds(input.imageIds);
+  const imageFiles = normalizeImageFiles(input.imageFiles);
   const baseHtml = normalizeBaseHtml(input.baseHtml);
   const sanitizedBase = baseHtml === null ? null : sanitizeAIStudioHtml(baseHtml);
   const connection = await readActiveConnection(input.tenantId, providerId);
@@ -813,17 +894,21 @@ export async function generateTemplateCandidate(
     );
   }
   inFlightGenerations.add(lockKey);
-  // This guard is process-local. The persisted workspace rate limit still
-  // applies across instances, while this synchronous add closes the local
-  // check/await race for concurrent requests from the same actor.
+  const requestId = randomUUID();
   try {
-    await assertWorkspaceRateLimit(input.tenantId);
+    await reserveUsageEvent({
+      tenantId: input.tenantId,
+      actorId: input.actorId,
+      provider: providerId,
+      authMethod: connection.authMethod,
+      model,
+      requestId,
+    });
   } catch (error) {
     inFlightGenerations.delete(lockKey);
     throw error;
   }
 
-  const requestId = randomUUID();
   const startedAt = Date.now();
   let requestSizeBytes = 0;
   let responseSizeBytes = 0;
@@ -834,8 +919,17 @@ export async function generateTemplateCandidate(
   let images: AIStudioImageAsset[] = [];
 
   try {
-    images = imageIds.length > 0 ? readStudioImageBytes(input.tenantId, input.actorId, imageIds) : [];
-    if (imageIds.length > 0 && images.length < imageIds.length) {
+    if (imageFiles.length > 0) {
+      try {
+        images = await validateStudioImages(imageFiles);
+      } catch (error) {
+        if (error instanceof AIStudioImageValidationError) throw mapImageValidationError(error);
+        throw error;
+      }
+    } else {
+      images = imageIds.length > 0 ? readStudioImageBytes(input.tenantId, input.actorId, imageIds) : [];
+    }
+    if (imageFiles.length === 0 && imageIds.length > 0 && images.length < imageIds.length) {
       throw new AIStudioError(
         "IMAGE_EXPIRED",
         "Algumas imagens anexadas expiraram. Anexe novamente antes de gerar.",
