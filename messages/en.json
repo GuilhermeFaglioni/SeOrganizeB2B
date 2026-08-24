@@ -2172,6 +2172,7 @@
       "previewFailed": "Failed to generate preview",
       "desktop": "Desktop",
       "mobile": "Mobile",
+      "previewViewportLabel": "Preview viewport",
       "desktopPreviewTitle": "Desktop template preview",
       "mobilePreviewTitle": "Mobile template preview",
       "streamFailed": "The stream was interrupted.",
