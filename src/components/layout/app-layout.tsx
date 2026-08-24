@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { Menu } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useCreateDocument } from "@/hooks/use-documents";
 import { AnimatedPage } from "@/components/shared/animated-page";
@@ -24,6 +25,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const { openQuickCapture } = useQuickCapture();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const t = useTranslations("layout.pageTitles");
+  const topbarT = useTranslations("layout.topbar");
+  const isAIStudio = pathname === "/financial/proposals/templates/ai-studio";
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -48,10 +51,25 @@ export function AppLayout({ children, title }: AppLayoutProps) {
                   ? { title: t("all"), action: t("actions.all") }
                   : { title: t("board"), action: t("actions.board") };
 
-  if (pathname === "/financial/proposals/templates/ai-studio") {
+  if (isAIStudio) {
     return (
-      <div data-balsa="ai-studio-shell" className="h-[100dvh] min-h-[100dvh] overflow-hidden bg-balsa-background">
-        <AnimatedPage pageKey={pathname}>{children}</AnimatedPage>
+      <div data-balsa="ai-studio-shell" className="flex h-[100dvh] min-h-[100dvh] overflow-hidden bg-balsa-background">
+        <Sidebar
+          mobileOpen={mobileMenuOpen}
+          onMobileOpenChange={setMobileMenuOpen}
+        />
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(true)}
+          aria-label={topbarT("openMenu")}
+          data-testid="ai-studio-menu-trigger"
+          className="fixed left-3 top-3 z-30 inline-flex size-10 items-center justify-center rounded-balsa-control bg-balsa-inverse text-balsa-inverse-foreground shadow-balsa-detail focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-balsa-focus-ring sm:hidden"
+        >
+          <Menu className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <main className="min-h-0 min-w-0 flex-1 overflow-hidden bg-balsa-background">
+          <AnimatedPage pageKey={pathname}>{children}</AnimatedPage>
+        </main>
       </div>
     );
   }
