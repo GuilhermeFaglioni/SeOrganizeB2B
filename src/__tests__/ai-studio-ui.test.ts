@@ -27,6 +27,19 @@ describe("AI Studio #171 UI seams", () => {
     expect(existsSync(resolve(root, "src/app/(authenticated)/financial/proposals/templates/ai-studio/page.tsx"))).toBe(true);
   });
 
+  it("hides streaming JSON and clears the composer when generation starts", () => {
+    const source = read("src/components/financial/proposals/ai-studio.tsx");
+    const generationStart = source.indexOf("async function runGeneration");
+    const generationEnd = source.indexOf("\n  function handleGenerate", generationStart);
+    const generation = source.slice(generationStart, generationEnd);
+
+    expect(source).toContain('if (event.type === "delta") continue;');
+    expect(source).not.toContain("{partial}</p>");
+    expect(source).toContain("isGenerating ? (");
+    expect(source).toContain("designGenerating");
+    expect(generation).toContain('setMessage("");');
+  });
+
   it("gives AI Studio a dedicated viewport shell with the main sidebar and no financial tabs", () => {
     const appLayout = read("src/components/layout/app-layout.tsx");
     const financialLayout = read("src/app/(authenticated)/financial/layout.tsx");

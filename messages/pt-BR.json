@@ -2141,6 +2141,7 @@
       "briefingRequired": "Escreva um briefing antes de gerar.",
       "generate": "Gerar candidato",
       "generating": "Gerando...",
+      "designGenerating": "A IA está gerando o design...",
       "generationStatus": "Geração em andamento",
       "streamingSupported": "Streaming disponível para este modelo",
       "streamingOutputAria": "Saída parcial da geração",
