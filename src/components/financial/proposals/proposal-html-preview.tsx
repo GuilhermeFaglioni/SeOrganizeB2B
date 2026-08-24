@@ -5,14 +5,42 @@ import { cn } from "@/lib/utils";
 
 const IMMERSIVE_STYLES = `
   :root { color-scheme: light; }
-  html, body { min-height: 0 !important; background: #ffffff !important; }
-  body { margin: 0 !important; overflow: hidden !important; }
+  html,
+  body,
+  body > .proposal,
+  .proposal {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  html, body { background: #ffffff !important; }
+  body { margin: 0 !important; }
   .proposal {
     max-width: none !important;
     margin: 0 !important;
     border: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+  }
+  .proposal > header,
+  .proposal > .header,
+  .proposal > main,
+  .proposal > .body,
+  .proposal > footer,
+  .proposal > .footer,
+  body > header,
+  body > .header,
+  body > main,
+  body > .body,
+  body > footer,
+  body > .footer {
+    position: static !important;
+    inset: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
   .proposal > .header {
     padding: clamp(4rem, 9vw, 8rem) clamp(1.5rem, 8vw, 9rem) !important;
@@ -35,20 +63,38 @@ const IMMERSIVE_STYLES = `
   }
 `;
 
-function immersiveDocument(html: string, frameId: string): string {
+export function buildImmersiveProposalDocument(html: string, frameId: string): string {
   const resizeScript = `
     <script>
       (() => {
+        let lastHeight = 0;
+        let frame;
         const sendHeight = () => {
-          const height = Math.max(
-            document.documentElement.scrollHeight,
-            document.body ? document.body.scrollHeight : 0
-          );
+          const root = document.documentElement;
+          const body = document.body;
+          const height = Math.ceil(Math.max(
+            root ? root.scrollHeight : 0,
+            root ? root.offsetHeight : 0,
+            body ? body.scrollHeight : 0,
+            body ? body.offsetHeight : 0,
+            body ? body.getBoundingClientRect().height : 0
+          ));
+          if (height <= 0 || height === lastHeight) return;
+          lastHeight = height;
           parent.postMessage({ type: "proposal-preview-height", frameId: ${JSON.stringify(frameId)}, height }, "*");
         };
-        addEventListener("load", sendHeight);
-        new ResizeObserver(sendHeight).observe(document.documentElement);
-        sendHeight();
+        const scheduleHeight = () => {
+          cancelAnimationFrame(frame);
+          frame = requestAnimationFrame(sendHeight);
+        };
+        addEventListener("load", scheduleHeight);
+        addEventListener("resize", scheduleHeight);
+        const observer = new ResizeObserver(scheduleHeight);
+        if (document.documentElement) observer.observe(document.documentElement);
+        if (document.body) observer.observe(document.body);
+        document.querySelectorAll("img").forEach((image) => image.addEventListener("load", scheduleHeight, { once: true }));
+        if (document.fonts?.ready) document.fonts.ready.then(scheduleHeight);
+        scheduleHeight();
       })();
     </script>
   `;
@@ -96,11 +142,11 @@ export function ProposalHtmlPreview({
           ? "allow-scripts allow-popups allow-popups-to-escape-sandbox"
           : "allow-popups allow-popups-to-escape-sandbox"
       }
-      srcDoc={immersive ? immersiveDocument(html, frameId) : html}
+      srcDoc={immersive ? buildImmersiveProposalDocument(html, frameId) : html}
       style={immersive ? { height } : undefined}
       className={cn(
-        "w-full overflow-hidden bg-white",
-        immersive ? "block border-0" : "rounded-md border border-border",
+        "w-full bg-white",
+        immersive ? "block border-0" : "overflow-hidden rounded-md border border-border",
         className
       )}
     />

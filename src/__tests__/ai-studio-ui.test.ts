@@ -26,6 +26,13 @@ describe("AI Studio #171 UI seams", () => {
     expect(page).toContain("mobile");
     expect(existsSync(resolve(root, "src/app/(authenticated)/financial/proposals/templates/ai-studio/page.tsx"))).toBe(true);
   });
+
+  it("gives AI Studio a dedicated viewport shell instead of the application chrome", () => {
+    const appLayout = read("src/components/layout/app-layout.tsx");
+    expect(appLayout).toContain('pathname === "/financial/proposals/templates/ai-studio"');
+    expect(appLayout).toContain('data-balsa="ai-studio-shell"');
+    expect(appLayout).toContain("h-[100dvh]");
+  });
 });
 
 describe("AI Studio #173 refinement UI seams", () => {
@@ -232,7 +239,10 @@ describe("AI Studio #176 hardening UI seams", () => {
     expect(source).toContain("ai-studio-consent-version");
     expect(source).toContain("config.consentVersion");
     expect(source).toContain("required aria-required=\"true\"");
-    expect(source).toContain("|| !consentChecked");
+    expect(source).toContain("if (!consentChecked && !options.consentRecorded)");
+    expect(source).toContain("acceptConsentAndGenerate");
+    expect(source).toContain("consentOpen");
+    expect(source).toContain('id="ai-studio-consent-modal"');
     expect(http).toContain("CONSENT_REQUIRED: 428");
   });
 
@@ -260,6 +270,12 @@ describe("AI Studio #176 hardening UI seams", () => {
     expect(source).not.toContain("Não foi possível concluir a operação.");
     expect(source).toContain("desktopPreviewTitle");
     expect(source).toContain("mobilePreviewTitle");
+    expect(source).toContain('title={t("desktopPreviewTitle")} className="h-[min(66vh,720px)]"');
+    expect(source).toContain('title={t("mobilePreviewTitle")} className="h-[min(66vh,720px)]"');
+    expect(source).toContain("overflow-y-auto p-4");
+    expect(source).toContain("chatEndRef");
+    expect(source).toContain('t("thinkingFor", { seconds: 1 })');
+    expect(source).toContain('t("chatComposerPlaceholder")');
     expect(preview).toContain("title = \"Preview\"");
     expect(pt).toContain('"generationStatus"');
     expect(en).toContain('"generationStatus"');
