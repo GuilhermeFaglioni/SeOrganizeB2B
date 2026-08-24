@@ -1451,8 +1451,29 @@ function TemplateStudio({
                   className="min-h-[40px] w-full max-w-xl border-0 bg-transparent px-0 text-base font-semibold text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 />
               </div>
-              <div className="flex items-center gap-2 text-xs text-text-muted">
-                <span>{studioView === "preview" ? t("previewTitle") : t("htmlLabel")}</span>
+              <div className="flex flex-wrap items-center justify-end gap-2 text-xs text-text-muted">
+                {studioView === "preview" ? (
+                  <div className="inline-flex shrink-0 rounded-lg border border-border bg-page p-1" role="group" aria-label={t("previewViewportLabel")}>
+                    <button
+                      type="button"
+                      aria-pressed={previewViewport === "desktop"}
+                      onClick={() => setPreviewViewport("desktop")}
+                      className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${previewViewport === "desktop" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
+                    >
+                      <Monitor size={14} aria-hidden="true" /> {t("desktop")}
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={previewViewport === "mobile"}
+                      onClick={() => setPreviewViewport("mobile")}
+                      className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${previewViewport === "mobile" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
+                    >
+                      <Smartphone size={14} aria-hidden="true" /> {t("mobile")}
+                    </button>
+                  </div>
+                ) : (
+                  <span>{t("htmlLabel")}</span>
+                )}
                 <button
                   type="button"
                   onClick={undoLastChange}
@@ -1485,31 +1506,7 @@ function TemplateStudio({
                   />
                 </section>
               ) : (
-                <section className="min-w-0 space-y-3" aria-labelledby="ai-studio-preview-title">
-                  <div className="flex flex-wrap items-start justify-between gap-3 px-1">
-                    <div>
-                      <h2 id="ai-studio-preview-title" className="font-semibold text-text-primary">{t("previewTitle")}</h2>
-                      <p className="mt-1 text-xs text-text-muted">{candidate ? t("candidatePreview") : t("syntheticValues")}</p>
-                    </div>
-                    <div className="inline-flex shrink-0 rounded-lg border border-border bg-page p-1" role="group" aria-label={t("previewViewportLabel")}>
-                      <button
-                        type="button"
-                        aria-pressed={previewViewport === "desktop"}
-                        onClick={() => setPreviewViewport("desktop")}
-                        className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${previewViewport === "desktop" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
-                      >
-                        <Monitor size={14} aria-hidden="true" /> {t("desktop")}
-                      </button>
-                      <button
-                        type="button"
-                        aria-pressed={previewViewport === "mobile"}
-                        onClick={() => setPreviewViewport("mobile")}
-                        className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${previewViewport === "mobile" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
-                      >
-                        <Smartphone size={14} aria-hidden="true" /> {t("mobile")}
-                      </button>
-                    </div>
-                  </div>
+                <section className="min-w-0 space-y-3" aria-label={t("previewTitle")}>
                   {previewError ? <p role="alert" className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-sm text-danger">{previewError}</p> : null}
                   {!preview ? (
                     <p className="flex min-h-[520px] items-center justify-center rounded-xl border border-dashed border-border bg-page-alt p-6 text-center text-sm text-text-muted">{t("previewEmpty")}</p>
@@ -1517,12 +1514,10 @@ function TemplateStudio({
                     <div className="min-w-0">
                       {previewViewport === "desktop" ? (
                         <div role="group" aria-label={t("desktopPreviewTitle")} className="min-w-0">
-                          <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Monitor size={13} aria-hidden="true" /> {t("desktop")}</p>
                           <ProposalHtmlPreview html={preview} title={t("desktopPreviewTitle")} className="h-[min(66vh,720px)]" />
                         </div>
                       ) : (
                         <div role="group" aria-label={t("mobilePreviewTitle")} className="mx-auto min-w-0 max-w-[390px]">
-                          <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Smartphone size={13} aria-hidden="true" /> {t("mobile")}</p>
                           <ProposalHtmlPreview html={preview} title={t("mobilePreviewTitle")} className="h-[min(66vh,720px)]" />
                         </div>
                       )}
