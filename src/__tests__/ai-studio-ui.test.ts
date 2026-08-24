@@ -298,6 +298,13 @@ describe("AI Studio #176 hardening UI seams", () => {
     expect(source).toContain('setPreviewViewport("mobile")');
     expect(source).toContain('title={t("desktopPreviewTitle")} className="h-[min(66vh,720px)]"');
     expect(source).toContain('title={t("mobilePreviewTitle")} className="h-[min(66vh,720px)]"');
+    expect(source).not.toContain('id="ai-studio-preview-title"');
+    expect(source).not.toContain('t("syntheticValues")');
+    const templateTitleIndex = source.indexOf('id="ai-studio-template-name"');
+    const switchIndex = source.indexOf('aria-label={t("previewViewportLabel")}');
+    const previewIndex = source.indexOf('<section className="min-w-0 space-y-3"');
+    expect(templateTitleIndex).toBeLessThan(switchIndex);
+    expect(switchIndex).toBeLessThan(previewIndex);
     expect(source).toContain("overflow-y-auto p-4");
     expect(source).toContain("chatEndRef");
     expect(source).toContain('t("thinkingFor", { seconds: 1 })');
