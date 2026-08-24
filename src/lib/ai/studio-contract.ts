@@ -260,26 +260,86 @@ export function buildStudioPrompts(input: {
   return { systemPrompt, userPrompt, snapshot };
 }
 
+function normalizeOverescapedQuotes(source: string): string {
+  // Some providers emit HTML attribute quotes with more than one slash. Keep
+  // the JSON contract strict first, then repair only this well-known boundary
+  // variant before validation.
+  return source.replace(/\\+(?=")/g, "\\");
+}
+
+function normalizeParsedProviderOutput(value: unknown): unknown {
+  if (!isRecord(value) || typeof value.html !== "string") return value;
+  return { ...value, html: value.html.replace(/\\"/g, '"') };
+}
+
+function balancedObjectSlices(source: string): string[] {
+  const slices: string[] = [];
+
+  for (let start = 0; start < source.length; start += 1) {
+    if (source[start] !== "{") continue;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let index = start; index < source.length; index += 1) {
+      const character = source[index];
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (character === "\\") {
+          escaped = true;
+        } else if (character === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (character === '"') {
+        inString = true;
+      } else if (character === "{") {
+        depth += 1;
+      } else if (character === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          slices.push(source.slice(start, index + 1));
+          break;
+        }
+      }
+    }
+  }
+
+  return slices;
+}
+
+function tryParseJson(source: string): { success: true; value: unknown } | { success: false } {
+  try {
+    return { success: true, value: JSON.parse(source) as unknown };
+  } catch {
+    return { success: false };
+  }
+}
+
 export function parseStructuredOutput(raw: string): unknown {
   const trimmed = raw.trim();
   const withoutFence = trimmed
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
-  try {
-    return JSON.parse(withoutFence);
-  } catch {
-    const first = withoutFence.indexOf("{");
-    const last = withoutFence.lastIndexOf("}");
-    if (first >= 0 && last > first) {
-      try {
-        return JSON.parse(withoutFence.slice(first, last + 1));
-      } catch {
-        // Fall through to the normalized validation error in the caller.
-      }
-    }
-    return null;
+  const sources = Array.from(new Set([withoutFence, normalizeOverescapedQuotes(withoutFence)]));
+
+  for (const source of sources) {
+    const direct = tryParseJson(source);
+    if (direct.success) return normalizeParsedProviderOutput(direct.value);
   }
+
+  for (const source of sources) {
+    for (const slice of balancedObjectSlices(source).sort((left, right) => right.length - left.length)) {
+      const parsed = tryParseJson(slice);
+      if (parsed.success) return normalizeParsedProviderOutput(parsed.value);
+    }
+  }
+
+  return null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

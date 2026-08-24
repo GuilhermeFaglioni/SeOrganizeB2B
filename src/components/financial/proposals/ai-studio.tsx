@@ -5,9 +5,27 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { ArrowLeft, Check, ChevronDown, EyeOff, Image as ImageIcon, RotateCcw, Sparkles, Trash2, Undo2, Upload } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  Code2,
+  EyeOff,
+  Image as ImageIcon,
+  MessageCircle,
+  Monitor,
+  RotateCcw,
+  Save,
+  Send,
+  Settings2,
+  Sparkles,
+  Trash2,
+  Undo2,
+  Upload,
+} from "lucide-react";
 import { useCan } from "@/hooks/use-permissions";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useAuth } from "@/stores/auth-context";
 import {
   useAIStudioConfig,
   useRecordAIStudioConsent,
@@ -15,6 +33,8 @@ import {
 } from "@/hooks/use-ai-studio";
 import { useCreateProposalTemplate, useProposalTemplates } from "@/hooks/use-proposals";
 import { ProposalHtmlPreview } from "@/components/financial/proposals/proposal-html-preview";
+import { Modal } from "@/components/ui/Modal";
+import { Popup } from "@/components/ui/Popup";
 import {
   installAIStudioPopstateGuard,
   type AIStudioPopstateGuardHandle,
@@ -85,6 +105,10 @@ interface StudioConfig {
 
 type CompactionState = "idle" | "compacting" | "compacted" | "error";
 type LeaveSessionOptions = { releaseRouterGuard?: boolean };
+type StudioView = "preview" | "html";
+type ConfirmationKind = "removeVariables" | "updateOriginal";
+
+const AI_STUDIO_CONFIRMATION_STORAGE_KEY = "seorganize:ai-studio:confirmations";
 
 function requestSessionDiscard(sessionId: string): void {
   if (!sessionId) return;
@@ -148,6 +172,7 @@ export function AIStudioEntry() {
   const t = useTranslations("proposals.aiStudio");
   const locale = useLocale();
   const { can } = useCan();
+  const { user } = useAuth();
   const { data: workspace, isLoading: workspaceLoading } = useWorkspace();
   const eligible = can("financial.proposals.manageTemplates") && can("financial.proposals.generateWithAi");
   const financialAllowed = workspace?.features.allowedModules?.includes("financial.proposals") ?? false;
@@ -227,10 +252,25 @@ export function AIStudioEntry() {
   }
 
   if (mode === "refine") {
-    return <RefineTemplateFlow config={config} locale={localeForApi(locale)} onExit={() => setMode("choice")} />;
+    return (
+      <RefineTemplateFlow
+        config={config}
+        locale={localeForApi(locale)}
+        workspaceId={`${workspace?.id ?? "workspace"}:${user?.id ?? "user"}`}
+        onExit={() => setMode("choice")}
+      />
+    );
   }
 
-  return <TemplateStudio config={config} locale={localeForApi(locale)} onBack={() => setMode("choice")} refinement={null} />;
+  return (
+    <TemplateStudio
+      config={config}
+      locale={localeForApi(locale)}
+      workspaceId={`${workspace?.id ?? "workspace"}:${user?.id ?? "user"}`}
+      onBack={() => setMode("choice")}
+      refinement={null}
+    />
+  );
 }
 
 function StudioState({ title, description, children }: { title: string; description: string; children?: React.ReactNode }) {
@@ -246,15 +286,25 @@ function StudioState({ title, description, children }: { title: string; descript
 function RefineTemplateFlow({
   config,
   locale,
+  workspaceId,
   onExit,
 }: {
   config: StudioConfig;
   locale: "pt-BR" | "en";
+  workspaceId: string;
   onExit: () => void;
 }) {
   const [base, setBase] = useState<AIStudioRefinementBase | null>(null);
   if (!base) return <RefineTemplatePicker onBack={onExit} onSelect={setBase} />;
-  return <TemplateStudio config={config} locale={locale} onBack={() => setBase(null)} refinement={base} />;
+  return (
+    <TemplateStudio
+      config={config}
+      locale={locale}
+      workspaceId={workspaceId}
+      onBack={() => setBase(null)}
+      refinement={base}
+    />
+  );
 }
 
 function RefineTemplatePicker({
@@ -329,11 +379,13 @@ function RefineTemplatePicker({
 function TemplateStudio({
   config,
   locale,
+  workspaceId,
   onBack,
   refinement,
 }: {
   config: StudioConfig;
   locale: "pt-BR" | "en";
+  workspaceId: string;
   onBack: () => void;
   refinement: AIStudioRefinementBase | null;
 }) {
@@ -370,6 +422,13 @@ function TemplateStudio({
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const [justSwitchedProvider, setJustSwitchedProvider] = useState(false);
   const [sessionSnapshot, setSessionSnapshot] = useState<string | null>(null);
+  const [studioView, setStudioView] = useState<StudioView>("preview");
+  const [confirmation, setConfirmation] = useState<ConfirmationKind | null>(null);
+  const [rememberConfirmation, setRememberConfirmation] = useState(false);
+  const [rememberedConfirmations, setRememberedConfirmations] = useState<Record<ConfirmationKind, boolean>>({
+    removeVariables: false,
+    updateOriginal: false,
+  });
   const sessionEpochRef = useRef(0);
   const uploadGenerationRef = useRef(0);
   const uploadedImageIdsRef = useRef(new Set<string>());
@@ -386,6 +445,7 @@ function TemplateStudio({
   const selectedModel = selectedConnection.models.find((item) => item.id === model) ?? selectedConnection.models[0];
   const previewSource = candidate?.html ?? html;
   const baseHtml = refinement?.html ?? "";
+  const confirmationStorageKey = `${AI_STUDIO_CONFIRMATION_STORAGE_KEY}:${workspaceId}`;
   const dirty = isAIStudioDirty({
     isGenerating,
     uploadingImage,
@@ -627,6 +687,8 @@ function TemplateStudio({
     setJustSwitchedProvider(false);
     setConfirmedRemovalCandidate(null);
     setConfirmUpdate(false);
+    setConfirmation(null);
+    setRememberConfirmation(false);
     setHtml(refinement?.html ?? "");
     setTemplateName(refinement?.name ?? "");
   }
@@ -652,6 +714,23 @@ function TemplateStudio({
     setSessionId(createAIStudioId());
     setSessionSnapshot(null);
   }, []);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(confirmationStorageKey);
+      if (!raw) {
+        setRememberedConfirmations({ removeVariables: false, updateOriginal: false });
+        return;
+      }
+      const parsed = JSON.parse(raw) as Partial<Record<ConfirmationKind, unknown>>;
+      setRememberedConfirmations({
+        removeVariables: parsed.removeVariables === true,
+        updateOriginal: parsed.updateOriginal === true,
+      });
+    } catch {
+      setRememberedConfirmations({ removeVariables: false, updateOriginal: false });
+    }
+  }, [confirmationStorageKey]);
 
   useEffect(() => {
     if (candidate) candidateTitleRef.current?.focus();
@@ -963,12 +1042,44 @@ function TemplateStudio({
     void runGeneration(message);
   }
 
-  function applyCandidate() {
+  function rememberConfirmationChoice(kind: ConfirmationKind): void {
+    const next = { ...rememberedConfirmations, [kind]: true };
+    setRememberedConfirmations(next);
+    try {
+      window.localStorage.setItem(confirmationStorageKey, JSON.stringify(next));
+    } catch {
+      // Remembering is best effort; the protected action still completes.
+    }
+  }
+
+  function openConfirmation(kind: ConfirmationKind): void {
+    setConfirmation(kind);
+    setRememberConfirmation(rememberedConfirmations[kind]);
+    if (kind === "updateOriginal") setConfirmUpdate(false);
+  }
+
+  function closeConfirmation(): void {
+    setConfirmation(null);
+    setRememberConfirmation(false);
+  }
+
+  function commitCandidate(): void {
     if (!candidate || isGenerating) return;
-    if (refinement && candidate.variableDiff.removed.length > 0 && !isAIStudioRemovalConfirmed(candidate, confirmedRemovalCandidate)) return;
     setHistory((previous) => [...previous, html]);
     setHtml(candidate.html);
     setCandidate(null);
+    setStudioView("preview");
+  }
+
+  function applyCandidate() {
+    if (!candidate || isGenerating) return;
+    const requiresRemovalConfirmation = Boolean(refinement && candidate.variableDiff.removed.length > 0);
+    const removalConfirmed = isAIStudioRemovalConfirmed(candidate, confirmedRemovalCandidate);
+    if (requiresRemovalConfirmation && !removalConfirmed && !rememberedConfirmations.removeVariables) {
+      openConfirmation("removeVariables");
+      return;
+    }
+    commitCandidate();
   }
 
   function undoLastChange() {
@@ -978,6 +1089,16 @@ function TemplateStudio({
     const previousHtml = history[history.length - 1] ?? "";
     setHtml(previousHtml);
     setHistory((previous) => previous.slice(0, -1));
+  }
+
+  function restoreRevision(index: number): void {
+    if (isGenerating) return;
+    const revision = history[index];
+    if (revision === undefined) return;
+    setHtml(revision);
+    setHistory((previous) => previous.slice(0, index));
+    setCandidate(null);
+    setStudioView("preview");
   }
 
   function resetConversation() {
@@ -998,6 +1119,7 @@ function TemplateStudio({
     setError(freshContext.error);
     setLastFailedMessage(freshContext.lastFailedMessage);
     setJustSwitchedProvider(freshContext.justSwitchedProvider);
+    setStudioView("preview");
   }
 
   function handleBack() {
@@ -1018,8 +1140,8 @@ function TemplateStudio({
     } });
   }
 
-  async function handleUpdateOriginal() {
-    if (!refinement || !confirmUpdate || !html.trim()) return;
+  async function commitOriginalUpdate(confirmed = confirmUpdate) {
+    if (!refinement || !confirmed || !html.trim()) return;
     setError("");
     try {
       await updateOriginal.mutateAsync({ templateId: refinement.id, html, confirmed: true });
@@ -1031,6 +1153,33 @@ function TemplateStudio({
     } catch (updateError) {
       setError(localizedStudioError(updateError, t("updateFailed")));
     }
+  }
+
+  function handleUpdateOriginal() {
+    if (!refinement || !html.trim()) return;
+    if (!rememberedConfirmations.updateOriginal) {
+      openConfirmation("updateOriginal");
+      return;
+    }
+    setConfirmUpdate(true);
+    void commitOriginalUpdate(true);
+  }
+
+  function confirmProtectedAction(): void {
+    if (!confirmation) return;
+    if (rememberConfirmation) rememberConfirmationChoice(confirmation);
+
+    if (confirmation === "removeVariables") {
+      if (!candidate) return;
+      setConfirmedRemovalCandidate(candidate);
+      closeConfirmation();
+      commitCandidate();
+      return;
+    }
+
+    if (!confirmUpdate) return;
+    closeConfirmation();
+    void commitOriginalUpdate(true);
   }
 
   async function handleConfirmUpdateChange(checked: boolean) {
@@ -1052,203 +1201,479 @@ function TemplateStudio({
   const confirmRemoval = isAIStudioRemovalConfirmed(candidate, confirmedRemovalCandidate);
   const candidateActionDisabled = isAIStudioCandidateActionDisabled({
     isGenerating,
-    requiresRemovalConfirmation,
+    // The protected action is confirmed in the modal instead of blocking the
+    // review button behind an inline checkbox.
+    requiresRemovalConfirmation: requiresRemovalConfirmation && Boolean(confirmation),
     confirmRemoval,
   });
+  const protectedActionReady = confirmation === "removeVariables" ? confirmRemoval : confirmUpdate;
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={handleBack} aria-label={t("backToChoices")} className="rounded-md p-2 text-text-secondary hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><ArrowLeft size={18} aria-hidden="true" /></button>
-          <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{t("eyebrow")}</p><h1 className="text-xl font-semibold text-text-primary">{refinement ? t("refineTemplateTitle") : t("newTemplateTitle")}</h1></div>
+    <div className="flex min-h-[min(860px,calc(100dvh-5rem))] flex-col overflow-hidden rounded-2xl border border-border bg-page shadow-card">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-page-alt px-4 py-3 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label={t("backToChoices")}
+            className="rounded-md p-2 text-text-secondary transition hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <ArrowLeft size={18} aria-hidden="true" />
+          </button>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{t("eyebrow")}</p>
+            <h1 className="truncate text-lg font-semibold text-text-primary sm:text-xl">
+              {refinement ? t("refineTemplateTitle") : t("newTemplateTitle")}
+            </h1>
+          </div>
         </div>
-         <button type="button" onClick={resetConversation} disabled={isGenerating} className="inline-flex min-h-[44px] items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"><RotateCcw size={16} aria-hidden="true" /> {t("newConversationKeepDraft")}</button>
-      </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {candidate ? (
+            <span className="hidden items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent sm:inline-flex">
+              <Sparkles size={13} aria-hidden="true" /> {t("candidatePendingLabel")}
+            </span>
+          ) : null}
+          <div className="inline-flex rounded-lg border border-border bg-page p-1" role="group" aria-label={t("viewModeLabel")}>
+            <button
+              type="button"
+              aria-pressed={studioView === "preview"}
+              onClick={() => setStudioView("preview")}
+              className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${studioView === "preview" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
+            >
+              <Monitor size={14} aria-hidden="true" /> {t("previewMode")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={studioView === "html"}
+              onClick={() => setStudioView("html")}
+              className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${studioView === "html" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
+            >
+              <Code2 size={14} aria-hidden="true" /> {t("sourceMode")}
+            </button>
+          </div>
+          <Popup
+            id="ai-studio-settings"
+            label={t("settingsLabel")}
+            size="lg"
+            align="end"
+            triggerAsChild
+            trigger={
+              <button
+                type="button"
+                aria-label={t("settingsLabel")}
+                className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-border bg-page px-3 text-text-secondary transition hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <Settings2 size={17} aria-hidden="true" />
+              </button>
+            }
+          >
+            {(close) => (
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-sm font-semibold text-text-primary">{t("settingsLabel")}</h2>
+                  <p className="mt-1 text-xs text-text-muted">{t("settingsDescription")}</p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label htmlFor="ai-studio-provider" className="text-sm text-text-secondary">
+                    <span className="mb-1 block font-medium text-text-primary">{t("providerLabel")}</span>
+                    <span className="relative block">
+                      <select
+                        id="ai-studio-provider"
+                        value={provider}
+                        onChange={(event) => handleProviderChange(event.target.value)}
+                        disabled={isGenerating}
+                        className="min-h-[44px] w-full appearance-none rounded-md border border-border bg-page px-3 pr-10 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {config.connections.map((connection) => (
+                          <option key={connection.id} value={connection.provider}>{providerDisplayName(connection.provider)}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={16} className="pointer-events-none absolute right-3 top-3.5 text-text-muted" aria-hidden="true" />
+                    </span>
+                  </label>
+                  <label htmlFor="ai-studio-model" className="text-sm text-text-secondary">
+                    <span className="mb-1 block font-medium text-text-primary">{t("modelLabel")}</span>
+                    <span className="relative block">
+                      <select
+                        id="ai-studio-model"
+                        value={model}
+                        onChange={(event) => setModel(event.target.value)}
+                        className="min-h-[44px] w-full appearance-none rounded-md border border-border bg-page px-3 pr-10 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        {selectedConnection.models.map((item) => (
+                          <option key={item.id} value={item.id}>{item.id}{item.default ? ` — ${t("defaultModel")}` : ""}{item.vision ? ` · ${t("vision")}` : ""}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={16} className="pointer-events-none absolute right-3 top-3.5 text-text-muted" aria-hidden="true" />
+                    </span>
+                  </label>
+                </div>
+                <p role="status" aria-live="polite" className="text-xs text-text-muted">
+                  {config.directiveConfigured ? t("directiveSnapshot") : t("noDirectiveWarning")}
+                </p>
+                {justSwitchedProvider ? <p className="text-xs text-text-muted">{t("providerSwitchContext")}</p> : null}
+                {refinement ? (
+                  <div className="space-y-3 border-t border-border pt-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-text-primary">{t("updateOriginalTitle")}</h3>
+                      <p className="mt-1 text-xs text-text-secondary">{t("updateOriginalDescription")}</p>
+                    </div>
+                    <p className={`text-xs ${draftCount > 0 ? "text-amber-700" : "text-text-muted"}`}>
+                      {draftCount > 0 ? t("draftImpactWarning", { count: draftCount }) : t("draftImpactNone")}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { close(); handleUpdateOriginal(); }}
+                      disabled={updateOriginal.isPending || !html.trim()}
+                      className="inline-flex min-h-[40px] items-center gap-2 rounded-md border border-danger px-3 py-2 text-sm font-medium text-danger transition hover:bg-danger/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {updateOriginal.isPending ? t("updating") : t("updateOriginal")}
+                    </button>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => { close(); resetConversation(); }}
+                  disabled={isGenerating}
+                  className="inline-flex min-h-[40px] items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-text-secondary transition hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <RotateCcw size={15} aria-hidden="true" /> {t("newConversationKeepDraft")}
+                </button>
+                {history.length > 0 ? (
+                  <div className="space-y-2 border-t border-border pt-4">
+                    <h3 className="text-sm font-semibold text-text-primary">{t("historyLabel")}</h3>
+                    <ul className="space-y-1.5">
+                      {history.map((_, index) => {
+                        const revisionIndex = history.length - index - 1;
+                        return (
+                          <li key={revisionIndex}>
+                            <button
+                              type="button"
+                              onClick={() => { close(); restoreRevision(revisionIndex); }}
+                              className="flex min-h-[36px] w-full items-center justify-between rounded-md border border-border px-2.5 text-left text-xs text-text-secondary transition hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            >
+                              <span>{t("revisionNumber", { number: revisionIndex + 1 })}</span>
+                              <span className="text-accent">{t("restoreRevision")}</span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </Popup>
+        </div>
+      </header>
 
       {refinement ? (
-        <div className="rounded-xl border border-border bg-page-alt p-4">
-          <p className="text-sm text-text-secondary">{t("refiningBase", { name: refinement.name })}</p>
-          {refinement.warnings.length > 0 ? <ul className="mt-2 space-y-1 text-sm text-amber-700" aria-label={t("warningsAria")}>{refinement.warnings.map((warning) => <li key={warning}>⚠ {localizeStudioWarning(warning)}</li>)}</ul> : null}
+        <div className="border-b border-border bg-amber-500/5 px-4 py-2.5 sm:px-5">
+          <p className="text-xs text-text-secondary">{t("refiningBase", { name: refinement.name })}</p>
+          {refinement.warnings.length > 0 ? (
+            <ul className="mt-1 space-y-1 text-xs text-amber-700" aria-label={t("warningsAria")}>
+              {refinement.warnings.map((warning) => <li key={warning}>⚠ {localizeStudioWarning(warning)}</li>)}
+            </ul>
+          ) : null}
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-border bg-page-alt p-4" aria-busy={isGenerating}>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-           <label htmlFor="ai-studio-provider" className="text-sm text-text-secondary"><span className="mb-1 block font-medium text-text-primary">{t("providerLabel")}</span><span className="relative block"><select id="ai-studio-provider" value={provider} onChange={(event) => handleProviderChange(event.target.value)} disabled={isGenerating} className="min-h-[44px] w-full appearance-none rounded-md border border-border bg-page px-3 pr-10 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">{config.connections.map((connection) => <option key={connection.id} value={connection.provider}>{providerDisplayName(connection.provider)}</option>)}</select><ChevronDown size={16} className="pointer-events-none absolute right-3 top-3.5 text-text-muted" aria-hidden="true" /></span></label>
-           <label htmlFor="ai-studio-model" className="text-sm text-text-secondary"><span className="mb-1 block font-medium text-text-primary">{t("modelLabel")}</span><span className="relative block"><select id="ai-studio-model" value={model} onChange={(event) => setModel(event.target.value)} className="min-h-[44px] w-full appearance-none rounded-md border border-border bg-page px-3 pr-10 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{selectedConnection.models.map((item) => <option key={item.id} value={item.id}>{item.id}{item.default ? ` — ${t("defaultModel")}` : ""}{item.vision ? ` · ${t("vision")}` : ""}</option>)}</select><ChevronDown size={16} className="pointer-events-none absolute right-3 top-3.5 text-text-muted" aria-hidden="true" /></span></label>
-        </div>
-        <p role="status" aria-live="polite" className="mt-3 text-xs text-text-muted">{config.directiveConfigured ? t("directiveSnapshot") : t("noDirectiveWarning")}</p>
-      </div>
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_390px]" aria-busy={isGenerating}>
+        <main className="flex min-h-0 min-w-0 flex-col bg-page">
+          <form onSubmit={saveTemplate} className="flex min-h-0 flex-1 flex-col">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
+              <div className="min-w-0 flex-1">
+                <label htmlFor="ai-studio-template-name" className="sr-only">{t("nameLabel")}</label>
+                <input
+                  id="ai-studio-template-name"
+                  value={templateName}
+                  onChange={(event) => setTemplateName(event.target.value)}
+                  maxLength={120}
+                  required
+                  placeholder={t("namePlaceholder")}
+                  className="min-h-[40px] w-full max-w-xl border-0 bg-transparent px-0 text-base font-semibold text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                />
+              </div>
+              <div className="flex items-center gap-2 text-xs text-text-muted">
+                <span>{studioView === "preview" ? t("previewTitle") : t("htmlLabel")}</span>
+                <button
+                  type="button"
+                  onClick={undoLastChange}
+                  disabled={isAIStudioUndoDisabled({ isGenerating, historyLength: history.length, hasCandidate: candidate !== null })}
+                  className="inline-flex min-h-[36px] items-center gap-1.5 rounded-md border border-border px-2.5 text-xs text-text-secondary transition hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Undo2 size={14} aria-hidden="true" /> {t("undo")}
+                </button>
+              </div>
+            </div>
 
-      <form onSubmit={handleGenerate} aria-busy={isGenerating} className="space-y-4 rounded-xl border border-border bg-page-alt p-4">
-        <div><label htmlFor="ai-studio-briefing" className="mb-1 block text-sm font-medium text-text-primary">{refinement ? t("refinementBriefingLabel") : t("briefingLabel")}</label><textarea id="ai-studio-briefing" value={message} onChange={(event) => setMessage(event.target.value)} maxLength={8000} rows={5} placeholder={refinement ? t("refinementBriefingPlaceholder") : t("briefingPlaceholder")} className="w-full resize-y rounded-md border border-border bg-page p-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" /><p className="mt-1 text-xs text-text-muted">{t("briefingHint", { count: message.length })}</p></div>
-        <div className="rounded-lg border border-border bg-page p-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-sm font-medium text-text-primary">{t("imageTitle")}</span>
-            <span className="text-xs text-text-muted">{t("imageCount", { count: attachedImages.length })}</span>
-          </div>
-          {visionAvailable ? (
-             <label className="mt-2 inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary focus-within:outline-none focus-within:ring-2 focus-within:ring-accent disabled:cursor-not-allowed disabled:opacity-50"><Upload size={16} aria-hidden="true" /> {uploadingImage ? t("imageUploading") : t("imageAttach")}<input type="file" accept="image/png,image/jpeg,image/webp" multiple className="sr-only" onChange={handleAttachFiles} disabled={isGenerating || uploadingImage || attachedImages.length >= AI_STUDIO_MAX_IMAGES_PER_MESSAGE} aria-label={t("imageAttachAria")} /></label>
-          ) : (
-            <p className="mt-2 flex items-start gap-2 text-sm text-text-muted"><EyeOff size={16} aria-hidden="true" className="mt-0.5 shrink-0" />{t("imageVisionBlocked")}</p>
-          )}
-          {attachedImages.length > 0 ? (
-            <ul className="mt-3 space-y-2" aria-label={t("imageListAria")}>
-              {attachedImages.map((image) => (
-                <li key={image.id} className="flex items-center justify-between gap-3 rounded-md border border-border bg-page-alt px-3 py-2">
-                  <span className="flex min-w-0 items-center gap-2 text-sm text-text-primary">
-                    <ImageIcon size={14} aria-hidden="true" className="shrink-0 text-text-muted" />
-                    <span className="truncate">{image.fileName}</span>
-                    <span className="shrink-0 text-xs text-text-muted">{imageFormatLabel(image.format)} · {image.width}×{image.height}</span>
-                  </span>
-                  <button type="button" onClick={() => handleRemoveImage(image.id)} aria-label={t("imageRemove", { name: image.fileName })} className="rounded-md p-1.5 text-text-secondary hover:bg-bg-secondary hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Trash2 size={15} aria-hidden="true" /></button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {attachedBlocked ? <p role="alert" className="mt-2 text-sm text-amber-700">{t("imageVisionSwitchWarning")}</p> : null}
-          {imageError ? <p role="alert" className="mt-2 text-sm text-danger">{imageError}</p> : null}
-          <p className="mt-2 text-xs text-text-muted">{t("imagePrivacyHint")}</p>
-        </div>
-        <div className="rounded-lg border border-border bg-page p-3 text-sm text-text-secondary">
-          <label htmlFor="ai-studio-consent" className="flex items-start gap-3">
-            <input id="ai-studio-consent" type="checkbox" checked={consentChecked} required aria-required="true" aria-describedby="ai-studio-consent-copy ai-studio-consent-version" onChange={(event) => setConsentChecked(event.target.checked)} className="mt-1 size-4 accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" />
-            <span id="ai-studio-consent-copy">{t("consentText", { provider: providerDisplayName(provider) })}</span>
-          </label>
-          <p className="mt-2 text-xs text-text-muted">
-            {t("consentLegalPrefix")} <Link href="/privacy" className="text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t("consentPrivacyLink")}</Link> {t("consentLegalAnd")} <Link href="/terms" className="text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t("consentTermsLink")}</Link>.
-          </p>
-          <p id="ai-studio-consent-version" className="mt-1 text-xs text-text-muted">{t("consentVersion", { version: config.consentVersion })}</p>
-        </div>
-         <p className="text-xs text-text-muted">{t("dataMinimizationWarning")}</p>
-         {justSwitchedProvider ? <p className="text-xs text-text-muted">{t("providerSwitchContext")}</p> : null}
-         <div className="flex flex-wrap items-center gap-2 text-xs text-text-muted">
-           <span>{t("contextWindow", { count: sessionMessages.length, max: AI_STUDIO_MAX_RECENT_MESSAGES })}</span>
-           {compactionState === "compacting" ? <span role="status" className="rounded bg-accent/10 px-1.5 py-0.5 font-medium text-accent">{t("contextCompacting")}</span> : null}
-           {compactionState === "compacted" ? <span className="rounded bg-accent/10 px-1.5 py-0.5 font-medium text-accent">{t("contextCompacted")}</span> : null}
-           {compactionState === "error" ? <span role="status" className="rounded bg-amber-500/15 px-1.5 py-0.5 font-medium text-amber-800">{t("contextCompactionError")}</span> : null}
-         </div>
-        {error ? <p ref={errorRef} tabIndex={-1} role="alert" className="text-sm text-danger">{error}</p> : null}
-        {error && lastFailedMessage && !isGenerating ? (
-          <button type="button" onClick={() => void runGeneration(lastFailedMessage)} className="inline-flex min-h-[44px] items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-            <Sparkles size={16} aria-hidden="true" /> {t("retryGeneration")}
-          </button>
-        ) : null}
-          <div className="flex flex-wrap items-center gap-3"><button type="submit" disabled={isGenerating || uploadingImage || recordConsent.isPending || !message.trim() || !consentChecked} className="inline-flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"><Sparkles size={16} aria-hidden="true" /> {isGenerating ? t("generating") : t("generate")}</button>{selectedModel.streaming ? <span className="text-xs text-text-muted">{t("streamingSupported")}</span> : null}<span className="sr-only" role="status" aria-live="polite">{isGenerating ? t("generationStatus") : ""}</span></div>
-         {partial ? <pre role="status" aria-live="polite" aria-label={t("streamingOutputAria")} className="max-h-36 overflow-auto rounded-md bg-slate-950 p-3 text-xs text-slate-100">{partial}</pre> : null}
-      </form>
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-5">
+              {studioView === "html" ? (
+                <section className="flex h-full min-h-[520px] flex-col rounded-xl border border-border bg-page-alt p-4" aria-labelledby="ai-studio-editor-title">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 id="ai-studio-editor-title" className="font-semibold text-text-primary">{t("editorTitle")}</h2>
+                      <p className="mt-1 text-xs text-text-muted">{t("htmlSourceDescription")}</p>
+                    </div>
+                    <Code2 size={18} className="text-text-muted" aria-hidden="true" />
+                  </div>
+                  <label htmlFor="ai-studio-html" className="sr-only">{t("htmlLabel")}</label>
+                  <textarea
+                    id="ai-studio-html"
+                    value={html}
+                    onChange={(event) => setHtml(event.target.value)}
+                    spellCheck={false}
+                    placeholder={t("htmlPlaceholder")}
+                    className="min-h-0 flex-1 resize-none rounded-lg border border-border bg-slate-950 p-4 font-mono text-xs leading-relaxed text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  />
+                </section>
+              ) : (
+                <section className="space-y-3" aria-labelledby="ai-studio-preview-title">
+                  <div className="flex items-center justify-between gap-3 px-1">
+                    <div>
+                      <h2 id="ai-studio-preview-title" className="font-semibold text-text-primary">{t("previewTitle")}</h2>
+                      <p className="mt-1 text-xs text-text-muted">{candidate ? t("candidatePreview") : t("syntheticValues")}</p>
+                    </div>
+                    <Monitor size={18} className="text-text-muted" aria-hidden="true" />
+                  </div>
+                  {previewError ? <p role="alert" className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-sm text-danger">{previewError}</p> : null}
+                  {!preview ? (
+                    <p className="flex min-h-[520px] items-center justify-center rounded-xl border border-dashed border-border bg-page-alt p-6 text-center text-sm text-text-muted">{t("previewEmpty")}</p>
+                  ) : (
+                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_250px]">
+                      <div role="group" aria-label={t("desktopPreviewTitle")}>
+                        <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Monitor size={13} aria-hidden="true" /> {t("desktop")}</p>
+                        <ProposalHtmlPreview html={preview} title={t("desktopPreviewTitle")} className="h-[min(66vh,720px)]" />
+                      </div>
+                      <div role="group" aria-label={t("mobilePreviewTitle")} className="max-w-[390px]">
+                        <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Monitor size={13} aria-hidden="true" /> {t("mobile")}</p>
+                        <ProposalHtmlPreview html={preview} title={t("mobilePreviewTitle")} className="h-[min(66vh,720px)]" />
+                      </div>
+                    </div>
+                  )}
+                </section>
+              )}
+            </div>
 
-      {candidate ? (
-        <section
-          className="space-y-3 rounded-xl border-2 border-accent/40 bg-accent/5 p-4"
-          aria-labelledby="ai-studio-candidate-title"
-        >
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 ref={candidateTitleRef} tabIndex={-1} id="ai-studio-candidate-title" className="font-semibold text-text-primary">
-                {t("candidateTitle")}
-              </h2>
-              <p className="mt-1 text-sm text-text-secondary">{candidate.explanation}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
+            <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-page-alt px-4 py-3 sm:px-6">
+              <p className="max-w-xl text-xs text-text-muted">{refinement ? t("saveAsNewHint") : t("saveHint")}</p>
               <button
-                type="button"
-                onClick={applyCandidate}
-                disabled={candidateActionDisabled}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+                type="submit"
+                disabled={createTemplate.isPending || !templateName.trim() || !html.trim()}
+                className="inline-flex min-h-[42px] items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Check size={16} aria-hidden="true" /> {t("applyCandidate")}
+                <Save size={15} aria-hidden="true" /> {createTemplate.isPending ? t("saving") : t("saveAsNew")}
               </button>
-              <button
-                type="button"
-                onClick={undoLastChange}
-                disabled={isGenerating}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Undo2 size={16} aria-hidden="true" /> {t("discardCandidate")}
-              </button>
+            </footer>
+          </form>
+        </main>
+
+        <aside className="flex min-h-0 min-w-0 flex-col border-t border-border bg-page-alt lg:border-l lg:border-t-0">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="flex size-8 items-center justify-center rounded-lg bg-accent/10 text-accent"><MessageCircle size={16} aria-hidden="true" /></span>
+              <div>
+                <h2 className="text-sm font-semibold text-text-primary">{t("chatTitle")}</h2>
+                <p className="text-xs text-text-muted">{providerDisplayName(provider)} · {selectedModel?.id ?? model}</p>
+              </div>
             </div>
+            <span className="size-2 rounded-full bg-emerald-500" aria-label={t("connectedStatus")} title={t("connectedStatus")} />
           </div>
-          {candidate.warnings.length > 0 ? (
-            <ul className="space-y-1 text-sm text-amber-700" aria-label={t("warningsAria")}>
-              {candidate.warnings.map((warning) => <li key={warning}>⚠ {localizeStudioWarning(warning)}</li>)}
-            </ul>
-          ) : null}
-          {refinement ? (
-            <div className="rounded-lg border border-border bg-page p-3">
-              <h3 className="text-sm font-medium text-text-primary">{t("variableDiffTitle")}</h3>
-              {candidate.variableDiff.added.length > 0 ? (
-                <div className="mt-2">
-                  <p className="text-xs font-medium text-text-muted">{t("variablesAdded")}</p>
-                  <ul className="mt-1 flex flex-wrap gap-1.5 text-xs">
-                    {candidate.variableDiff.added.map((name) => (
-                      <li key={name}>
-                        <code className="rounded bg-accent/10 px-1.5 py-0.5 text-accent">{`{{${name}}}`}</code>
-                      </li>
-                    ))}
-                  </ul>
+
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
+            {sessionMessages.length === 0 && !candidate && !partial ? (
+              <div className="rounded-xl border border-dashed border-border bg-page p-4">
+                <p className="text-sm font-medium text-text-primary">{t("chatEmptyTitle")}</p>
+                <p className="mt-1 text-sm leading-relaxed text-text-secondary">{refinement ? t("refinementBriefingPlaceholder") : t("briefingPlaceholder")}</p>
+              </div>
+            ) : null}
+            {sessionMessages.map((sessionMessage, index) => (
+              <div key={`${sessionMessage.role}-${index}`} className={`flex ${sessionMessage.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[92%] rounded-2xl px-3.5 py-3 text-sm leading-relaxed ${sessionMessage.role === "user" ? "rounded-br-md bg-accent text-white" : "rounded-bl-md border border-border bg-page text-text-secondary"}`}>
+                  {sessionMessage.content}
                 </div>
-              ) : null}
-              {candidate.variableDiff.removed.length > 0 ? (
-                <div className="mt-2">
-                  <p className="text-xs font-medium text-amber-700">{t("variablesRemoved")}</p>
-                  <ul className="mt-1 flex flex-wrap gap-1.5 text-xs">
-                    {candidate.variableDiff.removed.map((name) => (
-                      <li key={name}>
-                        <code className="rounded bg-amber-500/15 px-1.5 py-0.5 text-amber-800">{`{{${name}}}`}</code>
-                      </li>
-                    ))}
-                  </ul>
-                  <label className="mt-2 flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-text-secondary">
-                    <input
-                      type="checkbox"
-                      checked={confirmRemoval}
-                       onChange={(event) => setConfirmedRemovalCandidate(event.target.checked ? candidate : null)}
-                      disabled={isGenerating}
-                      className="mt-1 size-4 accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    />
-                    <span>{t("confirmRemovedVariables")}</span>
-                  </label>
+              </div>
+            ))}
+            {partial ? (
+              <div role="status" aria-live="polite" aria-label={t("streamingOutputAria")} className="rounded-xl border border-accent/20 bg-accent/5 p-3 text-sm text-text-secondary">
+                <div className="flex items-center gap-2 font-medium text-accent"><Sparkles size={14} aria-hidden="true" /> {t("generating")}</div>
+                <details className="mt-2 text-xs">
+                  <summary className="cursor-pointer text-text-muted">{t("streamingOutputAria")}</summary>
+                  <pre className="mt-2 max-h-32 overflow-auto rounded-md bg-slate-950 p-2 text-[11px] text-slate-100">{partial}</pre>
+                </details>
+              </div>
+            ) : null}
+
+            {candidate ? (
+              <section className="space-y-3 rounded-xl border-2 border-accent/30 bg-accent/5 p-3.5" aria-labelledby="ai-studio-candidate-title">
+                <div className="flex items-start gap-2">
+                  <Sparkles size={16} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
+                  <div>
+                    <h2 ref={candidateTitleRef} tabIndex={-1} id="ai-studio-candidate-title" className="font-semibold text-text-primary">{t("candidateTitle")}</h2>
+                    <p className="mt-1 text-sm leading-relaxed text-text-secondary">{candidate.explanation}</p>
+                  </div>
                 </div>
-              ) : null}
-              {candidate.variableDiff.preserved.length > 0 ? (
-                <div className="mt-2">
-                  <p className="text-xs font-medium text-text-muted">{t("variablesPreserved")}</p>
-                  <ul className="mt-1 flex flex-wrap gap-1.5 text-xs">
-                    {candidate.variableDiff.preserved.map((name) => (
-                      <li key={name}>
-                        <code className="rounded bg-page px-1.5 py-0.5 text-text-secondary">{`{{${name}}}`}</code>
-                      </li>
-                    ))}
+                {candidate.warnings.length > 0 ? (
+                  <ul className="space-y-1 text-xs text-amber-700" aria-label={t("warningsAria")}>
+                    {candidate.warnings.map((warning) => <li key={warning}>⚠ {localizeStudioWarning(warning)}</li>)}
                   </ul>
+                ) : null}
+                {refinement && (candidate.variableDiff.added.length > 0 || candidate.variableDiff.removed.length > 0 || candidate.variableDiff.preserved.length > 0) ? (
+                  <div className="space-y-2 rounded-lg border border-border bg-page p-3">
+                    <h3 className="text-xs font-semibold text-text-primary">{t("variableDiffTitle")}</h3>
+                    {candidate.variableDiff.added.length > 0 ? <p className="text-xs text-accent">{t("variablesAdded")}: {candidate.variableDiff.added.map((name) => `{{${name}}}`).join(", ")}</p> : null}
+                    {candidate.variableDiff.removed.length > 0 ? <p className="text-xs text-amber-700">{t("variablesRemoved")}: {candidate.variableDiff.removed.map((name) => `{{${name}}}`).join(", ")}</p> : null}
+                    {candidate.variableDiff.preserved.length > 0 ? <p className="text-xs text-text-muted">{t("variablesPreserved")}: {candidate.variableDiff.preserved.map((name) => `{{${name}}}`).join(", ")}</p> : null}
+                  </div>
+                ) : null}
+                {candidate.customVariables.length > 0 ? (
+                  <div className="rounded-lg border border-border bg-page p-3">
+                    <h3 className="text-xs font-semibold text-text-primary">{t("customVariablesTitle")}</h3>
+                    <ul className="mt-1 space-y-1 text-xs text-text-secondary">
+                      {candidate.customVariables.map((variable) => <li key={variable.name}><code>{`{{${variable.name}}}`}</code> — {variable.description}</li>)}
+                    </ul>
+                    <p className="mt-2 text-xs text-text-muted">{t("customVariablesPending")}</p>
+                  </div>
+                ) : null}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={applyCandidate}
+                    disabled={candidateActionDisabled}
+                    className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Check size={15} aria-hidden="true" /> {t("applyCandidate")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={undoLastChange}
+                    disabled={isGenerating}
+                    className="inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm text-text-secondary transition hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Undo2 size={15} aria-hidden="true" /> {t("discardCandidate")}
+                  </button>
                 </div>
-              ) : null}
+              </section>
+            ) : null}
+            {error ? <p ref={errorRef} tabIndex={-1} role="alert" className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-sm text-danger">{error}</p> : null}
+            {error && lastFailedMessage && !isGenerating ? (
+              <button type="button" onClick={() => void runGeneration(lastFailedMessage)} className="inline-flex min-h-[40px] items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-text-secondary transition hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                <Sparkles size={15} aria-hidden="true" /> {t("retryGeneration")}
+              </button>
+            ) : null}
+          </div>
+
+          <form onSubmit={handleGenerate} aria-busy={isGenerating} className="space-y-3 border-t border-border bg-page p-3.5">
+            <label htmlFor="ai-studio-briefing" className="sr-only">{refinement ? t("refinementBriefingLabel") : t("briefingLabel")}</label>
+            <textarea
+              id="ai-studio-briefing"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              maxLength={8000}
+              rows={4}
+              placeholder={refinement ? t("refinementBriefingPlaceholder") : t("briefingPlaceholder")}
+              className="w-full resize-none rounded-lg border border-border bg-page-alt p-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            />
+            <div className="flex items-center justify-between gap-2 text-xs text-text-muted">
+              <span>{t("briefingHint", { count: message.length })}</span>
+              <span>{t("contextWindow", { count: sessionMessages.length, max: AI_STUDIO_MAX_RECENT_MESSAGES })}</span>
             </div>
-          ) : null}
-          {candidate.customVariables.length > 0 ? (
-            <div className="rounded-lg border border-border bg-page p-3">
-              <h3 className="text-sm font-medium text-text-primary">{t("customVariablesTitle")}</h3>
-              <ul className="mt-2 space-y-1 text-sm text-text-secondary">
-                {candidate.customVariables.map((variable) => (
-                  <li key={variable.name}>
-                    <code>{`{{${variable.name}}}`}</code> — {variable.description}
+            <div className="flex flex-wrap items-center gap-2">
+              {visionAvailable ? (
+                <label className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 text-xs text-text-secondary transition hover:bg-bg-secondary focus-within:outline-none focus-within:ring-2 focus-within:ring-accent">
+                  <Upload size={14} aria-hidden="true" /> {uploadingImage ? t("imageUploading") : t("imageAttach")}
+                  <input type="file" accept="image/png,image/jpeg,image/webp" multiple className="sr-only" onChange={handleAttachFiles} disabled={isGenerating || uploadingImage || attachedImages.length >= AI_STUDIO_MAX_IMAGES_PER_MESSAGE} aria-label={t("imageAttachAria")} />
+                </label>
+              ) : <span className="inline-flex items-center gap-1.5 text-xs text-text-muted"><EyeOff size={14} aria-hidden="true" /> {t("imageVisionBlocked")}</span>}
+              <span className="ml-auto text-xs text-text-muted">{t("imageCount", { count: attachedImages.length })}</span>
+            </div>
+            {attachedImages.length > 0 ? (
+              <ul className="flex flex-wrap gap-1.5" aria-label={t("imageListAria")}>
+                {attachedImages.map((image) => (
+                  <li key={image.id} className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-page-alt px-2 py-1 text-xs text-text-secondary">
+                    <ImageIcon size={13} aria-hidden="true" className="shrink-0 text-text-muted" />
+                    <span className="max-w-32 truncate">{image.fileName}</span>
+                    <span className="shrink-0 text-[11px] text-text-muted">{imageFormatLabel(image.format)}</span>
+                    <button type="button" onClick={() => handleRemoveImage(image.id)} aria-label={t("imageRemove", { name: image.fileName })} className="rounded p-0.5 text-text-muted hover:bg-bg-secondary hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Trash2 size={13} aria-hidden="true" /></button>
                   </li>
                 ))}
               </ul>
-              <p className="mt-2 text-xs text-text-muted">{t("customVariablesPending")}</p>
+            ) : null}
+            {attachedBlocked ? <p role="alert" className="text-xs text-amber-700">{t("imageVisionSwitchWarning")}</p> : null}
+            {imageError ? <p role="alert" className="text-xs text-danger">{imageError}</p> : null}
+            <label htmlFor="ai-studio-consent" className="flex items-start gap-2 text-xs text-text-secondary">
+              <input id="ai-studio-consent" type="checkbox" checked={consentChecked} required aria-required="true" aria-describedby="ai-studio-consent-copy ai-studio-consent-version" onChange={(event) => setConsentChecked(event.target.checked)} className="mt-0.5 size-4 shrink-0 accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" />
+              <span id="ai-studio-consent-copy">{t("consentText", { provider: providerDisplayName(provider) })}</span>
+            </label>
+            <p className="text-[11px] leading-relaxed text-text-muted">
+              {t("consentLegalPrefix")} <Link href="/privacy" className="text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t("consentPrivacyLink")}</Link> {t("consentLegalAnd")} <Link href="/terms" className="text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t("consentTermsLink")}</Link>.
+            </p>
+            <p id="ai-studio-consent-version" className="text-[11px] text-text-muted">{t("consentVersion", { version: config.consentVersion })}</p>
+            <p className="text-[11px] leading-relaxed text-text-muted">{t("imagePrivacyHint")}</p>
+            {justSwitchedProvider ? <p className="text-xs text-text-muted">{t("providerSwitchContext")}</p> : null}
+            {compactionState === "compacting" ? <p role="status" className="text-xs font-medium text-accent">{t("contextCompacting")}</p> : null}
+            {compactionState === "compacted" ? <p className="text-xs font-medium text-accent">{t("contextCompacted")}</p> : null}
+            {compactionState === "error" ? <p role="status" className="text-xs font-medium text-amber-800">{t("contextCompactionError")}</p> : null}
+            <div className="flex items-center gap-2">
+              <button type="submit" disabled={isGenerating || uploadingImage || recordConsent.isPending || !message.trim() || !consentChecked} className="inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
+                <Send size={15} aria-hidden="true" /> {isGenerating ? t("generating") : t("generate")}
+              </button>
+              {selectedModel?.streaming ? <span className="sr-only">{t("streamingSupported")}</span> : null}
+              <span className="sr-only" role="status" aria-live="polite">{isGenerating ? t("generationStatus") : ""}</span>
+            </div>
+          </form>
+        </aside>
+      </div>
+
+      <Modal
+        id="ai-studio-protected-action"
+        open={confirmation !== null}
+        onOpenChange={(open) => { if (!open) closeConfirmation(); }}
+        title={confirmation === "removeVariables" ? t("removeVariablesConfirmationTitle") : t("updateConfirmationTitle")}
+        description={confirmation === "removeVariables" ? t("removeVariablesConfirmationDescription") : t("updateConfirmationDescription")}
+        closeLabel={t("cancelAction")}
+        size="sm"
+      >
+        <div className="space-y-4">
+          {confirmation === "removeVariables" && candidate ? (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+              <p className="text-xs font-semibold text-amber-800">{t("variablesRemoved")}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {candidate.variableDiff.removed.map((name) => <code key={name} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-800">{`{{${name}}}`}</code>)}
+              </div>
             </div>
           ) : null}
-        </section>
-      ) : null}
-
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-        <div className="space-y-4">
-           <form onSubmit={saveTemplate} className="space-y-4 rounded-xl border border-border bg-page-alt p-4"><div className="flex items-center justify-between gap-3"><h2 className="font-semibold text-text-primary">{t("editorTitle")}</h2><button type="button" onClick={undoLastChange} disabled={isAIStudioUndoDisabled({ isGenerating, historyLength: history.length, hasCandidate: candidate !== null })} className="inline-flex min-h-[40px] items-center gap-2 rounded-md border border-border px-3 py-2 text-xs text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40"><Undo2 size={14} aria-hidden="true" /> {t("undo")}</button></div><label htmlFor="ai-studio-template-name" className="block text-sm font-medium text-text-primary">{t("nameLabel")}</label><input id="ai-studio-template-name" value={templateName} onChange={(event) => setTemplateName(event.target.value)} maxLength={120} required placeholder={t("namePlaceholder")} className="min-h-[44px] w-full rounded-md border border-border bg-page px-3 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" /><label htmlFor="ai-studio-html" className="block text-sm font-medium text-text-primary">{t("htmlLabel")}</label><textarea id="ai-studio-html" value={html} onChange={(event) => setHtml(event.target.value)} rows={22} spellCheck={false} placeholder={t("htmlPlaceholder")} className="w-full resize-y rounded-md border border-border bg-page p-3 font-mono text-xs leading-relaxed text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" /><p className="text-xs text-text-muted">{refinement ? t("saveAsNewHint") : t("saveHint")}</p><button type="submit" disabled={createTemplate.isPending || !templateName.trim() || !html.trim()} className="inline-flex min-h-[44px] items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">{createTemplate.isPending ? t("saving") : t("saveAsNew")}</button></form>
-          {refinement ? <section className="space-y-4 rounded-xl border border-border bg-page-alt p-4" aria-labelledby="ai-studio-update-title"><h2 id="ai-studio-update-title" className="font-semibold text-text-primary">{t("updateOriginalTitle")}</h2><p className="text-sm text-text-secondary">{t("updateOriginalDescription")}</p><p className={`text-sm ${draftCount > 0 ? "text-amber-700" : "text-text-muted"}`}>{draftCount > 0 ? t("draftImpactWarning", { count: draftCount }) : t("draftImpactNone")}</p><label className="flex items-start gap-3 rounded-lg border border-border bg-page p-3 text-sm text-text-secondary focus-within:outline-none focus-within:ring-2 focus-within:ring-accent"><input type="checkbox" checked={confirmUpdate} onChange={(event) => handleConfirmUpdateChange(event.target.checked)} className="mt-1 size-4 accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" /><span>{t("updateConfirm")}</span></label><button type="button" onClick={handleUpdateOriginal} disabled={updateOriginal.isPending || refreshingDraftCount || !confirmUpdate || !html.trim()} className="inline-flex min-h-[44px] items-center rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">{updateOriginal.isPending ? t("updating") : t("updateOriginal")}</button></section> : null}
+          {confirmation === "updateOriginal" ? (
+            <p className={`text-sm ${draftCount > 0 ? "text-amber-700" : "text-text-secondary"}`}>
+              {draftCount > 0 ? t("draftImpactWarning", { count: draftCount }) : t("draftImpactNone")}
+            </p>
+          ) : null}
+          <label className="flex items-start gap-3 rounded-lg border border-border bg-page p-3 text-sm text-text-secondary focus-within:outline-none focus-within:ring-2 focus-within:ring-accent">
+            <input
+              type="checkbox"
+              checked={confirmation === "removeVariables" ? confirmRemoval : confirmUpdate}
+              onChange={(event) => {
+                if (confirmation === "removeVariables") {
+                  setConfirmedRemovalCandidate(event.target.checked ? candidate : null);
+                } else {
+                  void handleConfirmUpdateChange(event.target.checked);
+                }
+              }}
+              className="mt-1 size-4 shrink-0 accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            />
+            <span>{confirmation === "removeVariables" ? t("confirmRemovedVariables") : t("updateConfirm")}</span>
+          </label>
+          <label className="flex items-start gap-3 text-sm text-text-secondary">
+            <input type="checkbox" checked={rememberConfirmation} onChange={(event) => setRememberConfirmation(event.target.checked)} className="mt-1 size-4 shrink-0 accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" />
+            <span>{t("rememberConfirmation")}</span>
+          </label>
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
+            <button type="button" onClick={closeConfirmation} className="inline-flex min-h-[42px] items-center rounded-md border border-border px-3 py-2 text-sm text-text-secondary transition hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t("cancelAction")}</button>
+            <button type="button" onClick={confirmProtectedAction} disabled={!protectedActionReady || refreshingDraftCount || updateOriginal.isPending} className="inline-flex min-h-[42px] items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"><Check size={15} aria-hidden="true" /> {t("confirmAction")}</button>
+          </div>
         </div>
-         <section className="space-y-3 rounded-xl border border-border bg-page-alt p-4" aria-labelledby="ai-studio-preview-title"><div className="flex items-center justify-between gap-3"><h2 id="ai-studio-preview-title" className="font-semibold text-text-primary">{t("previewTitle")}</h2><span className="text-xs text-text-muted">{t("syntheticValues")}</span></div>{previewError ? <p role="alert" className="text-sm text-danger">{previewError}</p> : null}{!preview ? <p className="rounded-md border border-border bg-page p-4 text-sm text-text-muted">{t("previewEmpty")}</p> : <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_390px]"><div role="group" aria-label={t("desktopPreviewTitle")}><p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-muted">{t("desktop")}</p><ProposalHtmlPreview html={preview} title={t("desktopPreviewTitle")} className="h-[540px]" /></div><div role="group" aria-label={t("mobilePreviewTitle")} className="max-w-[390px]"><p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-muted">{t("mobile")}</p><ProposalHtmlPreview html={preview} title={t("mobilePreviewTitle")} className="h-[540px]" /></div></div>}</section>
-      </div>
+      </Modal>
     </div>
   );
 }

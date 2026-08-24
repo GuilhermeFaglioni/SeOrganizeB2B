@@ -285,6 +285,22 @@ describe("AI Studio service", () => {
     expect(mocks.usageUpdateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: "error", errorCategory: "INVALID_STRUCTURED_OUTPUT" }) }));
   });
 
+  it("accepts an overescaped HTML attribute from a structured provider response", async () => {
+    mocks.generateStructured.mockResolvedValue({
+      text: String.raw`{"explanation":"Candidato","html":"<section class=\\"hero\\"><p>Seguro</p></section>","suggestedName":"Novo","customVariables":[],"sessionSummary":{"focus":"Resumo","decisions":[],"pending":[],"variables":[]}}`,
+    });
+
+    const result = await generateTemplateCandidate({
+      tenantId: "tenant-1",
+      actorId: "user-1",
+      provider: "openai",
+      message: "Briefing",
+      consentVersion: AI_STUDIO_CONSENT_VERSION,
+    });
+
+    expect(result.candidate.html).toContain('<section class="hero">');
+  });
+
   it("uses provider streaming deltas without treating partial text as HTML", async () => {
     async function* chunks() {
       yield '{"explanation":"Candidato",';
