@@ -1261,9 +1261,9 @@ function TemplateStudio({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-page text-text-primary">
-      <header className="flex h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-page-alt px-4 sm:px-6">
-        <div className="flex min-w-0 items-center gap-3">
+    <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-page text-text-primary">
+      <header className="flex min-h-[4rem] shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-page-alt px-3 py-2 sm:gap-3 sm:px-6">
+        <div className="flex min-w-0 max-w-full items-center gap-3">
           <button
             type="button"
             onClick={handleBack}
@@ -1280,7 +1280,7 @@ function TemplateStudio({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
           {candidate ? (
             <span className="hidden items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent sm:inline-flex">
               <Sparkles size={13} aria-hidden="true" /> {t("candidatePendingLabel")}
@@ -1421,8 +1421,8 @@ function TemplateStudio({
       </header>
 
       {refinement ? (
-        <div className="border-b border-border bg-amber-500/5 px-4 py-2.5 sm:px-5">
-          <p className="text-xs text-text-secondary">{t("refiningBase", { name: refinement.name })}</p>
+        <div className="shrink-0 border-b border-border bg-amber-500/5 px-4 py-2.5 sm:px-5">
+          <p className="break-words text-xs text-text-secondary">{t("refiningBase", { name: refinement.name })}</p>
           {refinement.warnings.length > 0 ? (
             <ul className="mt-1 space-y-1 text-xs text-amber-700" aria-label={t("warningsAria")}>
               {refinement.warnings.map((warning) => <li key={warning}>⚠ {localizeStudioWarning(warning)}</li>)}
@@ -1431,10 +1431,10 @@ function TemplateStudio({
         </div>
       ) : null}
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(240px,0.85fr)_minmax(320px,1.15fr)] lg:grid-cols-[minmax(0,1fr)_390px] lg:grid-rows-1" aria-busy={isGenerating}>
-        <main className="flex min-h-0 min-w-0 flex-col bg-page">
-          <form onSubmit={saveTemplate} className="flex min-h-0 flex-1 flex-col">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
+      <div className="grid min-h-0 min-w-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] overflow-hidden lg:grid-cols-[minmax(0,1fr)_390px] lg:grid-rows-1" aria-busy={isGenerating}>
+        <main className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-page">
+          <form onSubmit={saveTemplate} className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
               <div className="min-w-0 flex-1">
                 <label htmlFor="ai-studio-template-name" className="sr-only">{t("nameLabel")}</label>
                 <input
@@ -1460,7 +1460,7 @@ function TemplateStudio({
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-5">
+            <div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-3 sm:p-5">
               {studioView === "html" ? (
                 <section className="flex h-full min-h-[520px] flex-col rounded-xl border border-border bg-page-alt p-4" aria-labelledby="ai-studio-editor-title">
                   <div className="mb-3 flex items-center justify-between gap-3">
@@ -1481,7 +1481,7 @@ function TemplateStudio({
                   />
                 </section>
               ) : (
-                <section className="space-y-3" aria-labelledby="ai-studio-preview-title">
+                <section className="min-w-0 space-y-3" aria-labelledby="ai-studio-preview-title">
                   <div className="flex items-center justify-between gap-3 px-1">
                     <div>
                       <h2 id="ai-studio-preview-title" className="font-semibold text-text-primary">{t("previewTitle")}</h2>
@@ -1493,12 +1493,12 @@ function TemplateStudio({
                   {!preview ? (
                     <p className="flex min-h-[520px] items-center justify-center rounded-xl border border-dashed border-border bg-page-alt p-6 text-center text-sm text-text-muted">{t("previewEmpty")}</p>
                   ) : (
-                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_250px]">
-                      <div role="group" aria-label={t("desktopPreviewTitle")}>
+                    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_250px]">
+                      <div role="group" aria-label={t("desktopPreviewTitle")} className="min-w-0">
                         <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Monitor size={13} aria-hidden="true" /> {t("desktop")}</p>
                         <ProposalHtmlPreview html={preview} title={t("desktopPreviewTitle")} className="h-[min(66vh,720px)]" />
                       </div>
-                      <div role="group" aria-label={t("mobilePreviewTitle")} className="max-w-[390px]">
+                      <div role="group" aria-label={t("mobilePreviewTitle")} className="min-w-0 max-w-[390px]">
                         <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Monitor size={13} aria-hidden="true" /> {t("mobile")}</p>
                         <ProposalHtmlPreview html={preview} title={t("mobilePreviewTitle")} className="h-[min(66vh,720px)]" />
                       </div>
@@ -1508,7 +1508,7 @@ function TemplateStudio({
               )}
             </div>
 
-            <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-page-alt px-4 py-3 sm:px-6">
+            <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-page-alt px-4 py-3 sm:px-6">
               <p className="max-w-xl text-xs text-text-muted">{refinement ? t("saveAsNewHint") : t("saveHint")}</p>
               <button
                 type="submit"
@@ -1521,19 +1521,19 @@ function TemplateStudio({
           </form>
         </main>
 
-        <aside className="flex min-h-0 min-w-0 flex-col border-t border-border bg-page-alt lg:border-l lg:border-t-0">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <div className="flex items-center gap-2">
+        <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden border-t border-border bg-page-alt lg:border-l lg:border-t-0">
+          <div className="flex min-w-0 shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
+            <div className="flex min-w-0 items-center gap-2">
               <span className="flex size-8 items-center justify-center rounded-lg bg-accent/10 text-accent"><MessageCircle size={16} aria-hidden="true" /></span>
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-sm font-semibold text-text-primary">{t("chatTitle")}</h2>
-                <p className="text-xs text-text-muted">{providerDisplayName(provider)} · {selectedModel?.id ?? model}</p>
+                <p className="truncate text-xs text-text-muted">{providerDisplayName(provider)} · {selectedModel?.id ?? model}</p>
               </div>
             </div>
             <span className="size-2 rounded-full bg-emerald-500" aria-label={t("connectedStatus")} title={t("connectedStatus")} />
           </div>
 
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
+          <div className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
             {sessionMessages.length === 0 && !candidate && !partial ? (
               <div className="flex min-h-full flex-col justify-center px-2 py-8 text-center">
                 <span className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-accent/10 text-accent">
@@ -1544,9 +1544,9 @@ function TemplateStudio({
               </div>
             ) : null}
             {sessionMessages.map((sessionMessage, index) => (
-              <article key={`${sessionMessage.role}-${index}`} className={sessionMessage.role === "user" ? "ml-auto max-w-[92%]" : "max-w-[94%]"}>
+              <article key={`${sessionMessage.role}-${index}`} className={sessionMessage.role === "user" ? "ml-auto min-w-0 max-w-[92%]" : "min-w-0 max-w-[94%]"}>
                 {sessionMessage.role === "user" ? (
-                  <div className="rounded-2xl border border-border bg-page-alt px-4 py-3 text-sm leading-relaxed text-text-primary shadow-sm">
+                  <div className="break-words rounded-2xl border border-border bg-page-alt px-4 py-3 text-sm leading-relaxed text-text-primary shadow-sm">
                     {sessionMessage.content}
                   </div>
                 ) : (
@@ -1555,7 +1555,7 @@ function TemplateStudio({
                       <Sparkles size={15} className="text-accent" aria-hidden="true" />
                       {t("thinkingFor", { seconds: 1 })}
                     </p>
-                    <p className="text-[15px] font-medium leading-7 text-text-primary">{sessionMessage.content}</p>
+                    <p className="break-words text-[15px] font-medium leading-7 text-text-primary">{sessionMessage.content}</p>
                     <footer className="flex items-center justify-end gap-3 text-xs text-text-muted">
                       <span>{t("justNow")}</span>
                       <button type="button" onClick={() => copyChatMessage(sessionMessage.content)} aria-label={t("copyMessage")} className="rounded-md p-1 transition hover:bg-bg-secondary hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
@@ -1569,17 +1569,17 @@ function TemplateStudio({
             {partial ? (
               <div role="status" aria-live="polite" aria-label={t("streamingOutputAria")} className="space-y-3 px-1 py-1">
                 <p className="flex items-center gap-2 text-sm font-medium text-accent"><Sparkles size={15} aria-hidden="true" /> {t("generating")}</p>
-                <p className="text-[15px] leading-7 text-text-primary">{partial}</p>
+                <p className="break-words text-[15px] leading-7 text-text-primary">{partial}</p>
               </div>
             ) : null}
 
             {candidate ? (
               <section className="space-y-3 rounded-xl border-2 border-accent/30 bg-accent/5 p-3.5" aria-labelledby="ai-studio-candidate-title">
-                <div className="flex items-start gap-2">
+                <div className="flex min-w-0 items-start gap-2">
                   <Sparkles size={16} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
-                  <div>
+                  <div className="min-w-0">
                     <h2 ref={candidateTitleRef} tabIndex={-1} id="ai-studio-candidate-title" className="font-semibold text-text-primary">{t("candidateTitle")}</h2>
-                    <p className="mt-1 text-sm leading-relaxed text-text-secondary">{candidate.explanation}</p>
+                    <p className="mt-1 break-words text-sm leading-relaxed text-text-secondary">{candidate.explanation}</p>
                   </div>
                 </div>
                 {candidate.warnings.length > 0 ? (
@@ -1590,16 +1590,16 @@ function TemplateStudio({
                 {refinement && (candidate.variableDiff.added.length > 0 || candidate.variableDiff.removed.length > 0 || candidate.variableDiff.preserved.length > 0) ? (
                   <div className="space-y-2 rounded-lg border border-border bg-page p-3">
                     <h3 className="text-xs font-semibold text-text-primary">{t("variableDiffTitle")}</h3>
-                    {candidate.variableDiff.added.length > 0 ? <p className="text-xs text-accent">{t("variablesAdded")}: {candidate.variableDiff.added.map((name) => `{{${name}}}`).join(", ")}</p> : null}
-                    {candidate.variableDiff.removed.length > 0 ? <p className="text-xs text-amber-700">{t("variablesRemoved")}: {candidate.variableDiff.removed.map((name) => `{{${name}}}`).join(", ")}</p> : null}
-                    {candidate.variableDiff.preserved.length > 0 ? <p className="text-xs text-text-muted">{t("variablesPreserved")}: {candidate.variableDiff.preserved.map((name) => `{{${name}}}`).join(", ")}</p> : null}
+                    {candidate.variableDiff.added.length > 0 ? <p className="break-words text-xs text-accent">{t("variablesAdded")}: {candidate.variableDiff.added.map((name) => `{{${name}}}`).join(", ")}</p> : null}
+                    {candidate.variableDiff.removed.length > 0 ? <p className="break-words text-xs text-amber-700">{t("variablesRemoved")}: {candidate.variableDiff.removed.map((name) => `{{${name}}}`).join(", ")}</p> : null}
+                    {candidate.variableDiff.preserved.length > 0 ? <p className="break-words text-xs text-text-muted">{t("variablesPreserved")}: {candidate.variableDiff.preserved.map((name) => `{{${name}}}`).join(", ")}</p> : null}
                   </div>
                 ) : null}
                 {candidate.customVariables.length > 0 ? (
                   <div className="rounded-lg border border-border bg-page p-3">
                     <h3 className="text-xs font-semibold text-text-primary">{t("customVariablesTitle")}</h3>
                     <ul className="mt-1 space-y-1 text-xs text-text-secondary">
-                      {candidate.customVariables.map((variable) => <li key={variable.name}><code>{`{{${variable.name}}}`}</code> — {variable.description}</li>)}
+                      {candidate.customVariables.map((variable) => <li key={variable.name} className="break-words"><code>{`{{${variable.name}}}`}</code> — {variable.description}</li>)}
                     </ul>
                     <p className="mt-2 text-xs text-text-muted">{t("customVariablesPending")}</p>
                   </div>
@@ -1635,9 +1635,9 @@ function TemplateStudio({
 
           <form onSubmit={handleGenerate} aria-busy={isGenerating} className="shrink-0 border-t border-border bg-page p-3 sm:p-4">
             <div className="rounded-2xl border border-border bg-page-alt p-3 shadow-sm transition focus-within:border-accent/60 focus-within:shadow-md">
-              <div className="flex items-start justify-between gap-3 px-1 text-xs text-text-muted">
-                <span>{t("briefingHint", { count: message.length })}</span>
-                <span className="text-right">{t("contextWindow", { count: sessionMessages.length, max: AI_STUDIO_MAX_RECENT_MESSAGES })}</span>
+              <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 px-1 text-xs text-text-muted">
+                <span className="min-w-0 break-words">{t("briefingHint", { count: message.length })}</span>
+                <span className="min-w-0 break-words text-left sm:text-right">{t("contextWindow", { count: sessionMessages.length, max: AI_STUDIO_MAX_RECENT_MESSAGES })}</span>
               </div>
               <label htmlFor="ai-studio-briefing" className="sr-only">{refinement ? t("refinementBriefingLabel") : t("briefingLabel")}</label>
               <textarea
@@ -1661,19 +1661,19 @@ function TemplateStudio({
                   ))}
                 </ul>
               ) : null}
-              <div className="flex items-center justify-between gap-2 border-t border-border/70 pt-2">
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <label className="relative min-w-0">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-2">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                  <label className="relative min-w-0 max-w-[112px] flex-[1_1_96px]">
                     <span className="sr-only">{t("providerLabel")}</span>
-                    <select value={provider} onChange={(event) => handleProviderChange(event.target.value)} disabled={isGenerating} className="h-8 max-w-[112px] appearance-none rounded-lg bg-bg-secondary px-2.5 pr-3 text-xs font-medium text-text-secondary outline-none transition hover:text-text-primary focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
+                    <select value={provider} onChange={(event) => handleProviderChange(event.target.value)} disabled={isGenerating} className="h-8 w-full min-w-0 appearance-none truncate rounded-lg bg-bg-secondary px-2.5 pr-3 text-xs font-medium text-text-secondary outline-none transition hover:text-text-primary focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
                       {config.connections.map((connection) => (
                         <option key={connection.id} value={connection.provider}>{providerDisplayName(connection.provider)}</option>
                       ))}
                     </select>
                   </label>
-                  <label className="relative min-w-0">
+                  <label className="relative min-w-0 max-w-[112px] flex-[1_1_96px]">
                     <span className="sr-only">{t("modelLabel")}</span>
-                    <select value={model} onChange={(event) => setModel(event.target.value)} className="h-8 max-w-[112px] appearance-none rounded-lg bg-transparent px-1.5 text-xs text-text-muted outline-none transition hover:text-text-primary focus-visible:ring-2 focus-visible:ring-accent">
+                    <select value={model} onChange={(event) => setModel(event.target.value)} className="h-8 w-full min-w-0 appearance-none truncate rounded-lg bg-transparent px-1.5 text-xs text-text-muted outline-none transition hover:text-text-primary focus-visible:ring-2 focus-visible:ring-accent">
                       {selectedConnection.models.map((item) => (
                         <option key={item.id} value={item.id}>{item.id}</option>
                       ))}
@@ -1685,10 +1685,10 @@ function TemplateStudio({
                       <span className="sr-only">{uploadingImage ? t("imageUploading") : t("imageAttach")}</span>
                       <input type="file" accept="image/png,image/jpeg,image/webp" multiple className="sr-only" onChange={handleAttachFiles} disabled={isGenerating || uploadingImage || attachedImages.length >= AI_STUDIO_MAX_IMAGES_PER_MESSAGE} aria-label={t("imageAttachAria")} />
                     </label>
-                  ) : <span className="inline-flex items-center gap-1.5 px-2 text-xs text-text-muted"><EyeOff size={14} aria-hidden="true" /> {t("imageVisionBlocked")}</span>}
-                  <span className="px-1 text-xs text-text-muted">{t("imageCount", { count: attachedImages.length })}</span>
+                  ) : <span className="inline-flex min-w-0 max-w-[9rem] items-center gap-1.5 overflow-hidden px-2 text-xs text-text-muted" title={t("imageVisionBlocked")}><EyeOff size={14} className="shrink-0" aria-hidden="true" /><span className="truncate">{t("imageVisionBlocked")}</span></span>}
+                  <span className="shrink-0 px-1 text-xs text-text-muted">{t("imageCount", { count: attachedImages.length })}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex shrink-0 items-center gap-1.5">
                   {selectedModel?.streaming ? <span className="sr-only">{t("streamingSupported")}</span> : null}
                   <button type="submit" aria-label={isGenerating ? t("generating") : t("generate")} disabled={isGenerating || uploadingImage || recordConsent.isPending || !message.trim()} className="inline-flex size-10 items-center justify-center rounded-xl bg-accent text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
                     <Send size={17} aria-hidden="true" />

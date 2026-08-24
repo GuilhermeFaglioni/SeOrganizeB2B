@@ -12,6 +12,7 @@ import {
   Settings,
   Wallet,
   CreditCard,
+  Sparkles,
   X,
   LogOut,
 } from "lucide-react";
@@ -26,6 +27,9 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 function isRouteActive(pathname: string, href: string) {
+  if (pathname === "/financial/proposals/templates/ai-studio") {
+    return href === pathname;
+  }
   return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 }
 
@@ -54,6 +58,7 @@ export function Sidebar({
     { href: "/calendar", label: t("calendar"), icon: Calendar, testId: "nav-calendar", visible: can("calendar.view") && isModuleAllowed("calendar") },
     { href: "/documents", label: t("documents"), icon: FileText, testId: "nav-documents", visible: can("documents.view") && isModuleAllowed("documents") },
     { href: "/financial", label: t("financial"), icon: Wallet, testId: "nav-financial", visible: (hasFinancialView(data?.permissions ?? []) || Boolean(data?.isAdmin)) && isAnyFinancialAllowed() },
+    { href: "/financial/proposals/templates/ai-studio", label: t("aiStudio"), icon: Sparkles, testId: "nav-ai-studio", visible: can("financial.proposals.generateWithAi") && isModuleAllowed("financial.proposals") },
     { href: "/plans", label: t("plans"), icon: CreditCard, testId: "nav-plans", visible: true },
     { href: "/settings", label: t("settings"), icon: Settings, testId: "nav-settings", visible: true },
   ].filter((item) => item.visible);
