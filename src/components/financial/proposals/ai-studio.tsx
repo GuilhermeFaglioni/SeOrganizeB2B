@@ -21,6 +21,7 @@ import {
   Send,
   Settings2,
   Sparkles,
+  Smartphone,
   Trash2,
   Undo2,
 } from "lucide-react";
@@ -107,6 +108,7 @@ interface StudioConfig {
 type CompactionState = "idle" | "compacting" | "compacted" | "error";
 type LeaveSessionOptions = { releaseRouterGuard?: boolean };
 type StudioView = "preview" | "html";
+type PreviewViewport = "desktop" | "mobile";
 type ConfirmationKind = "removeVariables" | "updateOriginal";
 
 const AI_STUDIO_CONFIRMATION_STORAGE_KEY = "seorganize:ai-studio:confirmations";
@@ -438,6 +440,7 @@ function TemplateStudio({
   const [justSwitchedProvider, setJustSwitchedProvider] = useState(false);
   const [sessionSnapshot, setSessionSnapshot] = useState<string | null>(null);
   const [studioView, setStudioView] = useState<StudioView>("preview");
+  const [previewViewport, setPreviewViewport] = useState<PreviewViewport>("desktop");
   const [confirmation, setConfirmation] = useState<ConfirmationKind | null>(null);
   const [rememberConfirmation, setRememberConfirmation] = useState(false);
   const [rememberedConfirmations, setRememberedConfirmations] = useState<Record<ConfirmationKind, boolean>>({
@@ -1482,26 +1485,46 @@ function TemplateStudio({
                 </section>
               ) : (
                 <section className="min-w-0 space-y-3" aria-labelledby="ai-studio-preview-title">
-                  <div className="flex items-center justify-between gap-3 px-1">
+                  <div className="flex flex-wrap items-start justify-between gap-3 px-1">
                     <div>
                       <h2 id="ai-studio-preview-title" className="font-semibold text-text-primary">{t("previewTitle")}</h2>
                       <p className="mt-1 text-xs text-text-muted">{candidate ? t("candidatePreview") : t("syntheticValues")}</p>
                     </div>
-                    <Monitor size={18} className="text-text-muted" aria-hidden="true" />
+                    <div className="inline-flex shrink-0 rounded-lg border border-border bg-page p-1" role="group" aria-label={t("previewViewportLabel")}>
+                      <button
+                        type="button"
+                        aria-pressed={previewViewport === "desktop"}
+                        onClick={() => setPreviewViewport("desktop")}
+                        className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${previewViewport === "desktop" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
+                      >
+                        <Monitor size={14} aria-hidden="true" /> {t("desktop")}
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={previewViewport === "mobile"}
+                        onClick={() => setPreviewViewport("mobile")}
+                        className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-md px-3 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${previewViewport === "mobile" ? "bg-accent text-white" : "text-text-secondary hover:bg-bg-secondary"}`}
+                      >
+                        <Smartphone size={14} aria-hidden="true" /> {t("mobile")}
+                      </button>
+                    </div>
                   </div>
                   {previewError ? <p role="alert" className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-sm text-danger">{previewError}</p> : null}
                   {!preview ? (
                     <p className="flex min-h-[520px] items-center justify-center rounded-xl border border-dashed border-border bg-page-alt p-6 text-center text-sm text-text-muted">{t("previewEmpty")}</p>
                   ) : (
-                    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_250px]">
-                      <div role="group" aria-label={t("desktopPreviewTitle")} className="min-w-0">
-                        <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Monitor size={13} aria-hidden="true" /> {t("desktop")}</p>
-                        <ProposalHtmlPreview html={preview} title={t("desktopPreviewTitle")} className="h-[min(66vh,720px)]" />
-                      </div>
-                      <div role="group" aria-label={t("mobilePreviewTitle")} className="min-w-0 max-w-[390px]">
-                        <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Monitor size={13} aria-hidden="true" /> {t("mobile")}</p>
-                        <ProposalHtmlPreview html={preview} title={t("mobilePreviewTitle")} className="h-[min(66vh,720px)]" />
-                      </div>
+                    <div className="min-w-0">
+                      {previewViewport === "desktop" ? (
+                        <div role="group" aria-label={t("desktopPreviewTitle")} className="min-w-0">
+                          <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Monitor size={13} aria-hidden="true" /> {t("desktop")}</p>
+                          <ProposalHtmlPreview html={preview} title={t("desktopPreviewTitle")} className="h-[min(66vh,720px)]" />
+                        </div>
+                      ) : (
+                        <div role="group" aria-label={t("mobilePreviewTitle")} className="mx-auto min-w-0 max-w-[390px]">
+                          <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-medium text-text-muted"><Smartphone size={13} aria-hidden="true" /> {t("mobile")}</p>
+                          <ProposalHtmlPreview html={preview} title={t("mobilePreviewTitle")} className="h-[min(66vh,720px)]" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </section>

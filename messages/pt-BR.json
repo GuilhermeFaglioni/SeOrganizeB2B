@@ -2171,6 +2171,7 @@
       "previewFailed": "Falha ao gerar o preview",
       "desktop": "Desktop",
       "mobile": "Mobile",
+      "previewViewportLabel": "Largura do preview",
       "desktopPreviewTitle": "Pré-visualização desktop do template",
       "mobilePreviewTitle": "Pré-visualização mobile do template",
       "streamFailed": "O streaming foi interrompido.",

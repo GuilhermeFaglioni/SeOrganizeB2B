@@ -278,6 +278,11 @@ describe("AI Studio #176 hardening UI seams", () => {
     expect(source).not.toContain("Não foi possível concluir a operação.");
     expect(source).toContain("desktopPreviewTitle");
     expect(source).toContain("mobilePreviewTitle");
+    expect(source).toContain('type PreviewViewport = "desktop" | "mobile"');
+    expect(source).toContain("previewViewport");
+    expect(source).toContain('t("previewViewportLabel")');
+    expect(source).toContain('setPreviewViewport("desktop")');
+    expect(source).toContain('setPreviewViewport("mobile")');
     expect(source).toContain('title={t("desktopPreviewTitle")} className="h-[min(66vh,720px)]"');
     expect(source).toContain('title={t("mobilePreviewTitle")} className="h-[min(66vh,720px)]"');
     expect(source).toContain("overflow-y-auto p-4");
