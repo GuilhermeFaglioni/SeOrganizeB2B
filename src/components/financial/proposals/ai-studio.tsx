@@ -10,10 +10,12 @@ import {
   Check,
   ChevronDown,
   Code2,
+  Copy,
   EyeOff,
   Image as ImageIcon,
   MessageCircle,
   Monitor,
+  Paperclip,
   RotateCcw,
   Save,
   Send,
@@ -21,7 +23,6 @@ import {
   Sparkles,
   Trash2,
   Undo2,
-  Upload,
 } from "lucide-react";
 import { useCan } from "@/hooks/use-permissions";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -222,30 +223,32 @@ export function AIStudioEntry() {
 
   if (mode === "choice") {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Link href="/financial/proposals/templates" aria-label={t("backToTemplates")} className="rounded-md p-2 text-text-secondary hover:bg-bg-secondary">
-            <ArrowLeft size={18} aria-hidden="true" />
-          </Link>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{t("eyebrow")}</p>
-            <h1 className="text-xl font-semibold text-text-primary">{t("title")}</h1>
+      <div className="h-full overflow-y-auto bg-page p-6 sm:p-10">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <div className="flex items-center gap-3">
+            <Link href="/financial/proposals/templates" aria-label={t("backToTemplates")} className="rounded-md p-2 text-text-secondary hover:bg-bg-secondary">
+              <ArrowLeft size={18} aria-hidden="true" />
+            </Link>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{t("eyebrow")}</p>
+              <h1 className="text-xl font-semibold text-text-primary">{t("title")}</h1>
+            </div>
           </div>
-        </div>
-        <p className="max-w-2xl text-sm text-text-secondary">{t("choiceDescription")}</p>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <button type="button" onClick={() => setMode("new")} className="rounded-xl border-2 border-accent bg-accent/5 p-5 text-left transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-            <Sparkles size={22} className="mb-4 text-accent" aria-hidden="true" />
-            <h2 className="font-semibold text-text-primary">{t("newTemplateTitle")}</h2>
-            <p className="mt-2 text-sm text-text-secondary">{t("newTemplateDescription")}</p>
-            <span className="mt-4 inline-flex text-sm font-medium text-accent">{t("startNewTemplate")}</span>
-          </button>
-          <button type="button" onClick={() => setMode("refine")} className="rounded-xl border-2 border-accent bg-accent/5 p-5 text-left transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-            <RotateCcw size={22} className="mb-4 text-accent" aria-hidden="true" />
-            <h2 className="font-semibold text-text-primary">{t("refineTemplateTitle")}</h2>
-            <p className="mt-2 text-sm text-text-secondary">{t("refineTemplateDescription")}</p>
-            <span className="mt-4 inline-flex text-sm font-medium text-accent">{t("startRefineTemplate")}</span>
-          </button>
+          <p className="max-w-2xl text-sm text-text-secondary">{t("choiceDescription")}</p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <button type="button" onClick={() => setMode("new")} className="rounded-xl border-2 border-accent bg-accent/5 p-5 text-left transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+              <Sparkles size={22} className="mb-4 text-accent" aria-hidden="true" />
+              <h2 className="font-semibold text-text-primary">{t("newTemplateTitle")}</h2>
+              <p className="mt-2 text-sm text-text-secondary">{t("newTemplateDescription")}</p>
+              <span className="mt-4 inline-flex text-sm font-medium text-accent">{t("startNewTemplate")}</span>
+            </button>
+            <button type="button" onClick={() => setMode("refine")} className="rounded-xl border-2 border-accent bg-accent/5 p-5 text-left transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+              <RotateCcw size={22} className="mb-4 text-accent" aria-hidden="true" />
+              <h2 className="font-semibold text-text-primary">{t("refineTemplateTitle")}</h2>
+              <p className="mt-2 text-sm text-text-secondary">{t("refineTemplateDescription")}</p>
+              <span className="mt-4 inline-flex text-sm font-medium text-accent">{t("startRefineTemplate")}</span>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -275,7 +278,7 @@ export function AIStudioEntry() {
 
 function StudioState({ title, description, children }: { title: string; description: string; children?: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-page-alt p-6" aria-live="polite">
+    <div className="flex h-full min-h-0 flex-col items-center justify-center bg-page p-6 text-center" aria-live="polite">
       <h1 tabIndex={-1} className="text-lg font-semibold text-text-primary">{title}</h1>
       <p className="mt-2 max-w-xl text-sm text-text-secondary">{description}</p>
       {children ? <div className="mt-4">{children}</div> : null}
@@ -295,7 +298,15 @@ function RefineTemplateFlow({
   onExit: () => void;
 }) {
   const [base, setBase] = useState<AIStudioRefinementBase | null>(null);
-  if (!base) return <RefineTemplatePicker onBack={onExit} onSelect={setBase} />;
+  if (!base) {
+    return (
+      <div className="h-full overflow-y-auto bg-page p-6 sm:p-10">
+        <div className="mx-auto max-w-5xl">
+          <RefineTemplatePicker onBack={onExit} onSelect={setBase} />
+        </div>
+      </div>
+    );
+  }
   return (
     <TemplateStudio
       config={config}
@@ -408,7 +419,11 @@ function TemplateStudio({
   const [sessionSummary, setSessionSummary] = useState<AIStudioSessionSummary | null>(null);
   const [compactionState, setCompactionState] = useState<CompactionState>("idle");
   const [history, setHistory] = useState<string[]>([]);
-  const [consentChecked, setConsentChecked] = useState(Boolean(config.consents[provider]?.accepted));
+  const [consentedProviders, setConsentedProviders] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(Object.entries(config.consents).map(([name, consent]) => [name, consent.accepted])),
+  );
+  const [consentModalChecked, setConsentModalChecked] = useState(false);
+  const [consentOpen, setConsentOpen] = useState(false);
   const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [sessionId, setSessionId] = useState("");
@@ -440,11 +455,13 @@ function TemplateStudio({
   const navigationGuardRef = useRef<AIStudioPopstateGuardHandle | null>(null);
   const candidateTitleRef = useRef<HTMLHeadingElement>(null);
   const errorRef = useRef<HTMLParagraphElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const selectedConnection = useMemo(() => config.connections.find((item) => item.provider === provider) ?? firstConnection, [config.connections, firstConnection, provider]);
   const selectedModel = selectedConnection.models.find((item) => item.id === model) ?? selectedConnection.models[0];
   const previewSource = candidate?.html ?? html;
   const baseHtml = refinement?.html ?? "";
+  const consentChecked = consentedProviders[provider] === true;
   const confirmationStorageKey = `${AI_STUDIO_CONFIRMATION_STORAGE_KEY}:${workspaceId}`;
   const dirty = isAIStudioDirty({
     isGenerating,
@@ -689,6 +706,8 @@ function TemplateStudio({
     setConfirmUpdate(false);
     setConfirmation(null);
     setRememberConfirmation(false);
+    setConsentOpen(false);
+    setConsentModalChecked(false);
     setHtml(refinement?.html ?? "");
     setTemplateName(refinement?.name ?? "");
   }
@@ -739,6 +758,10 @@ function TemplateStudio({
   useEffect(() => {
     if (error) errorRef.current?.focus();
   }, [error]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: partial ? "auto" : "smooth", block: "end" });
+  }, [candidate, error, partial, sessionMessages.length]);
 
   useEffect(() => {
     if (!dirty) return;
@@ -882,7 +905,6 @@ function TemplateStudio({
     });
     setProvider(nextProvider as typeof provider);
     setModel(preferredModel(nextConnection));
-    setConsentChecked(Boolean(config.consents[nextProvider]?.accepted));
     setHtml(freshContext.appliedHtml);
     setMessage(freshContext.message);
     setSessionId(freshContext.sessionId);
@@ -896,6 +918,33 @@ function TemplateStudio({
     setConfirmedRemovalCandidate(null);
     setError("");
     setJustSwitchedProvider(true);
+  }
+
+  function openConsentDialog(): void {
+    setConsentModalChecked(false);
+    setConsentOpen(true);
+  }
+
+  async function acceptConsentAndGenerate(): Promise<void> {
+    if (!consentModalChecked) {
+      setError(t("consentRequired"));
+      return;
+    }
+    if (!message.trim()) {
+      setError(t("briefingRequired"));
+      return;
+    }
+
+    setError("");
+    try {
+      await recordConsent.mutateAsync({ provider, version: config.consentVersion });
+      setConsentedProviders((previous) => ({ ...previous, [provider]: true }));
+      setConsentOpen(false);
+      setConsentModalChecked(false);
+      await runGeneration(message, { consentRecorded: true });
+    } catch (consentError) {
+      setError(localizedStudioError(consentError, t("consentRequired")));
+    }
   }
 
   async function readGenerationResponse(response: Response): Promise<GenerationResult> {
@@ -931,10 +980,10 @@ function TemplateStudio({
     return complete;
   }
 
-  async function runGeneration(briefing: string) {
+  async function runGeneration(briefing: string, options: { consentRecorded?: boolean } = {}) {
     setError("");
     if (!briefing.trim()) { setError(t("briefingRequired")); return; }
-    if (!consentChecked) { setError(t("consentRequired")); return; }
+    if (!consentChecked && !options.consentRecorded) { openConsentDialog(); return; }
     if (attachedBlocked) { setError(t("imageVisionRequired")); return; }
     if (uploadingImage) { setError(t("imageUploading")); return; }
     if (attachedImages.some((image) => !attachedImageFilesRef.current.has(image.id))) {
@@ -951,7 +1000,6 @@ function TemplateStudio({
     setJustSwitchedProvider(false);
     setCompactionState(compacting ? "compacting" : "idle");
     try {
-      if (!config.consents[provider]?.accepted) await recordConsent.mutateAsync({ provider, version: config.consentVersion });
       const requestPayload = {
         provider,
         model,
@@ -1208,9 +1256,13 @@ function TemplateStudio({
   });
   const protectedActionReady = confirmation === "removeVariables" ? confirmRemoval : confirmUpdate;
 
+  function copyChatMessage(content: string): void {
+    void navigator.clipboard?.writeText(content);
+  }
+
   return (
-    <div className="flex min-h-[min(860px,calc(100dvh-5rem))] flex-col overflow-hidden rounded-2xl border border-border bg-page shadow-card">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-page-alt px-4 py-3 sm:px-5">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-page text-text-primary">
+      <header className="flex h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-page-alt px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
@@ -1379,7 +1431,7 @@ function TemplateStudio({
         </div>
       ) : null}
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_390px]" aria-busy={isGenerating}>
+      <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(240px,0.85fr)_minmax(320px,1.15fr)] lg:grid-cols-[minmax(0,1fr)_390px] lg:grid-rows-1" aria-busy={isGenerating}>
         <main className="flex min-h-0 min-w-0 flex-col bg-page">
           <form onSubmit={saveTemplate} className="flex min-h-0 flex-1 flex-col">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
@@ -1483,25 +1535,41 @@ function TemplateStudio({
 
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
             {sessionMessages.length === 0 && !candidate && !partial ? (
-              <div className="rounded-xl border border-dashed border-border bg-page p-4">
-                <p className="text-sm font-medium text-text-primary">{t("chatEmptyTitle")}</p>
-                <p className="mt-1 text-sm leading-relaxed text-text-secondary">{refinement ? t("refinementBriefingPlaceholder") : t("briefingPlaceholder")}</p>
+              <div className="flex min-h-full flex-col justify-center px-2 py-8 text-center">
+                <span className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                  <Sparkles size={20} aria-hidden="true" />
+                </span>
+                <p className="mt-4 text-base font-semibold text-text-primary">{t("chatEmptyTitle")}</p>
+                <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-text-muted">{refinement ? t("refinementBriefingPlaceholder") : t("briefingPlaceholder")}</p>
               </div>
             ) : null}
             {sessionMessages.map((sessionMessage, index) => (
-              <div key={`${sessionMessage.role}-${index}`} className={`flex ${sessionMessage.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[92%] rounded-2xl px-3.5 py-3 text-sm leading-relaxed ${sessionMessage.role === "user" ? "rounded-br-md bg-accent text-white" : "rounded-bl-md border border-border bg-page text-text-secondary"}`}>
-                  {sessionMessage.content}
-                </div>
-              </div>
+              <article key={`${sessionMessage.role}-${index}`} className={sessionMessage.role === "user" ? "ml-auto max-w-[92%]" : "max-w-[94%]"}>
+                {sessionMessage.role === "user" ? (
+                  <div className="rounded-2xl border border-border bg-page-alt px-4 py-3 text-sm leading-relaxed text-text-primary shadow-sm">
+                    {sessionMessage.content}
+                  </div>
+                ) : (
+                  <div className="space-y-3 px-1 py-1">
+                    <p className="flex items-center gap-2 text-sm font-medium text-text-muted">
+                      <Sparkles size={15} className="text-accent" aria-hidden="true" />
+                      {t("thinkingFor", { seconds: 1 })}
+                    </p>
+                    <p className="text-[15px] font-medium leading-7 text-text-primary">{sessionMessage.content}</p>
+                    <footer className="flex items-center justify-end gap-3 text-xs text-text-muted">
+                      <span>{t("justNow")}</span>
+                      <button type="button" onClick={() => copyChatMessage(sessionMessage.content)} aria-label={t("copyMessage")} className="rounded-md p-1 transition hover:bg-bg-secondary hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                        <Copy size={15} aria-hidden="true" />
+                      </button>
+                    </footer>
+                  </div>
+                )}
+              </article>
             ))}
             {partial ? (
-              <div role="status" aria-live="polite" aria-label={t("streamingOutputAria")} className="rounded-xl border border-accent/20 bg-accent/5 p-3 text-sm text-text-secondary">
-                <div className="flex items-center gap-2 font-medium text-accent"><Sparkles size={14} aria-hidden="true" /> {t("generating")}</div>
-                <details className="mt-2 text-xs">
-                  <summary className="cursor-pointer text-text-muted">{t("streamingOutputAria")}</summary>
-                  <pre className="mt-2 max-h-32 overflow-auto rounded-md bg-slate-950 p-2 text-[11px] text-slate-100">{partial}</pre>
-                </details>
+              <div role="status" aria-live="polite" aria-label={t("streamingOutputAria")} className="space-y-3 px-1 py-1">
+                <p className="flex items-center gap-2 text-sm font-medium text-accent"><Sparkles size={15} aria-hidden="true" /> {t("generating")}</p>
+                <p className="text-[15px] leading-7 text-text-primary">{partial}</p>
               </div>
             ) : null}
 
@@ -1562,69 +1630,128 @@ function TemplateStudio({
                 <Sparkles size={15} aria-hidden="true" /> {t("retryGeneration")}
               </button>
             ) : null}
+            <div ref={chatEndRef} aria-hidden="true" />
           </div>
 
-          <form onSubmit={handleGenerate} aria-busy={isGenerating} className="space-y-3 border-t border-border bg-page p-3.5">
-            <label htmlFor="ai-studio-briefing" className="sr-only">{refinement ? t("refinementBriefingLabel") : t("briefingLabel")}</label>
-            <textarea
-              id="ai-studio-briefing"
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              maxLength={8000}
-              rows={4}
-              placeholder={refinement ? t("refinementBriefingPlaceholder") : t("briefingPlaceholder")}
-              className="w-full resize-none rounded-lg border border-border bg-page-alt p-3 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            />
-            <div className="flex items-center justify-between gap-2 text-xs text-text-muted">
-              <span>{t("briefingHint", { count: message.length })}</span>
-              <span>{t("contextWindow", { count: sessionMessages.length, max: AI_STUDIO_MAX_RECENT_MESSAGES })}</span>
+          <form onSubmit={handleGenerate} aria-busy={isGenerating} className="shrink-0 border-t border-border bg-page p-3 sm:p-4">
+            <div className="rounded-2xl border border-border bg-page-alt p-3 shadow-sm transition focus-within:border-accent/60 focus-within:shadow-md">
+              <div className="flex items-start justify-between gap-3 px-1 text-xs text-text-muted">
+                <span>{t("briefingHint", { count: message.length })}</span>
+                <span className="text-right">{t("contextWindow", { count: sessionMessages.length, max: AI_STUDIO_MAX_RECENT_MESSAGES })}</span>
+              </div>
+              <label htmlFor="ai-studio-briefing" className="sr-only">{refinement ? t("refinementBriefingLabel") : t("briefingLabel")}</label>
+              <textarea
+                id="ai-studio-briefing"
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                maxLength={8000}
+                rows={3}
+                placeholder={t("chatComposerPlaceholder")}
+                className="mt-2 min-h-[88px] w-full resize-none border-0 bg-transparent p-1 text-[15px] leading-7 text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-0"
+              />
+              {attachedImages.length > 0 ? (
+                <ul className="flex flex-wrap gap-1.5 px-1 pb-2" aria-label={t("imageListAria")}>
+                  {attachedImages.map((image) => (
+                    <li key={image.id} className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-border bg-page px-2 py-1 text-xs text-text-secondary">
+                      <ImageIcon size={13} aria-hidden="true" className="shrink-0 text-text-muted" />
+                      <span className="max-w-32 truncate">{image.fileName}</span>
+                      <span className="shrink-0 text-[11px] text-text-muted">{imageFormatLabel(image.format)}</span>
+                      <button type="button" onClick={() => handleRemoveImage(image.id)} aria-label={t("imageRemove", { name: image.fileName })} className="rounded p-0.5 text-text-muted hover:bg-bg-secondary hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Trash2 size={13} aria-hidden="true" /></button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <div className="flex items-center justify-between gap-2 border-t border-border/70 pt-2">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <label className="relative min-w-0">
+                    <span className="sr-only">{t("providerLabel")}</span>
+                    <select value={provider} onChange={(event) => handleProviderChange(event.target.value)} disabled={isGenerating} className="h-8 max-w-[112px] appearance-none rounded-lg bg-bg-secondary px-2.5 pr-3 text-xs font-medium text-text-secondary outline-none transition hover:text-text-primary focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
+                      {config.connections.map((connection) => (
+                        <option key={connection.id} value={connection.provider}>{providerDisplayName(connection.provider)}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="relative min-w-0">
+                    <span className="sr-only">{t("modelLabel")}</span>
+                    <select value={model} onChange={(event) => setModel(event.target.value)} className="h-8 max-w-[112px] appearance-none rounded-lg bg-transparent px-1.5 text-xs text-text-muted outline-none transition hover:text-text-primary focus-visible:ring-2 focus-visible:ring-accent">
+                      {selectedConnection.models.map((item) => (
+                        <option key={item.id} value={item.id}>{item.id}</option>
+                      ))}
+                    </select>
+                  </label>
+                  {visionAvailable ? (
+                    <label className="inline-flex min-h-[34px] cursor-pointer items-center justify-center rounded-lg px-2 text-text-muted transition hover:bg-bg-secondary hover:text-text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-accent" title={uploadingImage ? t("imageUploading") : t("imageAttach")}>
+                      <Paperclip size={17} aria-hidden="true" />
+                      <span className="sr-only">{uploadingImage ? t("imageUploading") : t("imageAttach")}</span>
+                      <input type="file" accept="image/png,image/jpeg,image/webp" multiple className="sr-only" onChange={handleAttachFiles} disabled={isGenerating || uploadingImage || attachedImages.length >= AI_STUDIO_MAX_IMAGES_PER_MESSAGE} aria-label={t("imageAttachAria")} />
+                    </label>
+                  ) : <span className="inline-flex items-center gap-1.5 px-2 text-xs text-text-muted"><EyeOff size={14} aria-hidden="true" /> {t("imageVisionBlocked")}</span>}
+                  <span className="px-1 text-xs text-text-muted">{t("imageCount", { count: attachedImages.length })}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {selectedModel?.streaming ? <span className="sr-only">{t("streamingSupported")}</span> : null}
+                  <button type="submit" aria-label={isGenerating ? t("generating") : t("generate")} disabled={isGenerating || uploadingImage || recordConsent.isPending || !message.trim()} className="inline-flex size-10 items-center justify-center rounded-xl bg-accent text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
+                    <Send size={17} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {visionAvailable ? (
-                <label className="inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 text-xs text-text-secondary transition hover:bg-bg-secondary focus-within:outline-none focus-within:ring-2 focus-within:ring-accent">
-                  <Upload size={14} aria-hidden="true" /> {uploadingImage ? t("imageUploading") : t("imageAttach")}
-                  <input type="file" accept="image/png,image/jpeg,image/webp" multiple className="sr-only" onChange={handleAttachFiles} disabled={isGenerating || uploadingImage || attachedImages.length >= AI_STUDIO_MAX_IMAGES_PER_MESSAGE} aria-label={t("imageAttachAria")} />
-                </label>
-              ) : <span className="inline-flex items-center gap-1.5 text-xs text-text-muted"><EyeOff size={14} aria-hidden="true" /> {t("imageVisionBlocked")}</span>}
-              <span className="ml-auto text-xs text-text-muted">{t("imageCount", { count: attachedImages.length })}</span>
-            </div>
-            {attachedImages.length > 0 ? (
-              <ul className="flex flex-wrap gap-1.5" aria-label={t("imageListAria")}>
-                {attachedImages.map((image) => (
-                  <li key={image.id} className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-page-alt px-2 py-1 text-xs text-text-secondary">
-                    <ImageIcon size={13} aria-hidden="true" className="shrink-0 text-text-muted" />
-                    <span className="max-w-32 truncate">{image.fileName}</span>
-                    <span className="shrink-0 text-[11px] text-text-muted">{imageFormatLabel(image.format)}</span>
-                    <button type="button" onClick={() => handleRemoveImage(image.id)} aria-label={t("imageRemove", { name: image.fileName })} className="rounded p-0.5 text-text-muted hover:bg-bg-secondary hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Trash2 size={13} aria-hidden="true" /></button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            {attachedBlocked ? <p role="alert" className="text-xs text-amber-700">{t("imageVisionSwitchWarning")}</p> : null}
-            {imageError ? <p role="alert" className="text-xs text-danger">{imageError}</p> : null}
-            <label htmlFor="ai-studio-consent" className="flex items-start gap-2 text-xs text-text-secondary">
-              <input id="ai-studio-consent" type="checkbox" checked={consentChecked} required aria-required="true" aria-describedby="ai-studio-consent-copy ai-studio-consent-version" onChange={(event) => setConsentChecked(event.target.checked)} className="mt-0.5 size-4 shrink-0 accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" />
-              <span id="ai-studio-consent-copy">{t("consentText", { provider: providerDisplayName(provider) })}</span>
-            </label>
-            <p className="text-[11px] leading-relaxed text-text-muted">
-              {t("consentLegalPrefix")} <Link href="/privacy" className="text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t("consentPrivacyLink")}</Link> {t("consentLegalAnd")} <Link href="/terms" className="text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t("consentTermsLink")}</Link>.
-            </p>
-            <p id="ai-studio-consent-version" className="text-[11px] text-text-muted">{t("consentVersion", { version: config.consentVersion })}</p>
-            <p className="text-[11px] leading-relaxed text-text-muted">{t("imagePrivacyHint")}</p>
-            {justSwitchedProvider ? <p className="text-xs text-text-muted">{t("providerSwitchContext")}</p> : null}
-            {compactionState === "compacting" ? <p role="status" className="text-xs font-medium text-accent">{t("contextCompacting")}</p> : null}
-            {compactionState === "compacted" ? <p className="text-xs font-medium text-accent">{t("contextCompacted")}</p> : null}
-            {compactionState === "error" ? <p role="status" className="text-xs font-medium text-amber-800">{t("contextCompactionError")}</p> : null}
-            <div className="flex items-center gap-2">
-              <button type="submit" disabled={isGenerating || uploadingImage || recordConsent.isPending || !message.trim() || !consentChecked} className="inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
-                <Send size={15} aria-hidden="true" /> {isGenerating ? t("generating") : t("generate")}
-              </button>
-              {selectedModel?.streaming ? <span className="sr-only">{t("streamingSupported")}</span> : null}
-              <span className="sr-only" role="status" aria-live="polite">{isGenerating ? t("generationStatus") : ""}</span>
-            </div>
+            {attachedBlocked ? <p role="alert" className="mt-2 text-xs text-amber-700">{t("imageVisionSwitchWarning")}</p> : null}
+            {imageError ? <p role="alert" className="mt-2 text-xs text-danger">{imageError}</p> : null}
+            {justSwitchedProvider ? <p className="mt-2 text-xs text-text-muted">{t("providerSwitchContext")}</p> : null}
+            {compactionState === "compacting" ? <p role="status" className="mt-2 text-xs font-medium text-accent">{t("contextCompacting")}</p> : null}
+            {compactionState === "compacted" ? <p className="mt-2 text-xs font-medium text-accent">{t("contextCompacted")}</p> : null}
+            {compactionState === "error" ? <p role="status" className="mt-2 text-xs font-medium text-amber-800">{t("contextCompactionError")}</p> : null}
+            <span className="sr-only" role="status" aria-live="polite">{isGenerating ? t("generationStatus") : ""}</span>
           </form>
         </aside>
       </div>
+
+      <Modal
+        id="ai-studio-consent"
+        open={consentOpen}
+        onOpenChange={(open) => {
+          setConsentOpen(open);
+          if (!open) setConsentModalChecked(false);
+        }}
+        title={t("consentTitle")}
+        description={t("consentDescription")}
+        closeLabel={t("cancelAction")}
+        size="lg"
+      >
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-page-alt p-4 text-sm text-text-muted">
+            <div>
+              <p className="text-xl font-medium text-text-primary">{message.length}/8000</p>
+              <p>{t("characterCountLabel")}</p>
+            </div>
+            <div>
+              <p className="text-xl font-medium text-text-primary">{sessionMessages.length}/{AI_STUDIO_MAX_RECENT_MESSAGES}</p>
+              <p>{t("contextMessagesLabel")}</p>
+            </div>
+          </div>
+          <div className="flex items-start justify-between gap-3 text-sm text-text-muted">
+            <p className="flex min-w-0 items-start gap-2 leading-6">
+              <EyeOff size={16} className="mt-1 shrink-0" aria-hidden="true" />
+              <span>{visionAvailable ? t("visionAvailable") : t("imageVisionBlocked")}</span>
+            </p>
+            <span className="shrink-0">{t("imageCount", { count: attachedImages.length })}</span>
+          </div>
+          <label htmlFor="ai-studio-consent-modal" className="flex items-start gap-3 text-sm leading-6 text-text-secondary">
+            <input id="ai-studio-consent-modal" type="checkbox" checked={consentModalChecked} required aria-required="true" aria-describedby="ai-studio-consent-copy ai-studio-consent-version" onChange={(event) => setConsentModalChecked(event.target.checked)} className="mt-1 size-5 shrink-0 accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" />
+            <span id="ai-studio-consent-copy">{t("consentText", { provider: providerDisplayName(provider) })}</span>
+          </label>
+          <p className="text-sm leading-6 text-text-muted">
+            {t("consentLegalPrefix")} <Link href="/privacy" className="text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t("consentPrivacyLink")}</Link> {t("consentLegalAnd")} <Link href="/terms" className="text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t("consentTermsLink")}</Link>.
+          </p>
+          <p id="ai-studio-consent-version" className="text-xs text-text-muted">{t("consentVersion", { version: config.consentVersion })}</p>
+          <p className="text-sm leading-6 text-text-muted">{t("imagePrivacyHint")}</p>
+          {error ? <p role="alert" className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-sm text-danger">{error}</p> : null}
+          <button type="button" onClick={() => void acceptConsentAndGenerate()} disabled={!consentModalChecked || !message.trim() || recordConsent.isPending} className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-base font-semibold text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
+            <Send size={18} aria-hidden="true" /> {recordConsent.isPending ? t("generating") : t("generate")}
+          </button>
+        </div>
+      </Modal>
 
       <Modal
         id="ai-studio-protected-action"
