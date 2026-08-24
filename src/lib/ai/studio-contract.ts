@@ -137,6 +137,8 @@ const LOCALE_BEHAVIOR =
 export const PUBLIC_SHELL_RULES = [
   "The public proposal shell owns client identification, proposal acceptance and signature behavior.",
   "Do not create forms, acceptance buttons, signature controls, scripts or fake submission flows.",
+  "The public page wraps this fragment with its own company bar and acceptance section; do not duplicate those interactive regions.",
+  "A visual proposal header and footer belong inside the reusable template and must remain normal-flow document content.",
   "The output is only a reusable HTML fragment for a ProposalTemplate.",
 ];
 
@@ -145,6 +147,9 @@ export const SAFE_HTML_RULES = [
   "Never use scripts, event handlers, forms, iframes, external CSS, external fonts, tracking pixels or arbitrary external images.",
   "Use only the existing {{variable}} placeholder grammar and preserve the special {{itens}} placeholder when appropriate.",
   "Do not include client data, proposal data, documents, tasks, prices, deadlines or legal commitments that were not supplied in the briefing.",
+  "Keep the proposal header, main content and footer in one normal document flow, in DOM order, inside a reusable .proposal root when a document shell is needed.",
+  "Headers and footers must not be fixed or sticky, and must not create scroll containers.",
+  "Never set height or min-height to 100vh/100dvh, use position fixed/sticky for document sections, or set overflow hidden/auto/scroll on html, body, .proposal, header, main, .body, footer or .footer; the page shell owns scrolling.",
 ];
 
 export const VISION_REFERENCE_RULES = [

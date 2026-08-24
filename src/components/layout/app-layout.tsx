@@ -48,6 +48,14 @@ export function AppLayout({ children, title }: AppLayoutProps) {
                   ? { title: t("all"), action: t("actions.all") }
                   : { title: t("board"), action: t("actions.board") };
 
+  if (pathname === "/financial/proposals/templates/ai-studio") {
+    return (
+      <div data-balsa="ai-studio-shell" className="h-[100dvh] min-h-[100dvh] overflow-hidden bg-balsa-background">
+        <AnimatedPage pageKey={pathname}>{children}</AnimatedPage>
+      </div>
+    );
+  }
+
   const handleNewClick = async () => {
     if (pathname === "/app" || pathname.startsWith("/board")) {
       openQuickCapture();
