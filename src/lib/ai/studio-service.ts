@@ -417,6 +417,21 @@ function normalizeModel(provider: AIProvider, value: unknown): string {
   return model;
 }
 
+async function modelsForConnection(
+  provider: AIProvider,
+  encryptedSecret: string | null,
+): Promise<AIStudioConnectionOption["models"]> {
+  if (!provider.listAvailableModels || !encryptedSecret) return provider.models;
+
+  try {
+    return await provider.listAvailableModels(decryptAiSecret(encryptedSecret));
+  } catch {
+    // A catalog outage must not hide a previously active connection. Explicit
+    // validation and generation still use the provider's authoritative response.
+    return provider.models;
+  }
+}
+
 function stripExternalResources(html: string): { html: string; changed: boolean } {
   let changed = false;
   const withoutExternalImages = html.replace(/<img\b[^>]*>/gi, (tag) => {
@@ -641,7 +656,7 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
     withTenant(tenantId, () =>
       prisma.aiProviderConnection.findMany({
         where: { status: "active", creator: { tenantId, removedAt: null } },
-        select: { id: true, provider: true, defaultModel: true },
+        select: { id: true, provider: true, defaultModel: true, encryptedSecret: true },
         orderBy: { createdAt: "asc" },
       }),
     ),
@@ -665,19 +680,21 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
     }
   }
 
-  const availableConnections = connections.flatMap((connection) => {
-    if (!isAIProviderId(connection.provider)) return [];
-    const provider = getAIProvider(connection.provider);
-    if (!provider) return [];
-    return [
-      {
-        id: connection.id,
-        provider: connection.provider,
-        defaultModel: connection.defaultModel,
-        models: provider.models,
-      },
-    ];
-  });
+  const availableConnections = (
+    await Promise.all(
+      connections.map(async (connection) => {
+        if (!isAIProviderId(connection.provider)) return null;
+        const provider = getAIProvider(connection.provider);
+        if (!provider) return null;
+        return {
+          id: connection.id,
+          provider: connection.provider,
+          defaultModel: connection.defaultModel,
+          models: await modelsForConnection(provider, connection.encryptedSecret),
+        };
+      }),
+    )
+  ).filter((connection): connection is AIStudioConnectionOption => connection !== null);
 
   return {
     enabled: isAIStudioEnabled(),

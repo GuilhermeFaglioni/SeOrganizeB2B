@@ -1,11 +1,11 @@
 # AI Studio launch evaluation and runbook
 
-This checklist is the reproducible manual evaluation for issue #176. Run it in a disposable workspace with a test OpenAI or Anthropic API Key, synthetic proposal data and no real client information.
+This checklist is the reproducible manual evaluation for issue #176. Run it in a disposable workspace with a test OpenAI, Anthropic, OpenCode Zen or OpenCode Go API Key, synthetic proposal data and no real client information.
 
 ## Setup
 
 1. Enable the `financial.proposals` module for the workspace.
-2. Connect official provider API Keys for both OpenAI and Anthropic in `/settings/ai` and validate both connections so the provider-switch scenario is executable.
+2. Connect official provider API Keys for OpenAI, Anthropic, OpenCode Zen and, when evaluating Go, OpenCode Go in `/settings/ai`; validate the connections so the provider-switch scenario is executable.
 3. Confirm the provider connection is tenant-scoped and that no secret is visible in the browser or `/api/ai/studio/config` response.
 4. Open `/financial/proposals/templates/ai-studio` in `pt-BR`, then repeat the relevant checks in `en`.
 5. Record the consent version shown in the AI Studio disclosure and confirm that `/privacy` and `/terms` open in the same locale.
@@ -15,7 +15,7 @@ This checklist is the reproducible manual evaluation for issue #176. Run it in a
 
 | #176 AC | Evidence and verification |
 | --- | --- |
-| 1. Legal disclosures | `LegalPage` renders AI Studio sections in `legal.privacy` and `legal.terms` for OpenAI, Anthropic, API Key/OAuth, ephemeral processing, telemetry and costs. |
+| 1. Legal disclosures | `LegalPage` renders AI Studio sections in `legal.privacy` and `legal.terms` for OpenAI, Anthropic, OpenCode Zen, OpenCode Go, API Key/OAuth, ephemeral processing, telemetry and costs. |
 | 2. Consent | The AI Studio checkbox is required, links to `/privacy` and `/terms`, displays `consentVersion`, and the API maps missing consent to `428`. |
 | 3. States | Exercise loading, streaming, provider/model absence, no directive, vision restriction, limits, invalid output, provider errors and sanitization warnings. |
 | 4. Accessibility | Use keyboard-only navigation, verify visible focus, labels, live status, alerts and named desktop/mobile preview frames. |
@@ -26,7 +26,7 @@ This checklist is the reproducible manual evaluation for issue #176. Run it in a
 | 9. Usage privacy | Inspect usage rows and retention behavior; prompts, HTML, images, transcript and secrets must be absent, with a 90-day cutoff. |
 | 10. Kill switch | Set `AI_STUDIO_KILL_SWITCH=true`; new generations fail while reading, editing and existing templates continue to work. |
 | 11. Eligibility | Verify every eligible workspace can use the feature through permissions and module gating without a provider allowlist. |
-| 12. OAuth limitation | Confirm both providers expose API Key as the launch path and OAuth only when official third-party support is actually available. |
+| 12. OAuth limitation | Confirm all four providers expose API Key as the launch path, Codex/Claude show their provider-specific OAuth limitation, and no unsupported token collection flow is present. |
 
 ## Evidence Snapshot
 
@@ -35,13 +35,13 @@ This snapshot records automated evidence for the current working-tree evaluation
 | Check | Evidence | Result |
 | --- | --- | --- |
 | Revision and synthetic tenant | `ec55175`, synthetic tenant `tenant-1`; working-tree changes are uncommitted | Recorded |
-| Automated gates | `npm test` (181 files, 1865 passed, 8 skipped), `npx tsc --noEmit`, `npm run lint`, production build and `git diff --check` | Pass |
-| Providers and locales | OpenAI/Anthropic provider tests plus `pt-BR`/`en` i18n and UI tests | Pass |
+| Automated gates | `npm test` (183 test files, 1881 passed, 8 skipped), `npx tsc --noEmit`, `npm run lint`, production build with `APP_URL` and `NEXT_PUBLIC_APP_URL` configured, and `git diff --check` | Pass |
+| Providers and locales | OpenAI/Anthropic/OpenCode Zen/OpenCode Go provider tests plus `pt-BR`/`en` i18n and UI tests | Pass |
 | Serverless image transport | UI retains `File` objects and sends `multipart imageFiles` to generation; backend validates bytes without requiring the process-local map | Pass |
 | Kill switch | `ai-studio-service.behavior.test.ts` sets `AI_STUDIO_KILL_SWITCH=true` and verifies generation stops before the provider | Pass |
 | Retention scheduler | `GET /api/cron/ai-studio-retention` invokes cleanup for every workspace; service test includes active and cancelled/deleted workspace records | Pass |
 | Runtime RLS | `tenant-isolation-rls.test.ts` exercises policies for all five AI Studio tables when a database is available | Pending local database (`127.0.0.1:54322` unavailable) |
-| OAuth/API Key limitation | Both provider contracts expose API Key at launch; OAuth remains unavailable without official third-party support | Pass |
+| OAuth/API Key limitation | All provider contracts expose API Key at launch; Codex/Claude OAuth is explicitly unavailable because official third-party client flows are not documented | Pass |
 | Browser/manual scenarios | Core scenarios, screenshots and deployment checks | Blocked until disposable authenticated environment is provided |
 
 ## Core scenarios

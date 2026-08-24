@@ -26,6 +26,8 @@ import {
 const PROVIDER_LABELS: Record<string, string> = {
   openai: "OpenAI",
   anthropic: "Anthropic",
+  opencode: "OpenCode Zen",
+  "opencode-go": "OpenCode Go",
 };
 
 export function AiConnections() {
@@ -141,6 +143,9 @@ export function AiConnections() {
               placeholder={t("apiKeyPlaceholder")}
             />
             <p className="text-xs text-text-muted">{t("apiKeyHint")}</p>
+            {provider === "opencode-go" ? (
+              <p className="text-xs text-text-muted">{t("goSubscriptionHint")}</p>
+            ) : null}
           </div>
           <Button type="submit" disabled={connect.isPending || !apiKey.trim()}>
             {connect.isPending

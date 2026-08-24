@@ -57,6 +57,7 @@ import {
   type AIStudioSessionSummary,
 } from "@/lib/ai/studio-contract";
 import type { AIStudioRefinementBase } from "@/lib/ai/studio-service";
+import type { AIProviderId } from "@/lib/ai/provider-contract";
 
 interface Candidate extends AIStudioCandidateResponse {
   variableDiff: { added: string[]; removed: string[]; preserved: string[] };
@@ -70,7 +71,7 @@ interface GenerationResult {
 
 interface StudioConnection {
   id: string;
-  provider: "openai" | "anthropic";
+  provider: AIProviderId;
   defaultModel: string | null;
   models: Array<{ id: string; vision: boolean; streaming: boolean; default: boolean }>;
 }
@@ -126,8 +127,11 @@ function localeForApi(locale: string): "pt-BR" | "en" {
   return locale.startsWith("en") ? "en" : "pt-BR";
 }
 
-function providerDisplayName(provider: "openai" | "anthropic"): string {
-  return provider === "openai" ? "OpenAI" : "Anthropic";
+function providerDisplayName(provider: AIProviderId): string {
+  if (provider === "openai") return "OpenAI";
+  if (provider === "anthropic") return "Anthropic";
+  if (provider === "opencode-go") return "OpenCode Go";
+  return "OpenCode Zen";
 }
 
 function preferredModel(connection: {

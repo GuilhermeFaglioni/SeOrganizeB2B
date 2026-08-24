@@ -49,7 +49,11 @@ vi.mock("../lib/ai/directives-service", () => ({
 vi.mock("../lib/ai/crypto", () => ({ decryptAiSecret: mocks.decryptAiSecret }));
 vi.mock("../lib/ai/providers", () => ({
   getAIProvider: mocks.getAIProvider,
-  isAIProviderId: (value: unknown) => value === "openai" || value === "anthropic",
+  isAIProviderId: (value: unknown) =>
+    value === "openai" ||
+    value === "anthropic" ||
+    value === "opencode" ||
+    value === "opencode-go",
   listAIProviders: () => [],
 }));
 

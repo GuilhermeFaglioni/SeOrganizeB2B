@@ -108,7 +108,7 @@ describe("AI connections service", () => {
         apiKey: "sk-secret",
       });
 
-      expect(mocks.validateApiKey).toHaveBeenCalledWith("sk-secret");
+      expect(mocks.validateApiKey).toHaveBeenCalledWith("sk-secret", "gpt-4o");
       expect(mocks.encryptAiSecret).toHaveBeenCalledWith("sk-secret");
       expect(mocks.connectionCreate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -235,7 +235,11 @@ describe("AI connections service", () => {
 
   describe("validateConnection", () => {
     it("marks the connection invalid with a stored error code on failure", async () => {
-      mocks.connectionFindFirst.mockResolvedValue({ id: "conn-1", encryptedSecret: "enc:sk" });
+      mocks.connectionFindFirst.mockResolvedValue({
+        id: "conn-1",
+        encryptedSecret: "enc:sk",
+        defaultModel: "gpt-4o",
+      });
       mocks.decryptAiSecret.mockReturnValue("sk");
       mocks.validateApiKey.mockRejectedValue(new AIProviderError("INVALID_API_KEY", "rejected"));
       mocks.connectionUpdate.mockResolvedValue({ ...publicRow, status: "invalid", lastErrorCode: "INVALID_API_KEY" });
@@ -253,7 +257,11 @@ describe("AI connections service", () => {
     });
 
     it("marks the connection active on success", async () => {
-      mocks.connectionFindFirst.mockResolvedValue({ id: "conn-1", encryptedSecret: "enc:sk" });
+      mocks.connectionFindFirst.mockResolvedValue({
+        id: "conn-1",
+        encryptedSecret: "enc:sk",
+        defaultModel: "gpt-4o",
+      });
       mocks.decryptAiSecret.mockReturnValue("sk");
       mocks.validateApiKey.mockResolvedValue(undefined);
       mocks.connectionUpdate.mockResolvedValue(publicRow);
@@ -261,7 +269,7 @@ describe("AI connections service", () => {
       const result = await validateConnection("tenant-1", "openai", "user-1");
 
       expect(result.status).toBe("active");
-      expect(mocks.validateApiKey).toHaveBeenCalledWith("sk");
+      expect(mocks.validateApiKey).toHaveBeenCalledWith("sk", "gpt-4o");
     });
   });
 
