@@ -964,7 +964,7 @@ function TemplateStudio({
         for (const line of lines) {
           if (!line.trim()) continue;
           const event = JSON.parse(line) as { type: string; text?: string; data?: GenerationResult; error?: { code?: string; detailCode?: string } };
-          if (event.type === "delta") setPartial((previous) => previous + (event.text ?? ""));
+          if (event.type === "delta") continue;
           if (event.type === "complete") complete = event.data ?? null;
           if (event.type === "error") {
             throw {
@@ -994,6 +994,7 @@ function TemplateStudio({
     const generationEpoch = sessionEpochRef.current;
     uploadGenerationRef.current += 1;
     const submittedImageIds = attachedImages.map((image) => image.id);
+    setMessage("");
     setIsGenerating(true);
     setPartial("");
     setLastFailedMessage(null);
@@ -1534,7 +1535,7 @@ function TemplateStudio({
           </div>
 
           <div className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
-            {sessionMessages.length === 0 && !candidate && !partial ? (
+            {sessionMessages.length === 0 && !candidate && !isGenerating ? (
               <div className="flex min-h-full flex-col justify-center px-2 py-8 text-center">
                 <span className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-accent/10 text-accent">
                   <Sparkles size={20} aria-hidden="true" />
@@ -1566,10 +1567,10 @@ function TemplateStudio({
                 )}
               </article>
             ))}
-            {partial ? (
-              <div role="status" aria-live="polite" aria-label={t("streamingOutputAria")} className="space-y-3 px-1 py-1">
-                <p className="flex items-center gap-2 text-sm font-medium text-accent"><Sparkles size={15} aria-hidden="true" /> {t("generating")}</p>
-                <p className="break-words text-[15px] leading-7 text-text-primary">{partial}</p>
+            {isGenerating ? (
+              <div role="status" aria-live="polite" aria-label={t("generationStatus")} className="flex items-center gap-2 px-1 py-2 text-sm font-medium text-accent">
+                <Sparkles size={15} className="animate-pulse" aria-hidden="true" />
+                <span>{t("designGenerating")}</span>
               </div>
             ) : null}
 
