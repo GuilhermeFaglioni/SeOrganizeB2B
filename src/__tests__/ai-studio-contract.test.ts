@@ -70,6 +70,22 @@ describe("AI Studio text contract", () => {
     });
   });
 
+  it("repairs a provider response that double-escapes HTML attribute quotes", () => {
+    const expected = {
+      explanation: "Candidato",
+      html: '<div class="hero">Seguro</div>',
+      suggestedName: "Novo",
+      customVariables: [],
+      sessionSummary: { focus: "Resumo", decisions: [], pending: [], variables: [] },
+    };
+
+    const malformedJson = String.raw`{"explanation":"Candidato","html":"<div class=\\"hero\\">Seguro</div>","suggestedName":"Novo","customVariables":[],"sessionSummary":{"focus":"Resumo","decisions":[],"pending":[],"variables":[]}}`;
+    const validJsonWithOverescapedHtml = String.raw`{"explanation":"Candidato","html":"<div class=\\\"hero\\\">Seguro</div>","suggestedName":"Novo","customVariables":[],"sessionSummary":{"focus":"Resumo","decisions":[],"pending":[],"variables":[]}}`;
+
+    expect(parseStructuredOutput(malformedJson)).toEqual(expected);
+    expect(parseStructuredOutput(validJsonWithOverescapedHtml)).toEqual(expected);
+  });
+
   it("carries the sanitized base HTML only for refinement sessions", () => {
     const { systemPrompt, userPrompt } = buildStudioPrompts({
       locale: "pt-BR",
