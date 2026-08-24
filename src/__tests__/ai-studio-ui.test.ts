@@ -27,11 +27,19 @@ describe("AI Studio #171 UI seams", () => {
     expect(existsSync(resolve(root, "src/app/(authenticated)/financial/proposals/templates/ai-studio/page.tsx"))).toBe(true);
   });
 
-  it("gives AI Studio a dedicated viewport shell instead of the application chrome", () => {
+  it("gives AI Studio a dedicated viewport shell with the main sidebar and no financial tabs", () => {
     const appLayout = read("src/components/layout/app-layout.tsx");
+    const financialLayout = read("src/app/(authenticated)/financial/layout.tsx");
+    const sidebar = read("src/components/layout/sidebar.tsx");
     expect(appLayout).toContain('pathname === "/financial/proposals/templates/ai-studio"');
     expect(appLayout).toContain('data-balsa="ai-studio-shell"');
     expect(appLayout).toContain("h-[100dvh]");
+    expect(appLayout).toContain("<Sidebar");
+    expect(appLayout).toContain('data-testid="ai-studio-menu-trigger"');
+    expect(financialLayout).toContain("!isAIStudio && <FinancialTabs />");
+    expect(financialLayout).toContain("overflow-hidden");
+    expect(sidebar).toContain('href: "/financial/proposals/templates/ai-studio"');
+    expect(sidebar).toContain('testId: "nav-ai-studio"');
   });
 });
 
@@ -276,6 +284,9 @@ describe("AI Studio #176 hardening UI seams", () => {
     expect(source).toContain("chatEndRef");
     expect(source).toContain('t("thinkingFor", { seconds: 1 })');
     expect(source).toContain('t("chatComposerPlaceholder")');
+    expect(source).toContain("grid-rows-[minmax(0,1fr)_minmax(0,1fr)]");
+    expect(source).toContain("min-w-0 flex-1 flex-wrap");
+    expect(source).toContain('title={t("imageVisionBlocked")}');
     expect(preview).toContain("title = \"Preview\"");
     expect(pt).toContain('"generationStatus"');
     expect(en).toContain('"generationStatus"');
