@@ -75,12 +75,17 @@ vi.mock("../lib/ai/crypto", () => ({
 }));
 vi.mock("../lib/ai/providers", () => ({
   getAIProvider: mocks.getAIProvider,
-  isAIProviderId: (value: unknown) => value === "openai" || value === "anthropic",
+  isAIProviderId: (value: unknown) =>
+    value === "openai" ||
+    value === "anthropic" ||
+    value === "opencode" ||
+    value === "opencode-go",
   listAIProviders: () => [],
 }));
 
 import {
   generateTemplateCandidate,
+  getAIStudioConfig,
   getAIStudioUsageRetentionCutoff,
   getAIStudioRefinementBase,
   pruneAllAIStudioUsageEvents,
@@ -107,6 +112,18 @@ const provider = {
   validateApiKey: vi.fn(),
   generateStructured: mocks.generateStructured,
   generateStructuredStream: mocks.generateStructuredStream,
+};
+
+const zenProvider = {
+  ...provider,
+  id: "opencode" as const,
+  name: "OpenCode Zen",
+  defaultModel: "deepseek-v4-flash",
+  models: [
+    { id: "deepseek-v4-flash", vision: false, streaming: true, default: true },
+    { id: "deepseek-v4-pro", vision: false, streaming: true, default: false },
+  ],
+  listAvailableModels: vi.fn(),
 };
 
 const connection = {
@@ -196,6 +213,38 @@ describe("AI Studio service", () => {
     expect(usage).toMatchObject({ status: "success" });
     expect(JSON.stringify(usage)).not.toContain("Crie uma proposta");
     expect(JSON.stringify(usage)).not.toContain("{{proposta.titulo}}");
+  });
+
+  it("returns the key-scoped Zen catalog without exposing the encrypted secret", async () => {
+    mocks.connectionFindMany.mockResolvedValue([
+      {
+        id: "zen-connection",
+        provider: "opencode",
+        defaultModel: "deepseek-v4-pro",
+        encryptedSecret: "encrypted-zen-secret",
+      },
+    ]);
+    mocks.consentFindMany.mockResolvedValue([]);
+    mocks.getAIProvider.mockReturnValue(zenProvider);
+    zenProvider.listAvailableModels.mockResolvedValue([
+      { id: "deepseek-v4-flash", vision: false, streaming: true, default: true },
+    ]);
+    mocks.decryptAiSecret.mockReturnValue("zen-secret");
+
+    const result = await getAIStudioConfig("tenant-1");
+
+    expect(result.connections).toEqual([
+      {
+        id: "zen-connection",
+        provider: "opencode",
+        defaultModel: "deepseek-v4-pro",
+        models: [
+          { id: "deepseek-v4-flash", vision: false, streaming: true, default: true },
+        ],
+      },
+    ]);
+    expect(zenProvider.listAvailableModels).toHaveBeenCalledWith("zen-secret");
+    expect(JSON.stringify(result)).not.toContain("encrypted-zen-secret");
   });
 
   it("strips unsafe resources before a candidate can reach preview", () => {

@@ -226,8 +226,9 @@ export async function getConnection(
 
 /**
  * Connects or replaces a provider connection with an official API key.
- * The key is validated server-side (without spending a generation) before any
- * state changes. On validation failure the previous connection is preserved.
+ * The key is validated server-side before any state changes. Providers without
+ * an authenticated metadata endpoint may use a minimal validation request.
+ * On validation failure the previous connection is preserved.
  */
 export async function connectApiKey(
   tenantId: string,
@@ -241,7 +242,7 @@ export async function connectApiKey(
   const model = resolveModel(provider, input.defaultModel);
 
   try {
-    await provider.validateApiKey(apiKey);
+    await provider.validateApiKey(apiKey, model);
   } catch (error) {
     if (error instanceof AIProviderError) {
       throw new AiConnectionError(
@@ -335,9 +336,9 @@ export async function connectApiKey(
 }
 
 /**
- * Re-validates a stored connection against the provider without spending a
- * generation. On failure the connection moves to `invalid` and the actionable
- * error code is stored; the secret is preserved so an admin can replace it.
+ * Re-validates a stored connection against the provider. On failure the
+ * connection moves to `invalid` and the actionable error code is stored; the
+ * secret is preserved so an admin can replace it.
  */
 export async function validateConnection(
   tenantId: string,
@@ -349,7 +350,7 @@ export async function validateConnection(
   return withTenant(tenantId, async () => {
     const existing = await prisma.aiProviderConnection.findFirst({
       where: { provider: providerId },
-      select: { id: true, encryptedSecret: true },
+      select: { id: true, encryptedSecret: true, defaultModel: true },
     });
     if (!existing || !existing.encryptedSecret) {
       throw new AiConnectionError("NOT_FOUND", `No active connection for provider "${providerId}"`);
@@ -366,7 +367,7 @@ export async function validateConnection(
     }
 
     try {
-      await provider.validateApiKey(secret);
+      await provider.validateApiKey(secret, existing.defaultModel ?? undefined);
     } catch (error) {
       const code = error instanceof AIProviderError ? error.code : "UNKNOWN";
       const message = error instanceof AIProviderError

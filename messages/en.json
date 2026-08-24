@@ -626,11 +626,11 @@
         },
         "aiStudioProviders": {
           "title": "AI Studio and providers",
-          "body": "AI Studio can use OpenAI or Anthropic through the official connection selected by the company. At launch, API Key is the functional path. OAuth will be offered only when the provider officially documents and enables OAuth for third-party applications; this capability is currently unavailable in the catalog. The product does not collect passwords, cookies or personal account tokens to enable this integration."
+          "body": "AI Studio can use OpenAI, Anthropic, OpenCode Zen or OpenCode Go through the official connection selected by the company. At launch, API Key is the functional path. OAuth will be offered only when the provider officially documents and enables OAuth for third-party applications; this capability is currently unavailable in the catalog. The product does not collect passwords, cookies or personal account tokens to enable this integration."
         },
         "aiStudioProcessing": {
           "title": "AI Studio processing",
-          "body": "To generate or refine a candidate, we send the current briefing, sanitized base HTML, attached reference images and, when applicable, the company directive, session summary and compacted session messages only to the selected provider model for that action. We do not send the same content to both providers, use implicit fallback or include client data, real proposals or secrets by default. The candidate and edited HTML remain in the browser until you choose to save."
+          "body": "To generate or refine a candidate, we send the current briefing, sanitized base HTML, attached reference images and, when applicable, the company directive, session summary and compacted session messages only to the selected provider model for that action. We do not send the same content to multiple providers, use implicit fallback or include client data, real proposals or secrets by default. The candidate and edited HTML remain in the browser until you choose to save."
         },
         "aiStudioRetention": {
           "title": "Ephemeral AI Studio data",
@@ -642,7 +642,7 @@
         },
         "aiStudioCosts": {
           "title": "Company costs",
-          "body": "The company is responsible for charges, limits and usage policies of the provider connected to the company. SeOrganize+ applies its own operational limits but does not control OpenAI or Anthropic pricing, availability or billing."
+          "body": "The company is responsible for charges, limits and usage policies of the provider connected to the company. SeOrganize+ applies its own operational limits but does not control OpenAI, Anthropic, OpenCode Zen or OpenCode Go pricing, availability or billing."
         },
         "rights": {
           "title": "Rights and revocation",
@@ -690,7 +690,7 @@
         },
         "aiStudioProviderAuth": {
           "title": "AI provider authentication",
-          "body": "OpenAI and Anthropic are independent providers. API Key is the functional launch method. The product may offer OAuth only when official support for third-party applications is documented; until that condition is met, the interface states that it is unavailable and does not request personal passwords, cookies or tokens."
+          "body": "OpenAI, Anthropic, OpenCode Zen and OpenCode Go are independent providers. API Key is the functional launch method. The product may offer OAuth only when official support for third-party applications is documented; until that condition is met, the interface states that it is unavailable and does not request personal passwords, cookies or tokens."
         },
         "aiStudioCosts": {
           "title": "AI costs",
@@ -1713,7 +1713,7 @@
       },
       "aiConnections": {
         "title": "AI Integrations",
-        "description": "Connect OpenAI and manage workspace AI providers"
+        "description": "Connect OpenAI, Anthropic, OpenCode Zen or OpenCode Go and manage workspace AI providers"
       },
       "aiDirective": {
         "title": "Workspace directive",
@@ -1829,8 +1829,9 @@
       "providerLabel": "Provider",
       "modelLabel": "Model",
       "apiKeyLabel": "API key",
-      "apiKeyPlaceholder": "sk-...",
+      "apiKeyPlaceholder": "API key...",
       "apiKeyHint": "Use an official provider API key. Passwords, cookies and extracted session tokens are not accepted.",
+      "goSubscriptionHint": "OpenCode Go has subscription limits of $12 per 5 hours, $30 per week and $60 per month. Connecting or re-validating sends one minimal request and may consume Go quota.",
       "connect": "Connect",
       "replace": "Replace connection",
       "saving": "Connecting...",
@@ -1854,7 +1855,9 @@
       "oauthAvailableTitle": "OAuth available",
       "oauthUnavailableTitle": "OAuth unavailable",
       "oauthUnavailableOAuthConditionNotMet": "This provider does not offer official third-party OAuth for programmatic API access. Use an API key instead.",
-      "oauthUnavailableHint": "OAuth remains unavailable until the provider officially documents third-party application OAuth.",
+      "oauthUnavailableCodexThirdParty": "Codex Sign in with ChatGPT is documented for OpenAI's official desktop app, CLI and IDE. It is not a third-party OAuth flow for this API integration. Use an OpenAI Platform API key; enterprise Codex access tokens are for trusted Codex CLI/app-server workflows, not general OpenAI API calls.",
+      "oauthUnavailableClaudeThirdParty": "Claude.ai/Claude Code login and setup tokens are documented for Anthropic's official clients. Anthropic documents Console API keys or Workload Identity Federation for API workloads, not a public third-party OAuth client flow. Use a Claude Console API key here.",
+      "oauthUnavailableHint": "This screen does not offer or collect OAuth credentials until the provider documents a supported third-party flow with client registration, redirect and token lifecycle.",
       "oauthNoCollectionNotice": "Do not collect passwords, cookies or personal account tokens for this provider.",
       "status": {
         "active": "Active",

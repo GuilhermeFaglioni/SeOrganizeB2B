@@ -106,13 +106,15 @@ describe("provider registry", () => {
   it("resolves the Anthropic adapter alongside OpenAI", () => {
     expect(getAIProvider("anthropic")).toBeDefined();
     expect(listAIProviders().map((p) => p.id)).toEqual(
-      expect.arrayContaining(["openai", "anthropic"]),
+      expect.arrayContaining(["openai", "anthropic", "opencode", "opencode-go"]),
     );
   });
 
   it("recognizes only known provider ids", () => {
     expect(isAIProviderId("openai")).toBe(true);
     expect(isAIProviderId("anthropic")).toBe(true);
+    expect(isAIProviderId("opencode")).toBe(true);
+    expect(isAIProviderId("opencode-go")).toBe(true);
     expect(isAIProviderId("google")).toBe(false);
     expect(isAIProviderId(undefined)).toBe(false);
   });

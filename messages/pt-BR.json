@@ -626,11 +626,11 @@
         },
         "aiStudioProviders": {
           "title": "AI Studio e providers",
-          "body": "O AI Studio pode usar OpenAI ou Anthropic por meio da conexão oficial escolhida pela empresa. No lançamento, o caminho funcional é API Key. OAuth só será oferecido quando o provider documentar e habilitar oficialmente OAuth para aplicações terceiras; atualmente essa capacidade permanece indisponível no catálogo. O produto não coleta senhas, cookies ou tokens de contas pessoais para habilitar essa integração."
+          "body": "O AI Studio pode usar OpenAI, Anthropic, OpenCode Zen ou OpenCode Go por meio da conexão oficial escolhida pela empresa. No lançamento, o caminho funcional é API Key. OAuth só será oferecido quando o provider documentar e habilitar oficialmente OAuth para aplicações terceiras; atualmente essa capacidade permanece indisponível no catálogo. O produto não coleta senhas, cookies ou tokens de contas pessoais para habilitar essa integração."
         },
         "aiStudioProcessing": {
           "title": "Processamento no AI Studio",
-          "body": "Para gerar ou refinar um candidato, enviamos o briefing atual, o HTML-base sanitizado, as imagens de referência anexadas e, quando aplicável, a diretriz da empresa, o resumo e as mensagens compactadas da sessão somente ao modelo do provider selecionado para aquela ação. Não enviamos o mesmo conteúdo a ambos os providers, não fazemos fallback implícito e não incluímos dados de clientes, propostas reais ou segredos por padrão. O candidato e o HTML editado permanecem no navegador até que você escolha salvar."
+          "body": "Para gerar ou refinar um candidato, enviamos o briefing atual, o HTML-base sanitizado, as imagens de referência anexadas e, quando aplicável, a diretriz da empresa, o resumo e as mensagens compactadas da sessão somente ao modelo do provider selecionado para aquela ação. Não enviamos o mesmo conteúdo a múltiplos providers, não fazemos fallback implícito e não incluímos dados de clientes, propostas reais ou segredos por padrão. O candidato e o HTML editado permanecem no navegador até que você escolha salvar."
         },
         "aiStudioRetention": {
           "title": "Dados efêmeros do AI Studio",
@@ -642,7 +642,7 @@
         },
         "aiStudioCosts": {
           "title": "Custos da empresa",
-          "body": "A empresa é responsável pelas cobranças, limites e políticas de uso do provider conectado à empresa. O SeOrganize+ aplica limites operacionais próprios, mas não controla preços, disponibilidade ou cobrança de OpenAI e Anthropic."
+          "body": "A empresa é responsável pelas cobranças, limites e políticas de uso do provider conectado à empresa. O SeOrganize+ aplica limites operacionais próprios, mas não controla preços, disponibilidade ou cobrança de OpenAI, Anthropic, OpenCode Zen ou OpenCode Go."
         },
         "rights": {
           "title": "Direitos e revogação",
@@ -690,7 +690,7 @@
         },
         "aiStudioProviderAuth": {
           "title": "Autenticação dos providers de IA",
-          "body": "OpenAI e Anthropic são providers independentes. API Key é o método funcional de lançamento. O produto só poderá oferecer OAuth se houver suporte oficial documentado para aplicações terceiras; enquanto essa condição não for atendida, a interface informa a indisponibilidade e não solicita senhas, cookies ou tokens pessoais."
+          "body": "OpenAI, Anthropic, OpenCode Zen e OpenCode Go são providers independentes. API Key é o método funcional de lançamento. O produto só poderá oferecer OAuth se houver suporte oficial documentado para aplicações terceiras; enquanto essa condição não for atendida, a interface informa a indisponibilidade e não solicita senhas, cookies ou tokens pessoais."
         },
         "aiStudioCosts": {
           "title": "Custos de IA",
@@ -1713,7 +1713,7 @@
       },
       "aiConnections": {
         "title": "Integrações de IA",
-        "description": "Conecte a OpenAI e gerencie os provedores de IA da empresa"
+        "description": "Conecte OpenAI, Anthropic, OpenCode Zen ou OpenCode Go e gerencie os provedores de IA da empresa"
       },
       "aiDirective": {
         "title": "Diretriz da empresa",
@@ -1829,8 +1829,9 @@
       "providerLabel": "Provedor",
       "modelLabel": "Modelo",
       "apiKeyLabel": "API Key",
-      "apiKeyPlaceholder": "sk-...",
+      "apiKeyPlaceholder": "API Key...",
       "apiKeyHint": "Use uma API Key oficial do provedor. Senhas, cookies e tokens de sessão extraídos não são aceitos.",
+      "goSubscriptionHint": "O OpenCode Go tem limites de assinatura de US$ 12 por 5 horas, US$ 30 por semana e US$ 60 por mês. Conectar ou revalidar envia uma solicitação mínima e pode consumir a cota do Go.",
       "connect": "Conectar",
       "replace": "Substituir conexão",
       "saving": "Conectando...",
@@ -1854,7 +1855,9 @@
       "oauthAvailableTitle": "OAuth disponível",
       "oauthUnavailableTitle": "OAuth indisponível",
       "oauthUnavailableOAuthConditionNotMet": "Este provedor não oferece OAuth oficial para acesso programático à API em nome de apps terceiras. Use API Key.",
-      "oauthUnavailableHint": "OAuth permanece indisponível até que o provedor documente oficialmente o OAuth de aplicações terceiras.",
+      "oauthUnavailableCodexThirdParty": "O Sign in with ChatGPT do Codex é documentado para o app oficial desktop, CLI e IDE da OpenAI; não é um fluxo OAuth de terceiro para esta integração de API. Use uma API Key da OpenAI Platform. Access tokens empresariais do Codex servem para workflows confiáveis do Codex CLI/app-server, não para chamadas gerais à OpenAI API.",
+      "oauthUnavailableClaudeThirdParty": "O login Claude.ai/Claude Code e os tokens gerados por setup-token são documentados para os clientes oficiais da Anthropic. Para workloads da Claude API, a Anthropic documenta API Key do Console ou Workload Identity Federation, não um fluxo OAuth público de cliente terceiro. Use uma API Key do Claude Console aqui.",
+      "oauthUnavailableHint": "Esta tela não oferece nem coleta credenciais OAuth até que o provedor documente um fluxo de terceiro suportado, com registro de cliente, redirect e ciclo de vida dos tokens.",
       "oauthNoCollectionNotice": "Não colete senhas, cookies ou tokens de contas pessoais para este provedor.",
       "status": {
         "active": "Ativa",

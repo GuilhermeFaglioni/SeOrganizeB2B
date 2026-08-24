@@ -64,6 +64,8 @@ describe("Google OAuth legal surface", () => {
     for (const disclosure of [
       "OpenAI",
       "Anthropic",
+      "OpenCode Zen",
+      "OpenCode Go",
       "API Key",
       "OAuth",
       "30 minutos",

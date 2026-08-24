@@ -4,6 +4,8 @@ import { resolve } from "path";
 
 import { anthropicProvider } from "../lib/ai/providers/anthropic";
 import { openaiProvider } from "../lib/ai/providers/openai";
+import { opencodeProvider } from "../lib/ai/providers/opencode";
+import { opencodeGoProvider } from "../lib/ai/providers/opencode-go";
 import {
   getAIProvider,
   listAIProviders,
@@ -13,37 +15,51 @@ const root = resolve(__dirname, "../..");
 const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("AI provider OAuth capability gating (#175)", () => {
-  it("declares OAuth as a known but unsupported method for both providers with a safe reasonKey", () => {
+  it("declares OAuth as a known but unsupported method for all providers with a safe reasonKey", () => {
     expect(openaiProvider.authMethods).toEqual(["api_key"]);
     expect(anthropicProvider.authMethods).toEqual(["api_key"]);
+    expect(opencodeProvider.authMethods).toEqual(["api_key"]);
+    expect(opencodeGoProvider.authMethods).toEqual(["api_key"]);
     // oauth must be explicit so the UI/catalog can reason about availability
     expect(openaiProvider.oauth).toMatchObject({
       status: "unsupported",
-      reasonKey: "oauthUnavailableOAuthConditionNotMet",
+      reasonKey: "oauthUnavailableCodexThirdParty",
     });
     expect(anthropicProvider.oauth).toMatchObject({
+      status: "unsupported",
+      reasonKey: "oauthUnavailableClaudeThirdParty",
+    });
+    expect(opencodeProvider.oauth).toMatchObject({
+      status: "unsupported",
+      reasonKey: "oauthUnavailableOAuthConditionNotMet",
+    });
+    expect(opencodeGoProvider.oauth).toMatchObject({
       status: "unsupported",
       reasonKey: "oauthUnavailableOAuthConditionNotMet",
     });
     expect(openaiProvider.authMethods).not.toContain("oauth");
     expect(anthropicProvider.authMethods).not.toContain("oauth");
+    expect(opencodeProvider.authMethods).not.toContain("oauth");
+    expect(opencodeGoProvider.authMethods).not.toContain("oauth");
   });
 
-  it("lists no provider as OAuth-available in June 2026 (no official third-party OAuth to the API)", () => {
+  it("lists no provider as OAuth-available (no official third-party OAuth to the API)", () => {
     expect(
       listAIProviders().every((p) => !p.authMethods.includes("oauth" as unknown as never)),
     ).toBe(true);
     expect(listAIProviders().every((p) => p.oauth.status === "unsupported")).toBe(true);
     // Avoid accidental fallthrough: unsupported providers must map to a known i18n key
-    expect(openaiProvider.oauth.reasonKey).toBe("oauthUnavailableOAuthConditionNotMet");
-    expect(anthropicProvider.oauth.reasonKey).toBe("oauthUnavailableOAuthConditionNotMet");
+    expect(openaiProvider.oauth.reasonKey).toBe("oauthUnavailableCodexThirdParty");
+    expect(anthropicProvider.oauth.reasonKey).toBe("oauthUnavailableClaudeThirdParty");
+    expect(opencodeProvider.oauth.reasonKey).toBe("oauthUnavailableOAuthConditionNotMet");
+    expect(opencodeGoProvider.oauth.reasonKey).toBe("oauthUnavailableOAuthConditionNotMet");
   });
 
-  it("registry lookups still resolve both providers (gating does not break discovery)", () => {
+  it("registry lookups still resolve every provider (gating does not break discovery)", () => {
     expect(getAIProvider("openai")).toBeDefined();
     expect(getAIProvider("anthropic")).toBeDefined();
     expect(listAIProviders().map((p) => p.id)).toEqual(
-      expect.arrayContaining(["openai", "anthropic"]),
+      expect.arrayContaining(["openai", "anthropic", "opencode", "opencode-go"]),
     );
   });
 
@@ -67,8 +83,13 @@ describe("AI provider OAuth capability gating (#175)", () => {
   it("localizes the OAuth unavailable state in both locales without adding OAuth secrets", () => {
     const pt = read("messages/pt-BR.json");
     const en = read("messages/en.json");
+    const findings = read("docs/ai-studio-codex-claude-oauth.md");
     expect(pt).toContain('"oauthUnavailableOAuthConditionNotMet"');
     expect(en).toContain('"oauthUnavailableOAuthConditionNotMet"');
+    expect(pt).toContain('"oauthUnavailableCodexThirdParty"');
+    expect(en).toContain('"oauthUnavailableCodexThirdParty"');
+    expect(pt).toContain('"oauthUnavailableClaudeThirdParty"');
+    expect(en).toContain('"oauthUnavailableClaudeThirdParty"');
     expect(pt).toContain('"oauthUnavailableTitle"');
     expect(en).toContain('"oauthUnavailableTitle"');
     expect(pt).toContain('"oauthNoCollectionNotice"');
@@ -76,5 +97,8 @@ describe("AI provider OAuth capability gating (#175)", () => {
     // The notice must say not to collect passwords/cookies/tokens
     expect(pt).toContain("Não colete senhas");
     expect(en).toContain("Do not collect passwords");
+    expect(findings).toContain("Codex access tokens");
+    expect(findings).toContain("CLAUDE_CODE_OAUTH_TOKEN");
+    expect(findings).toContain("What would unblock OAuth");
   });
 });

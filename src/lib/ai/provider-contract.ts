@@ -1,12 +1,16 @@
 import type { AIStudioImageAsset } from "./studio-contract";
 
-export type AIProviderId = "openai" | "anthropic";
+export type AIProviderId = "openai" | "anthropic" | "opencode" | "opencode-go";
 
 export type AIAuthMethod = "api_key" | "oauth";
 export type AIProviderOAuthStatus = "unsupported" | "requires_setup" | "supported";
+export type AIProviderOAuthReasonKey =
+  | "oauthUnavailableOAuthConditionNotMet"
+  | "oauthUnavailableCodexThirdParty"
+  | "oauthUnavailableClaudeThirdParty";
 export interface AIProviderOAuthCapability {
   status: AIProviderOAuthStatus;
-  reasonKey: string;
+  reasonKey: AIProviderOAuthReasonKey;
 }
 
 export type AIProviderErrorCode =
@@ -67,7 +71,18 @@ export interface AIProvider {
   readonly oauth: AIProviderOAuthCapability;
   readonly defaultModel: string;
   readonly models: AIProviderModel[];
-  validateApiKey(apiKey: string): Promise<void>;
+  /**
+   * Validates credentials before a connection is persisted. When supplied, the
+   * model must also be available to the credential. Providers may use a
+   * read-only endpoint or a minimal authenticated request when their API has no
+   * authenticated metadata endpoint.
+   */
+  validateApiKey(apiKey: string, model?: string): Promise<void>;
+  /**
+   * Returns the models available to a specific credential when the provider
+   * supports key-scoped model access. The result remains server-side metadata.
+   */
+  listAvailableModels?(apiKey: string): Promise<AIProviderModel[]>;
   /**
    * Generates the provider-neutral JSON contract used by AI Studio. Optional
    * keeps connection-only adapters backwards compatible while the generation

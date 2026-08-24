@@ -110,7 +110,7 @@ export const openaiProvider: AIProvider = {
   authMethods: ["api_key"],
   oauth: {
     status: "unsupported",
-    reasonKey: "oauthUnavailableOAuthConditionNotMet",
+    reasonKey: "oauthUnavailableCodexThirdParty",
   },
   defaultModel: "gpt-4o",
   models: OPENAI_MODELS,

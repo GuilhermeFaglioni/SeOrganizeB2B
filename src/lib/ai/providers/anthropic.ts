@@ -105,7 +105,7 @@ export const anthropicProvider: AIProvider = {
   authMethods: ["api_key"],
   oauth: {
     status: "unsupported",
-    reasonKey: "oauthUnavailableOAuthConditionNotMet",
+    reasonKey: "oauthUnavailableClaudeThirdParty",
   },
   defaultModel: "claude-sonnet-4-5",
   models: ANTHROPIC_MODELS,
