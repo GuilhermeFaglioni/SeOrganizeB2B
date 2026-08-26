@@ -25,6 +25,10 @@ const initial = {
   maxOutputTokens: "6000",
 };
 
+function parseDecimal(value: string): number {
+  return Number(value.trim().replace(",", "."));
+}
+
 export default function AdminAIModelsPage() {
   const t = useTranslations("admin.pages.aiModels");
   const { data: models, isLoading, isError } = useAdminAIModels();
@@ -38,9 +42,9 @@ export default function AdminAIModelsPage() {
     event.preventDefault();
     const payload = {
       ...form,
-      inputCostPerMillion: Number(form.inputCostPerMillion),
-      outputCostPerMillion: Number(form.outputCostPerMillion),
-      imageCostPerMillion: Number(form.imageCostPerMillion),
+      inputCostPerMillion: parseDecimal(form.inputCostPerMillion),
+      outputCostPerMillion: parseDecimal(form.outputCostPerMillion),
+      imageCostPerMillion: parseDecimal(form.imageCostPerMillion),
       creditCostPerCycle: Number(form.creditCostPerCycle),
       maxOutputTokens: Number(form.maxOutputTokens),
     };

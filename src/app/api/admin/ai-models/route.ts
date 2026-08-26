@@ -25,8 +25,9 @@ function readInteger(value: unknown, name: string, minimum = 0): number | null {
 }
 
 function readUsdPerMillion(value: unknown, name: string): number | null {
-  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return null;
-  const micros = Math.round(value * 1_000_000);
+  const normalized = typeof value === "string" ? Number(value.trim().replace(",", ".")) : value;
+  if (typeof normalized !== "number" || !Number.isFinite(normalized) || normalized < 0) return null;
+  const micros = Math.round(normalized * 1_000_000);
   return Number.isSafeInteger(micros) ? micros : null;
 }
 
