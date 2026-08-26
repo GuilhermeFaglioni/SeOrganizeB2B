@@ -314,7 +314,10 @@
         "applyCreditOperation": "Apply adjustment",
         "creditOperationSuccess": "Credits adjusted successfully.",
         "creditOperationError": "Could not adjust credits.",
-        "confirmRevoke": "Confirm revoking these credits?"
+        "confirmRevoke": "Confirm revoking these credits?",
+        "company": "Company",
+        "selectCompany": "Select a Company",
+        "loadingCompanies": "Loading companies..."
       },
       "support": {
         "title": "Support tickets",
@@ -672,7 +675,7 @@
     "privacy": {
       "eyebrow": "Privacy",
       "title": "Privacy Policy",
-        "updated": "Version: August 22, 2026",
+      "updated": "Version: August 22, 2026",
       "intro": "This policy explains how SeOrganize+ handles company, team and authorized integration data, including Google Calendar.",
       "sections": {
         "controller": {
@@ -740,7 +743,7 @@
     "terms": {
       "eyebrow": "Service use",
       "title": "Terms of Service",
-        "updated": "Version: August 22, 2026",
+      "updated": "Version: August 22, 2026",
       "intro": "These terms define the rules for use of SeOrganize+ by digital service providers, companies and teams.",
       "sections": {
         "service": {
