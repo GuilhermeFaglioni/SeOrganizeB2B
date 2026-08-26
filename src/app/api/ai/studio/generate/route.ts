@@ -92,20 +92,12 @@ export async function POST(request: Request) {
 
   if (body.stream === true) {
     const encoder = new TextEncoder();
-    // Keep pre-provider failures as normal HTTP responses before committing stream headers.
-    type InitialResult = { kind: "ready" } | { kind: "error"; response: Response };
-    let resolveInitial!: (result: InitialResult) => void;
-    let initialSettled = false;
-    const initialResult = new Promise<InitialResult>((resolve) => {
-      resolveInitial = (result) => {
-        if (initialSettled) return;
-        initialSettled = true;
-        resolve(result);
-      };
-    });
+    const startedAt = Date.now();
+    let firstChunkAt: number | null = null;
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
         void (async () => {
+          let requestId: string | undefined;
           try {
             const result = await generateTemplateCandidate(
               {
@@ -128,29 +120,32 @@ export async function POST(request: Request) {
               },
               {
                 onPartial: (text) => {
-                  resolveInitial({ kind: "ready" });
+                  if (firstChunkAt === null) firstChunkAt = Date.now();
                   controller.enqueue(encoder.encode(newlineJson({ type: "delta", text })));
                 },
               },
             );
+            requestId = result.requestId;
             controller.enqueue(encoder.encode(newlineJson({ type: "complete", data: result })));
-            resolveInitial({ kind: "ready" });
           } catch (error) {
             const response = mapAIStudioError(error);
-            if (!initialSettled) {
-              resolveInitial({ kind: "error", response });
-            } else {
-              const payload = await response.json();
-              controller.enqueue(encoder.encode(newlineJson({ type: "error", ...payload })));
-            }
+            requestId = error instanceof AIStudioError ? error.requestId : undefined;
+            const payload = await response.json();
+            controller.enqueue(encoder.encode(newlineJson({ type: "error", ...payload })));
           } finally {
+            console.info("AI Studio stream completed:", {
+              requestId,
+              provider: body.provider,
+              model: body.model,
+              timeToHeadersMs: 0,
+              timeToFirstChunkMs: firstChunkAt === null ? null : firstChunkAt - startedAt,
+              durationMs: Date.now() - startedAt,
+            });
             controller.close();
           }
         })();
       },
     });
-    const initial = await initialResult;
-    if (initial.kind === "error") return initial.response;
     return new Response(stream, {
       status: 200,
       headers: {
