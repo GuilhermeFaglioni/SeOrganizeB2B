@@ -236,10 +236,10 @@ describe("AI Studio API", () => {
   });
 
   it.each([
-    ["CONSENT_REQUIRED", 428],
-    ["RATE_LIMITED", 429],
-    ["PAYLOAD_LIMITED", 413],
-  ] as const)("preserves the HTTP status for a streaming %s failure", async (code, status) => {
+    "CONSENT_REQUIRED",
+    "RATE_LIMITED",
+    "PAYLOAD_LIMITED",
+  ] as const)("emits a streaming error event for %s without waiting for the provider", async (code) => {
     mocks.generateTemplateCandidate.mockRejectedValue(new AIStudioError(code, "Generation blocked."));
 
     const response = await generatePOST(request("http://x/api/ai/studio/generate", {
@@ -250,8 +250,8 @@ describe("AI Studio API", () => {
       stream: true,
     }));
 
-    expect(response?.status).toBe(status);
-    expect((await response?.json()).error).toMatchObject({ code });
+    expect(response?.status).toBe(200);
+    expect(await response?.text()).toContain(`"code":"${code}"`);
   });
 
   it("keeps a started stream at 200 and emits safe provider diagnostics after a delta", async () => {
