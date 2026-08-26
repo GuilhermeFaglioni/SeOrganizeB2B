@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   mockPlanFindFirst: vi.fn(),
   mockSubscriptionsList: vi.fn(),
   mockLeaveClosedBeta: vi.fn(),
+  mockGrantSubscriptionCredits: vi.fn(),
 }));
 
 vi.mock("@/lib/stripe", () => ({
@@ -35,6 +36,10 @@ vi.mock("../../prisma/client", () => ({
 
 vi.mock("@/lib/closed-beta/service", () => ({
   setWorkspacePlanAndLeaveClosedBeta: mocks.mockLeaveClosedBeta,
+}));
+
+vi.mock("@/lib/ai/credit-ledger", () => ({
+  grantSubscriptionCredits: mocks.mockGrantSubscriptionCredits,
 }));
 
 import { POST } from "../app/api/stripe/webhook/route";
@@ -87,6 +92,7 @@ describe("stripe webhook", () => {
     mocks.mockWorkspaceUpdate.mockResolvedValue({ id: "ws_1" });
     mocks.mockSubscriptionsList.mockResolvedValue({ data: [] });
     mocks.mockLeaveClosedBeta.mockResolvedValue(undefined);
+    mocks.mockGrantSubscriptionCredits.mockResolvedValue({ granted: true, quantity: 100 });
   });
 
   afterEach(() => {
@@ -138,6 +144,25 @@ describe("stripe webhook", () => {
     const endsAt = (data.gracePeriodEndsAt as Date).getTime();
     expect(endsAt).toBeGreaterThan(before + 3 * 24 * 60 * 60 * 1000 - 1000);
     expect(endsAt).toBeLessThanOrEqual(after + 3 * 24 * 60 * 60 * 1000);
+  });
+
+  it("grants subscription credits once from invoice.paid after activating the plan", async () => {
+    mocks.mockConstructEvent.mockReturnValue(
+        makeEvent("invoice.paid", { ...makeInvoice("cus_123"), id: "in_paid_1", period_start: 100, period_end: 200 })
+    );
+    mocks.mockSubscriptionsList.mockResolvedValue({
+      data: [{ id: "sub_1", items: { data: [{ price: { id: "price_pro" } }] } }],
+    });
+    mocks.mockPlanFindFirst.mockResolvedValue({ id: "plan_pro" });
+
+    const res = await POST(makeRequest("payload"));
+
+    expect(res.status).toBe(200);
+    expect(mocks.mockGrantSubscriptionCredits).toHaveBeenCalledWith({
+      tenantId: "ws_1",
+      invoiceId: "in_paid_1",
+       billingPeriod: "100-200",
+    });
   });
 
   it("cancels the workspace on customer.subscription.deleted", async () => {
@@ -273,5 +298,12 @@ describe("stripe webhook", () => {
 
     expect(res.status).toBe(200);
     expect(mocks.mockWorkspaceUpdate).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 when a verified event cannot be processed so Stripe retries", async () => {
+    mocks.mockConstructEvent.mockReturnValue(makeEvent("invoice.payment_failed", makeInvoice("cus_123")));
+    mocks.mockWorkspaceFindFirst.mockRejectedValue(new Error("database unavailable"));
+    const res = await POST(makeRequest("payload"));
+    expect(res.status).toBe(500);
   });
 });

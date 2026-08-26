@@ -13,6 +13,22 @@ export function useAIStudioConfig(options?: { enabled?: boolean }) {
   });
 }
 
+export interface AICreditsData {
+  balance: { promotional: number; subscription: number; purchased: number; total: number };
+  history: Array<{ id: string; pool: "promotional" | "subscription" | "purchased"; kind: string; quantity: number; reason: string | null; expiresAt: string | null; createdAt: string }>;
+  cycle: { id: string; model: string; provider: string; creditCostPerCycle: number; alterationCount: number; expiresAt: string } | null;
+  memberLimit: { limit: number | null; used: number; remaining: number | null };
+}
+
+export function useAICredits(options?: { enabled?: boolean }) {
+  return useQuery<AICreditsData>({
+    queryKey: ["ai-studio", "credits"],
+    queryFn: () => fetchJson<AICreditsData>("/api/ai/credits"),
+    enabled: options?.enabled ?? true,
+    staleTime: 15_000,
+  });
+}
+
 export function useAIStudioRefinementBase(templateId: string | null) {
   return useQuery<AIStudioRefinementBase>({
     queryKey: ["ai-studio", "refine", templateId],
@@ -28,17 +44,19 @@ export function useUpdateRefinedTemplate() {
       templateId,
       html,
       confirmed,
+      cycleId,
     }: {
       templateId: string;
       html: string;
       confirmed: boolean;
+      cycleId?: string;
     }) =>
       fetchJson<UpdatedRefinedTemplateResult>(
         `/api/ai/studio/refine/${templateId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ html, confirmed }),
+          body: JSON.stringify({ html, confirmed, cycleId }),
         },
       ),
     onSuccess: () => {

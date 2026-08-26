@@ -60,6 +60,15 @@ import {
 } from "./image-validation";
 import { detectVariables } from "../financial/proposal-variables";
 import { sanitizeProposalHtml, renderProposalHtml } from "../financial/proposals";
+import { getActiveAIModelCatalogEntry, listActiveAIModelCatalog } from "./model-catalog";
+import {
+  closeManagedAICycle,
+  recordManagedAICycleCandidate,
+  refundManagedAICycleFailure,
+  startOrResumeManagedAICycle,
+  ManagedAICycleLimitError,
+  type ManagedCycleState,
+} from "./managed-cycle";
 
 export type AIStudioErrorCode =
   | "VALIDATION_ERROR"
@@ -117,6 +126,8 @@ export interface AIStudioConnectionOption {
     vision: boolean;
     streaming: boolean;
     default: boolean;
+    ownershipMode?: "managed" | "byok";
+    creditCostPerCycle?: number;
   }>;
 }
 
@@ -127,6 +138,7 @@ export interface AIStudioConfig {
   directiveConfigured: boolean;
   connections: AIStudioConnectionOption[];
   consents: Record<string, { accepted: boolean; acceptedAt: string | null }>;
+  models: Array<{ provider: string; model: string; ownershipMode: "managed" | "byok"; creditCostPerCycle: number }>;
 }
 
 export interface GenerateTemplateInput {
@@ -145,6 +157,7 @@ export interface GenerateTemplateInput {
   stream?: boolean;
   imageIds?: unknown;
   imageFiles?: unknown;
+  cycleId?: unknown;
 }
 
 export interface GeneratedTemplateResult {
@@ -158,6 +171,7 @@ export interface GeneratedTemplateResult {
     variableDiff: ReturnType<typeof compareVariables>;
     warnings: string[];
   };
+  cycle?: ManagedCycleState;
 }
 
 export interface SanitizedAiHtml {
@@ -514,6 +528,7 @@ async function readActiveConnection(tenantId: string, provider: AIProviderId) {
         id: true,
         provider: true,
         authMethod: true,
+        ownershipMode: true,
         encryptedSecret: true,
         defaultModel: true,
       },
@@ -652,7 +667,7 @@ export function getAIStudioImageStats(): {
 
 export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfig> {
   const directive = await getWorkspaceDirective(tenantId);
-  const [connections, consentRows] = await Promise.all([
+  const [connections, consentRows, catalog] = await Promise.all([
     withTenant(tenantId, () =>
       prisma.aiProviderConnection.findMany({
         where: { status: "active", creator: { tenantId, removedAt: null } },
@@ -666,6 +681,7 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
         select: { provider: true, consentedAt: true },
       }),
     ),
+    listActiveAIModelCatalog(),
   ]);
 
   const consentByProvider = Object.fromEntries(
@@ -690,7 +706,10 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
           id: connection.id,
           provider: connection.provider,
           defaultModel: connection.defaultModel,
-          models: await modelsForConnection(provider, connection.encryptedSecret),
+          models: (await modelsForConnection(provider, connection.encryptedSecret)).map((model) => {
+            const entry = catalog.find((item) => item.provider === connection.provider && item.model === model.id);
+            return { ...model, ...(entry ? { ownershipMode: entry.ownershipMode, creditCostPerCycle: entry.creditCostPerCycle } : {}) };
+          }),
         };
       }),
     )
@@ -703,6 +722,7 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
     directiveConfigured: Boolean(directive?.content),
     connections: availableConnections,
     consents: consentByProvider,
+    models: catalog.map((entry) => ({ provider: entry.provider, model: entry.model, ownershipMode: entry.ownershipMode, creditCostPerCycle: entry.creditCostPerCycle })),
   };
 }
 
@@ -779,6 +799,7 @@ async function reserveUsageEvent(input: {
           errorCategory: null,
           inputTokens: null,
           outputTokens: null,
+          tokenUsageEstimated: false,
         },
       });
     }),
@@ -799,6 +820,7 @@ async function recordUsageEvent(input: {
   errorCategory?: string;
   inputTokens?: number;
   outputTokens?: number;
+  tokenUsageEstimated?: boolean;
 }): Promise<void> {
   try {
     await withTenant(input.tenantId, () =>
@@ -812,6 +834,7 @@ async function recordUsageEvent(input: {
           errorCategory: input.errorCategory ?? null,
           inputTokens: input.inputTokens ?? null,
           outputTokens: input.outputTokens ?? null,
+          tokenUsageEstimated: input.tokenUsageEstimated ?? false,
         },
       }),
     );
@@ -873,14 +896,26 @@ export async function generateTemplateCandidate(
   const baseHtml = normalizeBaseHtml(input.baseHtml);
   const sanitizedBase = baseHtml === null ? null : sanitizeAIStudioHtml(baseHtml);
   const connection = await readActiveConnection(input.tenantId, providerId);
-  if (!connection?.encryptedSecret) {
-    throw new AIStudioError(
-      "CONNECTION_UNAVAILABLE",
-      "A conexão selecionada não está ativa. Configure ou valide o provider antes de gerar.",
-    );
+  const requestedModel = input.model ?? connection?.defaultModel;
+  const model = normalizeModel(provider, requestedModel);
+  const catalog = await getActiveAIModelCatalogEntry(providerId, model).catch(() => null);
+  const ownershipMode = catalog?.ownershipMode ?? connection?.ownershipMode ?? "byok";
+  const managed = ownershipMode === "managed";
+  if (managed && !catalog) {
+    throw new AIStudioError("CONFIGURATION_ERROR", "O catálogo do modelo gerenciado não está configurado.");
   }
-  const model = normalizeModel(provider, input.model ?? connection.defaultModel);
-  const selectedModel = provider.models.find((item) => item.id === model);
+  if (catalog?.ownershipMode === "byok" && connection?.ownershipMode && connection.ownershipMode !== "byok") {
+    throw new AIStudioError("CONNECTION_UNAVAILABLE", "O modelo selecionado requer uma conexão BYOK ativa.");
+  }
+  if (!managed && connection?.ownershipMode && connection.ownershipMode !== "byok") {
+    throw new AIStudioError("CONNECTION_UNAVAILABLE", "A conexão selecionada não é uma conexão BYOK ativa.");
+  }
+  if (!managed && !connection?.encryptedSecret) {
+    throw new AIStudioError("CONNECTION_UNAVAILABLE", "A conexão selecionada não está ativa. Configure ou valide o provider antes de gerar.");
+  }
+  const selectedModel = provider.models.find((item) => item.id === model) ?? (catalog ? {
+    id: catalog.model, vision: catalog.vision, streaming: catalog.streaming, default: false,
+  } : undefined);
   if (!selectedModel) {
     throw new AIStudioError("INVALID_MODEL", "O modelo selecionado não está disponível.");
   }
@@ -912,26 +947,14 @@ export async function generateTemplateCandidate(
   }
   inFlightGenerations.add(lockKey);
   const requestId = randomUUID();
-  try {
-    await reserveUsageEvent({
-      tenantId: input.tenantId,
-      actorId: input.actorId,
-      provider: providerId,
-      authMethod: connection.authMethod,
-      model,
-      requestId,
-    });
-  } catch (error) {
-    inFlightGenerations.delete(lockKey);
-    throw error;
-  }
-
+  let managedCycle: ManagedCycleState | undefined;
   const startedAt = Date.now();
   let requestSizeBytes = 0;
   let responseSizeBytes = 0;
   let inputTokens: number | undefined;
   let outputTokens: number | undefined;
   let status: "success" | "error" = "error";
+  let usableResponse = false;
   let errorCategory: string | undefined;
   let images: AIStudioImageAsset[] = [];
 
@@ -954,7 +977,13 @@ export async function generateTemplateCandidate(
     }
     let secret: string;
     try {
-      secret = decryptAiSecret(connection.encryptedSecret);
+      const managedSecret = managed
+        ? process.env[`AI_STUDIO_MANAGED_${providerId.toUpperCase().replaceAll("-", "_")}_API_KEY`]
+        : null;
+      if (managed && !managedSecret) {
+        throw new AIStudioError("CONFIGURATION_ERROR", "As credenciais gerenciadas deste provider não estão configuradas.");
+      }
+      secret = managedSecret ?? decryptAiSecret(connection!.encryptedSecret!);
     } catch {
       throw new AIStudioError(
         "CONFIGURATION_ERROR",
@@ -993,6 +1022,15 @@ export async function generateTemplateCandidate(
       );
     }
 
+    // All request/image/credential/payload preflight is complete before any credit is reserved.
+    await reserveUsageEvent({ tenantId: input.tenantId, actorId: input.actorId, provider: providerId, authMethod: managed ? "managed" : connection!.authMethod, model, requestId });
+    if (managed && catalog) {
+      const started = await startOrResumeManagedAICycle({ tenantId: input.tenantId, actorId: input.actorId, catalog, operationKey: `ai-studio-cycle:${input.tenantId}:${input.actorId}:${requestId}` });
+      managedCycle = started.cycle;
+      if (managedCycle.alterationCount >= 5) throw new AIStudioError("RATE_LIMITED", "Este ciclo já atingiu o limite de alterações utilizáveis.");
+    } else if (catalog) {
+      await closeManagedAICycle({ tenantId: input.tenantId, actorId: input.actorId, reason: "switched" });
+    }
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), AI_STUDIO_GENERATION_TIMEOUT_MS);
     let rawText = "";
@@ -1004,7 +1042,7 @@ export async function generateTemplateCandidate(
           model,
           systemPrompt: prompts.systemPrompt,
           userPrompt: prompts.userPrompt,
-          maxOutputTokens: AI_STUDIO_MAX_OUTPUT_TOKENS,
+          maxOutputTokens: Math.min(AI_STUDIO_MAX_OUTPUT_TOKENS, catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS),
           signal: controller.signal,
           images,
         })) {
@@ -1016,7 +1054,7 @@ export async function generateTemplateCandidate(
           model,
           systemPrompt: prompts.systemPrompt,
           userPrompt: prompts.userPrompt,
-          maxOutputTokens: AI_STUDIO_MAX_OUTPUT_TOKENS,
+          maxOutputTokens: Math.min(AI_STUDIO_MAX_OUTPUT_TOKENS, catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS),
           signal: controller.signal,
           images,
         });
@@ -1061,6 +1099,13 @@ export async function generateTemplateCandidate(
       variables: Array.from(new Set(detectVariables(sanitized.html).map((variable) => variable.name))).slice(-AI_STUDIO_MAX_CUSTOM_VARIABLES),
     });
     status = "success";
+    usableResponse = true;
+    if (managedCycle) {
+      managedCycle = await recordManagedAICycleCandidate({
+        tenantId: input.tenantId, actorId: input.actorId, cycleId: managedCycle.id,
+        html: sanitized.html, detectedVariables: mergedSessionSummary.variables, sessionSummary: mergedSessionSummary,
+      });
+    }
     return {
       requestId,
       provider: providerId,
@@ -1074,6 +1119,7 @@ export async function generateTemplateCandidate(
         variableDiff,
         warnings: [...(contract.warnings ?? []), ...(sanitizedBase?.warnings ?? []), ...sanitized.warnings],
       },
+      ...(managedCycle ? { cycle: managedCycle } : {}),
       ...(promptSnapshot.sessionSnapshot
         ? { sessionSnapshot: promptSnapshot.sessionSnapshot }
         : {}),
@@ -1081,17 +1127,28 @@ export async function generateTemplateCandidate(
   } catch (error) {
     const normalized = error instanceof AIStudioError
       ? error
-      : new AIStudioError("INTERNAL_ERROR", "Não foi possível concluir a geração.");
+      : error instanceof ManagedAICycleLimitError
+        ? new AIStudioError("RATE_LIMITED", "Este ciclo atingiu o limite de falhas reembolsadas.")
+        : new AIStudioError("INTERNAL_ERROR", "Não foi possível concluir a geração.");
     errorCategory = normalized.providerErrorCode ?? normalized.code;
+    if (managedCycle && !usableResponse) {
+      try {
+        managedCycle = await refundManagedAICycleFailure({ tenantId: input.tenantId, actorId: input.actorId, cycleId: managedCycle.id, requestId });
+      } catch {
+        // Preserve the provider error; the cycle service enforces refund idempotency and its cap.
+      }
+    }
     throw normalized;
   } finally {
     inFlightGenerations.delete(lockKey);
     if (imageIds.length > 0) releaseStudioMessageImages(input.tenantId, input.actorId, imageIds);
+    const estimatedInputTokens = inputTokens ?? (requestSizeBytes > 0 ? Math.min(100_000, Math.ceil(requestSizeBytes / 4)) : undefined);
+    const estimatedOutputTokens = outputTokens ?? (responseSizeBytes > 0 ? Math.min(AI_STUDIO_MAX_OUTPUT_TOKENS, Math.ceil(responseSizeBytes / 4)) : undefined);
     await recordUsageEvent({
       tenantId: input.tenantId,
       actorId: input.actorId,
       provider: providerId,
-      authMethod: connection.authMethod,
+      authMethod: managed ? "managed" : connection!.authMethod,
       model,
       requestId,
       requestSizeBytes,
@@ -1099,8 +1156,9 @@ export async function generateTemplateCandidate(
       latencyMs: Date.now() - startedAt,
       status,
       errorCategory,
-      inputTokens,
-      outputTokens,
+      inputTokens: estimatedInputTokens,
+      outputTokens: estimatedOutputTokens,
+      tokenUsageEstimated: (inputTokens === undefined || outputTokens === undefined) && (requestSizeBytes > 0 || responseSizeBytes > 0),
     });
   }
 }
@@ -1159,6 +1217,7 @@ export interface UpdateRefinedTemplateInput {
   templateId: unknown;
   html: unknown;
   confirmed: unknown;
+  cycleId?: unknown;
 }
 
 export interface UpdatedRefinedTemplateResult {
@@ -1198,13 +1257,20 @@ export async function updateRefinedTemplate(
       where: { templateId: existing.id, status: "draft" },
     }),
   );
-  const template = await withTenant(input.tenantId, () =>
-    prisma.proposalTemplate.update({
+  const template = await withTenant(input.tenantId, () => prisma.$transaction(async (tx) => {
+    const updated = await tx.proposalTemplate.update({
       where: { id: existing.id },
       data: { html: sanitized.html },
       select: { id: true, name: true, html: true },
-    }),
-  );
+    });
+    if (typeof input.cycleId === "string") {
+      await tx.aiStudioManagedCycle.updateMany({
+        where: { id: input.cycleId, tenantId: input.tenantId, actorId: input.actorId, status: "active" },
+        data: { status: "saved" },
+      });
+    }
+    return updated;
+  }));
   return { template, warnings: sanitized.warnings, draftCount };
 }
 

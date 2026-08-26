@@ -30,6 +30,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { useAuth } from "@/stores/auth-context";
 import {
   useAIStudioConfig,
+  useAICredits,
   useRecordAIStudioConsent,
   useUpdateRefinedTemplate,
 } from "@/hooks/use-ai-studio";
@@ -95,7 +96,7 @@ interface StudioConnection {
   id: string;
   provider: AIProviderId;
   defaultModel: string | null;
-  models: Array<{ id: string; vision: boolean; streaming: boolean; default: boolean }>;
+  models: Array<{ id: string; vision: boolean; streaming: boolean; default: boolean; ownershipMode?: "managed" | "byok"; creditCostPerCycle?: number }>;
 }
 
 interface StudioConfig {
@@ -110,6 +111,25 @@ type LeaveSessionOptions = { releaseRouterGuard?: boolean };
 type StudioView = "preview" | "html";
 type PreviewViewport = "desktop" | "mobile";
 type ConfirmationKind = "removeVariables" | "updateOriginal";
+
+function CreditSummary({ data, t }: { data: ReturnType<typeof useAICredits>["data"]; t: ReturnType<typeof useTranslations> }) {
+  if (!data) return null;
+  return (
+    <section aria-label={t("creditBalanceTitle")} className="rounded-xl border border-border bg-page-alt p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-sm font-semibold text-text-primary">{t("creditBalanceTitle")}</h2>
+        <span className="text-xs text-text-muted">{t("creditTotal", { count: data.balance.total })}</span>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+        <div className="rounded-lg bg-page p-2"><strong className="block text-base text-text-primary">{data.balance.promotional}</strong>{t("promotionalCredits")}</div>
+        <div className="rounded-lg bg-page p-2"><strong className="block text-base text-text-primary">{data.balance.subscription}</strong>{t("subscriptionCredits")}</div>
+        <div className="rounded-lg bg-page p-2"><strong className="block text-base text-text-primary">{data.balance.purchased}</strong>{t("purchasedCredits")}</div>
+      </div>
+      {data.memberLimit.limit !== null ? <p className="mt-3 text-xs text-text-muted">{t("memberLimitUsage", { used: data.memberLimit.used, limit: data.memberLimit.limit, remaining: data.memberLimit.remaining ?? 0 })}</p> : null}
+      {data.history.length > 0 ? <details className="mt-3 text-xs"><summary className="cursor-pointer font-medium text-accent">{t("creditHistory")}</summary><ul className="mt-2 max-h-32 space-y-1 overflow-y-auto text-text-muted">{data.history.slice(0, 8).map((entry) => <li key={entry.id} className="flex justify-between gap-2"><span>{entry.reason ?? entry.kind}</span><strong className={entry.quantity < 0 ? "text-danger" : "text-text-primary"}>{entry.quantity > 0 ? "+" : ""}{entry.quantity}</strong></li>)}</ul></details> : null}
+    </section>
+  );
+}
 
 const AI_STUDIO_CONFIRMATION_STORAGE_KEY = "seorganize:ai-studio:confirmations";
 
@@ -180,6 +200,7 @@ export function AIStudioEntry() {
   const eligible = can("financial.proposals.manageTemplates") && can("financial.proposals.generateWithAi");
   const financialAllowed = workspace?.features.allowedModules?.includes("financial.proposals") ?? false;
   const configQuery = useAIStudioConfig({ enabled: eligible && financialAllowed });
+  const creditsQuery = useAICredits({ enabled: eligible && financialAllowed });
   const [mode, setMode] = useState<"choice" | "new" | "refine">("choice");
 
   if (workspaceLoading) {
@@ -237,6 +258,7 @@ export function AIStudioEntry() {
             </div>
           </div>
           <p className="max-w-2xl text-sm text-text-secondary">{t("choiceDescription")}</p>
+          <CreditSummary data={creditsQuery.data} t={t} />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <button type="button" onClick={() => setMode("new")} className="rounded-xl border-2 border-accent bg-accent/5 p-5 text-left transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
               <Sparkles size={22} className="mb-4 text-accent" aria-hidden="true" />
@@ -407,6 +429,7 @@ function TemplateStudio({
   const createTemplate = useCreateProposalTemplate();
   const updateOriginal = useUpdateRefinedTemplate();
   const recordConsent = useRecordAIStudioConsent();
+  const creditsQuery = useAICredits();
   const firstConnection = config.connections[0];
   const [provider, setProvider] = useState(firstConnection.provider);
   const [model, setModel] = useState(preferredModel(firstConnection));
@@ -482,6 +505,10 @@ function TemplateStudio({
   });
   const visionAvailable = selectedModel?.vision === true;
   const attachedBlocked = attachedImages.length > 0 && !visionAvailable;
+  const managedModel = selectedModel?.ownershipMode === "managed";
+  const managedCost = selectedModel?.creditCostPerCycle ?? 0;
+  const activeCycle = creditsQuery.data?.cycle;
+  const remainingAlterations = activeCycle ? Math.max(0, 5 - activeCycle.alterationCount) : 5;
 
   function imageFormatLabel(format: AIStudioImageFormat): string {
     return format === "jpeg" ? "JPEG" : format.toUpperCase();
@@ -1183,7 +1210,7 @@ function TemplateStudio({
   function saveTemplate(event: FormEvent) {
     event.preventDefault();
     if (!templateName.trim() || !html.trim()) return;
-    createTemplate.mutate({ name: templateName.trim(), html, source: "ai-studio" }, { onSuccess: () => {
+    createTemplate.mutate({ name: templateName.trim(), html, source: "ai-studio", cycleId: activeCycle?.id }, { onSuccess: () => {
       navigateAfterAIStudioCommit({
         leaveSession: () => leaveSession({ releaseRouterGuard: true }),
         releaseForNavigation,
@@ -1196,7 +1223,7 @@ function TemplateStudio({
     if (!refinement || !confirmed || !html.trim()) return;
     setError("");
     try {
-      await updateOriginal.mutateAsync({ templateId: refinement.id, html, confirmed: true });
+      await updateOriginal.mutateAsync({ templateId: refinement.id, html, confirmed: true, cycleId: activeCycle?.id });
       navigateAfterAIStudioCommit({
         leaveSession: () => leaveSession({ releaseRouterGuard: true }),
         releaseForNavigation,
@@ -1423,6 +1450,16 @@ function TemplateStudio({
           </Popup>
         </div>
       </header>
+
+      <div className="shrink-0 border-b border-border bg-page px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-5 gap-y-2 text-xs text-text-muted">
+          {managedModel ? (
+            <span role="status" className="font-medium text-text-secondary">{activeCycle ? t("cycleProgress", { count: remainingAlterations, date: new Date(activeCycle.expiresAt).toLocaleTimeString(locale === "en" ? "en-US" : "pt-BR", { hour: "2-digit", minute: "2-digit" }) }) : t("cycleCostDisclosure", { model, cost: managedCost })}</span>
+          ) : <span className="font-medium text-accent">{t("byokNoCredits")}</span>}
+          {creditsQuery.data?.balance.total === 0 && managedModel && !activeCycle ? <span role="alert" className="text-amber-700">{t("emptyBalance")}</span> : null}
+          {creditsQuery.data?.memberLimit.limit !== null && creditsQuery.data?.memberLimit.remaining === 0 ? <span role="alert" className="text-amber-700">{t("memberLimitReached")}</span> : null}
+        </div>
+      </div>
 
       {refinement ? (
         <div className="shrink-0 border-b border-border bg-amber-500/5 px-4 py-2.5 sm:px-5">
@@ -1709,7 +1746,7 @@ function TemplateStudio({
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                   {selectedModel?.streaming ? <span className="sr-only">{t("streamingSupported")}</span> : null}
-                  <button type="submit" aria-label={isGenerating ? t("generating") : t("generate")} disabled={isGenerating || uploadingImage || recordConsent.isPending || !message.trim()} className="inline-flex size-10 items-center justify-center rounded-xl bg-accent text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
+                  <button type="submit" aria-label={isGenerating ? t("generating") : t("generate")} disabled={isGenerating || uploadingImage || recordConsent.isPending || !message.trim() || Boolean(managedModel && creditsQuery.data && creditsQuery.data.balance.total < managedCost && !activeCycle) || Boolean(creditsQuery.data?.memberLimit.remaining === 0 && !activeCycle)} className="inline-flex size-10 items-center justify-center rounded-xl bg-accent text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
                     <Send size={17} aria-hidden="true" />
                   </button>
                 </div>

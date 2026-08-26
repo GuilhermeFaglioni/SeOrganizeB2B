@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     return validationErrorResponse("Request body must be an object");
   }
 
-  const { name, stripePriceId, allowedModules, isDefault } = body as Record<
+  const { name, stripePriceId, allowedModules, monthlyAiStudioCredits, isDefault } = body as Record<
     string,
     unknown
   >;
@@ -113,6 +113,14 @@ export async function POST(request: Request) {
   if (isDefault !== undefined && typeof isDefault !== "boolean") {
     return validationErrorResponse("isDefault must be a boolean");
   }
+  if (
+    monthlyAiStudioCredits !== undefined &&
+    monthlyAiStudioCredits !== null &&
+    (typeof monthlyAiStudioCredits !== "number" ||
+      !Number.isSafeInteger(monthlyAiStudioCredits) || monthlyAiStudioCredits < 0)
+  ) {
+    return validationErrorResponse("monthlyAiStudioCredits must be a non-negative integer or null");
+  }
 
   const data = {
     name: name.trim(),
@@ -121,6 +129,7 @@ export async function POST(request: Request) {
         ? stripePriceId
         : null,
     allowedModules: allowedModules as string[],
+    monthlyAiStudioCredits: monthlyAiStudioCredits ?? null,
     isDefault: isDefault ?? false,
     isActive: true,
   };

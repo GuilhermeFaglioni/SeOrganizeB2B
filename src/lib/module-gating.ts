@@ -11,6 +11,7 @@ export const ALL_MODULES = [
   "financial.clients",
   "financial.receivables",
   "areas",
+  "ai_studio",
 ] as const;
 
 export const FINANCIAL_MODULES = [

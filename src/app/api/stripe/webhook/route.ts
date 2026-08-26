@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "../../../../../prisma/client";
 import { setWorkspacePlanAndLeaveClosedBeta } from "@/lib/closed-beta/service";
+import { grantSubscriptionCredits } from "@/lib/ai/credit-ledger";
+import { confirmAICreditPurchase, failAICreditPurchase, reconcileAICreditRefund } from "@/lib/ai/credit-packages";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +82,29 @@ async function activateWorkspace(customerId: string): Promise<void> {
 }
 
 async function handleEvent(event: Stripe.Event): Promise<void> {
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (session.metadata?.purchaseId) {
+      if (session.payment_status === "paid") {
+        await confirmAICreditPurchase({ checkoutSessionId: session.id, purchaseId: session.metadata.purchaseId, paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null });
+      } else if (event.type === "checkout.session.async_payment_succeeded") {
+        return;
+      }
+      return;
+    }
+  }
+  if (event.type === "checkout.session.async_payment_failed" || event.type === "checkout.session.expired") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (session.metadata?.purchaseId) await failAICreditPurchase(session.id);
+    return;
+  }
+  if (event.type === "charge.refunded") {
+    const charge = event.data.object as Stripe.Charge;
+    if (typeof charge.payment_intent === "string") {
+      await reconcileAICreditRefund({ paymentIntentId: charge.payment_intent, refundId: event.id, refundAmountCents: charge.amount_refunded });
+    }
+    return;
+  }
   const customerId = getCustomerId(event);
   if (!customerId) {
     console.warn(`[stripe-webhook] no customer id on ${event.type}`);
@@ -100,6 +125,26 @@ async function handleEvent(event: Stripe.Event): Promise<void> {
         `[stripe-webhook] invoice.payment_succeeded for customer ${customerId}`
       );
       await activateWorkspace(customerId);
+      break;
+    }
+
+    case "invoice.paid": {
+      console.log(`[stripe-webhook] invoice.paid for customer ${customerId}`);
+      await activateWorkspace(customerId);
+      const workspace = await prisma.workspace.findFirst({
+        where: { stripeCustomerId: customerId },
+        select: { id: true },
+      });
+      if (workspace) {
+        const invoice = event.data.object as Stripe.Invoice;
+        await grantSubscriptionCredits({
+          tenantId: workspace.id,
+          invoiceId: invoice.id,
+          billingPeriod: typeof invoice.period_start === "number" && typeof invoice.period_end === "number"
+            ? `${invoice.period_start}-${invoice.period_end}`
+            : null,
+        });
+      }
       break;
     }
 
@@ -165,6 +210,7 @@ export async function POST(request: Request) {
       `[stripe-webhook] error processing ${event.type}`,
       error
     );
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

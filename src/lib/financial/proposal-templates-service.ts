@@ -4,6 +4,7 @@ import { prisma, requireTenantId } from "../../../prisma/client";
 export interface TemplateInput {
   name: string;
   html: string;
+  cycleId?: string | null;
 }
 
 export async function listProposalTemplates() {
@@ -27,19 +28,18 @@ export async function createProposalTemplate(
   if (!input.name.trim()) {
     throw new FinancialValidationError("A template name is required");
   }
-  return prisma.proposalTemplate.create({
-    data: {
-      name: input.name.trim(),
-      html: input.html,
-      createdBy: actorId,
-      tenantId: requireTenantId("financial.proposal-templates"),
-    },
+  const tenantId = requireTenantId("financial.proposal-templates");
+  return prisma.$transaction(async (tx) => {
+    const template = await tx.proposalTemplate.create({ data: { name: input.name.trim(), html: input.html, createdBy: actorId, tenantId } });
+    if (input.cycleId) await tx.aiStudioManagedCycle.updateMany({ where: { id: input.cycleId, tenantId, actorId, status: "active" }, data: { status: "saved" } });
+    return template;
   });
 }
 
 export async function updateProposalTemplate(
   templateId: string,
-  input: Partial<TemplateInput>
+  input: Partial<TemplateInput>,
+  actorId?: string,
 ) {
   const template = await prisma.proposalTemplate.findUnique({
     where: { id: templateId },
@@ -54,9 +54,11 @@ export async function updateProposalTemplate(
     throw new FinancialValidationError("Nothing to update");
   }
 
-  return prisma.proposalTemplate.update({
-    where: { id: templateId },
-    data,
+  const tenantId = requireTenantId("financial.proposal-templates");
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.proposalTemplate.update({ where: { id: templateId }, data });
+    if (input.cycleId && actorId) await tx.aiStudioManagedCycle.updateMany({ where: { id: input.cycleId, tenantId, actorId, status: "active" }, data: { status: "saved" } });
+    return updated;
   });
 }
 

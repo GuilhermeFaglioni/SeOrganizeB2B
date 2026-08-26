@@ -75,7 +75,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
     return validationErrorResponse("Request body must be an object");
   }
 
-  const { name, stripePriceId, allowedModules, isDefault, isActive } =
+  const { name, stripePriceId, allowedModules, monthlyAiStudioCredits, isDefault, isActive } =
     body as Record<string, unknown>;
 
   const data: Prisma.PlanUpdateInput = {};
@@ -132,6 +132,17 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
       return validationErrorResponse("isActive must be a boolean");
     }
     data.isActive = isActive;
+  }
+  if (monthlyAiStudioCredits !== undefined) {
+    if (
+      monthlyAiStudioCredits !== null &&
+      (typeof monthlyAiStudioCredits !== "number" ||
+        !Number.isSafeInteger(monthlyAiStudioCredits) ||
+        monthlyAiStudioCredits < 0)
+    ) {
+      return validationErrorResponse("monthlyAiStudioCredits must be a non-negative integer or null");
+    }
+    data.monthlyAiStudioCredits = monthlyAiStudioCredits;
   }
 
   if (Object.keys(data).length === 0) {

@@ -95,7 +95,7 @@ export function useCreateProposalTemplate() {
   const t = useTranslations("hooks.proposals");
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; html: string; source?: "ai-studio" }) =>
+    mutationFn: (data: { name: string; html: string; source?: "ai-studio"; cycleId?: string }) =>
       fetchJson("/api/proposal-templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,6 +119,7 @@ export function useUpdateProposalTemplate() {
       id: string;
       name?: string;
       html?: string;
+      cycleId?: string;
     }) =>
       fetchJson(`/api/proposal-templates/${id}`, {
         method: "PATCH",

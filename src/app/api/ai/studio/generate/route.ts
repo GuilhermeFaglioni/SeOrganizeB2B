@@ -45,6 +45,7 @@ async function readGenerationBody(request: Request): Promise<Record<string, unkn
     "sessionSnapshot",
     "consentVersion",
     "baseHtml",
+    "cycleId",
   ]) {
     const value = form.get(name);
     if (typeof value === "string") body[name] = value;
@@ -122,6 +123,7 @@ export async function POST(request: Request) {
                 baseHtml: body.baseHtml,
                 imageIds: body.imageIds,
                 imageFiles: body.imageFiles,
+                cycleId: body.cycleId,
                 stream: true,
               },
               {
@@ -175,6 +177,7 @@ export async function POST(request: Request) {
       baseHtml: body.baseHtml,
       imageIds: body.imageIds,
       imageFiles: body.imageFiles,
+      cycleId: body.cycleId,
       stream: false,
     });
     return NextResponse.json({ data: result, error: null });

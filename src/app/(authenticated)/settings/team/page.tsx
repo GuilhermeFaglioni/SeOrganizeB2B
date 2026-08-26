@@ -52,6 +52,7 @@ export default function TeamPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRoleId, setInviteRoleId] = useState("none");
+  const [limitMap, setLimitMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!team) return;
@@ -60,6 +61,7 @@ export default function TeamPage() {
       map[p.id] = p.teamMemberAreas.map((m) => m.areaId);
     }
     setEditMap(map);
+    setLimitMap(Object.fromEntries(team.map((p) => [p.id, p.monthlyCreditLimit === null ? "" : String(p.monthlyCreditLimit)])));
   }, [team]);
 
   if (permData && !can("manage_roles")) {
@@ -141,6 +143,17 @@ export default function TeamPage() {
       },
       { onSuccess: () => toastSuccess(t("roleSaved")) }
     );
+  };
+
+  const handleLimitSave = async (profileId: string) => {
+    const raw = limitMap[profileId] ?? "";
+    const monthlyLimit = raw.trim() === "" ? null : Number(raw);
+    if (monthlyLimit !== null && (!Number.isSafeInteger(monthlyLimit) || monthlyLimit < 0)) {
+      toastError(t("limitInvalid"));
+      return;
+    }
+    await fetchJson(`/api/profiles/${profileId}/ai-credit-limit`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ monthlyLimit }) });
+    toastSuccess(t("limitSaved"));
   };
 
   const handleRemoveMember = (profileId: string) => {
@@ -292,6 +305,15 @@ export default function TeamPage() {
 
                 {expandedId === profile.id && (
                   <div className="border-t border-border p-4 space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor={`credit-limit-${profile.id}`} className="text-sm text-text-secondary">{t("creditLimitLabel")}</label>
+                      <div className="flex gap-2">
+                        <Input id={`credit-limit-${profile.id}`} type="number" min="0" step="1" value={limitMap[profile.id] ?? ""} onChange={(e) => setLimitMap((prev) => ({ ...prev, [profile.id]: e.target.value }))} placeholder={t("creditLimitUnlimited")} className="sm:w-72" />
+                        <Button size="sm" variant="outline" onClick={() => void handleLimitSave(profile.id)}>{t("save")}</Button>
+                      </div>
+                      <p className="text-xs text-text-muted">{t("creditLimitHint")}</p>
+                    </div>
+
                     <div className="space-y-2">
                       <label
                         htmlFor={`role-${profile.id}`}

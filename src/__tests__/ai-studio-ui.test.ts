@@ -251,6 +251,25 @@ describe("AI Studio #174 integration wiring", () => {
   });
 });
 
+describe("AI Studio #194 credit experience", () => {
+  it("shows separated balances, managed cycle disclosure, limits, history and BYOK messaging", () => {
+    const source = read("src/components/financial/proposals/ai-studio.tsx");
+    const hook = read("src/hooks/use-ai-studio.ts");
+    const route = read("src/app/api/ai/credits/route.ts");
+    expect(source).toContain("creditBalanceTitle");
+    expect(source).toContain("promotional");
+    expect(source).toContain("subscription");
+    expect(source).toContain("purchased");
+    expect(source).toContain("cycleCostDisclosure");
+    expect(source).toContain("memberLimitReached");
+    expect(source).toContain("byokNoCredits");
+    expect(source).toContain("creditHistory");
+    expect(hook).toContain("/api/ai/credits");
+    expect(route).toContain("getActiveManagedAICycle");
+    expect(route).toContain("getMemberCreditLimitUsage");
+  });
+});
+
 describe("AI Studio #176 hardening UI seams", () => {
   it("shows versioned blocking consent with public legal links", () => {
     const source = read("src/components/financial/proposals/ai-studio.tsx");

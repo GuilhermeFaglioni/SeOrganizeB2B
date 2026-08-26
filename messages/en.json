@@ -80,6 +80,7 @@
       "financial": "Financial",
       "aiStudio": "AI Studio",
       "plans": "Plans",
+      "aiModels": "AI models",
       "settings": "Settings",
       "signOut": "Sign out",
       "user": "User"
@@ -115,6 +116,7 @@
       "dashboard": "Dashboard",
       "tenants": "Tenants",
       "plans": "Plans",
+      "aiModels": "AI models",
       "billing": "Billing",
       "support": "Support",
       "closedBeta": "Closed Beta"
@@ -180,6 +182,7 @@
         "createPlan": "Create plan",
         "createTitle": "New plan",
         "stripePriceId": "Stripe Price ID",
+        "monthlyAiStudioCredits": "Monthly AI Studio credits",
         "setAsDefault": "Set as default",
         "create": "Create",
         "cancel": "Cancel",
@@ -200,6 +203,7 @@
         "name": "Name",
         "modules": "Modules",
         "stripePriceId": "Stripe Price ID",
+        "monthlyAiStudioCredits": "Monthly AI Studio credits",
         "resource": "Resource",
         "limit": "Limit",
         "behavior": "Behavior",
@@ -238,9 +242,61 @@
           "warning": "Warning"
         }
       },
+      "aiModels": {
+        "title": "AI models",
+        "newModel": "New model",
+        "provider": "Provider",
+        "model": "Model",
+        "ownershipMode": "Mode",
+        "inputCostMicros": "Input cost (micros)",
+        "outputCostMicros": "Output cost (micros)",
+        "imageCostMicros": "Image cost (micros)",
+        "creditCostPerCycle": "Credits per cycle",
+        "maxOutputTokens": "Maximum tokens",
+        "vision": "Vision",
+        "streaming": "Streaming",
+        "version": "Version",
+        "status": "Status",
+        "actions": "Actions",
+        "active": "Active",
+        "inactive": "Inactive",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "create": "Create",
+        "cancel": "Cancel",
+        "loading": "Loading models…",
+        "error": "Could not load models.",
+        "empty": "No models configured yet.",
+        "createSuccess": "Model created successfully.",
+        "createFailed": "Could not create the model."
+      },
       "billing": {
         "title": "Billing overview",
-        "comingSoon": "The billing overview will be enabled soon."
+        "description": "AI Studio economics, usage and audit-safe operations.",
+        "export": "Export CSV",
+        "provider": "Provider",
+        "model": "Model",
+        "plan": "Plan ID",
+        "tenant": "Company ID",
+        "from": "From",
+        "to": "To",
+        "loading": "Loading observability...",
+        "error": "Could not load observability.",
+        "grants": "Grants",
+        "consumed": "Consumed",
+        "cycles": "Cycles",
+        "failures": "Failures",
+        "refunds": "Refunds",
+        "expired": "Expired",
+        "providerCost": "Provider cost (USD estimate)",
+        "margin": "Estimated margin (USD)",
+        "unavailable": "Unavailable",
+        "tokens": "Token accounting",
+        "actual": "Actual",
+        "estimated": "Estimated",
+        "highUsageTenants": "High-usage companies",
+        "highUsageMembers": "High-usage members",
+        "retention": "Operational events prune after 90 days; the financial ledger is retained separately."
       },
       "support": {
         "title": "Support tickets",
@@ -1794,7 +1850,12 @@
       "rolesHiddenTitle": "Permissions",
       "rolesHiddenDescription": "Permission management will appear after you invite your first collaborator.",
       "removeMember": "Remove member",
-      "removeConfirm": "Remove this member from the company? Access will be revoked, but created data will remain."
+      "removeConfirm": "Remove this member from the company? Access will be revoked, but created data will remain.",
+      "creditLimitLabel": "Monthly AI credit limit",
+      "creditLimitUnlimited": "Unlimited",
+      "creditLimitHint": "Applies to new cycles this calendar month. Leave blank to remove the limit.",
+      "limitSaved": "Credit limit updated",
+      "limitInvalid": "Enter a non-negative whole number."
     },
     "workspace": {
       "backToSettings": "Back to Settings",
@@ -2233,6 +2294,18 @@
       "rememberConfirmation": "Remember this decision for this company",
       "cancelAction": "Cancel",
       "confirmAction": "Confirm and continue",
+      "creditBalanceTitle": "AI Studio credits",
+      "creditTotal": "{count} credits available",
+      "promotionalCredits": "Promotional",
+      "subscriptionCredits": "Subscription",
+      "purchasedCredits": "Purchased",
+      "creditHistory": "Credit history",
+      "memberLimitUsage": "Your monthly limit: {used}/{limit} used ({remaining} remaining)",
+      "cycleCostDisclosure": "This managed cycle uses {cost} credits for {model}, including up to 5 alterations.",
+      "cycleProgress": "Active cycle: {count} alterations remaining, until {date}",
+      "byokNoCredits": "BYOK: this generation does not use SeOrganize+ credits or the managed alteration cap.",
+      "emptyBalance": "No credits available. Ask a gestor to add subscription credits or buy a package.",
+      "memberLimitReached": "Your individual monthly credit limit has been reached. Ask a gestor to review it.",
       "historyLabel": "Session history",
       "revisionNumber": "Version {number}",
       "restoreRevision": "Restore"
@@ -2346,7 +2419,8 @@
             "generateWithAi": "Generate templates with AI"
           }
         },
-        "manage_roles": "Manage permissions"
+        "manage_roles": "Manage permissions",
+        "billing": { "ai_credits": { "purchase": "Purchase AI credits" } }
       }
     }
   },

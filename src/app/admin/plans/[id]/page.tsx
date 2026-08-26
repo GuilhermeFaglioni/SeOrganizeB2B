@@ -60,6 +60,7 @@ export default function AdminPlanDetailPage() {
 
   const [name, setName] = useState("");
   const [stripePriceId, setStripePriceId] = useState("");
+  const [monthlyAiStudioCredits, setMonthlyAiStudioCredits] = useState("");
   const [modules, setModules] = useState<string[]>([]);
   const [isDefault, setIsDefault] = useState(false);
 
@@ -77,6 +78,7 @@ export default function AdminPlanDetailPage() {
     if (!plan) return;
     setName(plan.name);
     setStripePriceId(plan.stripePriceId ?? "");
+    setMonthlyAiStudioCredits(plan.monthlyAiStudioCredits?.toString() ?? "");
     setModules(plan.allowedModules);
     setIsDefault(plan.isDefault);
   }, [plan]);
@@ -97,6 +99,7 @@ export default function AdminPlanDetailPage() {
         id: planId,
         name: name.trim(),
         stripePriceId: stripePriceId.trim() || null,
+        monthlyAiStudioCredits: monthlyAiStudioCredits.trim() === "" ? null : Number(monthlyAiStudioCredits),
         allowedModules: modules,
         isDefault,
       },
@@ -225,6 +228,10 @@ export default function AdminPlanDetailPage() {
                 onChange={(event) => setName(event.target.value)}
                 required
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-plan-ai-credits">{t("monthlyAiStudioCredits")}</Label>
+              <Input id="edit-plan-ai-credits" type="number" min={0} step={1} value={monthlyAiStudioCredits} onChange={(event) => setMonthlyAiStudioCredits(event.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="edit-plan-stripe-price">{t("stripePriceId")}</Label>
