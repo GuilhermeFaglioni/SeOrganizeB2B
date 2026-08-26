@@ -24,10 +24,12 @@ export const AI_STUDIO_MAX_PROVIDER_PAYLOAD_BYTES = 32 * 1024 * 1024;
 export const AI_STUDIO_IMAGE_FORMATS = ["png", "jpeg", "webp"] as const;
 export type AIStudioImageFormat = (typeof AI_STUDIO_IMAGE_FORMATS)[number];
 export const AI_STUDIO_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
-export const AI_STUDIO_MAX_IMAGE_REQUEST_BYTES = AI_STUDIO_MAX_IMAGE_SIZE_BYTES + 512 * 1024;
+export const AI_STUDIO_MAX_IMAGE_REQUEST_BYTES =
+  AI_STUDIO_MAX_IMAGE_SIZE_BYTES + 512 * 1024;
 export const AI_STUDIO_MAX_IMAGES_PER_MESSAGE = 3;
 export const AI_STUDIO_MAX_GENERATION_REQUEST_BYTES =
-  AI_STUDIO_MAX_REQUEST_BYTES + AI_STUDIO_MAX_IMAGE_REQUEST_BYTES * AI_STUDIO_MAX_IMAGES_PER_MESSAGE;
+  AI_STUDIO_MAX_REQUEST_BYTES +
+  AI_STUDIO_MAX_IMAGE_REQUEST_BYTES * AI_STUDIO_MAX_IMAGES_PER_MESSAGE;
 export const AI_STUDIO_MAX_IMAGE_DIMENSION_PX = 8_000;
 export const AI_STUDIO_IMAGE_TTL_MS = 30 * 60 * 1_000;
 export const AI_STUDIO_IMAGE_STORAGE_LIMIT_BYTES = 20 * 1024 * 1024;
@@ -52,9 +54,12 @@ export function selectRecentSessionMessages(
 
 export function compactSessionMessage(content: string): string {
   const normalized = content.trim();
-  if (normalized.length <= AI_STUDIO_MAX_RECENT_MESSAGE_LENGTH) return normalized;
+  if (normalized.length <= AI_STUDIO_MAX_RECENT_MESSAGE_LENGTH)
+    return normalized;
   const marker = "\n[earlier content omitted]\n";
-  const keptLength = Math.floor((AI_STUDIO_MAX_RECENT_MESSAGE_LENGTH - marker.length) / 2);
+  const keptLength = Math.floor(
+    (AI_STUDIO_MAX_RECENT_MESSAGE_LENGTH - marker.length) / 2,
+  );
   return `${normalized.slice(0, keptLength)}${marker}${normalized.slice(-keptLength)}`;
 }
 
@@ -128,7 +133,8 @@ const VARIABLE_DESCRIPTIONS: Record<SystemVariable, string> = {
   "proposta.valor_total": "Valor total da proposta, formatado para o locale.",
   itens: "Tabela de itens da proposta, com nome, quantidade, preço e total.",
   "empresa.nome": "Nome da empresa do prestador digital.",
-  "empresa.logo": "Placeholder que renderiza o logotipo da empresa quando houver.",
+  "empresa.logo":
+    "Placeholder que renderiza o logotipo da empresa quando houver.",
 };
 
 const LOCALE_BEHAVIOR =
@@ -185,7 +191,9 @@ export function buildPromptSnapshot(
     variableCatalog: buildVariableCatalog(),
     publicShellRules: [...PUBLIC_SHELL_RULES],
     htmlRules: [...SAFE_HTML_RULES],
-    ...(imageCount > 0 ? { visionReferenceRules: [...VISION_REFERENCE_RULES] } : {}),
+    ...(imageCount > 0
+      ? { visionReferenceRules: [...VISION_REFERENCE_RULES] }
+      : {}),
   };
 }
 
@@ -197,8 +205,16 @@ export function buildStudioPrompts(input: {
   sessionSummary?: AIStudioSessionSummary | null;
   imageCount?: number;
   baseHtml?: string | null;
-}): { systemPrompt: string; userPrompt: string; snapshot: AIStudioPromptSnapshot } {
-  const snapshot = buildPromptSnapshot(input.locale, input.directive, input.imageCount ?? 0);
+}): {
+  systemPrompt: string;
+  userPrompt: string;
+  snapshot: AIStudioPromptSnapshot;
+} {
+  const snapshot = buildPromptSnapshot(
+    input.locale,
+    input.directive,
+    input.imageCount ?? 0,
+  );
   const context = JSON.stringify(snapshot, null, 2);
   const recent = selectRecentSessionMessages(input.recentMessages ?? [])
     .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
@@ -220,13 +236,15 @@ export function buildStudioPrompts(input: {
         explanation: "short user-facing explanation of the candidate",
         html: "complete reusable HTML fragment",
         suggestedName: "short suggested template name",
-        customVariables: [{ name: "custom.variable", description: "when it is filled" }],
-         sessionSummary: {
-           focus: "current template goal",
-           decisions: ["decisions that must survive compaction"],
-           pending: ["open questions only when applicable"],
-           variables: ["placeholders currently relevant to the HTML"],
-         },
+        customVariables: [
+          { name: "custom.variable", description: "when it is filled" },
+        ],
+        sessionSummary: {
+          focus: "current template goal",
+          decisions: ["decisions that must survive compaction"],
+          pending: ["open questions only when applicable"],
+          variables: ["placeholders currently relevant to the HTML"],
+        },
         warnings: ["optional warning strings"],
       },
       null,
@@ -316,7 +334,9 @@ function balancedObjectSlices(source: string): string[] {
   return slices;
 }
 
-function tryParseJson(source: string): { success: true; value: unknown } | { success: false } {
+function tryParseJson(
+  source: string,
+): { success: true; value: unknown } | { success: false } {
   try {
     return { success: true, value: JSON.parse(source) as unknown };
   } catch {
@@ -330,7 +350,9 @@ export function parseStructuredOutput(raw: string): unknown {
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
-  const sources = Array.from(new Set([withoutFence, normalizeOverescapedQuotes(withoutFence)]));
+  const sources = Array.from(
+    new Set([withoutFence, normalizeOverescapedQuotes(withoutFence)]),
+  );
 
   for (const source of sources) {
     const direct = tryParseJson(source);
@@ -338,7 +360,9 @@ export function parseStructuredOutput(raw: string): unknown {
   }
 
   for (const source of sources) {
-    for (const slice of balancedObjectSlices(source).sort((left, right) => right.length - left.length)) {
+    for (const slice of balancedObjectSlices(source).sort(
+      (left, right) => right.length - left.length,
+    )) {
       const parsed = tryParseJson(slice);
       if (parsed.success) return normalizeParsedProviderOutput(parsed.value);
     }
@@ -358,7 +382,11 @@ function normalizedText(value: unknown, maxLength: number): string | null {
   return normalized;
 }
 
-function normalizedTextList(value: unknown, maxItems: number, maxItemLength: number): string[] | null {
+function normalizedTextList(
+  value: unknown,
+  maxItems: number,
+  maxItemLength: number,
+): string[] | null {
   if (!Array.isArray(value) || value.length > maxItems) return null;
   const result: string[] = [];
   for (const item of value) {
@@ -369,16 +397,24 @@ function normalizedTextList(value: unknown, maxItems: number, maxItemLength: num
   return result;
 }
 
-export function validateSessionSummary(value: unknown): AIStudioSessionSummary | null {
+export function validateSessionSummary(
+  value: unknown,
+): AIStudioSessionSummary | null {
   if (!isRecord(value)) return null;
   const focus = normalizedText(value.focus, 1_000);
   const decisions = normalizedTextList(value.decisions, 20, 500);
   const pending = normalizedTextList(value.pending, 20, 500);
-  const variables = normalizedTextList(value.variables, AI_STUDIO_MAX_CUSTOM_VARIABLES, 120);
+  const variables = normalizedTextList(
+    value.variables,
+    AI_STUDIO_MAX_CUSTOM_VARIABLES,
+    120,
+  );
   if (!focus || !decisions || !pending || !variables) return null;
   if (variables.some((name) => !/^[\w.]+$/.test(name))) return null;
   const summary = { focus, decisions, pending, variables };
-  return JSON.stringify(summary).length <= AI_STUDIO_MAX_SESSION_SUMMARY_LENGTH ? summary : null;
+  return JSON.stringify(summary).length <= AI_STUDIO_MAX_SESSION_SUMMARY_LENGTH
+    ? summary
+    : null;
 }
 
 export function mergeSessionSummaries(
@@ -387,10 +423,9 @@ export function mergeSessionSummaries(
 ): AIStudioSessionSummary {
   const merged: AIStudioSessionSummary = {
     focus: next.focus,
-    decisions: Array.from(new Set([
-      ...(previous?.decisions ?? []),
-      ...next.decisions,
-    ])).slice(-20),
+    decisions: Array.from(
+      new Set([...(previous?.decisions ?? []), ...next.decisions]),
+    ).slice(-20),
     pending: next.pending,
     variables: next.variables.slice(-AI_STUDIO_MAX_CUSTOM_VARIABLES),
   };
@@ -410,24 +445,34 @@ export function mergeSessionSummaries(
     }
     const longestList = [merged.decisions, merged.pending, merged.variables]
       .filter((items) => items.length > 0)
-      .sort((left, right) => (right[0]?.length ?? 0) - (left[0]?.length ?? 0))[0];
+      .sort(
+        (left, right) => (right[0]?.length ?? 0) - (left[0]?.length ?? 0),
+      )[0];
     if (longestList?.[0] && longestList[0].length > 80) {
-      longestList[0] = longestList[0].slice(0, -Math.max(1, Math.ceil(longestList[0].length / 10)));
+      longestList[0] = longestList[0].slice(
+        0,
+        -Math.max(1, Math.ceil(longestList[0].length / 10)),
+      );
       continue;
     }
     if (merged.focus.length > 80) {
-      merged.focus = merged.focus.slice(0, -Math.max(1, Math.ceil(merged.focus.length / 10)));
+      merged.focus = merged.focus.slice(
+        0,
+        -Math.max(1, Math.ceil(merged.focus.length / 10)),
+      );
       continue;
     }
     break;
   }
 
-  return validateSessionSummary(merged) ?? {
-    focus: merged.focus.slice(0, 80),
-    decisions: [],
-    pending: [],
-    variables: [],
-  };
+  return (
+    validateSessionSummary(merged) ?? {
+      focus: merged.focus.slice(0, 80),
+      decisions: [],
+      pending: [],
+      variables: [],
+    }
+  );
 }
 
 export function validateCandidateContract(
@@ -440,7 +485,8 @@ export function validateCandidateContract(
   const sessionSummary = validateSessionSummary(value.sessionSummary);
   if (!explanation || !html || !suggestedName || !sessionSummary) return null;
   if (!Array.isArray(value.customVariables)) return null;
-  if (value.customVariables.length > AI_STUDIO_MAX_CUSTOM_VARIABLES) return null;
+  if (value.customVariables.length > AI_STUDIO_MAX_CUSTOM_VARIABLES)
+    return null;
 
   const customVariables: AIStudioCustomVariable[] = [];
   const seen = new Set<string>();
@@ -449,7 +495,10 @@ export function validateCandidateContract(
     const name = normalizedText(item.name, 80);
     const description = normalizedText(item.description, 500);
     if (!name || !description || !/^[\w.]+$/.test(name)) return null;
-    if ((SYSTEM_VARIABLES as readonly string[]).includes(name) || seen.has(name)) {
+    if (
+      (SYSTEM_VARIABLES as readonly string[]).includes(name) ||
+      seen.has(name)
+    ) {
       return null;
     }
     seen.add(name);
@@ -479,6 +528,43 @@ export function validateCandidateContract(
   };
 }
 
+export function diagnoseCandidateContract(value: unknown): string {
+  if (value === null) return "INVALID_JSON";
+  if (!isRecord(value)) return "INVALID_OBJECT";
+  if (!normalizedText(value.explanation, 4_000)) return "INVALID_EXPLANATION";
+  if (!normalizedText(value.html, AI_STUDIO_MAX_HTML_LENGTH))
+    return "INVALID_HTML";
+  if (!normalizedText(value.suggestedName, 120))
+    return "INVALID_SUGGESTED_NAME";
+  if (!validateSessionSummary(value.sessionSummary))
+    return "INVALID_SESSION_SUMMARY";
+  if (!Array.isArray(value.customVariables)) return "INVALID_CUSTOM_VARIABLES";
+  if (value.customVariables.length > AI_STUDIO_MAX_CUSTOM_VARIABLES)
+    return "TOO_MANY_CUSTOM_VARIABLES";
+
+  const seen = new Set<string>();
+  for (const item of value.customVariables) {
+    if (!isRecord(item)) return "INVALID_CUSTOM_VARIABLE";
+    const name = normalizedText(item.name, 80);
+    const description = normalizedText(item.description, 500);
+    if (!name || !description || !/^\w[\w.]*$/.test(name))
+      return "INVALID_CUSTOM_VARIABLE";
+    if (
+      (SYSTEM_VARIABLES as readonly string[]).includes(name) ||
+      seen.has(name)
+    )
+      return "DUPLICATE_CUSTOM_VARIABLE";
+    seen.add(name);
+  }
+
+  const detectedCustomVariables = detectVariables(value.html as string)
+    .filter((variable) => !variable.isSystem)
+    .map((variable) => variable.name);
+  if (detectedCustomVariables.some((name) => !seen.has(name)))
+    return "UNDECLARED_CUSTOM_VARIABLE";
+  return "INVALID_CONTRACT";
+}
+
 export interface AIStudioVariableDiff {
   added: string[];
   removed: string[];
@@ -489,8 +575,12 @@ export function compareVariables(
   beforeHtml: string,
   afterHtml: string,
 ): AIStudioVariableDiff {
-  const before = new Set(detectVariables(beforeHtml).map((variable) => variable.name));
-  const after = new Set(detectVariables(afterHtml).map((variable) => variable.name));
+  const before = new Set(
+    detectVariables(beforeHtml).map((variable) => variable.name),
+  );
+  const after = new Set(
+    detectVariables(afterHtml).map((variable) => variable.name),
+  );
   const beforeNames = Array.from(before);
   const afterNames = Array.from(after);
   return {

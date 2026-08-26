@@ -268,7 +268,11 @@
         "error": "Could not load models.",
         "empty": "No models configured yet.",
         "createSuccess": "Model created successfully.",
-        "createFailed": "Could not create the model."
+        "createFailed": "Could not create the model.",
+        "selectProvider": "Select a provider",
+        "selectModel": "Select a model",
+        "loadingProviderModels": "Loading provider models...",
+        "providerModelsError": "Could not load this provider's models."
       },
       "billing": {
         "title": "Billing overview",

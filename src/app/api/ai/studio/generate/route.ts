@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
-import { AIStudioError, generateTemplateCandidate } from "@/lib/ai/studio-service";
+import {
+  AIStudioError,
+  generateTemplateCandidate,
+} from "@/lib/ai/studio-service";
 import {
   mapAIStudioError,
   readMultipartFormData,
@@ -29,12 +32,19 @@ function parseMultipartJsonField(form: FormData, name: string): unknown {
   }
 }
 
-async function readGenerationBody(request: Request): Promise<Record<string, unknown> | null> {
-  if (!(request.headers.get("content-type") ?? "").includes("multipart/form-data")) {
+async function readGenerationBody(
+  request: Request,
+): Promise<Record<string, unknown> | null> {
+  if (
+    !(request.headers.get("content-type") ?? "").includes("multipart/form-data")
+  ) {
     return readJsonBody(request);
   }
 
-  const form = await readMultipartFormData(request, AI_STUDIO_MAX_GENERATION_REQUEST_BYTES);
+  const form = await readMultipartFormData(
+    request,
+    AI_STUDIO_MAX_GENERATION_REQUEST_BYTES,
+  );
   const body: Record<string, unknown> = {};
   for (const name of [
     "provider",
@@ -85,7 +95,13 @@ export async function POST(request: Request) {
   }
   if (!body) {
     return NextResponse.json(
-      { data: null, error: { code: "VALIDATION_ERROR", message: "Corpo da requisição inválido." } },
+      {
+        data: null,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Corpo da requisição inválido.",
+        },
+      },
       { status: 400 },
     );
   }
@@ -121,24 +137,32 @@ export async function POST(request: Request) {
               {
                 onPartial: (text) => {
                   if (firstChunkAt === null) firstChunkAt = Date.now();
-                  controller.enqueue(encoder.encode(newlineJson({ type: "delta", text })));
+                  controller.enqueue(
+                    encoder.encode(newlineJson({ type: "delta", text })),
+                  );
                 },
               },
             );
             requestId = result.requestId;
-            controller.enqueue(encoder.encode(newlineJson({ type: "complete", data: result })));
+            controller.enqueue(
+              encoder.encode(newlineJson({ type: "complete", data: result })),
+            );
           } catch (error) {
             const response = mapAIStudioError(error);
-            requestId = error instanceof AIStudioError ? error.requestId : undefined;
+            requestId =
+              error instanceof AIStudioError ? error.requestId : undefined;
             const payload = await response.json();
-            controller.enqueue(encoder.encode(newlineJson({ type: "error", ...payload })));
+            controller.enqueue(
+              encoder.encode(newlineJson({ type: "error", ...payload })),
+            );
           } finally {
             console.info("AI Studio stream completed:", {
               requestId,
               provider: body.provider,
               model: body.model,
               timeToHeadersMs: 0,
-              timeToFirstChunkMs: firstChunkAt === null ? null : firstChunkAt - startedAt,
+              timeToFirstChunkMs:
+                firstChunkAt === null ? null : firstChunkAt - startedAt,
               durationMs: Date.now() - startedAt,
             });
             controller.close();

@@ -268,7 +268,11 @@
         "error": "Não foi possível carregar os modelos.",
         "empty": "Nenhum modelo cadastrado ainda.",
         "createSuccess": "Modelo criado com sucesso.",
-        "createFailed": "Não foi possível criar o modelo."
+        "createFailed": "Não foi possível criar o modelo.",
+        "selectProvider": "Selecione um provider",
+        "selectModel": "Selecione um modelo",
+        "loadingProviderModels": "Carregando modelos do provider...",
+        "providerModelsError": "Não foi possível carregar os modelos deste provider."
       },
       "billing": {
         "title": "Visão geral de cobrança",

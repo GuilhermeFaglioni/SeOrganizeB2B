@@ -103,7 +103,10 @@ export function createOpenCodeCompatibleProvider(
   config: OpenCodeCompatibleProviderConfig,
 ): AIProvider {
   function baseUrl(): string {
-    return process.env[config.baseUrlEnv]?.replace(/\/$/, "") ?? config.defaultBaseUrl;
+    return (
+      process.env[config.baseUrlEnv]?.replace(/\/$/, "") ??
+      config.defaultBaseUrl
+    );
   }
 
   function generationBody(request: GenerationRequest) {
@@ -146,7 +149,10 @@ export function createOpenCodeCompatibleProvider(
       });
     } catch {
       if (request.signal?.aborted) {
-        throw new AIProviderError("TIMEOUT", `${config.name} generation timed out.`);
+        throw new AIProviderError(
+          "TIMEOUT",
+          `${config.name} generation timed out.`,
+        );
       }
       throw new AIProviderError(
         "NETWORK_ERROR",
@@ -180,7 +186,9 @@ export function createOpenCodeCompatibleProvider(
     );
   }
 
-  async function fetchAvailableModels(apiKey: string): Promise<AIProviderModel[]> {
+  async function fetchAvailableModels(
+    apiKey: string,
+  ): Promise<AIProviderModel[]> {
     const response = await modelListResponse(apiKey);
     if (!response.ok) {
       throw await providerErrorForResponse(response, config.name, "validation");
@@ -236,7 +244,11 @@ export function createOpenCodeCompatibleProvider(
     async validateApiKey(apiKey: string, model?: string): Promise<void> {
       const availableModels = await fetchAvailableModels(apiKey);
       const probeModel = model ?? availableModels[0]?.id ?? config.defaultModel;
-      if (!availableModels.some((availableModel) => availableModel.id === probeModel)) {
+      if (
+        !availableModels.some(
+          (availableModel) => availableModel.id === probeModel,
+        )
+      ) {
         throw unavailableModelError(probeModel);
       }
 
@@ -252,7 +264,11 @@ export function createOpenCodeCompatibleProvider(
         false,
       );
       if (!response.ok) {
-        throw await providerErrorForResponse(response, config.name, "validation");
+        throw await providerErrorForResponse(
+          response,
+          config.name,
+          "validation",
+        );
       }
     },
 
@@ -263,7 +279,11 @@ export function createOpenCodeCompatibleProvider(
     async generateStructured(apiKey, request) {
       const response = await generationResponse(apiKey, request, false);
       if (!response.ok) {
-        throw await providerErrorForResponse(response, config.name, "generation");
+        throw await providerErrorForResponse(
+          response,
+          config.name,
+          "generation",
+        );
       }
 
       let payload: unknown;
@@ -297,7 +317,11 @@ export function createOpenCodeCompatibleProvider(
     async *generateStructuredStream(apiKey, request) {
       const response = await generationResponse(apiKey, request, true);
       if (!response.ok) {
-        throw await providerErrorForResponse(response, config.name, "generation");
+        throw await providerErrorForResponse(
+          response,
+          config.name,
+          "generation",
+        );
       }
       yield* readSseText(response, (event) => {
         const choices = event.choices;

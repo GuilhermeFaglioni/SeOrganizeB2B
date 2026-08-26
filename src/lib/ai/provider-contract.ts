@@ -3,7 +3,8 @@ import type { AIStudioImageAsset } from "./studio-contract";
 export type AIProviderId = "openai" | "anthropic" | "opencode" | "opencode-go";
 
 export type AIAuthMethod = "api_key" | "oauth";
-export type AIProviderOAuthStatus = "unsupported" | "requires_setup" | "supported";
+export type AIProviderOAuthStatus =
+  "unsupported" | "requires_setup" | "supported";
 export type AIProviderOAuthReasonKey =
   | "oauthUnavailableOAuthConditionNotMet"
   | "oauthUnavailableCodexThirdParty"
@@ -32,7 +33,11 @@ export class AIProviderError extends Error {
   readonly providerStatus?: number;
   readonly providerErrorType?: string;
 
-  constructor(code: AIProviderErrorCode, message: string, details?: { providerStatus?: number; providerErrorType?: string }) {
+  constructor(
+    code: AIProviderErrorCode,
+    message: string,
+    details?: { providerStatus?: number; providerErrorType?: string },
+  ) {
     super(message);
     this.name = "AIProviderError";
     this.code = code;

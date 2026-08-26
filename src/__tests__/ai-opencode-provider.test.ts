@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { opencodeProvider } from "../lib/ai/providers/opencode";
-import { getAIProvider, isAIProviderId, listAIProviders } from "../lib/ai/providers";
+import {
+  getAIProvider,
+  isAIProviderId,
+  listAIProviders,
+} from "../lib/ai/providers";
 
 const originalBaseUrl = process.env.OPENCODE_API_BASE_URL;
 
@@ -35,9 +39,17 @@ describe("OpenCode Zen provider adapter", () => {
         expect.objectContaining({ id: "glm-5.2" }),
       ]),
     );
-    expect(opencodeProvider.models.every((model) => !model.vision && model.streaming)).toBe(true);
-    expect(opencodeProvider.models.some((model) => model.id === "glm-5")).toBe(false);
-    expect(opencodeProvider.models.some((model) => model.id.endsWith("-free"))).toBe(false);
+    expect(
+      opencodeProvider.models.every(
+        (model) => !model.vision && model.streaming,
+      ),
+    ).toBe(true);
+    expect(opencodeProvider.models.some((model) => model.id === "glm-5")).toBe(
+      false,
+    );
+    expect(
+      opencodeProvider.models.some((model) => model.id.endsWith("-free")),
+    ).toBe(false);
   });
 
   it("validates an API key through an authenticated minimal completion", async () => {
@@ -60,7 +72,9 @@ describe("OpenCode Zen provider adapter", () => {
       "https://zen.example.test/v1/chat/completions",
       expect.objectContaining({
         method: "POST",
-        headers: expect.objectContaining({ Authorization: "Bearer zen-secret" }),
+        headers: expect.objectContaining({
+          Authorization: "Bearer zen-secret",
+        }),
       }),
     );
     expect(requestBody(fetchMock, 1)).toMatchObject({
@@ -68,7 +82,9 @@ describe("OpenCode Zen provider adapter", () => {
       max_tokens: 1,
       stream: false,
     });
-    expect(JSON.stringify(requestBody(fetchMock, 1))).not.toContain("zen-secret");
+    expect(JSON.stringify(requestBody(fetchMock, 1))).not.toContain(
+      "zen-secret",
+    );
   });
 
   it("classifies a rejected authenticated completion as an invalid API key", async () => {
@@ -82,7 +98,9 @@ describe("OpenCode Zen provider adapter", () => {
       .mockResolvedValueOnce({ ok: false, status: 401 });
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(opencodeProvider.validateApiKey("zen-secret")).rejects.toMatchObject({
+    await expect(
+      opencodeProvider.validateApiKey("zen-secret"),
+    ).rejects.toMatchObject({
       code: "INVALID_API_KEY",
     });
     expect(fetchMock).toHaveBeenNthCalledWith(
@@ -93,7 +111,11 @@ describe("OpenCode Zen provider adapter", () => {
   });
 
   it("does not classify Zen credits or model errors as invalid API keys", async () => {
-    for (const errorType of ["CreditsError", "MonthlyLimitError", "UserLimitError"]) {
+    for (const errorType of [
+      "CreditsError",
+      "MonthlyLimitError",
+      "UserLimitError",
+    ]) {
       const validationFetch = vi
         .fn()
         .mockResolvedValueOnce({
@@ -108,7 +130,9 @@ describe("OpenCode Zen provider adapter", () => {
         });
       vi.stubGlobal("fetch", validationFetch);
 
-      await expect(opencodeProvider.validateApiKey("zen-secret")).rejects.toMatchObject({
+      await expect(
+        opencodeProvider.validateApiKey("zen-secret"),
+      ).rejects.toMatchObject({
         code: "UNKNOWN",
       });
     }
@@ -138,12 +162,14 @@ describe("OpenCode Zen provider adapter", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(opencodeProvider.generateStructured!("zen-secret", {
-      model: "deepseek-v4-flash",
-      systemPrompt: "system",
-      userPrompt: "user",
-      maxOutputTokens: 6000,
-    })).rejects.toMatchObject({
+    await expect(
+      opencodeProvider.generateStructured!("zen-secret", {
+        model: "deepseek-v4-flash",
+        systemPrompt: "system",
+        userPrompt: "user",
+        maxOutputTokens: 6000,
+      }),
+    ).rejects.toMatchObject({
       code: "UNKNOWN",
       providerStatus: 403,
       providerErrorType: "CreditsError",
@@ -161,7 +187,9 @@ describe("OpenCode Zen provider adapter", () => {
       .mockResolvedValueOnce({ ok: true, status: 200 });
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(opencodeProvider.validateApiKey("zen-secret")).resolves.toBeUndefined();
+    await expect(
+      opencodeProvider.validateApiKey("zen-secret"),
+    ).resolves.toBeUndefined();
 
     expect(requestBody(fetchMock, 1)).toMatchObject({
       model: "deepseek-v4-pro",
@@ -208,7 +236,9 @@ describe("OpenCode Zen provider adapter", () => {
       "https://zen.example.test/v1/models",
       expect.objectContaining({
         method: "GET",
-        headers: expect.objectContaining({ Authorization: "Bearer zen-secret" }),
+        headers: expect.objectContaining({
+          Authorization: "Bearer zen-secret",
+        }),
       }),
     );
   });
@@ -269,17 +299,23 @@ describe("OpenCode Zen provider adapter", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const deltas: string[] = [];
-    for await (const delta of opencodeProvider.generateStructuredStream!("zen-secret", {
-      model: "deepseek-v4-flash",
-      systemPrompt: "system",
-      userPrompt: "user",
-      maxOutputTokens: 6000,
-    })) {
+    for await (const delta of opencodeProvider.generateStructuredStream!(
+      "zen-secret",
+      {
+        model: "deepseek-v4-flash",
+        systemPrompt: "system",
+        userPrompt: "user",
+        maxOutputTokens: 6000,
+      },
+    )) {
       deltas.push(delta);
     }
 
     expect(deltas).toEqual(['{"html":"<p>', 'ok</p>"}']);
-    expect(requestBody(fetchMock)).toMatchObject({ model: "deepseek-v4-flash", stream: true });
+    expect(requestBody(fetchMock)).toMatchObject({
+      model: "deepseek-v4-flash",
+      stream: true,
+    });
   });
 
   it("does not send image bytes to a text-only model family", async () => {
@@ -314,7 +350,12 @@ describe("OpenCode Zen provider registry", () => {
     expect(getAIProvider("opencode")).toBe(opencodeProvider);
     expect(isAIProviderId("opencode")).toBe(true);
     expect(listAIProviders().map((provider) => provider.id)).toEqual(
-      expect.arrayContaining(["openai", "anthropic", "opencode", "opencode-go"]),
+      expect.arrayContaining([
+        "openai",
+        "anthropic",
+        "opencode",
+        "opencode-go",
+      ]),
     );
   });
 });

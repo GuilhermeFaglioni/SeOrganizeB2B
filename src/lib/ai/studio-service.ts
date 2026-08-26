@@ -20,6 +20,7 @@ import {
   compareVariables,
   buildStudioPrompts,
   compactSessionMessage,
+  diagnoseCandidateContract,
   mergeSessionSummaries,
   parseStructuredOutput,
   validateSessionSummary,
@@ -59,8 +60,14 @@ import {
   AI_STUDIO_IMAGE_FORMATS_LABEL,
 } from "./image-validation";
 import { detectVariables } from "../financial/proposal-variables";
-import { sanitizeProposalHtml, renderProposalHtml } from "../financial/proposals";
-import { getActiveAIModelCatalogEntry, listActiveAIModelCatalog } from "./model-catalog";
+import {
+  sanitizeProposalHtml,
+  renderProposalHtml,
+} from "../financial/proposals";
+import {
+  getActiveAIModelCatalogEntry,
+  listActiveAIModelCatalog,
+} from "./model-catalog";
 import {
   closeManagedAICycle,
   recordManagedAICycleCandidate,
@@ -147,7 +154,12 @@ export interface AIStudioConfig {
   directiveConfigured: boolean;
   connections: AIStudioConnectionOption[];
   consents: Record<string, { accepted: boolean; acceptedAt: string | null }>;
-  models: Array<{ provider: string; model: string; ownershipMode: "managed" | "byok"; creditCostPerCycle: number }>;
+  models: Array<{
+    provider: string;
+    model: string;
+    ownershipMode: "managed" | "byok";
+    creditCostPerCycle: number;
+  }>;
 }
 
 export interface GenerateTemplateInput {
@@ -202,18 +214,25 @@ function clearStudioImagesAll(): void {
 export function isAIStudioEnabled(): boolean {
   const enabled = process.env.AI_STUDIO_ENABLED?.trim().toLowerCase();
   const killSwitch = process.env.AI_STUDIO_KILL_SWITCH?.trim().toLowerCase();
-  return enabled !== "false" && enabled !== "0" && killSwitch !== "true" && killSwitch !== "1";
+  return (
+    enabled !== "false" &&
+    enabled !== "0" &&
+    killSwitch !== "true" &&
+    killSwitch !== "1"
+  );
 }
 
 export function getAIStudioRateLimit(): number {
   const configured = Number(process.env.AI_STUDIO_WORKSPACE_RATE_LIMIT);
-  if (!Number.isFinite(configured) || configured <= 0) return AI_STUDIO_WORKSPACE_RATE_LIMIT;
+  if (!Number.isFinite(configured) || configured <= 0)
+    return AI_STUDIO_WORKSPACE_RATE_LIMIT;
   return Math.floor(configured);
 }
 
 export function getAIStudioMaxRequestBytes(): number {
   const configured = Number(process.env.AI_STUDIO_MAX_REQUEST_BYTES);
-  if (!Number.isFinite(configured) || configured <= 0) return AI_STUDIO_MAX_REQUEST_BYTES;
+  if (!Number.isFinite(configured) || configured <= 0)
+    return AI_STUDIO_MAX_REQUEST_BYTES;
   return Math.floor(configured);
 }
 
@@ -224,7 +243,10 @@ function normalizeLocale(value: unknown): string {
 function normalizeSessionId(value: unknown): string | null {
   if (value === undefined || value === null || value === "") return null;
   if (typeof value !== "string" || value.trim().length > 128) {
-    throw new AIStudioError("VALIDATION_ERROR", "Identificador de sessão inválido.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Identificador de sessão inválido.",
+    );
   }
   return value.trim() || null;
 }
@@ -240,9 +262,16 @@ async function getPromptSnapshot(input: {
   sessionId: string | null;
   sessionSnapshot: string | null;
   locale: string;
-}): Promise<{ directive: string | null; locale: string; sessionSnapshot?: string }> {
+}): Promise<{
+  directive: string | null;
+  locale: string;
+  sessionSnapshot?: string;
+}> {
   if (!input.sessionId) {
-    return { directive: await readDirectiveSnapshot(input.tenantId), locale: input.locale };
+    return {
+      directive: await readDirectiveSnapshot(input.tenantId),
+      locale: input.locale,
+    };
   }
 
   if (input.sessionSnapshot) {
@@ -295,7 +324,10 @@ export function discardAIStudioSession(
 
 function normalizeProvider(value: unknown): AIProviderId {
   if (!isAIProviderId(value)) {
-    throw new AIStudioError("VALIDATION_ERROR", "Selecione um provider de IA válido.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Selecione um provider de IA válido.",
+    );
   }
   return value;
 }
@@ -303,14 +335,20 @@ function normalizeProvider(value: unknown): AIProviderId {
 function providerOrThrow(id: AIProviderId): AIProvider {
   const provider = getAIProvider(id);
   if (!provider) {
-    throw new AIStudioError("CONFIGURATION_ERROR", "O provider selecionado não está disponível.");
+    throw new AIStudioError(
+      "CONFIGURATION_ERROR",
+      "O provider selecionado não está disponível.",
+    );
   }
   return provider;
 }
 
 function normalizeMessage(value: unknown): string {
   if (typeof value !== "string" || !value.trim()) {
-    throw new AIStudioError("VALIDATION_ERROR", "Descreva o template que você quer criar.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Descreva o template que você quer criar.",
+    );
   }
   const message = value.trim();
   if (message.length > AI_STUDIO_MAX_MESSAGE_LENGTH) {
@@ -322,7 +360,9 @@ function normalizeMessage(value: unknown): string {
   return message;
 }
 
-function normalizeSessionSummary(value: unknown): AIStudioSessionSummary | null {
+function normalizeSessionSummary(
+  value: unknown,
+): AIStudioSessionSummary | null {
   if (value === undefined || value === null || value === "") return null;
   const summary = validateSessionSummary(value);
   if (!summary) {
@@ -342,7 +382,10 @@ function normalizeSessionSnapshot(value: unknown): string | null {
 function normalizeBaseHtml(value: unknown): string | null {
   if (value === undefined || value === null || value === "") return null;
   if (typeof value !== "string") {
-    throw new AIStudioError("VALIDATION_ERROR", "O HTML-base da sessão é inválido.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "O HTML-base da sessão é inválido.",
+    );
   }
   const base = value.trim();
   if (base.length > AI_STUDIO_MAX_HTML_LENGTH) {
@@ -357,7 +400,10 @@ function normalizeBaseHtml(value: unknown): string | null {
 function normalizeRecentMessages(value: unknown): AIStudioSessionMessage[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) {
-    throw new AIStudioError("VALIDATION_ERROR", "Mensagens recentes inválidas.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Mensagens recentes inválidas.",
+    );
   }
   return value.slice(-AI_STUDIO_MAX_RECENT_MESSAGES).map((item) => {
     if (!item || typeof item !== "object") {
@@ -365,19 +411,31 @@ function normalizeRecentMessages(value: unknown): AIStudioSessionMessage[] {
     }
     const candidate = item as { role?: unknown; content?: unknown };
     if (candidate.role !== "user" && candidate.role !== "assistant") {
-      throw new AIStudioError("VALIDATION_ERROR", "Papel de mensagem inválido.");
+      throw new AIStudioError(
+        "VALIDATION_ERROR",
+        "Papel de mensagem inválido.",
+      );
     }
     if (typeof candidate.content !== "string" || !candidate.content.trim()) {
-      throw new AIStudioError("VALIDATION_ERROR", "Conteúdo de mensagem inválido.");
+      throw new AIStudioError(
+        "VALIDATION_ERROR",
+        "Conteúdo de mensagem inválido.",
+      );
     }
-    return { role: candidate.role, content: compactSessionMessage(candidate.content) };
+    return {
+      role: candidate.role,
+      content: compactSessionMessage(candidate.content),
+    };
   });
 }
 
 function normalizeImageIds(value: unknown): string[] {
   if (value === undefined || value === null || value === "") return [];
   if (!Array.isArray(value)) {
-    throw new AIStudioError("VALIDATION_ERROR", "Referências de imagem inválidas.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Referências de imagem inválidas.",
+    );
   }
   if (value.length > AI_STUDIO_MAX_IMAGES_PER_MESSAGE) {
     throw new AIStudioError(
@@ -387,8 +445,16 @@ function normalizeImageIds(value: unknown): string[] {
   }
   const ids: string[] = [];
   for (const item of value) {
-    if (typeof item !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item)) {
-      throw new AIStudioError("VALIDATION_ERROR", "Referência de imagem inválida.");
+    if (
+      typeof item !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        item,
+      )
+    ) {
+      throw new AIStudioError(
+        "VALIDATION_ERROR",
+        "Referência de imagem inválida.",
+      );
     }
     ids.push(item);
   }
@@ -402,7 +468,10 @@ function normalizeImageFiles(value: unknown): Array<{
 }> {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) {
-    throw new AIStudioError("VALIDATION_ERROR", "Arquivos de imagem inválidos.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Arquivos de imagem inválidos.",
+    );
   }
   if (value.length > AI_STUDIO_MAX_IMAGES_PER_MESSAGE) {
     throw new AIStudioError(
@@ -412,11 +481,21 @@ function normalizeImageFiles(value: unknown): Array<{
   }
   return value.map((item) => {
     if (!item || typeof item !== "object") {
-      throw new AIStudioError("VALIDATION_ERROR", "Arquivo de imagem inválido.");
+      throw new AIStudioError(
+        "VALIDATION_ERROR",
+        "Arquivo de imagem inválido.",
+      );
     }
-    const file = item as { name?: unknown; data?: unknown; contentType?: unknown };
+    const file = item as {
+      name?: unknown;
+      data?: unknown;
+      contentType?: unknown;
+    };
     if (typeof file.name !== "string" || !Buffer.isBuffer(file.data)) {
-      throw new AIStudioError("VALIDATION_ERROR", "Arquivo de imagem inválido.");
+      throw new AIStudioError(
+        "VALIDATION_ERROR",
+        "Arquivo de imagem inválido.",
+      );
     }
     return { name: file.name, data: file.data, contentType: file.contentType };
   });
@@ -430,7 +509,10 @@ function estimateImagePayloadBytes(images: AIStudioImageAsset[]): number {
 }
 
 function normalizeModel(provider: AIProvider, value: unknown): string {
-  const model = typeof value === "string" && value.trim() ? value.trim() : provider.defaultModel;
+  const model =
+    typeof value === "string" && value.trim()
+      ? value.trim()
+      : provider.defaultModel;
   if (!provider.models.some((item) => item.id === model)) {
     throw new AIStudioError(
       "INVALID_MODEL",
@@ -455,10 +537,16 @@ async function modelsForConnection(
   }
 }
 
-function stripExternalResources(html: string): { html: string; changed: boolean } {
+function stripExternalResources(html: string): {
+  html: string;
+  changed: boolean;
+} {
   let changed = false;
   const withoutExternalImages = html.replace(/<img\b[^>]*>/gi, (tag) => {
-    const source = tag.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1]?.trim().toLowerCase();
+    const source = tag
+      .match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1]
+      ?.trim()
+      .toLowerCase();
     if (source && /^(?:https?:|data:|\/\/)/i.test(source)) {
       changed = true;
       return "";
@@ -490,7 +578,10 @@ function hasVisibleContent(html: string): boolean {
 export function sanitizeAIStudioHtml(rawHtml: string): SanitizedAiHtml {
   const source = rawHtml.trim();
   if (!source) {
-    throw new AIStudioError("INVALID_STRUCTURED_OUTPUT", "O provider retornou HTML vazio.");
+    throw new AIStudioError(
+      "INVALID_STRUCTURED_OUTPUT",
+      "O provider retornou HTML vazio.",
+    );
   }
   if (source.length > AI_STUDIO_MAX_HTML_LENGTH) {
     throw new AIStudioError(
@@ -503,7 +594,9 @@ export function sanitizeAIStudioHtml(rawHtml: string): SanitizedAiHtml {
   const html = externalSafe.html.trim();
   const warnings: string[] = [];
   if (html !== source || externalSafe.changed) {
-    warnings.push("Alguns elementos HTML incompatíveis ou recursos externos foram removidos.");
+    warnings.push(
+      "Alguns elementos HTML incompatíveis ou recursos externos foram removidos.",
+    );
   }
   if (!hasVisibleContent(html)) {
     throw new AIStudioError(
@@ -566,18 +659,26 @@ export async function recordAIStudioConsent(input: {
   version?: unknown;
 }): Promise<{ provider: AIProviderId; version: string; consentedAt: Date }> {
   const provider = normalizeProvider(input.provider);
-  const version = input.version === undefined ? AI_STUDIO_CONSENT_VERSION : input.version;
+  const version =
+    input.version === undefined ? AI_STUDIO_CONSENT_VERSION : input.version;
   if (version !== AI_STUDIO_CONSENT_VERSION) {
-    throw new AIStudioError("VALIDATION_ERROR", "Versão de consentimento inválida.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Versão de consentimento inválida.",
+    );
   }
   const connection = await readActiveConnection(input.tenantId, provider);
   const managedProviderAvailable =
     !connection &&
     (await listActiveAIModelCatalog()).some(
-      (entry) => entry.provider === provider && entry.ownershipMode === "managed",
+      (entry) =>
+        entry.provider === provider && entry.ownershipMode === "managed",
     );
   if (!connection && !managedProviderAvailable) {
-    throw new AIStudioError("NO_PROVIDER", "Nenhuma conexão ativa foi encontrada para este provider.");
+    throw new AIStudioError(
+      "NO_PROVIDER",
+      "Nenhuma conexão ativa foi encontrada para este provider.",
+    );
   }
   const consentedAt = new Date();
   await withTenant(input.tenantId, () =>
@@ -602,7 +703,9 @@ export async function recordAIStudioConsent(input: {
   return { provider, version, consentedAt };
 }
 
-function mapImageValidationError(error: AIStudioImageValidationError): AIStudioError {
+function mapImageValidationError(
+  error: AIStudioImageValidationError,
+): AIStudioError {
   return new AIStudioError(
     "IMAGE_VALIDATION_ERROR",
     error.code === "TOO_LARGE"
@@ -623,21 +726,41 @@ function mapImageValidationError(error: AIStudioImageValidationError): AIStudioE
 export async function attachAIStudioImage(
   tenantId: string,
   actorId: string,
-  file: { name: string; data: Buffer; contentType?: unknown; uploadId?: unknown },
+  file: {
+    name: string;
+    data: Buffer;
+    contentType?: unknown;
+    uploadId?: unknown;
+  },
 ): Promise<AIStudioImageReference> {
-  const uploadId = file.uploadId === undefined || file.uploadId === null || file.uploadId === ""
-    ? null
-    : typeof file.uploadId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(file.uploadId)
-      ? file.uploadId
-      : null;
-  if (file.uploadId !== undefined && file.uploadId !== null && file.uploadId !== "" && !uploadId) {
-    throw new AIStudioError("VALIDATION_ERROR", "Identificador de upload inválido.");
+  const uploadId =
+    file.uploadId === undefined ||
+    file.uploadId === null ||
+    file.uploadId === ""
+      ? null
+      : typeof file.uploadId === "string" &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            file.uploadId,
+          )
+        ? file.uploadId
+        : null;
+  if (
+    file.uploadId !== undefined &&
+    file.uploadId !== null &&
+    file.uploadId !== "" &&
+    !uploadId
+  ) {
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Identificador de upload inválido.",
+    );
   }
   let validated: AIStudioImageAsset[];
   try {
     validated = await validateStudioImages([file]);
   } catch (error) {
-    if (error instanceof AIStudioImageValidationError) throw mapImageValidationError(error);
+    if (error instanceof AIStudioImageValidationError)
+      throw mapImageValidationError(error);
     throw new AIStudioError(
       "IMAGE_VALIDATION_ERROR",
       "Não foi possível validar a imagem enviada.",
@@ -645,7 +768,10 @@ export async function attachAIStudioImage(
   }
   const asset = validated[0];
   if (!asset) {
-    throw new AIStudioError("IMAGE_VALIDATION_ERROR", "Nenhuma imagem válida foi enviada.");
+    throw new AIStudioError(
+      "IMAGE_VALIDATION_ERROR",
+      "Nenhuma imagem válida foi enviada.",
+    );
   }
   if (uploadId) asset.id = uploadId;
   return storeStudioImage(tenantId, actorId, asset);
@@ -679,13 +805,20 @@ export function getAIStudioImageStats(): {
   return studioImageStats();
 }
 
-export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfig> {
+export async function getAIStudioConfig(
+  tenantId: string,
+): Promise<AIStudioConfig> {
   const directive = await getWorkspaceDirective(tenantId);
   const [connections, consentRows, catalog] = await Promise.all([
     withTenant(tenantId, () =>
       prisma.aiProviderConnection.findMany({
         where: { status: "active", creator: { tenantId, removedAt: null } },
-        select: { id: true, provider: true, defaultModel: true, encryptedSecret: true },
+        select: {
+          id: true,
+          provider: true,
+          defaultModel: true,
+          encryptedSecret: true,
+        },
         orderBy: { createdAt: "asc" },
       }),
     ),
@@ -699,7 +832,10 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
   ]);
 
   const consentByProvider = Object.fromEntries(
-    listAIProviders().map((provider) => [provider.id, { accepted: false, acceptedAt: null }]),
+    listAIProviders().map((provider) => [
+      provider.id,
+      { accepted: false, acceptedAt: null },
+    ]),
   ) as AIStudioConfig["consents"];
   for (const consent of consentRows) {
     if (isAIProviderId(consent.provider)) {
@@ -720,39 +856,78 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
           id: connection.id,
           provider: connection.provider,
           defaultModel: connection.defaultModel,
-          models: (await modelsForConnection(provider, connection.encryptedSecret)).map((model) => {
-            const entry = catalog.find((item) => item.provider === connection.provider && item.model === model.id);
-            return { ...model, ...(entry ? { ownershipMode: entry.ownershipMode, creditCostPerCycle: entry.creditCostPerCycle } : {}) };
+          models: (
+            await modelsForConnection(provider, connection.encryptedSecret)
+          ).map((model) => {
+            const entry = catalog.find(
+              (item) =>
+                item.provider === connection.provider &&
+                item.model === model.id,
+            );
+            return {
+              ...model,
+              ...(entry
+                ? {
+                    ownershipMode: entry.ownershipMode,
+                    creditCostPerCycle: entry.creditCostPerCycle,
+                  }
+                : {}),
+            };
           }),
         };
       }),
     )
-  ).filter((connection): connection is AIStudioConnectionOption => connection !== null);
+  ).filter(
+    (connection): connection is AIStudioConnectionOption => connection !== null,
+  );
 
-  const connectedProviders = new Set(availableConnections.map((connection) => connection.provider));
+  const connectedProviders = new Set(
+    availableConnections.map((connection) => connection.provider),
+  );
   const managedProviders = catalog
-    .filter((entry) => entry.ownershipMode === "managed" && isAIProviderId(entry.provider) && !connectedProviders.has(entry.provider))
+    .filter(
+      (entry) =>
+        entry.ownershipMode === "managed" &&
+        isAIProviderId(entry.provider) &&
+        !connectedProviders.has(entry.provider),
+    )
     .map((entry) => entry.provider)
-    .filter((provider, index, providers): provider is AIProviderId => isAIProviderId(provider) && providers.indexOf(provider) === index);
+    .filter(
+      (provider, index, providers): provider is AIProviderId =>
+        isAIProviderId(provider) && providers.indexOf(provider) === index,
+    );
   const managedConnections = managedProviders
     .map((provider): AIStudioConnectionOption | null => {
       const aiProvider = getAIProvider(provider);
       if (!aiProvider) return null;
-      const managedCatalog = catalog.filter((entry) => entry.provider === provider && entry.ownershipMode === "managed");
+      const managedCatalog = catalog.filter(
+        (entry) =>
+          entry.provider === provider && entry.ownershipMode === "managed",
+      );
       const models = aiProvider.models
-        .filter((model) => managedCatalog.some((entry) => entry.model === model.id))
+        .filter((model) =>
+          managedCatalog.some((entry) => entry.model === model.id),
+        )
         .map((model) => {
           const entry = managedCatalog.find((item) => item.model === model.id);
-          return { ...model, ownershipMode: "managed" as const, creditCostPerCycle: entry?.creditCostPerCycle };
+          return {
+            ...model,
+            ownershipMode: "managed" as const,
+            creditCostPerCycle: entry?.creditCostPerCycle,
+          };
         });
       return {
         id: `managed:${provider}`,
         provider,
-        defaultModel: models.find((model) => model.default)?.id ?? models[0]?.id ?? null,
+        defaultModel:
+          models.find((model) => model.default)?.id ?? models[0]?.id ?? null,
         models,
       };
     })
-    .filter((connection): connection is AIStudioConnectionOption => connection !== null && connection.models.length > 0);
+    .filter(
+      (connection): connection is AIStudioConnectionOption =>
+        connection !== null && connection.models.length > 0,
+    );
 
   return {
     enabled: isAIStudioEnabled(),
@@ -761,24 +936,40 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
     directiveConfigured: Boolean(directive?.content),
     connections: [...availableConnections, ...managedConnections],
     consents: consentByProvider,
-    models: catalog.map((entry) => ({ provider: entry.provider, model: entry.model, ownershipMode: entry.ownershipMode, creditCostPerCycle: entry.creditCostPerCycle })),
+    models: catalog.map((entry) => ({
+      provider: entry.provider,
+      model: entry.model,
+      ownershipMode: entry.ownershipMode,
+      creditCostPerCycle: entry.creditCostPerCycle,
+    })),
   };
 }
 
 export function getAIStudioUsageRetentionCutoff(now = new Date()): Date {
-  return new Date(now.getTime() - AI_STUDIO_USAGE_RETENTION_DAYS * 24 * 60 * 60 * 1_000);
-}
-
-export async function pruneAIStudioUsageEvents(tenantId: string, now = new Date()): Promise<void> {
-  const cutoff = getAIStudioUsageRetentionCutoff(now);
-  await withTenant(tenantId, () =>
-    prisma.aiStudioUsageEvent.deleteMany({ where: { createdAt: { lt: cutoff } } }),
+  return new Date(
+    now.getTime() - AI_STUDIO_USAGE_RETENTION_DAYS * 24 * 60 * 60 * 1_000,
   );
 }
 
-export async function pruneAllAIStudioUsageEvents(now = new Date()): Promise<number> {
+export async function pruneAIStudioUsageEvents(
+  tenantId: string,
+  now = new Date(),
+): Promise<void> {
+  const cutoff = getAIStudioUsageRetentionCutoff(now);
+  await withTenant(tenantId, () =>
+    prisma.aiStudioUsageEvent.deleteMany({
+      where: { createdAt: { lt: cutoff } },
+    }),
+  );
+}
+
+export async function pruneAllAIStudioUsageEvents(
+  now = new Date(),
+): Promise<number> {
   const workspaces = await withTenantBypass(() =>
-    prisma.workspace.findMany({ select: { id: true, status: true, deletedAt: true } }),
+    prisma.workspace.findMany({
+      select: { id: true, status: true, deletedAt: true },
+    }),
   );
   for (const workspace of workspaces) {
     await pruneAIStudioUsageEvents(workspace.id, now);
@@ -805,7 +996,10 @@ async function reserveUsageEvent(input: {
         SELECT id FROM "workspaces" WHERE id = ${input.tenantId} FOR UPDATE
       `;
       if (workspaces.length === 0) {
-        throw new AIStudioError("INTERNAL_ERROR", "A empresa da sessão não foi encontrada.");
+        throw new AIStudioError(
+          "INTERNAL_ERROR",
+          "A empresa da sessão não foi encontrada.",
+        );
       }
 
       await transaction.aiStudioUsageEvent.deleteMany({
@@ -884,19 +1078,31 @@ async function recordUsageEvent(input: {
   }
 }
 
-function mapProviderError(error: unknown, signal: AbortSignal, requestId: string): AIStudioError {
+function mapProviderError(
+  error: unknown,
+  signal: AbortSignal,
+  requestId: string,
+): AIStudioError {
   if (signal.aborted) {
-    return new AIStudioError("TIMEOUT", "A geração excedeu o limite de 90 segundos.", {
-      providerErrorCode: "TIMEOUT",
-      requestId,
-    });
+    return new AIStudioError(
+      "TIMEOUT",
+      "A geração excedeu o limite de 90 segundos.",
+      {
+        providerErrorCode: "TIMEOUT",
+        requestId,
+      },
+    );
   }
   if (error instanceof AIProviderError) {
     if (error.code === "TIMEOUT") {
-      return new AIStudioError("TIMEOUT", "A geração excedeu o limite de 90 segundos.", {
-        providerErrorCode: error.code,
-        requestId,
-      });
+      return new AIStudioError(
+        "TIMEOUT",
+        "A geração excedeu o limite de 90 segundos.",
+        {
+          providerErrorCode: error.code,
+          requestId,
+        },
+      );
     }
     return new AIStudioError("PROVIDER_ERROR", error.message, {
       providerErrorCode: error.code,
@@ -931,37 +1137,74 @@ export async function generateTemplateCandidate(
   const sessionId = normalizeSessionId(input.sessionId);
   const sessionSnapshot = normalizeSessionSnapshot(input.sessionSnapshot);
   if (sessionSnapshot && !sessionId) {
-    throw new AIStudioError("VALIDATION_ERROR", "Snapshot de sessão requer um identificador de sessão.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Snapshot de sessão requer um identificador de sessão.",
+    );
   }
   const recentMessages = normalizeRecentMessages(input.recentMessages);
   const sessionSummary = normalizeSessionSummary(input.sessionSummary);
   const imageIds = normalizeImageIds(input.imageIds);
   const imageFiles = normalizeImageFiles(input.imageFiles);
   const baseHtml = normalizeBaseHtml(input.baseHtml);
-  const sanitizedBase = baseHtml === null ? null : sanitizeAIStudioHtml(baseHtml);
+  const sanitizedBase =
+    baseHtml === null ? null : sanitizeAIStudioHtml(baseHtml);
   const connection = await readActiveConnection(input.tenantId, providerId);
   const requestedModel = input.model ?? connection?.defaultModel;
   const model = normalizeModel(provider, requestedModel);
-  const catalog = await getActiveAIModelCatalogEntry(providerId, model).catch(() => null);
-  const ownershipMode = catalog?.ownershipMode ?? connection?.ownershipMode ?? "byok";
+  const catalog = await getActiveAIModelCatalogEntry(providerId, model).catch(
+    () => null,
+  );
+  const ownershipMode =
+    catalog?.ownershipMode ?? connection?.ownershipMode ?? "byok";
   const managed = ownershipMode === "managed";
   if (managed && !catalog) {
-    throw new AIStudioError("CONFIGURATION_ERROR", "O catálogo do modelo gerenciado não está configurado.");
+    throw new AIStudioError(
+      "CONFIGURATION_ERROR",
+      "O catálogo do modelo gerenciado não está configurado.",
+    );
   }
-  if (catalog?.ownershipMode === "byok" && connection?.ownershipMode && connection.ownershipMode !== "byok") {
-    throw new AIStudioError("CONNECTION_UNAVAILABLE", "O modelo selecionado requer uma conexão BYOK ativa.");
+  if (
+    catalog?.ownershipMode === "byok" &&
+    connection?.ownershipMode &&
+    connection.ownershipMode !== "byok"
+  ) {
+    throw new AIStudioError(
+      "CONNECTION_UNAVAILABLE",
+      "O modelo selecionado requer uma conexão BYOK ativa.",
+    );
   }
-  if (!managed && connection?.ownershipMode && connection.ownershipMode !== "byok") {
-    throw new AIStudioError("CONNECTION_UNAVAILABLE", "A conexão selecionada não é uma conexão BYOK ativa.");
+  if (
+    !managed &&
+    connection?.ownershipMode &&
+    connection.ownershipMode !== "byok"
+  ) {
+    throw new AIStudioError(
+      "CONNECTION_UNAVAILABLE",
+      "A conexão selecionada não é uma conexão BYOK ativa.",
+    );
   }
   if (!managed && !connection?.encryptedSecret) {
-    throw new AIStudioError("CONNECTION_UNAVAILABLE", "A conexão selecionada não está ativa. Configure ou valide o provider antes de gerar.");
+    throw new AIStudioError(
+      "CONNECTION_UNAVAILABLE",
+      "A conexão selecionada não está ativa. Configure ou valide o provider antes de gerar.",
+    );
   }
-  const selectedModel = provider.models.find((item) => item.id === model) ?? (catalog ? {
-    id: catalog.model, vision: catalog.vision, streaming: catalog.streaming, default: false,
-  } : undefined);
+  const selectedModel =
+    provider.models.find((item) => item.id === model) ??
+    (catalog
+      ? {
+          id: catalog.model,
+          vision: catalog.vision,
+          streaming: catalog.streaming,
+          default: false,
+        }
+      : undefined);
   if (!selectedModel) {
-    throw new AIStudioError("INVALID_MODEL", "O modelo selecionado não está disponível.");
+    throw new AIStudioError(
+      "INVALID_MODEL",
+      "O modelo selecionado não está disponível.",
+    );
   }
   if (imageIds.length > 0 && !selectedModel.vision) {
     throw new AIStudioError(
@@ -975,7 +1218,9 @@ export async function generateTemplateCandidate(
       "Confirme o consentimento de processamento externo antes de gerar.",
     );
   }
-  if (!(await hasConsent(input.tenantId, providerId, AI_STUDIO_CONSENT_VERSION))) {
+  if (
+    !(await hasConsent(input.tenantId, providerId, AI_STUDIO_CONSENT_VERSION))
+  ) {
     throw new AIStudioError(
       "CONSENT_REQUIRED",
       "Confirme o consentimento de processamento externo antes de gerar.",
@@ -1007,13 +1252,21 @@ export async function generateTemplateCandidate(
       try {
         images = await validateStudioImages(imageFiles);
       } catch (error) {
-        if (error instanceof AIStudioImageValidationError) throw mapImageValidationError(error);
+        if (error instanceof AIStudioImageValidationError)
+          throw mapImageValidationError(error);
         throw error;
       }
     } else {
-      images = imageIds.length > 0 ? readStudioImageBytes(input.tenantId, input.actorId, imageIds) : [];
+      images =
+        imageIds.length > 0
+          ? readStudioImageBytes(input.tenantId, input.actorId, imageIds)
+          : [];
     }
-    if (imageFiles.length === 0 && imageIds.length > 0 && images.length < imageIds.length) {
+    if (
+      imageFiles.length === 0 &&
+      imageIds.length > 0 &&
+      images.length < imageIds.length
+    ) {
       throw new AIStudioError(
         "IMAGE_EXPIRED",
         "Algumas imagens anexadas expiraram. Anexe novamente antes de gerar.",
@@ -1022,10 +1275,15 @@ export async function generateTemplateCandidate(
     let secret: string;
     try {
       const managedSecret = managed
-        ? process.env[`AI_STUDIO_MANAGED_${providerId.toUpperCase().replaceAll("-", "_")}_API_KEY`]
+        ? process.env[
+            `AI_STUDIO_MANAGED_${providerId.toUpperCase().replaceAll("-", "_")}_API_KEY`
+          ]
         : null;
       if (managed && !managedSecret) {
-        throw new AIStudioError("CONFIGURATION_ERROR", "As credenciais gerenciadas deste provider não estão configuradas.");
+        throw new AIStudioError(
+          "CONFIGURATION_ERROR",
+          "As credenciais gerenciadas deste provider não estão configuradas.",
+        );
       }
       secret = managedSecret ?? decryptAiSecret(connection!.encryptedSecret!);
     } catch {
@@ -1067,26 +1325,56 @@ export async function generateTemplateCandidate(
     }
 
     // All request/image/credential/payload preflight is complete before any credit is reserved.
-    await reserveUsageEvent({ tenantId: input.tenantId, actorId: input.actorId, provider: providerId, authMethod: managed ? "managed" : connection!.authMethod, model, requestId });
+    await reserveUsageEvent({
+      tenantId: input.tenantId,
+      actorId: input.actorId,
+      provider: providerId,
+      authMethod: managed ? "managed" : connection!.authMethod,
+      model,
+      requestId,
+    });
     if (managed && catalog) {
-      const started = await startOrResumeManagedAICycle({ tenantId: input.tenantId, actorId: input.actorId, catalog, operationKey: `ai-studio-cycle:${input.tenantId}:${input.actorId}:${requestId}` });
+      const started = await startOrResumeManagedAICycle({
+        tenantId: input.tenantId,
+        actorId: input.actorId,
+        catalog,
+        operationKey: `ai-studio-cycle:${input.tenantId}:${input.actorId}:${requestId}`,
+      });
       managedCycle = started.cycle;
-      if (managedCycle.alterationCount >= 5) throw new AIStudioError("RATE_LIMITED", "Este ciclo já atingiu o limite de alterações utilizáveis.");
+      if (managedCycle.alterationCount >= 5)
+        throw new AIStudioError(
+          "RATE_LIMITED",
+          "Este ciclo já atingiu o limite de alterações utilizáveis.",
+        );
     } else if (catalog) {
-      await closeManagedAICycle({ tenantId: input.tenantId, actorId: input.actorId, reason: "switched" });
+      await closeManagedAICycle({
+        tenantId: input.tenantId,
+        actorId: input.actorId,
+        reason: "switched",
+      });
     }
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), AI_STUDIO_GENERATION_TIMEOUT_MS);
+    const timeout = setTimeout(
+      () => controller.abort(),
+      AI_STUDIO_GENERATION_TIMEOUT_MS,
+    );
     let rawText = "";
     let streamed = false;
     try {
-      if (input.stream && selectedModel.streaming && provider.generateStructuredStream) {
+      if (
+        input.stream &&
+        selectedModel.streaming &&
+        provider.generateStructuredStream
+      ) {
         streamed = true;
         for await (const delta of provider.generateStructuredStream(secret, {
           model,
           systemPrompt: prompts.systemPrompt,
           userPrompt: prompts.userPrompt,
-          maxOutputTokens: Math.min(AI_STUDIO_MAX_OUTPUT_TOKENS, catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS),
+          maxOutputTokens: Math.min(
+            AI_STUDIO_MAX_OUTPUT_TOKENS,
+            catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS,
+          ),
           signal: controller.signal,
           images,
         })) {
@@ -1098,7 +1386,10 @@ export async function generateTemplateCandidate(
           model,
           systemPrompt: prompts.systemPrompt,
           userPrompt: prompts.userPrompt,
-          maxOutputTokens: Math.min(AI_STUDIO_MAX_OUTPUT_TOKENS, catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS),
+          maxOutputTokens: Math.min(
+            AI_STUDIO_MAX_OUTPUT_TOKENS,
+            catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS,
+          ),
           signal: controller.signal,
           images,
         });
@@ -1128,16 +1419,37 @@ export async function generateTemplateCandidate(
     }
 
     responseSizeBytes = Buffer.byteLength(rawText, "utf8");
-    const contract = validateCandidateContract(parseStructuredOutput(rawText));
+    const parsedOutput = parseStructuredOutput(rawText);
+    const contract = validateCandidateContract(parsedOutput);
     if (!contract) {
+      const detailCode = diagnoseCandidateContract(parsedOutput);
+      console.error("AI Studio structured output error:", {
+        requestId,
+        provider: providerId,
+        model,
+        responseSizeBytes,
+        detailCode,
+        responseKeys:
+          parsedOutput &&
+          typeof parsedOutput === "object" &&
+          !Array.isArray(parsedOutput)
+            ? Object.keys(parsedOutput).sort()
+            : [],
+      });
       throw new AIStudioError(
         "INVALID_STRUCTURED_OUTPUT",
         "O provider retornou uma resposta fora do contrato. O último rascunho foi preservado.",
+        { detailCode, requestId },
       );
     }
     const sanitized = sanitizeAIStudioHtml(contract.html);
-    const variableDiff = compareVariables(sanitizedBase?.html ?? "", sanitized.html);
-    const declaredCustom = new Set(contract.customVariables.map((variable) => variable.name));
+    const variableDiff = compareVariables(
+      sanitizedBase?.html ?? "",
+      sanitized.html,
+    );
+    const declaredCustom = new Set(
+      contract.customVariables.map((variable) => variable.name),
+    );
     const usedCustom = detectVariables(sanitized.html)
       .filter((variable) => !variable.isSystem)
       .map((variable) => variable.name);
@@ -1149,14 +1461,22 @@ export async function generateTemplateCandidate(
     }
     const mergedSessionSummary = mergeSessionSummaries(sessionSummary, {
       ...contract.sessionSummary,
-      variables: Array.from(new Set(detectVariables(sanitized.html).map((variable) => variable.name))).slice(-AI_STUDIO_MAX_CUSTOM_VARIABLES),
+      variables: Array.from(
+        new Set(
+          detectVariables(sanitized.html).map((variable) => variable.name),
+        ),
+      ).slice(-AI_STUDIO_MAX_CUSTOM_VARIABLES),
     });
     status = "success";
     usableResponse = true;
     if (managedCycle) {
       managedCycle = await recordManagedAICycleCandidate({
-        tenantId: input.tenantId, actorId: input.actorId, cycleId: managedCycle.id,
-        html: sanitized.html, detectedVariables: mergedSessionSummary.variables, sessionSummary: mergedSessionSummary,
+        tenantId: input.tenantId,
+        actorId: input.actorId,
+        cycleId: managedCycle.id,
+        html: sanitized.html,
+        detectedVariables: mergedSessionSummary.variables,
+        sessionSummary: mergedSessionSummary,
       });
     }
     return {
@@ -1170,7 +1490,11 @@ export async function generateTemplateCandidate(
         sessionSummary: mergedSessionSummary,
         html: sanitized.html,
         variableDiff,
-        warnings: [...(contract.warnings ?? []), ...(sanitizedBase?.warnings ?? []), ...sanitized.warnings],
+        warnings: [
+          ...(contract.warnings ?? []),
+          ...(sanitizedBase?.warnings ?? []),
+          ...sanitized.warnings,
+        ],
       },
       ...(managedCycle ? { cycle: managedCycle } : {}),
       ...(promptSnapshot.sessionSnapshot
@@ -1178,15 +1502,27 @@ export async function generateTemplateCandidate(
         : {}),
     };
   } catch (error) {
-    const normalized = error instanceof AIStudioError
-      ? error
-      : error instanceof ManagedAICycleLimitError
-        ? new AIStudioError("RATE_LIMITED", "Este ciclo atingiu o limite de falhas reembolsadas.")
-        : new AIStudioError("INTERNAL_ERROR", "Não foi possível concluir a geração.");
+    const normalized =
+      error instanceof AIStudioError
+        ? error
+        : error instanceof ManagedAICycleLimitError
+          ? new AIStudioError(
+              "RATE_LIMITED",
+              "Este ciclo atingiu o limite de falhas reembolsadas.",
+            )
+          : new AIStudioError(
+              "INTERNAL_ERROR",
+              "Não foi possível concluir a geração.",
+            );
     errorCategory = normalized.providerErrorCode ?? normalized.code;
     if (managedCycle && !usableResponse) {
       try {
-        managedCycle = await refundManagedAICycleFailure({ tenantId: input.tenantId, actorId: input.actorId, cycleId: managedCycle.id, requestId });
+        managedCycle = await refundManagedAICycleFailure({
+          tenantId: input.tenantId,
+          actorId: input.actorId,
+          cycleId: managedCycle.id,
+          requestId,
+        });
       } catch {
         // Preserve the provider error; the cycle service enforces refund idempotency and its cap.
       }
@@ -1194,9 +1530,21 @@ export async function generateTemplateCandidate(
     throw normalized;
   } finally {
     inFlightGenerations.delete(lockKey);
-    if (imageIds.length > 0) releaseStudioMessageImages(input.tenantId, input.actorId, imageIds);
-    const estimatedInputTokens = inputTokens ?? (requestSizeBytes > 0 ? Math.min(100_000, Math.ceil(requestSizeBytes / 4)) : undefined);
-    const estimatedOutputTokens = outputTokens ?? (responseSizeBytes > 0 ? Math.min(AI_STUDIO_MAX_OUTPUT_TOKENS, Math.ceil(responseSizeBytes / 4)) : undefined);
+    if (imageIds.length > 0)
+      releaseStudioMessageImages(input.tenantId, input.actorId, imageIds);
+    const estimatedInputTokens =
+      inputTokens ??
+      (requestSizeBytes > 0
+        ? Math.min(100_000, Math.ceil(requestSizeBytes / 4))
+        : undefined);
+    const estimatedOutputTokens =
+      outputTokens ??
+      (responseSizeBytes > 0
+        ? Math.min(
+            AI_STUDIO_MAX_OUTPUT_TOKENS,
+            Math.ceil(responseSizeBytes / 4),
+          )
+        : undefined);
     await recordUsageEvent({
       tenantId: input.tenantId,
       actorId: input.actorId,
@@ -1211,7 +1559,9 @@ export async function generateTemplateCandidate(
       errorCategory,
       inputTokens: estimatedInputTokens,
       outputTokens: estimatedOutputTokens,
-      tokenUsageEstimated: (inputTokens === undefined || outputTokens === undefined) && (requestSizeBytes > 0 || responseSizeBytes > 0),
+      tokenUsageEstimated:
+        (inputTokens === undefined || outputTokens === undefined) &&
+        (requestSizeBytes > 0 || responseSizeBytes > 0),
     });
   }
 }
@@ -1229,7 +1579,10 @@ export async function getAIStudioRefinementBase(
   templateId: unknown,
 ): Promise<AIStudioRefinementBase> {
   if (typeof templateId !== "string" || !templateId.trim()) {
-    throw new AIStudioError("VALIDATION_ERROR", "Selecione um template para refinar.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Selecione um template para refinar.",
+    );
   }
   const template = await withTenant(tenantId, () =>
     prisma.proposalTemplate.findUnique({
@@ -1238,7 +1591,10 @@ export async function getAIStudioRefinementBase(
     }),
   );
   if (!template) {
-    throw new AIStudioError("TEMPLATE_NOT_FOUND", "O template selecionado não foi encontrado.");
+    throw new AIStudioError(
+      "TEMPLATE_NOT_FOUND",
+      "O template selecionado não foi encontrado.",
+    );
   }
   let sanitized: SanitizedAiHtml;
   try {
@@ -1289,11 +1645,17 @@ export async function updateRefinedTemplate(
     );
   }
   if (typeof input.templateId !== "string" || !input.templateId.trim()) {
-    throw new AIStudioError("VALIDATION_ERROR", "Selecione o template original para atualizar.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "Selecione o template original para atualizar.",
+    );
   }
   const templateId = input.templateId;
   if (typeof input.html !== "string" || !input.html.trim()) {
-    throw new AIStudioError("VALIDATION_ERROR", "O HTML atualizado é obrigatório.");
+    throw new AIStudioError(
+      "VALIDATION_ERROR",
+      "O HTML atualizado é obrigatório.",
+    );
   }
   const sanitized = sanitizeAIStudioHtml(input.html);
   const existing = await withTenant(input.tenantId, () =>
@@ -1303,27 +1665,37 @@ export async function updateRefinedTemplate(
     }),
   );
   if (!existing) {
-    throw new AIStudioError("TEMPLATE_NOT_FOUND", "O template original não foi encontrado.");
+    throw new AIStudioError(
+      "TEMPLATE_NOT_FOUND",
+      "O template original não foi encontrado.",
+    );
   }
   const draftCount = await withTenant(input.tenantId, () =>
     prisma.proposal.count({
       where: { templateId: existing.id, status: "draft" },
     }),
   );
-  const template = await withTenant(input.tenantId, () => prisma.$transaction(async (tx) => {
-    const updated = await tx.proposalTemplate.update({
-      where: { id: existing.id },
-      data: { html: sanitized.html },
-      select: { id: true, name: true, html: true },
-    });
-    if (typeof input.cycleId === "string") {
-      await tx.aiStudioManagedCycle.updateMany({
-        where: { id: input.cycleId, tenantId: input.tenantId, actorId: input.actorId, status: "active" },
-        data: { status: "saved" },
+  const template = await withTenant(input.tenantId, () =>
+    prisma.$transaction(async (tx) => {
+      const updated = await tx.proposalTemplate.update({
+        where: { id: existing.id },
+        data: { html: sanitized.html },
+        select: { id: true, name: true, html: true },
       });
-    }
-    return updated;
-  }));
+      if (typeof input.cycleId === "string") {
+        await tx.aiStudioManagedCycle.updateMany({
+          where: {
+            id: input.cycleId,
+            tenantId: input.tenantId,
+            actorId: input.actorId,
+            status: "active",
+          },
+          data: { status: "saved" },
+        });
+      }
+      return updated;
+    }),
+  );
   return { template, warnings: sanitized.warnings, draftCount };
 }
 
@@ -1331,12 +1703,14 @@ export function renderAIStudioSyntheticPreview(html: string, locale = "pt-BR") {
   const sanitized = sanitizeAIStudioHtml(html);
   const values: Record<string, string> = {
     "cliente.nome": locale === "en" ? "Example Client" : "Cliente Exemplo",
-    "cliente.razao_social": locale === "en" ? "Example Client LLC" : "Cliente Exemplo LTDA",
+    "cliente.razao_social":
+      locale === "en" ? "Example Client LLC" : "Cliente Exemplo LTDA",
     "cliente.email": "cliente@example.com",
     "cliente.telefone": "(11) 99999-9999",
     "cliente.cpf_cnpj": "12.345.678/0001-90",
     "proposta.numero": "PRP-2026-0001",
-    "proposta.titulo": locale === "en" ? "Example proposal" : "Proposta de exemplo",
+    "proposta.titulo":
+      locale === "en" ? "Example proposal" : "Proposta de exemplo",
     "proposta.data": locale === "en" ? "01/01/2026" : "01/01/2026",
     "proposta.validade": locale === "en" ? "01/31/2026" : "31/01/2026",
     "proposta.valor_total": locale === "en" ? "R$ 1,000.00" : "R$ 1.000,00",
