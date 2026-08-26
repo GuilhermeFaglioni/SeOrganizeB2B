@@ -96,6 +96,7 @@ import {
   getAIStudioRefinementBase,
   pruneAllAIStudioUsageEvents,
   pruneAIStudioUsageEvents,
+  recordAIStudioConsent,
   resetAIStudioRuntimeState,
   sanitizeAIStudioHtml,
   updateRefinedTemplate,
@@ -287,6 +288,25 @@ describe("AI Studio service", () => {
         ],
       }),
     ]);
+  });
+
+  it("records consent for managed providers without an active BYOK connection", async () => {
+    mocks.connectionFindFirst.mockResolvedValue(null);
+    mocks.listActiveAIModelCatalog.mockResolvedValue([
+      { provider: "openai", model: "gpt-4o", ownershipMode: "managed" },
+    ]);
+    mocks.consentUpsert.mockResolvedValue({
+      provider: "openai",
+      version: AI_STUDIO_CONSENT_VERSION,
+      consentedAt: new Date(),
+    });
+
+    await expect(recordAIStudioConsent({
+      tenantId: "tenant-1",
+      actorId: "user-1",
+      provider: "openai",
+      version: AI_STUDIO_CONSENT_VERSION,
+    })).resolves.toMatchObject({ provider: "openai" });
   });
 
   it("strips unsafe resources before a candidate can reach preview", () => {
