@@ -1774,6 +1774,7 @@ function TemplateStudio({
         description={t("consentDescription")}
         closeLabel={t("cancelAction")}
         size="lg"
+        variant="outline"
       >
         <div className="space-y-5">
           <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-page-alt p-4 text-sm text-text-muted">
