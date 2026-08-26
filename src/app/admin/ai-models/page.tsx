@@ -28,7 +28,7 @@ const initial = {
   outputCostPerMillion: "0",
   imageCostPerMillion: "0",
   creditCostPerCycle: "1",
-  maxOutputTokens: "6000",
+  maxOutputTokens: "12000",
 };
 
 function parseDecimal(value: string): number {
