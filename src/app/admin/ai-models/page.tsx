@@ -56,14 +56,18 @@ export default function AdminAIModelsPage() {
       : (selectedProvider?.models ?? []);
 
   useEffect(() => {
+    const models =
+      form.provider === "opencode-go"
+        ? (remoteModels.data ?? [])
+        : (selectedProvider?.models ?? []);
     if (
       form.provider &&
-      availableModels.length > 0 &&
-      !availableModels.some((model) => model.id === form.model)
+      models.length > 0 &&
+      !models.some((model) => model.id === form.model)
     ) {
-      set("model", availableModels[0].id);
+      setForm((current) => ({ ...current, model: models[0].id }));
     }
-  }, [availableModels, form.model, form.provider]);
+  }, [form.model, form.provider, remoteModels.data, selectedProvider?.models]);
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
