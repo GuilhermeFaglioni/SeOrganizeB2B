@@ -562,7 +562,12 @@ export async function recordAIStudioConsent(input: {
     throw new AIStudioError("VALIDATION_ERROR", "Versão de consentimento inválida.");
   }
   const connection = await readActiveConnection(input.tenantId, provider);
-  if (!connection) {
+  const managedProviderAvailable =
+    !connection &&
+    (await listActiveAIModelCatalog()).some(
+      (entry) => entry.provider === provider && entry.ownershipMode === "managed",
+    );
+  if (!connection && !managedProviderAvailable) {
     throw new AIStudioError("NO_PROVIDER", "Nenhuma conexão ativa foi encontrada para este provider.");
   }
   const consentedAt = new Date();
