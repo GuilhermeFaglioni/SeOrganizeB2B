@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
         {
           name: body.name,
           html: sanitizedHtml,
+          cycleId: typeof body.cycleId === "string" ? body.cycleId : null,
         },
         user.id
       )

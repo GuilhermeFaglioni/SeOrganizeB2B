@@ -58,13 +58,14 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
   if (!ctx.tenantId) return noWorkspaceResponse();
 
   const body = await request.json();
-  const input: { name?: string; html?: string } = {};
+  const input: { name?: string; html?: string; cycleId?: string } = {};
   if (body.name !== undefined) input.name = String(body.name);
   if (body.html !== undefined) input.html = sanitizeProposalHtml(String(body.html));
+  if (typeof body.cycleId === "string") input.cycleId = body.cycleId;
 
   try {
     const template = await withTenant(ctx.tenantId, () =>
-      updateProposalTemplate(params.id, input)
+      updateProposalTemplate(params.id, input, user.id)
     );
     return NextResponse.json({ data: template, error: null });
   } catch (error) {

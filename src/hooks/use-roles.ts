@@ -24,6 +24,7 @@ export interface TeamMemberData {
   isOwner?: boolean;
   role: { id: string; name: string; isAdmin: boolean } | null;
   teamMemberAreas: { areaId: string; area: { id: string; name: string; color: string } }[];
+  monthlyCreditLimit: number | null;
 }
 
 export function useRoles() {

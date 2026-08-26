@@ -30,6 +30,8 @@ const mocks = vi.hoisted(() => ({
   proposalTemplateFindUnique: vi.fn(),
   proposalTemplateUpdate: vi.fn(),
   proposalCount: vi.fn(),
+  listActiveAIModelCatalog: vi.fn(),
+  getActiveAIModelCatalogEntry: vi.fn(),
 }));
 
 vi.mock("../../prisma/client", () => ({
@@ -43,7 +45,7 @@ vi.mock("../../prisma/client", () => ({
       upsert: mocks.consentUpsert,
       findMany: mocks.consentFindMany,
     },
-    aiStudioUsageEvent: {
+         aiStudioUsageEvent: {
       deleteMany: mocks.usageDeleteMany,
       count: mocks.usageCount,
       create: mocks.usageCreate,
@@ -72,6 +74,10 @@ vi.mock("../lib/ai/directives-service", () => ({
 vi.mock("../lib/ai/crypto", () => ({
   decryptAiSecret: mocks.decryptAiSecret,
   encryptAiSecret: mocks.encryptAiSecret,
+}));
+vi.mock("../lib/ai/model-catalog", () => ({
+  listActiveAIModelCatalog: mocks.listActiveAIModelCatalog,
+  getActiveAIModelCatalogEntry: mocks.getActiveAIModelCatalogEntry,
 }));
 vi.mock("../lib/ai/providers", () => ({
   getAIProvider: mocks.getAIProvider,
@@ -156,9 +162,11 @@ describe("AI Studio service", () => {
     delete process.env.AI_STUDIO_ENABLED;
     delete process.env.AI_STUDIO_KILL_SWITCH;
     mocks.checkFeature.mockResolvedValue(true);
+    mocks.getActiveAIModelCatalogEntry.mockResolvedValue(null);
     mocks.connectionFindFirst.mockResolvedValue(connection);
     mocks.consentFindFirst.mockResolvedValue({ id: "consent-1" });
     mocks.workspaceDirectiveFindUnique.mockResolvedValue({ content: "Tom executivo." });
+    mocks.listActiveAIModelCatalog.mockResolvedValue([]);
     mocks.decryptAiSecret.mockImplementation((value: string) => value.startsWith("session.")
       ? Buffer.from(value.slice("session.".length), "base64url").toString("utf8")
       : "sk-secret");
@@ -173,9 +181,11 @@ describe("AI Studio service", () => {
         aiStudioUsageEvent: {
           deleteMany: mocks.usageDeleteMany,
           count: mocks.usageCount,
-          create: mocks.usageCreate,
-        },
-      }),
+           create: mocks.usageCreate,
+         },
+         proposalTemplate: { update: mocks.proposalTemplateUpdate },
+         aiStudioManagedCycle: { updateMany: vi.fn() },
+       }),
     );
     mocks.getAIProvider.mockReturnValue(provider);
     mocks.generateStructured.mockResolvedValue({ text: validProviderText, inputTokens: 10, outputTokens: 20 });
@@ -430,6 +440,7 @@ describe("AI Studio continuous session service", () => {
     delete process.env.AI_STUDIO_KILL_SWITCH;
     delete process.env.AI_STUDIO_MAX_REQUEST_BYTES;
     mocks.checkFeature.mockResolvedValue(true);
+    mocks.getActiveAIModelCatalogEntry.mockResolvedValue(null);
     mocks.connectionFindFirst.mockResolvedValue(connection);
     mocks.consentFindFirst.mockResolvedValue({ id: "consent-1" });
     mocks.workspaceDirectiveFindUnique.mockResolvedValue({ content: "Tom executivo." });
@@ -444,12 +455,14 @@ describe("AI Studio continuous session service", () => {
     mocks.transaction.mockImplementation(async (callback: (transaction: unknown) => unknown) =>
       callback({
         $queryRaw: mocks.queryRaw,
-        aiStudioUsageEvent: {
-          deleteMany: mocks.usageDeleteMany,
-          count: mocks.usageCount,
-          create: mocks.usageCreate,
-        },
-      }),
+         aiStudioUsageEvent: {
+           deleteMany: mocks.usageDeleteMany,
+           count: mocks.usageCount,
+           create: mocks.usageCreate,
+         },
+         proposalTemplate: { update: mocks.proposalTemplateUpdate },
+         aiStudioManagedCycle: { updateMany: vi.fn() },
+       }),
     );
     mocks.getAIProvider.mockReturnValue(provider);
     mocks.generateStructured.mockResolvedValue({ text: validProviderText, inputTokens: 10, outputTokens: 20 });
@@ -648,6 +661,7 @@ describe("AI Studio refinement service", () => {
     delete process.env.AI_STUDIO_ENABLED;
     delete process.env.AI_STUDIO_KILL_SWITCH;
     mocks.checkFeature.mockResolvedValue(true);
+    mocks.getActiveAIModelCatalogEntry.mockResolvedValue(null);
     mocks.connectionFindFirst.mockResolvedValue(connection);
     mocks.consentFindFirst.mockResolvedValue({ id: "consent-1" });
     mocks.workspaceDirectiveFindUnique.mockResolvedValue({ content: null });
@@ -666,9 +680,11 @@ describe("AI Studio refinement service", () => {
           deleteMany: mocks.usageDeleteMany,
           count: mocks.usageCount,
           create: mocks.usageCreate,
-        },
-      }),
-    );
+         },
+         proposalTemplate: { update: mocks.proposalTemplateUpdate },
+         aiStudioManagedCycle: { updateMany: vi.fn() },
+       }),
+     );
     mocks.getAIProvider.mockReturnValue(provider);
     mocks.generateStructured.mockResolvedValue({ text: validProviderText, inputTokens: 10, outputTokens: 20 });
     mocks.proposalTemplateFindUnique.mockResolvedValue({ id: "template-1", name: "Base executiva", html: baseTemplateHtml });

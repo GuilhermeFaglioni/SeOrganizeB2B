@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   Building2,
+  Bot,
   LayoutDashboard,
   LifeBuoy,
   Receipt,
@@ -26,6 +27,7 @@ export function AdminSidebar() {
     { href: "/admin", label: t("dashboard"), icon: LayoutDashboard, testId: "admin-nav-dashboard" },
     { href: "/admin/tenants", label: t("tenants"), icon: Building2, testId: "admin-nav-tenants" },
     { href: "/admin/plans", label: t("plans"), icon: Receipt, testId: "admin-nav-plans" },
+    { href: "/admin/ai-models", label: t("aiModels"), icon: Bot, testId: "admin-nav-ai-models" },
     { href: "/admin/closed-beta", label: t("closedBeta"), icon: ShieldCheck, testId: "admin-nav-closed-beta" },
     { href: "/admin/billing", label: t("billing"), icon: Wallet, testId: "admin-nav-billing" },
     { href: "/admin/support", label: t("support"), icon: LifeBuoy, testId: "admin-nav-support" },

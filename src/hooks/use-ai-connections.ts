@@ -5,6 +5,7 @@ export interface AIConnectionData {
   id: string;
   provider: string;
   authMethod: string;
+  ownershipMode: "managed" | "byok";
   defaultModel: string | null;
   status: "active" | "invalid" | "expired" | "revoked" | "disabled";
   createdBy: string;

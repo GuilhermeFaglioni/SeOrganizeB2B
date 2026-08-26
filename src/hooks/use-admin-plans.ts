@@ -6,6 +6,7 @@ export interface AdminPlan {
   name: string;
   stripePriceId: string | null;
   allowedModules: string[];
+  monthlyAiStudioCredits: number | null;
   isDefault: boolean;
   isActive: boolean;
   isInternal: boolean;
@@ -17,6 +18,7 @@ export interface AdminPlanInput {
   name: string;
   stripePriceId?: string | null;
   allowedModules: string[];
+  monthlyAiStudioCredits?: number | null;
   isDefault?: boolean;
 }
 

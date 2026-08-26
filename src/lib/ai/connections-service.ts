@@ -10,6 +10,7 @@ export type AIConnectionStatus =
   | "expired"
   | "revoked"
   | "disabled";
+export type AIConnectionOwnershipMode = "managed" | "byok";
 
 export type AIConnectionErrorCode =
   | "VALIDATION_ERROR"
@@ -41,6 +42,7 @@ export interface PublicConnection {
   id: string;
   provider: string;
   authMethod: string;
+  ownershipMode: AIConnectionOwnershipMode;
   defaultModel: string | null;
   status: AIConnectionStatus;
   createdBy: string;
@@ -55,6 +57,7 @@ type ConnectionRow = {
   id: string;
   provider: string;
   authMethod: string;
+  ownershipMode: string;
   defaultModel: string | null;
   status: string;
   createdBy: string;
@@ -69,6 +72,7 @@ const PUBLIC_FIELDS = {
   id: true,
   provider: true,
   authMethod: true,
+  ownershipMode: true,
   defaultModel: true,
   status: true,
   createdBy: true,
@@ -80,7 +84,11 @@ const PUBLIC_FIELDS = {
 } as const;
 
 function toPublic(row: ConnectionRow): PublicConnection {
-  return { ...row, status: row.status as AIConnectionStatus };
+  return {
+    ...row,
+    ownershipMode: row.ownershipMode === "managed" ? "managed" : "byok",
+    status: row.status as AIConnectionStatus,
+  };
 }
 
 function providerFrom(input: unknown): AIProviderId {
@@ -280,6 +288,7 @@ export async function connectApiKey(
     const data = {
       provider: providerId,
       authMethod: "api_key",
+      ownershipMode: "byok",
       encryptedSecret: encrypted,
       defaultModel: model,
       status: "active",

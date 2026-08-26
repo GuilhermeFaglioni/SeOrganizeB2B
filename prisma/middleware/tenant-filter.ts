@@ -83,6 +83,8 @@ const EXEMPT_MODELS = new Set([
   "Workspace",
   "Plan",
   "PlanLimit",
+  "AiCreditPackage",
+  "AiModelCatalogEntry",
   "Invite",
   "ReadOnlyAccess",
   "WorkspaceBindingAttempt",

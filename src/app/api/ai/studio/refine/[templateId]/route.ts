@@ -61,6 +61,7 @@ export async function POST(
       templateId: params.templateId,
       html: body.html,
       confirmed: body.confirmed,
+      cycleId: body.cycleId,
     });
     return NextResponse.json({ data: result, error: null });
   } catch (error) {

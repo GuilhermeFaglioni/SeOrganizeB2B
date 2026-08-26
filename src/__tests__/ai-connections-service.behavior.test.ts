@@ -79,6 +79,7 @@ const publicRow = {
   id: "conn-1",
   provider: "openai",
   authMethod: "api_key",
+  ownershipMode: "byok",
   defaultModel: "gpt-4o",
   status: "active",
   createdBy: "user-1",
@@ -341,6 +342,14 @@ describe("AI connections service", () => {
       expect(result[0]).not.toHaveProperty("encryptedSecret");
       expect(JSON.stringify(result)).not.toContain("encryptedSecret");
     });
+
+    it("exposes the explicit BYOK ownership mode", async () => {
+      mocks.connectionFindMany.mockResolvedValue([{ ...publicRow, ownershipMode: "byok" }]);
+
+      const result = await listConnections("tenant-1");
+
+      expect(result[0].ownershipMode).toBe("byok");
+    });
   });
 
   describe("error shape", () => {
@@ -383,6 +392,11 @@ describe("AI connections service", () => {
   describe("permission catalog", () => {
     it("registers ai.manageConnections as a valid permission", () => {
       expect(isValidPermission("ai.manageConnections")).toBe(true);
+    });
+
+    it("registers the independently delegable AI credit purchase permission", () => {
+      expect(isValidPermission("billing.ai_credits.purchase")).toBe(true);
+      expect(allScopedPermissions().map(permissionKey)).toContain("billing.ai_credits.purchase");
     });
 
     it("grants ai.manageConnections to the Admin role by default", () => {

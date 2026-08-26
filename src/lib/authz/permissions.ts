@@ -33,6 +33,7 @@ export const SPECIAL_PERMISSIONS = [
   "financial.proposals.generateWithAi",
   "ai.manageConnections",
   "ai.manageDirectives",
+  "billing.ai_credits.purchase",
   "manage_roles",
 ] as const;
 

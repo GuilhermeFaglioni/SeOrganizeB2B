@@ -28,6 +28,7 @@ export default function AdminPlansPage() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [stripePriceId, setStripePriceId] = useState("");
+  const [monthlyAiStudioCredits, setMonthlyAiStudioCredits] = useState("");
   const [modules, setModules] = useState<string[]>([]);
   const [isDefault, setIsDefault] = useState(false);
 
@@ -42,6 +43,7 @@ export default function AdminPlansPage() {
   function resetForm() {
     setName("");
     setStripePriceId("");
+    setMonthlyAiStudioCredits("");
     setModules([]);
     setIsDefault(false);
     setShowForm(false);
@@ -54,6 +56,7 @@ export default function AdminPlansPage() {
       {
         name: name.trim(),
         stripePriceId: stripePriceId.trim() || null,
+        monthlyAiStudioCredits: monthlyAiStudioCredits.trim() === "" ? null : Number(monthlyAiStudioCredits),
         allowedModules: modules,
         isDefault,
       },
@@ -116,6 +119,10 @@ export default function AdminPlansPage() {
             />
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="plan-ai-credits">{t("monthlyAiStudioCredits")}</Label>
+            <Input id="plan-ai-credits" type="number" min={0} step={1} value={monthlyAiStudioCredits} onChange={(event) => setMonthlyAiStudioCredits(event.target.value)} placeholder="" />
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="plan-stripe-price">{t("stripePriceId")}</Label>
             <Input
               id="plan-stripe-price"
@@ -174,6 +181,7 @@ export default function AdminPlansPage() {
           <thead>
             <tr className="border-b border-border text-text-secondary">
               <th className="py-2 pr-4 font-medium">{t("name")}</th>
+              <th className="py-2 pr-4 font-medium">{t("monthlyAiStudioCredits")}</th>
               <th className="py-2 pr-4 font-medium">{t("modules")}</th>
               <th className="py-2 pr-4 font-medium">{t("default")}</th>
               <th className="py-2 pr-4 font-medium">{t("status")}</th>
@@ -195,6 +203,9 @@ export default function AdminPlansPage() {
                       {t("internal")}
                     </Badge>
                   )}
+                </td>
+                <td className="py-2 pr-4 text-text-secondary">
+                  {plan.monthlyAiStudioCredits ?? "—"}
                 </td>
                 <td className="py-2 pr-4 text-text-secondary">
                   {plan.allowedModules.length > 0

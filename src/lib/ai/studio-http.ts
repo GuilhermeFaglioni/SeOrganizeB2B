@@ -34,6 +34,10 @@ const STATUS_BY_CODE: Record<AIStudioErrorCode, number> = {
 };
 
 export function mapAIStudioError(error: unknown): NextResponse {
+  if (error instanceof Error && "code" in error && error.code === "LIMIT_EXCEEDED") {
+    const message = error.message;
+    return NextResponse.json({ data: null, error: { code: "LIMIT_EXCEEDED", message } }, { status: 429 });
+  }
   if (error instanceof AIStudioError) {
     const headers = new Headers();
     if (error.retryAfterSeconds) {

@@ -391,7 +391,7 @@ function RoleEditor({
                               setScopeMap((prev) => togglePermission(prev, permission))
                             }
                           />
-                          {pt(`special.${permission}`)}
+                       {pt(`special.${permission}`)}
                         </label>
                       ))}
                     </div>
