@@ -306,7 +306,12 @@ describe("AI Studio #176 hardening UI seams", () => {
     expect(source).not.toContain("payload.error?.message ?? fallbackMessage");
     expect(source).not.toContain("attachError.message");
     expect(source).not.toContain("event.error?.message");
-    expect(read("src/lib/ai/studio-http.ts")).not.toContain("message: error.message");
+    expect(read("src/lib/ai/studio-http.ts")).toContain(
+      'error.code === "PROVIDER_ERROR"',
+    );
+    expect(read("src/lib/ai/studio-http.ts")).not.toContain(
+      "message: error.message,",
+    );
     expect(source).not.toContain("Não foi possível concluir a operação.");
     expect(source).toContain("desktopPreviewTitle");
     expect(source).toContain("mobilePreviewTitle");
