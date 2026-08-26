@@ -30,7 +30,6 @@ function readUsdPerMillion(value: unknown, name: string): number | null {
   const micros = Math.round(normalized * 1_000_000);
   return Number.isSafeInteger(micros) ? micros : null;
 }
-
 export async function GET() {
   const gate = await requireSuperAdmin();
   if ("response" in gate) return gate.response;

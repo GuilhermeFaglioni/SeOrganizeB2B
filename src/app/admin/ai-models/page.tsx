@@ -28,7 +28,6 @@ const initial = {
 function parseDecimal(value: string): number {
   return Number(value.trim().replace(",", "."));
 }
-
 export default function AdminAIModelsPage() {
   const t = useTranslations("admin.pages.aiModels");
   const { data: models, isLoading, isError } = useAdminAIModels();
