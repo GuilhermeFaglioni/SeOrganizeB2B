@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminAIObservability } from "@/hooks/use-admin-ai-observability";
 import { useAdminAICreditOperation } from "@/hooks/use-admin-ai-credit-operations";
+import { useAdminTenants } from "@/hooks/use-admin-tenants";
 import { qs } from "@/lib/financial/http";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -24,7 +25,9 @@ export default function AdminBillingPage() {
     to: new Date(),
   });
   const { data, isLoading, isError } = useAdminAIObservability(filters);
+  const { data: tenants, isLoading: isLoadingTenants } = useAdminTenants();
   const creditOperation = useAdminAICreditOperation();
+  const [manualTenantId, setManualTenantId] = useState("");
   const [operation, setOperation] = useState<"grant" | "revoke" | "adjustment">(
     "grant",
   );
@@ -40,7 +43,7 @@ export default function AdminBillingPage() {
 
   function submitCreditOperation(event: React.FormEvent) {
     event.preventDefault();
-    const tenantId = filters.tenantId?.trim();
+    const tenantId = manualTenantId;
     const amount = Number(quantity);
     if (
       !tenantId ||
@@ -164,13 +167,23 @@ export default function AdminBillingPage() {
             {t("manualCreditsDescription")}
           </p>
         </div>
-        <Input
-          aria-label={t("tenant")}
-          placeholder={t("tenant")}
-          value={filters.tenantId ?? ""}
-          onChange={(event) => set("tenantId", event.target.value)}
+        <select
+          aria-label={t("company")}
+          className="h-9 rounded-md border border-border bg-background px-3 text-sm"
+          value={manualTenantId}
+          onChange={(event) => setManualTenantId(event.target.value)}
           required
-        />
+          disabled={isLoadingTenants}
+        >
+          <option value="">
+            {isLoadingTenants ? t("loadingCompanies") : t("selectCompany")}
+          </option>
+          {tenants?.map((tenant) => (
+            <option value={tenant.id} key={tenant.id}>
+              {tenant.name} ({tenant.slug})
+            </option>
+          ))}
+        </select>
         <select
           aria-label={t("operation")}
           className="h-9 rounded-md border border-border bg-background px-3 text-sm"
