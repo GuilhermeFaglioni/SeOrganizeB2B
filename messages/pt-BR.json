@@ -314,7 +314,10 @@
         "applyCreditOperation": "Aplicar ajuste",
         "creditOperationSuccess": "Créditos ajustados com sucesso.",
         "creditOperationError": "Não foi possível ajustar os créditos.",
-        "confirmRevoke": "Confirma a revogação desses créditos?"
+        "confirmRevoke": "Confirma a revogação desses créditos?",
+        "company": "Empresa",
+        "selectCompany": "Selecione uma Empresa",
+        "loadingCompanies": "Carregando Empresas..."
       },
       "support": {
         "title": "Tickets de suporte",
@@ -672,7 +675,7 @@
     "privacy": {
       "eyebrow": "Privacidade",
       "title": "Política de Privacidade",
-        "updated": "Versão: 22/08/2026",
+      "updated": "Versão: 22/08/2026",
       "intro": "Esta política explica como o SeOrganize+ trata dados da empresa, da equipe e das integrações autorizadas pelo usuário, incluindo o Google Calendar.",
       "sections": {
         "controller": {
@@ -740,7 +743,7 @@
     "terms": {
       "eyebrow": "Uso do serviço",
       "title": "Termos de Serviço",
-        "updated": "Versão: 22/08/2026",
+      "updated": "Versão: 22/08/2026",
       "intro": "Estes termos definem as regras para uso do SeOrganize+ por prestadores digitais, empresas e equipes.",
       "sections": {
         "service": {
