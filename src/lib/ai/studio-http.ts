@@ -48,7 +48,13 @@ export function mapAIStudioError(error: unknown): NextResponse {
         data: null,
         error: {
           code: error.code,
+          ...(error.code === "PROVIDER_ERROR" && (error.providerStatus || error.providerErrorType)
+            ? { message: error.message }
+            : {}),
           ...(error.providerErrorCode ? { providerErrorCode: error.providerErrorCode } : {}),
+          ...(error.providerStatus ? { providerStatus: error.providerStatus } : {}),
+          ...(error.providerErrorType ? { providerErrorType: error.providerErrorType } : {}),
+          ...(error.requestId ? { requestId: error.requestId } : {}),
           ...(error.detailCode ? { detailCode: error.detailCode } : {}),
           ...(error.retryAfterSeconds ? { retryAfterSeconds: error.retryAfterSeconds } : {}),
         },

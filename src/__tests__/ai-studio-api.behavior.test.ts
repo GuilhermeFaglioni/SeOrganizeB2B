@@ -39,10 +39,18 @@ vi.mock("@/lib/ai/studio-service", () => ({
   discardAIStudioSession: mocks.discardAIStudioSession,
   AIStudioError: class AIStudioError extends Error {
     code: string;
+    providerErrorCode?: string;
+    providerStatus?: number;
+    providerErrorType?: string;
+    requestId?: string;
     detailCode?: string;
-    constructor(code: string, message: string, options?: { detailCode?: string }) {
+    constructor(code: string, message: string, options?: { detailCode?: string; providerErrorCode?: string; providerStatus?: number; providerErrorType?: string; requestId?: string }) {
       super(message);
       this.code = code;
+      this.providerErrorCode = options?.providerErrorCode;
+      this.providerStatus = options?.providerStatus;
+      this.providerErrorType = options?.providerErrorType;
+      this.requestId = options?.requestId;
       this.detailCode = options?.detailCode;
     }
   },
@@ -246,10 +254,15 @@ describe("AI Studio API", () => {
     expect((await response?.json()).error).toMatchObject({ code });
   });
 
-  it("keeps a started stream at 200 and emits a localized error event after a delta", async () => {
+  it("keeps a started stream at 200 and emits safe provider diagnostics after a delta", async () => {
     mocks.generateTemplateCandidate.mockImplementation(async (_input, hooks) => {
       hooks?.onPartial?.("partial");
-      throw new AIStudioError("PROVIDER_ERROR", "Provider detail must not reach the client.");
+      throw new AIStudioError("PROVIDER_ERROR", "OpenCode rejected the request.", {
+        providerErrorCode: "UNKNOWN",
+        providerStatus: 403,
+        providerErrorType: "CreditsError",
+        requestId: "request-1",
+      });
     });
 
     const response = await generatePOST(request("http://x/api/ai/studio/generate", {
@@ -267,7 +280,16 @@ describe("AI Studio API", () => {
       .map((line) => JSON.parse(line) as { type: string; text?: string; error?: { code?: string } });
     expect(events[0]).toEqual({ type: "delta", text: "partial" });
     expect(events[1]).toMatchObject({ type: "error", error: { code: "PROVIDER_ERROR" } });
-    expect(JSON.stringify(events)).not.toContain("Provider detail must not reach the client.");
+    expect(events[1]).toMatchObject({
+      type: "error",
+      error: {
+        message: "OpenCode rejected the request.",
+        providerErrorCode: "UNKNOWN",
+        providerStatus: 403,
+        providerErrorType: "CreditsError",
+        requestId: "request-1",
+      },
+    });
   });
 
   it("rejects an oversized JSON request before the service boundary", async () => {

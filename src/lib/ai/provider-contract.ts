@@ -29,11 +29,15 @@ export type AIProviderErrorCode =
  */
 export class AIProviderError extends Error {
   readonly code: AIProviderErrorCode;
+  readonly providerStatus?: number;
+  readonly providerErrorType?: string;
 
-  constructor(code: AIProviderErrorCode, message: string) {
+  constructor(code: AIProviderErrorCode, message: string, details?: { providerStatus?: number; providerErrorType?: string }) {
     super(message);
     this.name = "AIProviderError";
     this.code = code;
+    this.providerStatus = details?.providerStatus;
+    this.providerErrorType = details?.providerErrorType;
   }
 }
 

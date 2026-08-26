@@ -93,7 +93,10 @@ async function providerErrorForResponse(
     // Preserve a safe status-based fallback when the provider does not return JSON.
   }
   const code = errorCode(response.status, type);
-  return new AIProviderError(code, errorMessage(providerName, code, phase));
+  return new AIProviderError(code, errorMessage(providerName, code, phase), {
+    providerStatus: response.status,
+    providerErrorType: type?.slice(0, 100),
+  });
 }
 
 export function createOpenCodeCompatibleProvider(
