@@ -82,7 +82,7 @@ export async function getAIObservabilityReport(input: AIObservabilityFilters = {
     for (const row of usage) {
       const inputTokens = row.inputTokens ?? 0; const outputTokens = row.outputTokens ?? 0;
       if (row.tokenUsageEstimated) { estimatedInputTokens += inputTokens; estimatedOutputTokens += outputTokens; } else { actualInputTokens += inputTokens; actualOutputTokens += outputTokens; }
-      const price = prices.get(`${row.provider}/${row.model}`); if (price) providerCostMicros += inputTokens * price.inputCostMicros + outputTokens * price.outputCostMicros;
+       const price = prices.get(`${row.provider}/${row.model}`); if (price) providerCostMicros += Math.ceil((inputTokens * price.inputCostMicros + outputTokens * price.outputCostMicros) / 1_000_000);
       if (row.status !== "success") continue;
       const tenant = tenantUsage.get(row.tenantId) ?? { credits: 0, requests: 0 }; tenant.requests += 1; tenantUsage.set(row.tenantId, tenant);
       const memberKey = `${row.tenantId}:${row.actorId}`; const member = memberUsage.get(memberKey) ?? { credits: 0, requests: 0 }; member.requests += 1; memberUsage.set(memberKey, member);

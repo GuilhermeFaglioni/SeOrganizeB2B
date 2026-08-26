@@ -18,13 +18,16 @@ const initial = {
   ownershipMode: "managed" as const,
   vision: false,
   streaming: false,
-  inputCostMicros: "0",
-  outputCostMicros: "0",
-  imageCostMicros: "0",
+  inputCostPerMillion: "0",
+  outputCostPerMillion: "0",
+  imageCostPerMillion: "0",
   creditCostPerCycle: "1",
   maxOutputTokens: "6000",
 };
 
+function parseDecimal(value: string): number {
+  return Number(value.trim().replace(",", "."));
+}
 export default function AdminAIModelsPage() {
   const t = useTranslations("admin.pages.aiModels");
   const { data: models, isLoading, isError } = useAdminAIModels();
@@ -38,9 +41,9 @@ export default function AdminAIModelsPage() {
     event.preventDefault();
     const payload = {
       ...form,
-      inputCostMicros: Number(form.inputCostMicros),
-      outputCostMicros: Number(form.outputCostMicros),
-      imageCostMicros: Number(form.imageCostMicros),
+      inputCostPerMillion: parseDecimal(form.inputCostPerMillion),
+      outputCostPerMillion: parseDecimal(form.outputCostPerMillion),
+      imageCostPerMillion: parseDecimal(form.imageCostPerMillion),
       creditCostPerCycle: Number(form.creditCostPerCycle),
       maxOutputTokens: Number(form.maxOutputTokens),
     };
@@ -59,7 +62,7 @@ export default function AdminAIModelsPage() {
       {showForm && (
         <form onSubmit={submit} className="mt-6 grid gap-4 rounded-lg border border-border p-4 md:grid-cols-2" data-testid="create-ai-model-form">
           <h2 className="md:col-span-2 text-heading-2 font-semibold text-text-primary">{t("newModel")}</h2>
-          {(["provider", "model", "inputCostMicros", "outputCostMicros", "imageCostMicros", "creditCostPerCycle", "maxOutputTokens"] as const).map((field) => (
+          {(["provider", "model", "inputCostPerMillion", "outputCostPerMillion", "imageCostPerMillion", "creditCostPerCycle", "maxOutputTokens"] as const).map((field) => (
             <div className="space-y-1.5" key={field}><Label htmlFor={`ai-model-${field}`}>{t(field)}</Label><Input id={`ai-model-${field}`} value={form[field]} onChange={(event) => set(field, event.target.value)} required /></div>
           ))}
           <div className="space-y-1.5"><Label htmlFor="ai-model-ownershipMode">{t("ownershipMode")}</Label><select id="ai-model-ownershipMode" className="h-9 rounded-md border border-border bg-background px-3 text-sm" value={form.ownershipMode} onChange={(event) => set("ownershipMode", event.target.value)}><option value="managed">managed</option><option value="byok">byok</option></select></div>

@@ -101,6 +101,6 @@ O saldo será um ledger imutável, com categorias separadas para créditos de as
 
 ## Further Notes
 
-- The current AI Studio usage event already records provider, auth method, model, status, latency and optional token counts; the credit model should extend this operational telemetry rather than replace it.
+- The current AI Studio usage event already records provider, auth method, model, status, latency and optional token counts; the credit model should extend this operational telemetry rather than replace it. Catalog token prices are stored as USD micros per one million tokens and converted proportionally when calculating provider cost.
 - The current `Plan`/`PlanLimit` and Stripe customer fields are extension points, but a ledger is required because a plan limit alone cannot represent grants, expiration, purchases, refunds or audit history.
 - The first release should treat the absence of configured plan/package values as a configuration state, not invent business defaults.
