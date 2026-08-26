@@ -130,6 +130,26 @@ describe("OpenCode Zen provider adapter", () => {
     ).rejects.toMatchObject({ code: "UNKNOWN" });
   });
 
+  it("preserves safe upstream diagnostics for generation failures", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ type: "error", error: { type: "CreditsError" } }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(opencodeProvider.generateStructured!("zen-secret", {
+      model: "deepseek-v4-flash",
+      systemPrompt: "system",
+      userPrompt: "user",
+      maxOutputTokens: 6000,
+    })).rejects.toMatchObject({
+      code: "UNKNOWN",
+      providerStatus: 403,
+      providerErrorType: "CreditsError",
+    });
+  });
+
   it("probes an available paid model when re-validating without a selected model", async () => {
     const fetchMock = vi
       .fn()

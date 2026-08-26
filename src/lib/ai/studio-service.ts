@@ -96,6 +96,9 @@ export type AIStudioErrorCode =
 export class AIStudioError extends Error {
   readonly code: AIStudioErrorCode;
   readonly providerErrorCode?: AIProviderErrorCode;
+  readonly providerStatus?: number;
+  readonly providerErrorType?: string;
+  readonly requestId?: string;
   readonly retryAfterSeconds?: number;
   readonly detailCode?: string;
 
@@ -104,6 +107,9 @@ export class AIStudioError extends Error {
     message: string,
     options?: {
       providerErrorCode?: AIProviderErrorCode;
+      providerStatus?: number;
+      providerErrorType?: string;
+      requestId?: string;
       retryAfterSeconds?: number;
       detailCode?: string;
     },
@@ -112,6 +118,9 @@ export class AIStudioError extends Error {
     this.name = "AIStudioError";
     this.code = code;
     this.providerErrorCode = options?.providerErrorCode;
+    this.providerStatus = options?.providerStatus;
+    this.providerErrorType = options?.providerErrorType;
+    this.requestId = options?.requestId;
     this.retryAfterSeconds = options?.retryAfterSeconds;
     this.detailCode = options?.detailCode;
   }
@@ -875,26 +884,31 @@ async function recordUsageEvent(input: {
   }
 }
 
-function mapProviderError(error: unknown, signal: AbortSignal): AIStudioError {
+function mapProviderError(error: unknown, signal: AbortSignal, requestId: string): AIStudioError {
   if (signal.aborted) {
     return new AIStudioError("TIMEOUT", "A geração excedeu o limite de 90 segundos.", {
       providerErrorCode: "TIMEOUT",
+      requestId,
     });
   }
   if (error instanceof AIProviderError) {
     if (error.code === "TIMEOUT") {
       return new AIStudioError("TIMEOUT", "A geração excedeu o limite de 90 segundos.", {
         providerErrorCode: error.code,
+        requestId,
       });
     }
     return new AIStudioError("PROVIDER_ERROR", error.message, {
       providerErrorCode: error.code,
+      requestId,
+      providerStatus: error.providerStatus,
+      providerErrorType: error.providerErrorType,
     });
   }
   return new AIStudioError(
     "PROVIDER_ERROR",
     "O provider não conseguiu concluir a geração. Tente novamente ou troque de provider.",
-    { providerErrorCode: "UNKNOWN" },
+    { providerErrorCode: "UNKNOWN", requestId },
   );
 }
 
@@ -1099,7 +1113,16 @@ export async function generateTemplateCandidate(
       }
     } catch (error) {
       if (error instanceof AIStudioError) throw error;
-      throw mapProviderError(error, controller.signal);
+      const mapped = mapProviderError(error, controller.signal, requestId);
+      console.error("AI Studio provider error:", {
+        requestId,
+        provider: providerId,
+        model,
+        code: mapped.providerErrorCode,
+        providerStatus: mapped.providerStatus,
+        providerErrorType: mapped.providerErrorType,
+      });
+      throw mapped;
     } finally {
       clearTimeout(timeout);
     }
