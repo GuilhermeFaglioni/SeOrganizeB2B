@@ -10,9 +10,9 @@ export interface AdminAIModelInput {
   ownershipMode: "managed" | "byok";
   vision: boolean;
   streaming: boolean;
-  inputCostMicros: number;
-  outputCostMicros: number;
-  imageCostMicros: number;
+  inputCostPerMillion: number;
+  outputCostPerMillion: number;
+  imageCostPerMillion: number;
   creditCostPerCycle: number;
   maxOutputTokens: number;
 }

@@ -24,6 +24,12 @@ function readInteger(value: unknown, name: string, minimum = 0): number | null {
   return value as number;
 }
 
+function readUsdPerMillion(value: unknown, name: string): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return null;
+  const micros = Math.round(value * 1_000_000);
+  return Number.isSafeInteger(micros) ? micros : null;
+}
+
 export async function GET() {
   const gate = await requireSuperAdmin();
   if ("response" in gate) return gate.response;
@@ -47,13 +53,13 @@ export async function POST(request: Request) {
   const ownershipMode = body.ownershipMode;
   if (!provider || !model) return validation("provider and model are required");
   if (ownershipMode !== "managed" && ownershipMode !== "byok") return validation("ownershipMode must be managed or byok");
-  const inputCostMicros = readInteger(body.inputCostMicros, "inputCostMicros");
-  const outputCostMicros = readInteger(body.outputCostMicros, "outputCostMicros");
-  const imageCostMicros = readInteger(body.imageCostMicros ?? 0, "imageCostMicros");
+  const inputCostMicros = readUsdPerMillion(body.inputCostPerMillion, "inputCostPerMillion");
+  const outputCostMicros = readUsdPerMillion(body.outputCostPerMillion, "outputCostPerMillion");
+  const imageCostMicros = readUsdPerMillion(body.imageCostPerMillion ?? 0, "imageCostPerMillion");
   const creditCostPerCycle = readInteger(body.creditCostPerCycle, "creditCostPerCycle");
   const maxOutputTokens = readInteger(body.maxOutputTokens, "maxOutputTokens", 1);
   if ([inputCostMicros, outputCostMicros, imageCostMicros, creditCostPerCycle, maxOutputTokens].some((value) => value === null)) {
-    return validation("Costs and maxOutputTokens must be valid non-negative integers");
+    return validation("Token costs must be valid non-negative USD amounts per million tokens");
   }
   if (typeof body.vision !== "boolean" || typeof body.streaming !== "boolean") return validation("vision and streaming must be booleans");
 
