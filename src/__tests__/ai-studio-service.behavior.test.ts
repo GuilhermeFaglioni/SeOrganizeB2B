@@ -257,6 +257,38 @@ describe("AI Studio service", () => {
     expect(JSON.stringify(result)).not.toContain("encrypted-zen-secret");
   });
 
+  it("exposes managed models when the tenant has no active BYOK connection", async () => {
+    mocks.connectionFindMany.mockResolvedValue([]);
+    mocks.consentFindMany.mockResolvedValue([]);
+    mocks.listActiveAIModelCatalog.mockResolvedValue([
+      {
+        id: "managed-openai-gpt-4o",
+        provider: "openai",
+        model: "gpt-4o",
+        ownershipMode: "managed",
+        creditCostPerCycle: 10,
+      },
+    ]);
+    mocks.getAIProvider.mockReturnValue(provider);
+
+    const result = await getAIStudioConfig("tenant-1");
+
+    expect(result.connections).toEqual([
+      expect.objectContaining({
+        id: "managed:openai",
+        provider: "openai",
+        defaultModel: "gpt-4o",
+        models: [
+          expect.objectContaining({
+            id: "gpt-4o",
+            ownershipMode: "managed",
+            creditCostPerCycle: 10,
+          }),
+        ],
+      }),
+    ]);
+  });
+
   it("strips unsafe resources before a candidate can reach preview", () => {
     const result = sanitizeAIStudioHtml('<section onclick="alert(1)"><script>alert(1)</script><img src="https://evil.test/x.png">OK</section>');
     expect(result.html).toContain("OK");
