@@ -715,12 +715,37 @@ export async function getAIStudioConfig(tenantId: string): Promise<AIStudioConfi
     )
   ).filter((connection): connection is AIStudioConnectionOption => connection !== null);
 
+  const connectedProviders = new Set(availableConnections.map((connection) => connection.provider));
+  const managedProviders = catalog
+    .filter((entry) => entry.ownershipMode === "managed" && isAIProviderId(entry.provider) && !connectedProviders.has(entry.provider))
+    .map((entry) => entry.provider)
+    .filter((provider, index, providers): provider is AIProviderId => isAIProviderId(provider) && providers.indexOf(provider) === index);
+  const managedConnections = managedProviders
+    .map((provider): AIStudioConnectionOption | null => {
+      const aiProvider = getAIProvider(provider);
+      if (!aiProvider) return null;
+      const managedCatalog = catalog.filter((entry) => entry.provider === provider && entry.ownershipMode === "managed");
+      const models = aiProvider.models
+        .filter((model) => managedCatalog.some((entry) => entry.model === model.id))
+        .map((model) => {
+          const entry = managedCatalog.find((item) => item.model === model.id);
+          return { ...model, ownershipMode: "managed" as const, creditCostPerCycle: entry?.creditCostPerCycle };
+        });
+      return {
+        id: `managed:${provider}`,
+        provider,
+        defaultModel: models.find((model) => model.default)?.id ?? models[0]?.id ?? null,
+        models,
+      };
+    })
+    .filter((connection): connection is AIStudioConnectionOption => connection !== null && connection.models.length > 0);
+
   return {
     enabled: isAIStudioEnabled(),
     promptBaseVersion: AI_STUDIO_PROMPT_BASE_VERSION,
     consentVersion: AI_STUDIO_CONSENT_VERSION,
     directiveConfigured: Boolean(directive?.content),
-    connections: availableConnections,
+    connections: [...availableConnections, ...managedConnections],
     consents: consentByProvider,
     models: catalog.map((entry) => ({ provider: entry.provider, model: entry.model, ownershipMode: entry.ownershipMode, creditCostPerCycle: entry.creditCostPerCycle })),
   };
