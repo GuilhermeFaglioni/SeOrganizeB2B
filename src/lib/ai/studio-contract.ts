@@ -14,7 +14,7 @@ export const AI_STUDIO_MAX_CUSTOM_VARIABLES = 40;
 export const AI_STUDIO_MAX_RECENT_MESSAGES = 8;
 export const AI_STUDIO_MAX_RECENT_MESSAGE_LENGTH = 4_000;
 export const AI_STUDIO_SESSION_TTL_MS = 30 * 60 * 1_000;
-export const AI_STUDIO_MAX_OUTPUT_TOKENS = 12_000;
+export const AI_STUDIO_MAX_OUTPUT_TOKENS = 16_000;
 export const AI_STUDIO_GENERATION_TIMEOUT_MS = 90_000;
 export const AI_STUDIO_WORKSPACE_RATE_LIMIT = 30;
 export const AI_STUDIO_USAGE_RETENTION_DAYS = 90;
@@ -360,7 +360,10 @@ export function parseStructuredOutput(raw: string): unknown {
   }
 
   for (const source of sources) {
-    for (const slice of balancedObjectSlices(source).sort(
+    const slices = balancedObjectSlices(source);
+    if (slices.length === 0) continue;
+    if (source.startsWith("{") && slices[0] !== source) continue;
+    for (const slice of slices.sort(
       (left, right) => right.length - left.length,
     )) {
       const parsed = tryParseJson(slice);

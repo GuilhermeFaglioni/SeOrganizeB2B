@@ -96,6 +96,10 @@ describe("AI Studio text contract", () => {
     });
   });
 
+  it("does not promote an inner object from a truncated top-level response", () => {
+    expect(parseStructuredOutput('{"html":"<div>","meta":{"ok":true}')).toBeNull();
+  });
+
   it("diagnoses malformed provider output without exposing its contents", () => {
     expect(diagnoseCandidateContract(null)).toBe("INVALID_JSON");
     expect(diagnoseCandidateContract({ explanation: "ok" })).toBe(
