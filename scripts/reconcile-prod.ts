@@ -36,11 +36,17 @@ const statements = [
          FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
      END IF;
    END $$`,
+  // Roles are tenant-scoped, so the legacy default workspace must exist before
+  // the canonical admin role can be backfilled below.
+  `INSERT INTO "workspaces" ("id", "name", "slug", "status", "created_at", "updated_at")
+   VALUES ('00000000-0000-0000-0000-000000000001', 'Default', 'default', 'active', now(), now())
+   ON CONFLICT ("id") DO NOTHING`,
   `INSERT INTO "roles" ("id", "name", "permissions", "is_admin", "tenant_id", "created_at", "updated_at")
    SELECT '00000000-0000-0000-0000-000000000001', 'Admin', '[]', true, '00000000-0000-0000-0000-000000000001', now(), now()
    WHERE NOT EXISTS (SELECT 1 FROM "roles" WHERE "id" = '00000000-0000-0000-0000-000000000001')`,
-  `UPDATE "roles" SET "is_admin" = true, "name" = 'Admin'
-   WHERE "id" = '00000000-0000-0000-0000-000000000001'`,
+  `UPDATE "roles" SET "is_admin" = true, "name" = 'Admin',
+    "tenant_id" = '00000000-0000-0000-0000-000000000001'
+    WHERE "id" = '00000000-0000-0000-0000-000000000001'`,
 ];
 
 async function main() {
