@@ -37,12 +37,25 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { signInWithGoogle, signInWithPassword, signUp } = useAuth();
 
-  const closedBetaCallbackPath = closedBetaToken
-    ? `/auth/callback?closedBetaToken=${encodeURIComponent(closedBetaToken)}`
-    : undefined;
-  const postAuthPath = closedBetaToken
-    ? `/closed-beta/accept?token=${encodeURIComponent(closedBetaToken)}`
-    : "/app";
+  const getClosedBetaToken = () => {
+    if (closedBetaToken) return closedBetaToken;
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("closedBetaToken");
+  };
+
+  const getClosedBetaCallbackPath = () => {
+    const token = getClosedBetaToken();
+    return token
+      ? `/auth/callback?closedBetaToken=${encodeURIComponent(token)}`
+      : undefined;
+  };
+
+  const getPostAuthPath = () => {
+    const token = getClosedBetaToken();
+    return token
+      ? `/closed-beta/accept?token=${encodeURIComponent(token)}`
+      : "/app";
+  };
 
   const handlePasswordSignIn = async () => {
     setLoading(true);
@@ -50,7 +63,7 @@ export default function LoginPage() {
     setSuccess("");
     try {
       await signInWithPassword(email, password);
-      router.push(postAuthPath);
+      router.push(getPostAuthPath());
     } catch (err) {
       setError(err instanceof Error ? err.message : t("invalidCredentials"));
     } finally {
@@ -67,13 +80,13 @@ export default function LoginPage() {
     setError("");
     setSuccess("");
     try {
-      const data = await signUp(email, password, closedBetaCallbackPath);
+      const data = await signUp(email, password, getClosedBetaCallbackPath());
       if (data.user?.identities?.length === 0) {
         setError(t("accountExists"));
       } else if (!data.session) {
         setSuccess(t("accountCreated"));
       } else {
-        router.push(postAuthPath);
+        router.push(getPostAuthPath());
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t("createAccountFailed"));
@@ -200,7 +213,7 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             type="button"
-            onClick={() => signInWithGoogle(closedBetaCallbackPath)}
+            onClick={() => signInWithGoogle(getClosedBetaCallbackPath())}
             disabled={loading}
           >
             {t("signInWithGoogle")}
