@@ -80,7 +80,7 @@ export default function LoginPage() {
     setError("");
     setSuccess("");
     try {
-      const data = await signUp(email, password, closedBetaCallbackPath);
+      const data = await signUp(email, password, getClosedBetaCallbackPath());
       if (data.user?.identities?.length === 0) {
         setError(t("accountExists"));
       } else if (!data.session) {
