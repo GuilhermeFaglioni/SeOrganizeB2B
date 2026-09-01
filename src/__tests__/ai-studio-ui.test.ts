@@ -27,14 +27,15 @@ describe("AI Studio #171 UI seams", () => {
     expect(existsSync(resolve(root, "src/app/(authenticated)/financial/proposals/templates/ai-studio/page.tsx"))).toBe(true);
   });
 
-  it("hides streaming JSON and clears the composer when generation starts", () => {
+  it("shows streaming progress and clears the composer when generation starts", () => {
     const source = read("src/components/financial/proposals/ai-studio.tsx");
     const generationStart = source.indexOf("async function runGeneration");
     const generationEnd = source.indexOf("\n  function handleGenerate", generationStart);
     const generation = source.slice(generationStart, generationEnd);
 
-    expect(source).toContain('if (event.type === "delta") continue;');
-    expect(source).not.toContain("{partial}</p>");
+    expect(source).toContain('if (event.type === "delta") {');
+    expect(source).toContain("setPartial((current) => current + (event.text ?? \"\"));");
+    expect(source).toContain("{partial ? <pre");
     expect(source).toContain("isGenerating ? (");
     expect(source).toContain("designGenerating");
     expect(generation).toContain('setMessage("");');
