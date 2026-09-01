@@ -248,6 +248,27 @@ describe("AI Studio service", () => {
     expect(JSON.stringify(usage)).not.toContain("{{proposta.titulo}}");
   });
 
+  it("bounds each shard request and skips managed-cycle candidate recording", async () => {
+    await generateTemplateCandidate({
+      tenantId: "tenant-1",
+      actorId: "user-1",
+      provider: "openai",
+      model: "gpt-4o",
+      message: "Gere o conteúdo da proposta.",
+      consentVersion: AI_STUDIO_CONSENT_VERSION,
+      shardKey: "content",
+      shardPlan: "content: benefícios e escopo",
+    });
+
+    expect(mocks.generateStructured).toHaveBeenCalledWith(
+      "sk-secret",
+      expect.objectContaining({ maxOutputTokens: 8_000 }),
+    );
+    expect(mocks.generateStructured.mock.calls[0][1].systemPrompt).toContain(
+      "This is shard content",
+    );
+  });
+
   it("returns the key-scoped Zen catalog without exposing the encrypted secret", async () => {
     mocks.connectionFindMany.mockResolvedValue([
       {

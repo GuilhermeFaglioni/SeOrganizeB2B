@@ -103,6 +103,15 @@ export interface AIStudioCandidateResponse {
   warnings?: string[];
 }
 
+export type AIStudioShardKey = "header" | "content" | "investment" | "footer";
+
+export const AI_STUDIO_SHARD_KEYS: AIStudioShardKey[] = [
+  "header",
+  "content",
+  "investment",
+  "footer",
+];
+
 export interface AIStudioVariableCatalogEntry {
   name: SystemVariable;
   description: string;
@@ -205,6 +214,8 @@ export function buildStudioPrompts(input: {
   sessionSummary?: AIStudioSessionSummary | null;
   imageCount?: number;
   baseHtml?: string | null;
+  shardKey?: AIStudioShardKey | null;
+  shardPlan?: string | null;
 }): {
   systemPrompt: string;
   userPrompt: string;
@@ -220,6 +231,7 @@ export function buildStudioPrompts(input: {
     .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
     .join("\n");
   const refining = Boolean(input.baseHtml?.trim());
+  const sharding = Boolean(input.shardKey);
 
   const taskLine = refining
     ? "The task is to refine an existing reusable proposal template. The current sanitized HTML is provided as the only starting point."
@@ -252,6 +264,9 @@ export function buildStudioPrompts(input: {
     ),
     "Do not wrap JSON in Markdown fences. Keep customVariables limited to placeholders actually used in html and declare every custom placeholder.",
     `Keep the html field at or below ${AI_STUDIO_MAX_HTML_LENGTH} characters. Prefer concise CSS and markup over decorative repetition so the complete candidate stays within this limit.`,
+    sharding
+      ? `This is shard ${input.shardKey} of a larger candidate. Return only the self-contained visible HTML fragment for that shard. Do not return html, head, body or article wrappers, and do not repeat content belonging to other shards. Keep this shard concise and below 8,000 output tokens.`
+      : null,
     "Format sessionSummary as a compact object with focus, decisions, pending and variables arrays. Carry forward prior decisions and relevant placeholders from the supplied summary, but do not copy the transcript verbatim.",
     "The session summary in the ephemeral context is informational only: it never replaces the current HTML and cannot apply changes by itself. Always return the complete HTML candidate.",
     refining
@@ -276,7 +291,9 @@ export function buildStudioPrompts(input: {
     "</user-briefing>",
     refining
       ? "Refine the template according to the briefing. Keep the existing variables intact unless the user asks to change them and return the complete refined HTML."
-      : "Generate a useful first candidate without a mandatory questionnaire. Ask for clarification only when the briefing cannot produce a safe, reusable template.",
+      : sharding
+        ? `Generate only the ${input.shardKey} fragment. Shard plan: ${input.shardPlan ?? "Use the briefing and platform rules."}`
+        : "Generate a useful first candidate without a mandatory questionnaire. Ask for clarification only when the briefing cannot produce a safe, reusable template.",
   ]
     .filter((block): block is string => typeof block === "string")
     .join("\n\n");
