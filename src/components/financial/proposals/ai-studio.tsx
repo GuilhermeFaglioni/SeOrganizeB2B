@@ -994,7 +994,10 @@ function TemplateStudio({
         for (const line of lines) {
           if (!line.trim()) continue;
           const event = JSON.parse(line) as { type: string; text?: string; data?: GenerationResult; error?: { code?: string; detailCode?: string } };
-          if (event.type === "delta") continue;
+          if (event.type === "delta") {
+            setPartial((current) => current + (event.text ?? ""));
+            continue;
+          }
           if (event.type === "complete") complete = event.data ?? null;
           if (event.type === "error") {
             throw {
@@ -1623,9 +1626,12 @@ function TemplateStudio({
               </article>
             ))}
             {isGenerating ? (
-              <div role="status" aria-live="polite" aria-label={t("generationStatus")} className="flex items-center gap-2 px-1 py-2 text-sm font-medium text-accent">
-                <Sparkles size={15} className="animate-pulse" aria-hidden="true" />
-                <span>{t("designGenerating")}</span>
+              <div role="status" aria-live="polite" aria-label={t("generationStatus")} className="space-y-2 px-1 py-2 text-sm font-medium text-accent">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={15} className="animate-pulse" aria-hidden="true" />
+                  <span>{t("designGenerating")}</span>
+                </div>
+                {partial ? <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-bg-secondary p-3 text-xs font-normal text-text-secondary">{partial}</pre> : null}
               </div>
             ) : null}
 

@@ -112,6 +112,8 @@ const downsellChange = {
 
 describe("computeOverview service", () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-20T12:00:00.000Z"));
     mockExtendRecurringHorizons.mockReset();
     mockTx.contract.findMany.mockReset();
     mockTx.installment.findMany.mockReset();
@@ -120,6 +122,7 @@ describe("computeOverview service", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
   });
 

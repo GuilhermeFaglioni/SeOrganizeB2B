@@ -13,7 +13,7 @@ import {
 } from "@/lib/ai/studio-http";
 import { AI_STUDIO_MAX_GENERATION_REQUEST_BYTES } from "@/lib/ai/studio-contract";
 
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 function newlineJson(value: unknown): string {
   return `${JSON.stringify(value)}\n`;
