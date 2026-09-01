@@ -387,6 +387,12 @@ export async function consumeAICreditsInTransaction(
           .reduce((total, entry) => total + entry.quantity, 0),
       }));
   const allocations = allocateCreditPools(balances, input.quantity);
+  const expirationByPool = new Map<AICreditPool, Date>();
+  for (const entry of entries) {
+    if (entry.quantity <= 0 || !entry.expiresAt || !isCreditPool(entry.pool)) continue;
+    const current = expirationByPool.get(entry.pool);
+    if (!current || entry.expiresAt < current) expirationByPool.set(entry.pool, entry.expiresAt);
+  }
   try {
     await assertMemberCreditLimit(transaction, { tenantId: input.tenantId, profileId: input.actorId, quantity: input.quantity, now });
   } catch (error) {
@@ -403,6 +409,7 @@ export async function consumeAICreditsInTransaction(
             quantity: -allocation.quantity,
             operationKey: input.operationKey,
             reason: input.reason ?? null,
+            expiresAt: expirationByPool.get(allocation.pool) ?? null,
             metadata: { requestedQuantity: input.quantity, debitOperationKey: input.operationKey },
           },
     });
