@@ -1086,7 +1086,7 @@ function mapProviderError(
   if (signal.aborted) {
     return new AIStudioError(
       "TIMEOUT",
-      "A geração excedeu o limite de 90 segundos.",
+      "A geração excedeu o limite de 120 segundos.",
       {
         providerErrorCode: "TIMEOUT",
         requestId,
@@ -1097,7 +1097,7 @@ function mapProviderError(
     if (error.code === "TIMEOUT") {
       return new AIStudioError(
         "TIMEOUT",
-        "A geração excedeu o limite de 90 segundos.",
+        "A geração excedeu o limite de 120 segundos.",
         {
           providerErrorCode: error.code,
           requestId,

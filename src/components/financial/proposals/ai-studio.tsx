@@ -1006,7 +1006,23 @@ function TemplateStudio({
             };
           }
         }
-        if (done) break;
+        if (done) {
+          const finalLine = buffer.trim();
+          if (finalLine) {
+            const event = JSON.parse(finalLine) as { type: string; text?: string; data?: GenerationResult; error?: { code?: string; detailCode?: string } };
+            if (event.type === "delta") {
+              setPartial((current) => current + (event.text ?? ""));
+            } else if (event.type === "complete") {
+              complete = event.data ?? null;
+            } else if (event.type === "error") {
+              throw {
+                code: event.error?.code,
+                detailCode: event.error?.detailCode,
+              };
+            }
+          }
+          break;
+        }
       }
     } finally { reader.releaseLock(); }
     if (!complete) throw new Error(t("generationFailed"));

@@ -251,6 +251,7 @@ export function buildStudioPrompts(input: {
       2,
     ),
     "Do not wrap JSON in Markdown fences. Keep customVariables limited to placeholders actually used in html and declare every custom placeholder.",
+    `Keep the html field at or below ${AI_STUDIO_MAX_HTML_LENGTH} characters. Prefer concise CSS and markup over decorative repetition so the complete candidate stays within this limit.`,
     "Format sessionSummary as a compact object with focus, decisions, pending and variables arrays. Carry forward prior decisions and relevant placeholders from the supplied summary, but do not copy the transcript verbatim.",
     "The session summary in the ephemeral context is informational only: it never replaces the current HTML and cannot apply changes by itself. Always return the complete HTML candidate.",
     refining
