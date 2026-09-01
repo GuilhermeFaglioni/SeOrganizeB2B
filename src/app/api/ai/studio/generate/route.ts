@@ -83,10 +83,20 @@ async function readGenerationBody(
 }
 
 export async function POST(request: Request) {
-  const user = await getUser();
-  if (!user) return unauthorizedResponse();
-
-  const access = await requireAIStudioAccess(user.id);
+  let user: Awaited<ReturnType<typeof getUser>>;
+  let access: Awaited<ReturnType<typeof requireAIStudioAccess>>;
+  try {
+    user = await getUser();
+    if (!user) return unauthorizedResponse();
+    access = await requireAIStudioAccess(user.id);
+  } catch (error) {
+    console.error("AI Studio generation access check failed:", {
+      errorName: error instanceof Error ? error.name : typeof error,
+      errorMessage: error instanceof Error ? error.message : "unknown",
+      vercelRequestId: request.headers.get("x-vercel-id"),
+    });
+    return mapAIStudioError(error);
+  }
   if ("response" in access) return access.response;
 
   let body: Awaited<ReturnType<typeof readJsonBody>>;
