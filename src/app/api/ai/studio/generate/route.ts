@@ -56,6 +56,8 @@ async function readGenerationBody(
     "consentVersion",
     "baseHtml",
     "cycleId",
+    "shardKey",
+    "shardPlan",
   ]) {
     const value = form.get(name);
     if (typeof value === "string") body[name] = value;
@@ -132,6 +134,8 @@ export async function POST(request: Request) {
                 imageIds: body.imageIds,
                 imageFiles: body.imageFiles,
                 cycleId: body.cycleId,
+                shardKey: body.shardKey,
+                shardPlan: body.shardPlan,
                 stream: true,
               },
               {
@@ -197,6 +201,8 @@ export async function POST(request: Request) {
       imageIds: body.imageIds,
       imageFiles: body.imageFiles,
       cycleId: body.cycleId,
+      shardKey: body.shardKey,
+      shardPlan: body.shardPlan,
       stream: false,
     });
     return NextResponse.json({ data: result, error: null });

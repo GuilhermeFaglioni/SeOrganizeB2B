@@ -163,6 +163,21 @@ describe("AI Studio text contract", () => {
     expect(fresh.systemPrompt).toContain("first reusable");
   });
 
+  it("describes a bounded shard without asking for a full document", () => {
+    const { systemPrompt, userPrompt } = buildStudioPrompts({
+      locale: "pt-BR",
+      directive: null,
+      message: "Crie uma proposta de consultoria.",
+      shardKey: "content",
+      shardPlan: "content: benefícios e escopo",
+    });
+
+    expect(systemPrompt).toContain("This is shard content");
+    expect(systemPrompt).toContain("below 8,000 output tokens");
+    expect(userPrompt).toContain("Generate only the content fragment");
+    expect(userPrompt).toContain("benefícios e escopo");
+  });
+
   it("reports removals and additions across the base and the candidate", () => {
     const before =
       "<p>{{cliente.nome}}</p><p>{{itens}}</p><p>{{prazo.entrega}}</p>";

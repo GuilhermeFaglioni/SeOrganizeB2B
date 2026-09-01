@@ -38,6 +38,8 @@ describe("AI Studio #171 UI seams", () => {
     expect(source).toContain("{partial ? <pre");
     expect(source).toContain("isGenerating ? (");
     expect(source).toContain("designGenerating");
+    expect(source).toContain("AI_STUDIO_SHARD_KEYS.entries()");
+    expect(source).toContain("Gerando seção");
     expect(generation).toContain('setMessage("");');
   });
 

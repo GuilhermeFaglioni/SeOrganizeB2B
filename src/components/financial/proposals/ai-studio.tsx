@@ -72,6 +72,7 @@ import {
 import {
   AI_STUDIO_MAX_IMAGES_PER_MESSAGE,
   AI_STUDIO_MAX_RECENT_MESSAGES,
+  AI_STUDIO_SHARD_KEYS,
   compactSessionMessage,
   type AIStudioCandidateResponse,
   type AIStudioImageFormat,
@@ -1080,8 +1081,84 @@ function TemplateStudio({
         requestBody = form;
         requestHeaders = undefined;
       }
-      const response = await fetch("/api/ai/studio/generate", { method: "POST", headers: requestHeaders, body: requestBody });
-      const generation = await readGenerationResponse(response);
+      let generation: GenerationResult;
+      const canShard =
+        !html.trim() &&
+        provider === "opencode-go" &&
+        selectedModel.streaming &&
+        requestFiles.length === 0;
+      if (!canShard) {
+        const response = await fetch("/api/ai/studio/generate", {
+          method: "POST",
+          headers: requestHeaders,
+          body: requestBody,
+        });
+        generation = await readGenerationResponse(response);
+      } else {
+        const shardPlan =
+          "header: identidade e título; content: contexto, benefícios e escopo; investment: investimento e condições; footer: próximos passos e encerramento. Use o mesmo briefing, estilo visual e placeholders em todos os fragmentos.";
+        const shardResults: GenerationResult[] = [];
+        for (const [index, shardKey] of AI_STUDIO_SHARD_KEYS.entries()) {
+          let shardResult: GenerationResult | null = null;
+          for (let attempt = 1; attempt <= 2 && !shardResult; attempt += 1) {
+            setPartial(
+              `Gerando seção ${index + 1}/${AI_STUDIO_SHARD_KEYS.length}: ${shardKey}${attempt > 1 ? ` (tentativa ${attempt})` : ""}...`,
+            );
+            try {
+              const shardResponse = await fetch("/api/ai/studio/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  ...requestPayload,
+                  message: `${briefing}\n\nGere somente o fragmento solicitado para esta etapa.`,
+                  stream: false,
+                  shardKey,
+                  shardPlan,
+                }),
+              });
+              shardResult = await responseData<GenerationResult>(
+                shardResponse,
+                t("operationFailed"),
+              );
+            } catch (error) {
+              if (attempt === 2) throw error;
+            }
+          }
+          if (shardResult) shardResults.push(shardResult);
+        }
+        const first = shardResults[0];
+        if (!first) throw new Error(t("generationFailed"));
+        const last = shardResults[shardResults.length - 1] ?? first;
+        const sessionVariables = Array.from(
+          new Set(
+            shardResults.flatMap(
+              (result) => result.candidate.sessionSummary.variables,
+            ),
+          ),
+        );
+        const customVariables = Array.from(
+          new Map(
+            shardResults
+              .flatMap((result) => result.candidate.customVariables)
+              .map((variable) => [variable.name, variable]),
+          ).values(),
+        );
+        generation = {
+          ...first,
+          candidate: {
+            ...first.candidate,
+            html: shardResults.map((result) => result.candidate.html.trim()).join("\n"),
+            customVariables,
+            sessionSummary: {
+              ...last.candidate.sessionSummary,
+              variables: sessionVariables,
+            },
+            warnings: Array.from(
+              new Set(shardResults.flatMap((result) => result.candidate.warnings)),
+            ),
+          },
+        };
+      }
       if (generationEpoch !== sessionEpochRef.current) return;
       const nextCandidate = generation.candidate;
       setSessionSnapshot(generation.sessionSnapshot ?? sessionSnapshot);

@@ -38,6 +38,7 @@ import {
   AI_STUDIO_USAGE_RETENTION_DAYS,
   AI_STUDIO_WORKSPACE_RATE_LIMIT,
   AI_STUDIO_MAX_IMAGES_PER_MESSAGE,
+  type AIStudioShardKey,
   type AIStudioCandidateResponse,
   type AIStudioImageReference,
   type AIStudioImageAsset,
@@ -179,6 +180,8 @@ export interface GenerateTemplateInput {
   imageIds?: unknown;
   imageFiles?: unknown;
   cycleId?: unknown;
+  shardKey?: unknown;
+  shardPlan?: unknown;
 }
 
 export interface GeneratedTemplateResult {
@@ -1147,6 +1150,15 @@ export async function generateTemplateCandidate(
   const imageIds = normalizeImageIds(input.imageIds);
   const imageFiles = normalizeImageFiles(input.imageFiles);
   const baseHtml = normalizeBaseHtml(input.baseHtml);
+  const shardKey =
+    typeof input.shardKey === "string" &&
+    ["header", "content", "investment", "footer"].includes(input.shardKey)
+      ? (input.shardKey as AIStudioShardKey)
+      : null;
+  const shardPlan =
+    typeof input.shardPlan === "string"
+      ? input.shardPlan.trim().slice(0, 4_000)
+      : null;
   const sanitizedBase =
     baseHtml === null ? null : sanitizeAIStudioHtml(baseHtml);
   const connection = await readActiveConnection(input.tenantId, providerId);
@@ -1308,6 +1320,8 @@ export async function generateTemplateCandidate(
       sessionSummary,
       baseHtml: sanitizedBase?.html ?? null,
       imageCount: images.length,
+      shardKey,
+      shardPlan,
     });
     const promptBytes = Buffer.byteLength(
       `${prompts.systemPrompt}\n${prompts.userPrompt}`,
@@ -1373,7 +1387,9 @@ export async function generateTemplateCandidate(
           userPrompt: prompts.userPrompt,
           maxOutputTokens: Math.min(
             AI_STUDIO_MAX_OUTPUT_TOKENS,
-            catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS,
+            shardKey
+              ? 8_000
+              : (catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS),
           ),
           signal: controller.signal,
           images,
@@ -1388,7 +1404,9 @@ export async function generateTemplateCandidate(
           userPrompt: prompts.userPrompt,
           maxOutputTokens: Math.min(
             AI_STUDIO_MAX_OUTPUT_TOKENS,
-            catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS,
+            shardKey
+              ? 8_000
+              : (catalog?.maxOutputTokens ?? AI_STUDIO_MAX_OUTPUT_TOKENS),
           ),
           signal: controller.signal,
           images,
@@ -1469,7 +1487,7 @@ export async function generateTemplateCandidate(
     });
     status = "success";
     usableResponse = true;
-    if (managedCycle) {
+    if (managedCycle && !shardKey) {
       managedCycle = await recordManagedAICycleCandidate({
         tenantId: input.tenantId,
         actorId: input.actorId,
