@@ -1528,10 +1528,17 @@ export async function generateTemplateCandidate(
               "RATE_LIMITED",
               "Este ciclo atingiu o limite de falhas reembolsadas.",
             )
-          : new AIStudioError(
-              "INTERNAL_ERROR",
-              "Não foi possível concluir a geração.",
-            );
+           : new AIStudioError(
+               "INTERNAL_ERROR",
+               "Não foi possível concluir a geração.",
+             );
+    if (!(error instanceof AIStudioError)) {
+      console.error("AI Studio generation normalization failed:", {
+        requestId,
+        errorName: error instanceof Error ? error.name : typeof error,
+        errorMessage: error instanceof Error ? error.message : "unknown",
+      });
+    }
     errorCategory = normalized.providerErrorCode ?? normalized.code;
     if (managedCycle && !usableResponse) {
       try {
