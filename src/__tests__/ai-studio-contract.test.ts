@@ -152,6 +152,7 @@ describe("AI Studio text contract", () => {
     expect(userPrompt).toContain("<section>{{itens}}</section>");
     expect(systemPrompt).toContain("refine an existing");
     expect(systemPrompt).toContain("{{itens}}");
+    expect(systemPrompt).toContain("150000 characters");
 
     const fresh = buildStudioPrompts({
       locale: "pt-BR",
