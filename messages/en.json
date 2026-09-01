@@ -2330,6 +2330,8 @@
       "cycleProgress": "Active cycle: {count} alterations remaining, until {date}",
       "byokNoCredits": "BYOK: this generation does not use SeOrganize+ credits or the managed alteration cap.",
       "emptyBalance": "No credits available. Ask a gestor to add subscription credits or buy a package.",
+      "creditsUnavailable": "The credit balance could not be loaded. Try again before generating.",
+      "insufficientCredits": "There are not enough AI credits for this generation. Ask a gestor to add credits or choose a BYOK connection.",
       "memberLimitReached": "Your individual monthly credit limit has been reached. Ask a gestor to review it.",
       "historyLabel": "Session history",
       "revisionNumber": "Version {number}",

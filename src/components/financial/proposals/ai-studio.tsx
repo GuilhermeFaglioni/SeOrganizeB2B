@@ -113,8 +113,10 @@ type StudioView = "preview" | "html";
 type PreviewViewport = "desktop" | "mobile";
 type ConfirmationKind = "removeVariables" | "updateOriginal";
 
-function CreditSummary({ data, t }: { data: ReturnType<typeof useAICredits>["data"]; t: ReturnType<typeof useTranslations> }) {
-  if (!data) return null;
+function CreditSummary({ data, error, t }: { data: ReturnType<typeof useAICredits>["data"]; error?: boolean; t: ReturnType<typeof useTranslations> }) {
+  if (!data) {
+    return error ? <p role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">{t("creditsUnavailable")}</p> : null;
+  }
   return (
     <section aria-label={t("creditBalanceTitle")} className="rounded-xl border border-border bg-page-alt p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -259,7 +261,7 @@ export function AIStudioEntry() {
             </div>
           </div>
           <p className="max-w-2xl text-sm text-text-secondary">{t("choiceDescription")}</p>
-          <CreditSummary data={creditsQuery.data} t={t} />
+          <CreditSummary data={creditsQuery.data} error={creditsQuery.isError} t={t} />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <button type="button" onClick={() => setMode("new")} className="rounded-xl border-2 border-accent bg-accent/5 p-5 text-left transition hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
               <Sparkles size={22} className="mb-4 text-accent" aria-hidden="true" />
@@ -558,6 +560,8 @@ function TemplateStudio({
           return t("invalidOutput");
         case "RATE_LIMITED":
           return t("rateLimited");
+        case "INSUFFICIENT_CREDITS":
+          return t("insufficientCredits");
         case "TIMEOUT":
           return t("generationTimeout");
         case "PROVIDER_ERROR":
@@ -1845,7 +1849,7 @@ function TemplateStudio({
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                   {selectedModel?.streaming ? <span className="sr-only">{t("streamingSupported")}</span> : null}
-                  <button type="submit" aria-label={isGenerating ? t("generating") : t("generate")} disabled={isGenerating || uploadingImage || recordConsent.isPending || !message.trim() || Boolean(managedModel && creditsQuery.data && creditsQuery.data.balance.total < managedCost && !activeCycle) || Boolean(creditsQuery.data?.memberLimit.remaining === 0 && !activeCycle)} className="inline-flex size-10 items-center justify-center rounded-xl bg-accent text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
+                  <button type="submit" aria-label={isGenerating ? t("generating") : t("generate")} disabled={isGenerating || uploadingImage || recordConsent.isPending || !message.trim() || Boolean(managedModel && creditsQuery.isError && !activeCycle) || Boolean(managedModel && creditsQuery.data && creditsQuery.data.balance.total < managedCost && !activeCycle) || Boolean(creditsQuery.data?.memberLimit.remaining === 0 && !activeCycle)} className="inline-flex size-10 items-center justify-center rounded-xl bg-accent text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50">
                     <Send size={17} aria-hidden="true" />
                   </button>
                 </div>

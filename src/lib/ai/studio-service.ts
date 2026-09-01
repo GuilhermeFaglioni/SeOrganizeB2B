@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma, withTenant, withTenantBypass } from "../../../prisma/client";
 import { checkFeature } from "../features";
+import { AICreditLedgerError } from "./credit-ledger";
 import { getWorkspaceDirective } from "./directives-service";
 import { decryptAiSecret } from "./crypto";
 import {
@@ -90,6 +91,7 @@ export type AIStudioErrorCode =
   | "CONNECTION_UNAVAILABLE"
   | "CONSENT_REQUIRED"
   | "RATE_LIMITED"
+  | "INSUFFICIENT_CREDITS"
   | "GENERATION_IN_FLIGHT"
   | "TIMEOUT"
   | "INVALID_STRUCTURED_OUTPUT"
@@ -1523,6 +1525,12 @@ export async function generateTemplateCandidate(
     const normalized =
       error instanceof AIStudioError
         ? error
+        : error instanceof AICreditLedgerError &&
+            error.code === "INSUFFICIENT_CREDITS"
+          ? new AIStudioError(
+              "INSUFFICIENT_CREDITS",
+              "A empresa não possui créditos de IA suficientes para esta geração.",
+            )
         : error instanceof ManagedAICycleLimitError
           ? new AIStudioError(
               "RATE_LIMITED",

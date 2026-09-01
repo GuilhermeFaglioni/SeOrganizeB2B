@@ -2330,6 +2330,8 @@
       "cycleProgress": "Ciclo ativo: {count} alterações restantes, até {date}",
       "byokNoCredits": "BYOK: esta geração não usa créditos do SeOrganize+ nem o limite de alterações gerenciado.",
       "emptyBalance": "Não há créditos disponíveis. Peça ao gestor para adicionar créditos de assinatura ou comprar um pacote.",
+      "creditsUnavailable": "Não foi possível carregar o saldo de créditos. Tente novamente antes de gerar.",
+      "insufficientCredits": "Não há créditos de IA suficientes para esta geração. Peça ao gestor para adicionar créditos ou escolha uma conexão BYOK.",
       "memberLimitReached": "Seu limite mensal individual de créditos foi atingido. Peça ao gestor para revisá-lo.",
       "historyLabel": "Histórico desta sessão",
       "revisionNumber": "Versão {number}",
